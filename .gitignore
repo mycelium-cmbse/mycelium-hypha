@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# Raw source documents (obtain separately — see sources/README.md).
+# OMG PDF specifications are copyrighted and MUST NOT be committed.
+# XMI / model libraries can be large and are reproducible from upstream.
+# ---------------------------------------------------------------------------
+sources/xmi/*
+sources/specs/*
+sources/textual/*
+!sources/**/.gitkeep
+
+# ---------------------------------------------------------------------------
+# .NET (tools/metamodel-gen)
+# ---------------------------------------------------------------------------
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# ---------------------------------------------------------------------------
+# Python (tools/spec-extract)
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# ---------------------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------------------
+.idea/
+.DS_Store
+Thumbs.db
