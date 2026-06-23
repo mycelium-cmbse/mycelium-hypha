@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+
+title: "mycelium-hypha"
+abstract: "Hypha is the AI agent of the Mycelium ecosystem, a connecting filament between engineers and the SysML v2 specification. Packaged as a Claude plugin with skills and subagents for metamodel lookup, spec citation, and SysML v2 validation."
+version: "0.0.1"
+date-released: "2026-06-23"
+url: "https://github.com/mycelium-cmbse/mycelium-hypha"
+
+authors:
+  - given-names: "Sam"
+    family-names: "Gerené"
+    affiliation: "Starion Group S.A."
+    orcid: "https://orcid.org/0009-0000-1848-550X"
+  - name: "Starion Group S.A."
+    affiliation: "Starion Group S.A."
+    given-names: "MBSE Competence Area Developers"
+
+repository-code: "https://github.com/mycelium-cmbse/mycelium-hypha"
+license: "Apache-2.0"
+
+preferred-citation:
+  type: software
+  title: "mycelium-hypha"
+  authors:
+    - given-names: "Sam"
+      family-names: "Gerené"
+      affiliation: "Starion Group S.A."
+      orcid: "https://orcid.org/0009-0000-1848-550X"
+    - name: "Starion Group S.A."
+      affiliation: "Starion Group S.A."
+      given-names: "MBSE Competence Area Developers"
+  version: "0.0.1"
+  url: "https://github.com/mycelium-cmbse/mycelium-hypha"
+  date-released: "2026-06-23"
