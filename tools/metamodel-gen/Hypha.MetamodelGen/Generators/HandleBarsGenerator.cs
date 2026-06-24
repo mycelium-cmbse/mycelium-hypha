@@ -25,26 +25,27 @@ namespace Hypha.MetamodelGen.Generators
         protected readonly IHandlebars Handlebars;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HandleBarsGenerator"/> class and registers
-        /// the concrete generator's templates.
+        /// Initializes a new instance of the <see cref="HandleBarsGenerator"/> class, compiling and
+        /// registering the named templates.
         /// </summary>
-        protected HandleBarsGenerator()
+        /// <param name="templateNames">
+        /// The template (file) names, without extension, to compile from <see cref="Generator.TemplateFolderPath"/>.
+        /// </param>
+        protected HandleBarsGenerator(params string[] templateNames)
         {
             this.Templates = new Dictionary<string, HandlebarsTemplate<object, object>>();
             this.Handlebars = HandlebarsDotNet.Handlebars.Create();
 
-            this.RegisterTemplates();
+            foreach (var name in templateNames)
+            {
+                this.RegisterTemplate(name);
+            }
         }
 
         /// <summary>
         /// Gets the registered, compiled templates keyed by template (file) name.
         /// </summary>
         public Dictionary<string, HandlebarsTemplate<object, object>> Templates { get; }
-
-        /// <summary>
-        /// Registers the templates the concrete generator needs.
-        /// </summary>
-        protected abstract void RegisterTemplates();
 
         /// <summary>
         /// Compiles and registers a Handlebars template located at

@@ -31,10 +31,12 @@ namespace Hypha.MetamodelGen.Generators
         /// </summary>
         private const string TemplateName = "metamodel-index";
 
-        /// <inheritdoc/>
-        protected override void RegisterTemplates()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MetamodelIndexGenerator"/> class.
+        /// </summary>
+        public MetamodelIndexGenerator()
+            : base(TemplateName)
         {
-            this.RegisterTemplate(TemplateName);
         }
 
         /// <summary>
