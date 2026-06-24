@@ -1,9 +1,9 @@
 # ---------------------------------------------------------------------------
-# Raw source documents (obtain separately — see sources/README.md).
-# OMG PDF specifications are copyrighted and MUST NOT be committed.
-# XMI / model libraries can be large and are reproducible from upstream.
+# Raw source documents (see sources/README.md).
+# The XMI / UML metamodel files ARE committed (sources/xmi/) so the generator
+# tests are reproducible. OMG PDF specifications are copyrighted and MUST NOT
+# be committed.
 # ---------------------------------------------------------------------------
-sources/xmi/*
 sources/specs/*
 sources/textual/*
 !sources/**/.gitkeep

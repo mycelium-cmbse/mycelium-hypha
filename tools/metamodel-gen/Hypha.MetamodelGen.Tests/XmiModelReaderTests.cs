@@ -1,12 +1,11 @@
-// -------------------------------------------------------------------------------------------------
-//  <copyright file="XmiModelReaderTests.cs" company="Starion Group S.A.">
-//    Copyright 2026 Starion Group S.A.
+// ------------------------------------------------------------------------------------------------
+// <copyright file="XmiModelReaderTests.cs" company="Starion Group S.A.">
 //
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-//  </copyright>
-// -------------------------------------------------------------------------------------------------
+//   Copyright 2026 Starion Group S.A.
+//   SPDX-License-Identifier: Apache-2.0
+//
+// </copyright>
+// ------------------------------------------------------------------------------------------------
 
 namespace Hypha.MetamodelGen.Tests
 {
