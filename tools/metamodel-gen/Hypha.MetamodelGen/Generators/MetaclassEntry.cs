@@ -17,12 +17,16 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="MetaclassEntry"/> class.
         /// </summary>
-        public MetaclassEntry(string name)
+        public MetaclassEntry(string name, string summary)
         {
             this.Name = name;
+            this.Summary = summary;
         }
 
         /// <summary>Gets the metaclass name (also the element file stem).</summary>
         public string Name { get; }
+
+        /// <summary>Gets the one-line summary of the metaclass documentation (may be empty).</summary>
+        public string Summary { get; }
     }
 }

@@ -25,4 +25,10 @@
     <ProjectReference Include="..\Hypha.MetamodelGen\Hypha.MetamodelGen.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Expected\**\*.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
