@@ -50,6 +50,12 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.That(content, Does.StartWith("# SysML v2 metamodel index"));
                 Assert.That(content, Does.Contain("metaclasses across"));
 
+                // Index entries are enriched with a one-line summary from the documentation.
+                Assert.That(
+                    content,
+                    Does.Contain("[PartUsage](elements/PartUsage.md) — A PartUsage is a usage of a PartDefinition"),
+                    "the index should append a one-line summary to each metaclass entry");
+
                 Assert.That(interestingMetaclasses, Is.Not.Empty, "ModelInspector returned no interesting classes");
 
                 foreach (var metaclass in interestingMetaclasses)

@@ -6,159 +6,159 @@
 
 ## Actions
 
-- [AcceptActionUsage](elements/AcceptActionUsage.md)
-- [ActionDefinition](elements/ActionDefinition.md)
-- [ActionUsage](elements/ActionUsage.md)
-- [AssignmentActionUsage](elements/AssignmentActionUsage.md)
-- [ControlNode](elements/ControlNode.md)
-- [DecisionNode](elements/DecisionNode.md)
-- [ForLoopActionUsage](elements/ForLoopActionUsage.md)
-- [ForkNode](elements/ForkNode.md)
-- [IfActionUsage](elements/IfActionUsage.md)
-- [JoinNode](elements/JoinNode.md)
-- [LoopActionUsage](elements/LoopActionUsage.md)
-- [MergeNode](elements/MergeNode.md)
-- [PerformActionUsage](elements/PerformActionUsage.md)
-- [SendActionUsage](elements/SendActionUsage.md)
-- [TerminateActionUsage](elements/TerminateActionUsage.md)
-- [TriggerInvocationExpression](elements/TriggerInvocationExpression.md)
-- [WhileLoopActionUsage](elements/WhileLoopActionUsage.md)
+- [AcceptActionUsage](elements/AcceptActionUsage.md) — An AcceptActionUsage is an ActionUsage that specifies the acceptance of an incomingTransfer from the Occurrence given by the result of its receiverArgument Expr…
+- [ActionDefinition](elements/ActionDefinition.md) — An ActionDefinition is a Definition that is also a Behavior that defines an Action performed by a system or part of a system.
+- [ActionUsage](elements/ActionUsage.md) — An ActionUsage is a Usage that is also a Step, and, so, is typed by a Behavior.
+- [AssignmentActionUsage](elements/AssignmentActionUsage.md) — An AssignmentActionUsage is an ActionUsage that is defined, directly or indirectly, by the ActionDefinition AssignmentAction from the Systems Model Library.
+- [ControlNode](elements/ControlNode.md) — A ControlNode is an ActionUsage that does not have any inherent behavior but provides constraints on incoming and outgoing Successions that are used to control…
+- [DecisionNode](elements/DecisionNode.md) — A DecisionNode is a ControlNode that makes a selection from its outgoing Successions.
+- [ForLoopActionUsage](elements/ForLoopActionUsage.md) — A ForLoopActionUsage is a LoopActionUsage that specifies that its bodyAction ActionUsage should be performed once for each value, in order, from the sequence of…
+- [ForkNode](elements/ForkNode.md) — A ForkNode is a ControlNode that must be followed by successor Actions as given by all its outgoing Successions.
+- [IfActionUsage](elements/IfActionUsage.md) — An IfActionUsage is an ActionUsage that specifies that the thenAction ActionUsage should be performed if the result of the ifArgument Expression is true.
+- [JoinNode](elements/JoinNode.md) — A JoinNode is a ControlNode that waits for the completion of all the predecessor Actions given by incoming Successions.
+- [LoopActionUsage](elements/LoopActionUsage.md) — A LoopActionUsage is an ActionUsage that specifies that its bodyAction should be performed repeatedly.
+- [MergeNode](elements/MergeNode.md) — A MergeNode is a ControlNode that asserts the merging of its incoming Successions.
+- [PerformActionUsage](elements/PerformActionUsage.md) — A PerformActionUsage is an ActionUsage that represents the performance of an ActionUsage.
+- [SendActionUsage](elements/SendActionUsage.md) — A SendActionUsage is an ActionUsage that specifies the sending of a payload given by the result of its payloadArgument Expression via a MessageTransfer whose so…
+- [TerminateActionUsage](elements/TerminateActionUsage.md) — A TerminateActionUsage is an ActionUsage that directly or indirectly specializes the ActionDefinition TerminateAction from the Systems Model Library, which caus…
+- [TriggerInvocationExpression](elements/TriggerInvocationExpression.md) — A TriggerInvocationExpression is an InvocationExpression that invokes one of the trigger Functions from the Kernel Semantic Library Triggers package, as indicat…
+- [WhileLoopActionUsage](elements/WhileLoopActionUsage.md) — A WhileLoopActionUsage is a LoopActionUsage that specifies that the bodyAction ActionUsage should be performed repeatedly while the result of the whileArgument…
 
 ## Allocations
 
-- [AllocationDefinition](elements/AllocationDefinition.md)
-- [AllocationUsage](elements/AllocationUsage.md)
+- [AllocationDefinition](elements/AllocationDefinition.md) — An AllocationDefinition is a ConnectionDefinition that specifies that some or all of the responsibility to realize the intent of the source is allocated to the…
+- [AllocationUsage](elements/AllocationUsage.md) — An AllocationUsage is a usage of an AllocationDefinition asserting the allocation of the source feature to the target feature.
 
 ## AnalysisCases
 
-- [AnalysisCaseDefinition](elements/AnalysisCaseDefinition.md)
-- [AnalysisCaseUsage](elements/AnalysisCaseUsage.md)
+- [AnalysisCaseDefinition](elements/AnalysisCaseDefinition.md) — An AnalysisCaseDefinition is a CaseDefinition for the case of carrying out an analysis.
+- [AnalysisCaseUsage](elements/AnalysisCaseUsage.md) — An AnalysisCaseUsage is a Usage of an AnalysisCaseDefinition.
 
 ## Attributes
 
-- [AttributeDefinition](elements/AttributeDefinition.md)
-- [AttributeUsage](elements/AttributeUsage.md)
+- [AttributeDefinition](elements/AttributeDefinition.md) — An AttributeDefinition is a Definition and a DataType of information about a quality or characteristic of a system or part of a system that has no independent i…
+- [AttributeUsage](elements/AttributeUsage.md) — An AttributeUsage is a Usage whose type is a DataType.
 
 ## Calculations
 
-- [CalculationDefinition](elements/CalculationDefinition.md)
-- [CalculationUsage](elements/CalculationUsage.md)
+- [CalculationDefinition](elements/CalculationDefinition.md) — A CalculationDefinition is an <coed>ActionDefinition that also defines a Function producing a result.</coed>
+- [CalculationUsage](elements/CalculationUsage.md) — A CalculationUsage is an ActionUsage that is also an Expression, and, so, is typed by a Function.
 
 ## Cases
 
-- [CaseDefinition](elements/CaseDefinition.md)
-- [CaseUsage](elements/CaseUsage.md)
-- [ObjectiveMembership](elements/ObjectiveMembership.md)
+- [CaseDefinition](elements/CaseDefinition.md) — A CaseDefinition is a CalculationDefinition for a process, often involving collecting evidence or data, relative to a subject, possibly involving the collaborat…
+- [CaseUsage](elements/CaseUsage.md) — A CaseUsage is a Usage of a CaseDefinition.
+- [ObjectiveMembership](elements/ObjectiveMembership.md) — An ObjectiveMembership is a FeatureMembership that indicates that its ownedObjectiveRequirement is the objective RequirementUsage for its owningType, which must…
 
 ## Connections
 
-- [BindingConnectorAsUsage](elements/BindingConnectorAsUsage.md)
-- [ConnectionDefinition](elements/ConnectionDefinition.md)
-- [ConnectionUsage](elements/ConnectionUsage.md)
-- [ConnectorAsUsage](elements/ConnectorAsUsage.md)
-- [SuccessionAsUsage](elements/SuccessionAsUsage.md)
+- [BindingConnectorAsUsage](elements/BindingConnectorAsUsage.md) — A BindingConnectorAsUsage is both a BindingConnector and a ConnectorAsUsage.
+- [ConnectionDefinition](elements/ConnectionDefinition.md) — A ConnectionDefinition is a PartDefinition that is also an AssociationStructure.
+- [ConnectionUsage](elements/ConnectionUsage.md) — A ConnectionUsage is a ConnectorAsUsage that is also a PartUsage.
+- [ConnectorAsUsage](elements/ConnectorAsUsage.md) — A ConnectorAsUsage is both a Connector and a Usage.
+- [SuccessionAsUsage](elements/SuccessionAsUsage.md) — A SuccessionAsUsage is both a ConnectorAsUsage and a Succession.
 
 ## Constraints
 
-- [AssertConstraintUsage](elements/AssertConstraintUsage.md)
-- [ConstraintDefinition](elements/ConstraintDefinition.md)
-- [ConstraintUsage](elements/ConstraintUsage.md)
+- [AssertConstraintUsage](elements/AssertConstraintUsage.md) — An AssertConstraintUsage is a ConstraintUsage that is also an Invariant and, so, is asserted to be true (by default).
+- [ConstraintDefinition](elements/ConstraintDefinition.md) — A ConstraintDefinition is an OccurrenceDefinition that is also a Predicate that defines a constraint that may be asserted to hold on a system or part of a syste…
+- [ConstraintUsage](elements/ConstraintUsage.md) — A ConstraintUsage is an OccurrenceUsage that is also a BooleanExpression, and, so, is typed by a Predicate.
 
 ## DefinitionAndUsage
 
-- [Definition](elements/Definition.md)
-- [ReferenceUsage](elements/ReferenceUsage.md)
-- [Usage](elements/Usage.md)
-- [VariantMembership](elements/VariantMembership.md)
+- [Definition](elements/Definition.md) — A Definition is a Classifier of Usages.
+- [ReferenceUsage](elements/ReferenceUsage.md) — A ReferenceUsage is a Usage that specifies a non-compositional (isComposite = false) reference to something.
+- [Usage](elements/Usage.md) — A Usage is a usage of a Definition.A Usage may have nestedUsages that model features that apply in the context of the owningUsage.
+- [VariantMembership](elements/VariantMembership.md) — A VariantMembership is a Membership between a variation point Definition or Usage and a Usage that represents a variant in the context of that variation.
 
 ## Enumerations
 
-- [EnumerationDefinition](elements/EnumerationDefinition.md)
-- [EnumerationUsage](elements/EnumerationUsage.md)
+- [EnumerationDefinition](elements/EnumerationDefinition.md) — An EnumerationDefinition is an AttributeDefinition all of whose instances are given by an explicit list of enumeratedValues.
+- [EnumerationUsage](elements/EnumerationUsage.md) — An EnumerationUsage is an AttributeUsage whose attributeDefinition is an EnumerationDefinition.
 
 ## Flows
 
-- [FlowDefinition](elements/FlowDefinition.md)
-- [FlowUsage](elements/FlowUsage.md)
-- [SuccessionFlowUsage](elements/SuccessionFlowUsage.md)
+- [FlowDefinition](elements/FlowDefinition.md) — A FlowDefinition is an ActionDefinition that is also an Interaction (which is both a KerML Behavior and Association), representing flows between Usages.
+- [FlowUsage](elements/FlowUsage.md) — A FlowUsage is an ActionUsage that is also a ConnectorAsUsage and a KerML Flow.
+- [SuccessionFlowUsage](elements/SuccessionFlowUsage.md) — A SuccessionFlowUsage is a FlowUsage that is also a KerML SuccessionFlow.
 
 ## Interfaces
 
-- [InterfaceDefinition](elements/InterfaceDefinition.md)
-- [InterfaceUsage](elements/InterfaceUsage.md)
+- [InterfaceDefinition](elements/InterfaceDefinition.md) — An InterfaceDefinition is a ConnectionDefinition all of whose ends are PortUsages, defining an interface between elements that interact through such ports.
+- [InterfaceUsage](elements/InterfaceUsage.md) — An InterfaceUsage is a Usage of an InterfaceDefinition to represent an interface connecting parts of a system through specific ports.
 
 ## Items
 
-- [ItemDefinition](elements/ItemDefinition.md)
-- [ItemUsage](elements/ItemUsage.md)
+- [ItemDefinition](elements/ItemDefinition.md) — An ItemDefinition is an OccurrenceDefinition of the Structure of things that may themselves be systems or parts of systems, but may also be things that are acte…
+- [ItemUsage](elements/ItemUsage.md) — An ItemUsage is an OccurrenceUsage whose definition is a Structure.
 
 ## Metadata
 
-- [MetadataDefinition](elements/MetadataDefinition.md)
-- [MetadataUsage](elements/MetadataUsage.md)
+- [MetadataDefinition](elements/MetadataDefinition.md) — A MetadataDefinition is an ItemDefinition that is also a Metaclass.
+- [MetadataUsage](elements/MetadataUsage.md) — A MetadataUsage is a Usage and a MetadataFeature, used to annotate other Elements in a system model with metadata.
 
 ## Occurrences
 
-- [EventOccurrenceUsage](elements/EventOccurrenceUsage.md)
-- [OccurrenceDefinition](elements/OccurrenceDefinition.md)
-- [OccurrenceUsage](elements/OccurrenceUsage.md)
+- [EventOccurrenceUsage](elements/EventOccurrenceUsage.md) — An EventOccurrenceUsage is an OccurrenceUsage that represents another OccurrenceUsage occurring as a suboccurrence of the containing occurrence of the EventOccu…
+- [OccurrenceDefinition](elements/OccurrenceDefinition.md) — An OccurrenceDefinition is a Definition of a Class of individuals that have an independent life over time and potentially an extent over space.
+- [OccurrenceUsage](elements/OccurrenceUsage.md) — An OccurrenceUsage is a Usage whose types are all Classes.
 
 ## Parts
 
-- [PartDefinition](elements/PartDefinition.md)
-- [PartUsage](elements/PartUsage.md)
+- [PartDefinition](elements/PartDefinition.md) — A PartDefinition is an ItemDefinition of a Class of systems or parts of systems.
+- [PartUsage](elements/PartUsage.md) — A PartUsage is a usage of a PartDefinition to represent a system or a part of a system.
 
 ## Ports
 
-- [ConjugatedPortDefinition](elements/ConjugatedPortDefinition.md)
-- [ConjugatedPortTyping](elements/ConjugatedPortTyping.md)
-- [PortConjugation](elements/PortConjugation.md)
-- [PortDefinition](elements/PortDefinition.md)
-- [PortUsage](elements/PortUsage.md)
+- [ConjugatedPortDefinition](elements/ConjugatedPortDefinition.md) — A ConjugatedPortDefinition is a PortDefinition that is a PortDefinition of its original PortDefinition.
+- [ConjugatedPortTyping](elements/ConjugatedPortTyping.md) — A ConjugatedPortTyping is a FeatureTyping whose type is a ConjugatedPortDefinition.
+- [PortConjugation](elements/PortConjugation.md) — A PortConjugation is a Conjugation Relationship between a PortDefinition and its corresponding ConjugatedPortDefinition.
+- [PortDefinition](elements/PortDefinition.md) — A PortDefinition defines a point at which external entities can connect to and interact with a system or part of a system.
+- [PortUsage](elements/PortUsage.md) — A PortUsage is a usage of a PortDefinition.
 
 ## Requirements
 
-- [ActorMembership](elements/ActorMembership.md)
-- [ConcernDefinition](elements/ConcernDefinition.md)
-- [ConcernUsage](elements/ConcernUsage.md)
-- [FramedConcernMembership](elements/FramedConcernMembership.md)
-- [RequirementConstraintMembership](elements/RequirementConstraintMembership.md)
-- [RequirementDefinition](elements/RequirementDefinition.md)
-- [RequirementUsage](elements/RequirementUsage.md)
-- [SatisfyRequirementUsage](elements/SatisfyRequirementUsage.md)
-- [StakeholderMembership](elements/StakeholderMembership.md)
-- [SubjectMembership](elements/SubjectMembership.md)
+- [ActorMembership](elements/ActorMembership.md) — An ActorMembership is a ParameterMembership that identifies a PartUsage as an actor parameter, which specifies a role played by an external entity in interactio…
+- [ConcernDefinition](elements/ConcernDefinition.md) — A ConcernDefinition is a RequirementDefinition that one or more stakeholders may be interested in having addressed.
+- [ConcernUsage](elements/ConcernUsage.md) — A ConcernUsage is a Usage of a ConcernDefinition.
+- [FramedConcernMembership](elements/FramedConcernMembership.md) — A FramedConcernMembership is a RequirementConstraintMembership for a framed ConcernUsage of a RequirementDefinition or RequirementUsage.
+- [RequirementConstraintMembership](elements/RequirementConstraintMembership.md) — A RequirementConstraintMembership is a FeatureMembership for an assumed or required ConstraintUsage of a RequirementDefinition or RequirementUsage.
+- [RequirementDefinition](elements/RequirementDefinition.md) — A RequirementDefinition is a ConstraintDefinition that defines a requirement used in the context of a specification as a constraint that a valid solution must s…
+- [RequirementUsage](elements/RequirementUsage.md) — A RequirementUsage is a Usage of a RequirementDefinition.
+- [SatisfyRequirementUsage](elements/SatisfyRequirementUsage.md) — A SatisfyRequirementUsage is an AssertConstraintUsage that asserts, by default, that a satisfied RequirementUsage is true for a specific satisfyingFeature, or,…
+- [StakeholderMembership](elements/StakeholderMembership.md) — A StakeholderMembership is a ParameterMembership that identifies a PartUsage as a stakeholderParameter of a RequirementDefinition or RequirementUsage, which spe…
+- [SubjectMembership](elements/SubjectMembership.md) — A SubjectMembership is a ParameterMembership that indicates that its ownedSubjectParameter is the subject of its owningType.
 
 ## States
 
-- [ExhibitStateUsage](elements/ExhibitStateUsage.md)
-- [StateDefinition](elements/StateDefinition.md)
-- [StateSubactionMembership](elements/StateSubactionMembership.md)
-- [StateUsage](elements/StateUsage.md)
-- [TransitionFeatureMembership](elements/TransitionFeatureMembership.md)
-- [TransitionUsage](elements/TransitionUsage.md)
+- [ExhibitStateUsage](elements/ExhibitStateUsage.md) — An ExhibitStateUsage is a StateUsage that represents the exhibiting of a StateUsage.
+- [StateDefinition](elements/StateDefinition.md) — A StateDefinition is the Definition of the Behavior of a system or part of a system in a certain state condition.A StateDefinition may be related to up to three…
+- [StateSubactionMembership](elements/StateSubactionMembership.md) — A StateSubactionMembership is a FeatureMembership for an entry, do or exit ActionUsage of a StateDefinition or StateUsage.
+- [StateUsage](elements/StateUsage.md) — A StateUsage is an ActionUsage that is nominally the Usage of a StateDefinition.
+- [TransitionFeatureMembership](elements/TransitionFeatureMembership.md) — A TransitionFeatureMembership is a FeatureMembership for a trigger, guard or effect of a TransitionUsage, whose transitionFeature is a AcceptActionUsage, Boolea…
+- [TransitionUsage](elements/TransitionUsage.md) — A TransitionUsage is an ActionUsage representing a triggered transition between ActionUsages or StateUsages.
 
 ## UseCases
 
-- [IncludeUseCaseUsage](elements/IncludeUseCaseUsage.md)
-- [UseCaseDefinition](elements/UseCaseDefinition.md)
-- [UseCaseUsage](elements/UseCaseUsage.md)
+- [IncludeUseCaseUsage](elements/IncludeUseCaseUsage.md) — An IncludeUseCaseUsage is a UseCaseUsage that represents the inclusion of a UseCaseUsage by a UseCaseDefinition or UseCaseUsage.
+- [UseCaseDefinition](elements/UseCaseDefinition.md) — A UseCaseDefinition is a CaseDefinition that specifies a set of actions performed by its subject, in interaction with one or more actors external to the subject…
+- [UseCaseUsage](elements/UseCaseUsage.md) — A UseCaseUsage is a Usage of a UseCaseDefinition.
 
 ## VerificationCases
 
-- [RequirementVerificationMembership](elements/RequirementVerificationMembership.md)
-- [VerificationCaseDefinition](elements/VerificationCaseDefinition.md)
-- [VerificationCaseUsage](elements/VerificationCaseUsage.md)
+- [RequirementVerificationMembership](elements/RequirementVerificationMembership.md) — A RequirementVerificationMembership is a RequirementConstraintMembership used in the objective of a VerificationCase to identify a RequirementUsage that is veri…
+- [VerificationCaseDefinition](elements/VerificationCaseDefinition.md) — A VerificationCaseDefinition is a CaseDefinition for the purpose of verification of the subject of the case against its requirements.
+- [VerificationCaseUsage](elements/VerificationCaseUsage.md) — A VerificationCaseUsage is a Usage of a VerificationCaseDefinition.
 
 ## Views
 
-- [Expose](elements/Expose.md)
-- [MembershipExpose](elements/MembershipExpose.md)
-- [NamespaceExpose](elements/NamespaceExpose.md)
-- [RenderingDefinition](elements/RenderingDefinition.md)
-- [RenderingUsage](elements/RenderingUsage.md)
-- [ViewDefinition](elements/ViewDefinition.md)
-- [ViewRenderingMembership](elements/ViewRenderingMembership.md)
-- [ViewUsage](elements/ViewUsage.md)
-- [ViewpointDefinition](elements/ViewpointDefinition.md)
-- [ViewpointUsage](elements/ViewpointUsage.md)
+- [Expose](elements/Expose.md) — An Expose is an Import of Memberships into a ViewUsage that provide the Elements to be included in a view.
+- [MembershipExpose](elements/MembershipExpose.md) — A MembershipExpose is an Expose <> that exposes a specific importedMembership and, if isRecursive = true, additional Memberships recursively.
+- [NamespaceExpose](elements/NamespaceExpose.md) — A NamespaceExpose is an Expose Relationship that exposes the Memberships of a specific importedNamespace and, if isRecursive = true, additional Memberships recu…
+- [RenderingDefinition](elements/RenderingDefinition.md) — A RenderingDefinition is a PartDefinition that defines a specific rendering of the content of a model view (e.g., symbols, style, layout, etc.).
+- [RenderingUsage](elements/RenderingUsage.md) — A RenderingUsage is the usage of a RenderingDefinition to specify the rendering of a specific model view to produce a physical view artifact.
+- [ViewDefinition](elements/ViewDefinition.md) — A ViewDefinition is a PartDefinition that specifies how a view artifact is constructed to satisfy a viewpoint.
+- [ViewRenderingMembership](elements/ViewRenderingMembership.md) — A ViewRenderingMembership is a <coed>FeatureMembership that identifies the viewRendering of a ViewDefinition or ViewUsage.</coed>
+- [ViewUsage](elements/ViewUsage.md) — A ViewUsage is a usage of a ViewDefinition to specify the generation of a view of the members of a collection of exposedNamespaces.
+- [ViewpointDefinition](elements/ViewpointDefinition.md) — A ViewpointDefinition is a RequirementDefinition that specifies one or more stakeholder concerns that are to be satisfied by creating a view of a model.
+- [ViewpointUsage](elements/ViewpointUsage.md) — A ViewpointUsage is a Usage of a ViewpointDefinition.

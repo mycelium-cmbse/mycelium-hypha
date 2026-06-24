@@ -1,0 +1,61 @@
+// ------------------------------------------------------------------------------------------------
+// <copyright file="MetaclassPayload.cs" company="Starion Group S.A.">
+//
+//   Copyright 2026 Starion Group S.A.
+//   SPDX-License-Identifier: Apache-2.0
+//
+// </copyright>
+// ------------------------------------------------------------------------------------------------
+
+namespace Hypha.MetamodelGen.Generators
+{
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// The Handlebars context for a single metaclass element file.
+    /// </summary>
+    public sealed class MetaclassPayload
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MetaclassPayload"/> class.
+        /// </summary>
+        public MetaclassPayload(
+            string name,
+            string package,
+            bool isAbstract,
+            string documentation,
+            IReadOnlyList<string> generalizations,
+            IReadOnlyList<MetaclassFeature> features,
+            IReadOnlyList<MetaclassConstraint> constraints)
+        {
+            this.Name = name;
+            this.Package = package;
+            this.IsAbstract = isAbstract;
+            this.Documentation = documentation;
+            this.Generalizations = generalizations;
+            this.Features = features;
+            this.Constraints = constraints;
+        }
+
+        /// <summary>Gets the metaclass name.</summary>
+        public string Name { get; }
+
+        /// <summary>Gets the owning package name.</summary>
+        public string Package { get; }
+
+        /// <summary>Gets a value indicating whether the metaclass is abstract.</summary>
+        public bool IsAbstract { get; }
+
+        /// <summary>Gets the metaclass documentation (may be empty).</summary>
+        public string Documentation { get; }
+
+        /// <summary>Gets the direct supertype (generalization) names, ordered.</summary>
+        public IReadOnlyList<string> Generalizations { get; }
+
+        /// <summary>Gets the owned features, ordered by name.</summary>
+        public IReadOnlyList<MetaclassFeature> Features { get; }
+
+        /// <summary>Gets the owned constraints, ordered by name.</summary>
+        public IReadOnlyList<MetaclassConstraint> Constraints { get; }
+    }
+}

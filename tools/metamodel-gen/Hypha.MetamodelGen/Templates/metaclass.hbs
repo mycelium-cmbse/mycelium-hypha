@@ -1,0 +1,44 @@
+# {{Name}}
+
+`{{Package}}` package · {{#if IsAbstract}}abstract metaclass{{else}}concrete metaclass{{/if}}
+{{#if Documentation}}
+
+{{{Documentation}}}
+{{/if}}
+{{#if Generalizations}}
+
+## Generalizations
+
+{{#each Generalizations}}
+- [{{this}}]({{this}}.md)
+{{/each}}
+{{/if}}
+{{#if Features}}
+
+## Owned features
+
+{{#each Features}}
+### {{Name}} : {{Type}} {{Multiplicity}}
+{{#if Documentation}}
+
+{{{Documentation}}}
+{{/if}}
+{{#if Redefines}}
+
+Redefines: {{#each Redefines}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}
+{{/if}}
+{{#if Subsets}}
+
+Subsets: {{#each Subsets}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}
+{{/if}}
+
+{{/each}}
+{{/if}}
+{{#if Constraints}}
+
+## Constraints
+
+{{#each Constraints}}
+- **{{Name}}**{{#if Body}} — {{{Body}}}{{/if}}
+{{/each}}
+{{/if}}

@@ -29,6 +29,26 @@ namespace Hypha.MetamodelGen.Tests
         // The pathmap URI the SysML metamodel uses to reference the UML primitive types library.
         private const string PrimitiveTypesPathMap = "pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml";
 
+        private static XmiReaderResult? cachedModel;
+        private static bool modelLoaded;
+
+        /// <summary>
+        /// Gets the SysML model, loaded once per test run (or <c>null</c> if no model is present).
+        /// </summary>
+        public static XmiReaderResult? Model
+        {
+            get
+            {
+                if (!modelLoaded)
+                {
+                    cachedModel = LoadSysmlModel();
+                    modelLoaded = true;
+                }
+
+                return cachedModel;
+            }
+        }
+
         /// <summary>
         /// Walks up from the test output directory to the repository root (the directory that
         /// contains both <c>sources/xmi</c> and <c>knowledge</c>), or <c>null</c> if not found.

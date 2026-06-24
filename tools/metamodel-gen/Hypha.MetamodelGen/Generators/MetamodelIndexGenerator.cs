@@ -83,7 +83,7 @@ namespace Hypha.MetamodelGen.Generators
                     package.PackagedElement
                         .OfType<IClass>()
                         .OrderBy(@class => @class.Name, StringComparer.Ordinal)
-                        .Select(@class => new MetaclassEntry(@class.Name))
+                        .Select(@class => new MetaclassEntry(@class.Name, @class.QuerySummary()))
                         .ToList()))
                 .Where(group => group.Metaclasses.Count > 0)
                 .OrderBy(group => group.Name, StringComparer.Ordinal)
