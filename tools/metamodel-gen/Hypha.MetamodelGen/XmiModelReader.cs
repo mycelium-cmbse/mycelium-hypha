@@ -1,16 +1,16 @@
-// -------------------------------------------------------------------------------------------------
-//  <copyright file="XmiModelReader.cs" company="Starion Group S.A.">
-//    Copyright 2026 Starion Group S.A.
+// ------------------------------------------------------------------------------------------------
+// <copyright file="XmiModelReader.cs" company="Starion Group S.A.">
 //
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-//  </copyright>
-// -------------------------------------------------------------------------------------------------
+//   Copyright 2026 Starion Group S.A.
+//   SPDX-License-Identifier: Apache-2.0
+//
+// </copyright>
+// ------------------------------------------------------------------------------------------------
 
 namespace Hypha.MetamodelGen
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
 
     using Microsoft.Extensions.Logging.Abstractions;
@@ -29,10 +29,20 @@ namespace Hypha.MetamodelGen
         /// including the model's top-level <see cref="XmiReaderResult.Packages"/>.
         /// </summary>
         /// <param name="path">Absolute or relative path to an XMI file.</param>
+        /// <param name="pathMaps">
+        /// Optional <c>pathmap://</c> URI to local-file mappings used to resolve referenced
+        /// libraries (e.g. the UML primitive types).
+        /// </param>
+        /// <param name="localReferenceBasePath">
+        /// Optional base directory used to resolve local (relative) references.
+        /// </param>
         /// <returns>The <see cref="XmiReaderResult"/> produced by the uml4net reader.</returns>
         /// <exception cref="ArgumentException">When <paramref name="path"/> is null or whitespace.</exception>
         /// <exception cref="FileNotFoundException">When no file exists at <paramref name="path"/>.</exception>
-        public static XmiReaderResult Read(string path)
+        public static XmiReaderResult Read(
+            string path,
+            IReadOnlyDictionary<string, string>? pathMaps = null,
+            string? localReferenceBasePath = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
@@ -41,7 +51,25 @@ namespace Hypha.MetamodelGen
                 throw new FileNotFoundException($"XMI file not found: '{path}'.", path);
             }
 
-            var reader = XmiReaderBuilder.Create()
+            var scope = XmiReaderBuilder.Create();
+
+            if (pathMaps is not null || localReferenceBasePath is not null)
+            {
+                scope = scope.UsingSettings(settings =>
+                {
+                    if (pathMaps is not null)
+                    {
+                        settings.PathMaps = new Dictionary<string, string>(pathMaps);
+                    }
+
+                    if (localReferenceBasePath is not null)
+                    {
+                        settings.LocalReferenceBasePath = localReferenceBasePath;
+                    }
+                });
+            }
+
+            var reader = scope
                 .WithLogger(NullLoggerFactory.Instance)
                 .Build();
 

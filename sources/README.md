@@ -1,8 +1,11 @@
 # sources/
 
-Raw, unprocessed inputs to the generation pipelines. **These files are git-ignored** (see the
-repository `.gitignore`) and must be obtained separately — only this README and `.gitkeep`
-placeholders are tracked.
+Raw, unprocessed inputs to the generation pipelines.
+
+- **`xmi/` is committed** — the XMI / UML metamodel files are version-controlled so the
+  `metamodel-gen` tests are reproducible.
+- **`specs/` and `textual/` are git-ignored** (see the repository `.gitignore`) and must be
+  obtained separately; only this README and `.gitkeep` placeholders are tracked there.
 
 > ⚠️ The OMG PDF specifications are copyrighted. Do **not** commit them to this repository.
 
@@ -20,10 +23,10 @@ sources/
 Most inputs come from the SysML v2 submission team's release repository:
 [Systems-Modeling/SysML-v2-Release](https://github.com/Systems-Modeling/SysML-v2-Release).
 
-### `xmi/` — metamodel & libraries (→ `tools/metamodel-gen`)
-- Normative model libraries in Eclipse XMI: `sysml.library.xmi/` (`.kermlx`, `.sysmlx`).
-- The variant with derived properties/implied relationships: `sysml.library.xmi.implied/`.
-- Place the `.kermlx` / `.sysmlx` files (or the metamodel XMI) here.
+### `xmi/` — metamodel & libraries (→ `tools/metamodel-gen`) — committed
+- The SysML v2 metamodel (`SysML_only_xmi.uml`) and its referenced primitive types
+  (`PrimitiveTypes.xmi`), committed so the generator tests run reproducibly (incl. in CI).
+- A KerML metamodel XMI can be added here to enable KerML generation.
 
 ### `specs/` — PDF specifications (→ `tools/spec-extract`)
 - From `doc/` in the release repo: KerML 1.0, SysML v2 (Parts 1–2), Systems Modeling API & Services 1.0.
