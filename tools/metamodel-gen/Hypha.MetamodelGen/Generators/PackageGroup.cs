@@ -19,7 +19,7 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageGroup"/> class.
         /// </summary>
-        public PackageGroup(string name, IReadOnlyList<MetaclassEntry> metaclasses)
+        public PackageGroup(string name, IReadOnlyList<IndexEntry> metaclasses)
         {
             this.Name = name;
             this.Metaclasses = metaclasses;
@@ -29,6 +29,6 @@ namespace Hypha.MetamodelGen.Generators
         public string Name { get; }
 
         /// <summary>Gets the metaclasses contained in the package, ordered by name.</summary>
-        public IReadOnlyList<MetaclassEntry> Metaclasses { get; }
+        public IReadOnlyList<IndexEntry> Metaclasses { get; }
     }
 }

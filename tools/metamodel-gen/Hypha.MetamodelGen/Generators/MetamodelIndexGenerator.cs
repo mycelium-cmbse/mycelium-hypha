@@ -83,7 +83,7 @@ namespace Hypha.MetamodelGen.Generators
                     package.PackagedElement
                         .OfType<IClass>()
                         .OrderBy(@class => @class.Name, StringComparer.Ordinal)
-                        .Select(@class => new MetaclassEntry(@class.Name, @class.QuerySummary()))
+                        .Select(@class => new IndexEntry(@class.Name, @class.QuerySummary()))
                         .ToList()))
                 .Where(group => group.Metaclasses.Count > 0)
                 .OrderBy(group => group.Name, StringComparer.Ordinal)
@@ -91,7 +91,15 @@ namespace Hypha.MetamodelGen.Generators
 
             var metaclassCount = groups.Sum(group => group.Metaclasses.Count);
 
-            return new MetamodelIndexPayload(title, metaclassCount, groups.Count, groups);
+            var enumerations = ElementCatalog.Enumerations(xmiReaderResult)
+                .Select(enumeration => new IndexEntry(enumeration.Name, enumeration.QuerySummary()))
+                .ToList();
+
+            var primitiveTypes = ElementCatalog.PrimitiveTypes(xmiReaderResult)
+                .Select(primitiveType => new IndexEntry(primitiveType.Name, primitiveType.QuerySummary()))
+                .ToList();
+
+            return new MetamodelIndexPayload(title, metaclassCount, groups.Count, groups, enumerations, primitiveTypes);
         }
 
         /// <summary>
