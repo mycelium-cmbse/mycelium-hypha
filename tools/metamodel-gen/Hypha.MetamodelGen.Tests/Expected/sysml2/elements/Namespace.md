@@ -1,7 +1,9 @@
 ---
 name: Namespace
 package: Namespaces
+fully qualified name: KerML::Root::Namespaces::Namespace
 isAbstract: false
+visibility: public
 generalizes: [Element]
 specializedBy: [Package, Type]
 ---
@@ -23,37 +25,49 @@ A Namespace is an Element that contains other Elements, known as its members, vi
 
 ## Owned features
 
-### importedMembership : Membership [0..*] {derived, ordered}
+### importedMembership
+
+`+` [Membership](Membership.md) · `[0..*]` · *derived, ordered*
 
 The Memberships in this Namespace that result from the ownedImports of this Namespace.
 
-Subsets: `membership`
+Subsets [membership](#membership)
 
-### member : Element [0..*] {derived, ordered}
+### member
+
+`+` [Element](Element.md) · `[0..*]` · *derived, ordered*
 
 The set of all member Elements of this Namespace, which are the memberElements of all memberships of the Namespace.
 
-### membership : Membership [0..*] {derived, ordered}
+### membership
+
+`+` [Membership](Membership.md) · `[0..*]` · *derived, ordered*
 
 All Memberships in this Namespace, including (at least) the union of ownedMemberships and importedMemberships.
 
-### ownedImport : Import [0..*] {derived, composite, ordered}
+### ownedImport
+
+`+` [Import](Import.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Namespace that are Imports, for which the Namespace is the importOwningNamespace.
 
-Subsets: `ownedRelationship`, `sourceRelationship`
+Subsets [ownedRelationship](Element.md#ownedrelationship), `sourceRelationship`
 
-### ownedMember : Element [0..*] {derived, ordered}
+### ownedMember
+
+`+` [Element](Element.md) · `[0..*]` · *derived, ordered*
 
 The owned members of this Namespace, which are the <cpde>ownedMemberElements of the ownedMemberships of the Namespace.</cpde>
 
-Subsets: `member`
+Subsets [member](#member)
 
-### ownedMembership : Membership [0..*] {derived, composite, ordered}
+### ownedMembership
+
+`+` [Membership](Membership.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Namespace that are Memberships, for which the Namespace is the membershipOwningNamespace.
 
-Subsets: `membership`, `sourceRelationship`, `ownedRelationship`
+Subsets [membership](#membership), `sourceRelationship`, [ownedRelationship](Element.md#ownedrelationship)
 
 
 ## Inherited features
@@ -63,21 +77,21 @@ Subsets: `membership`, `sourceRelationship`, `ownedRelationship`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
 ## Constraints
 

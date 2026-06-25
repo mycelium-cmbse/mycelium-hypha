@@ -1,7 +1,9 @@
 ---
 name: Membership
 package: Namespaces
+fully qualified name: KerML::Root::Namespaces::Membership
 isAbstract: false
+visibility: public
 generalizes: [Relationship]
 specializedBy: [OwningMembership]
 ---
@@ -22,33 +24,45 @@ A Membership is a Relationship between a Namespace and an Element that indicates
 
 ## Owned features
 
-### memberElement : Element [1..1]
+### memberElement
+
+`+` [Element](Element.md) · `[1..1]`
 
 The Element that becomes a member of the membershipOwningNamespace due to this Membership.
 
-Redefines: `target`
+Redefines [target](Relationship.md#target)
 
-### memberElementId : String [1..1] {derived}
+### memberElementId
+
+`+` String · `[1..1]` · *derived*
 
 The elementId of the memberElement.
 
-### memberName : String [0..1]
+### memberName
+
+`+` String · `[0..1]`
 
 The name of the memberElement relative to the membershipOwningNamespace.
 
-### memberShortName : String [0..1]
+### memberShortName
+
+`+` String · `[0..1]`
 
 The short name of the memberElement relative to the membershipOwningNamespace.
 
-### membershipOwningNamespace : Namespace [1..1] {derived}
+### membershipOwningNamespace
+
+`+` [Namespace](Namespace.md) · `[1..1]` · *derived*
 
 The Namespace of which the memberElement becomes a member due to this Membership.
 
-Redefines: `source`
+Redefines [source](Relationship.md#source)
 
-Subsets: `membershipNamespace`, `owningRelatedElement`
+Subsets `membershipNamespace`, [owningRelatedElement](Relationship.md#owningrelatedelement)
 
-### visibility : VisibilityKind [1..1]
+### visibility
+
+`+` VisibilityKind · `[1..1]`
 
 Whether or not the Membership of the memberElement in the membershipOwningNamespace is publicly visible outside that Namespace.
 
@@ -60,27 +74,27 @@ Whether or not the Membership of the memberElement in the membershipOwningNamesp
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelatedElement | Element | [0..*] | [Relationship](Relationship.md) | composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelatedElement | Element | [0..1] | [Relationship](Relationship.md) |  |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| relatedElement | Element | [0..*] | [Relationship](Relationship.md) | derived, ordered |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| source | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| target | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
 ## Constraints
 

@@ -1,7 +1,9 @@
 ---
 name: Association
 package: Associations
+fully qualified name: KerML::Kernel::Associations::Association
 isAbstract: false
+visibility: public
 generalizes: [Classifier, Relationship]
 specializedBy: [AssociationStructure, Interaction]
 ---
@@ -24,33 +26,41 @@ An Association is a Relationship and a Classifier to enable classification of li
 
 ## Owned features
 
-### associationEnd : Feature [0..*] {derived}
+### associationEnd
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived*
 
 The features of the Association that identify the things that can be related by it. A concrete Association must have at least two associationEnds. When it has exactly two, the Association is called a binary Association.
 
-Redefines: `endFeature`
+Redefines [endFeature](Type.md#endfeature)
 
-### relatedType : Type [0..*] {derived, ordered}
+### relatedType
+
+`+` [Type](Type.md) · `[0..*]` · *derived, ordered*
 
 The types of the associationEnds of the Association, which are the relatedElements of the Association considered as a Relationship.
 
-Redefines: `relatedElement`
+Redefines [relatedElement](Relationship.md#relatedelement)
 
-### sourceType : Type [0..1] {derived}
+### sourceType
+
+`+` [Type](Type.md) · `[0..1]` · *derived*
 
 The source relatedType for this Association. It is the first relatedType of the Association.
 
-Redefines: `source`
+Redefines [source](Relationship.md#source)
 
-Subsets: `relatedType`
+Subsets [relatedType](#relatedtype)
 
-### targetType : Type [0..*] {derived}
+### targetType
+
+`+` [Type](Type.md) · `[0..*]` · *derived*
 
 The target relatedTypes for this Association. This includes all the relatedTypes other than the sourceType.
 
-Redefines: `target`
+Redefines [target](Relationship.md#target)
 
-Subsets: `relatedType`
+Subsets [relatedType](#relatedtype)
 
 
 ## Inherited features
@@ -60,58 +70,58 @@ Subsets: `relatedType`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| differencingType | Type | [0..*] | [Type](Type.md) | derived, ordered |
-| directedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
-| endFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
+| endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | feature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| featureMembership | FeatureMembership | [0..*] | [Type](Type.md) | derived, ordered |
-| importedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| inheritedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| inheritedMembership | Membership | [0..*] | [Type](Type.md) | derived, ordered |
-| input | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| intersectingType | Type | [0..*] | [Type](Type.md) | derived, ordered |
+| featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| inheritedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
 | isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
 | isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| member | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| membership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| multiplicity | Multiplicity | [0..1] | [Type](Type.md) | derived |
+| member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| output | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedConjugator | Conjugation | [0..1] | [Type](Type.md) | derived, composite |
-| ownedDifferencing | Differencing | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedDisjoining | Disjoining | [0..*] | [Type](Type.md) | derived, composite |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedEndFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedFeatureMembership | FeatureMembership | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedImport | Import | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedIntersecting | Intersecting | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedMember | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| ownedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedRelatedElement | Element | [0..*] | [Relationship](Relationship.md) | composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| ownedSpecialization | Specialization | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedSubclassification | Subclassification | [0..*] | [Classifier](Classifier.md) | derived, composite |
-| ownedUnioning | Unioning | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelatedElement | Element | [0..1] | [Relationship](Relationship.md) |  |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedConjugator | [Conjugation](Conjugation.md) | [0..1] | [Type](Type.md) | derived, composite |
+| ownedDifferencing | [Differencing](Differencing.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedDisjoining | [Disjoining](Disjoining.md) | [0..*] | [Type](Type.md) | derived, composite |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedEndFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedFeatureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedImport | [Import](Import.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedIntersecting | [Intersecting](Intersecting.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedMember | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| ownedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| ownedSpecialization | [Specialization](Specialization.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedSubclassification | [Subclassification](Subclassification.md) | [0..*] | [Classifier](Classifier.md) | derived, composite |
+| ownedUnioning | [Unioning](Unioning.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| relatedElement | Element | [0..*] | [Relationship](Relationship.md) | derived, ordered |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| source | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| target | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
-| unioningType | Type | [0..*] | [Type](Type.md) | derived, ordered |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
 ## Constraints
 
