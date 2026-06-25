@@ -68,8 +68,11 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         /// <summary>
-        /// Loads the SysML metamodel from <c>sources/xmi/*.uml</c>, resolving the referenced UML
-        /// primitive types via a path map. Returns <c>null</c> if no model is present.
+        /// Loads the full SysML v2 metamodel from <c>sources/xmi/SysML_only_xmi.uml</c>. The SysML
+        /// document references the KerML abstract syntax (<c>KerML_only_xmi.uml</c>, resolved as a
+        /// local file relative to the xmi directory) and the UML primitive types (resolved via a
+        /// path map), so reading SysML as the root yields the complete KerML + SysML model with
+        /// fully resolved generalization chains. Returns <c>null</c> if no model is present.
         /// </summary>
         public static XmiReaderResult? LoadSysmlModel()
         {
@@ -81,11 +84,10 @@ namespace Hypha.MetamodelGen.Tests
 
             var xmiDirectory = Path.Combine(root.FullName, "sources", "xmi");
 
-            var modelPath = Directory
-                .EnumerateFiles(xmiDirectory, "*.uml", SearchOption.AllDirectories)
-                .FirstOrDefault();
+            // SysML is the root document; it pulls in KerML and the primitive types by reference.
+            var modelPath = Path.Combine(xmiDirectory, "SysML_only_xmi.uml");
 
-            if (modelPath is null)
+            if (!File.Exists(modelPath))
             {
                 return null;
             }

@@ -49,7 +49,11 @@ namespace Hypha.MetamodelGen.Tests
             Assert.That(File.Exists(partUsage), Is.True);
 
             var content = await File.ReadAllTextAsync(partUsage);
-            Assert.That(content, Does.StartWith("# PartUsage"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(content, Does.StartWith("---\nname: PartUsage").IgnoreCase.Or.StartWith("---\r\nname: PartUsage"));
+                Assert.That(content, Does.Contain("\n# PartUsage"));
+            });
         }
     }
 }

@@ -36,6 +36,17 @@ knowledge/
 
 ## Element file convention (`kerml/elements`, `sysml2/elements`)
 
-One file per metaclass, named `<MetaclassName>.md`, containing: name, owning package,
-abstractness, generalizations (supertypes), owned features (name : type [multiplicity]),
-redefinitions/subsettings, and constraints — each traceable to the source XMI.
+One file per metaclass, named `<MetaclassName>.md`. Each file opens with YAML front matter
+(`name`, `package`, `isAbstract`, `generalizes`, `specializedBy`) for machine-readable lookup,
+followed by:
+
+- the metaclass documentation;
+- **Generalizations** (direct supertypes) and **Specializations** (direct subtypes), cross-linked;
+- **Owned features** — `name : type [multiplicity]` with modifier annotations (`{derived, ordered,
+  composite}`), documentation, and redefinitions/subsettings;
+- **Inherited features** — a compact table of the effective feature set inherited from supertypes,
+  each row giving type, multiplicity, declaring owner, and modifiers, so the reader sees the whole
+  feature set without walking the generalization chain;
+- **Constraints** — the constraint intent text plus its OCL body.
+
+Every entry is traceable to the source XMI.

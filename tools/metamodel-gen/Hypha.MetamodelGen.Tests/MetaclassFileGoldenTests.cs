@@ -49,8 +49,10 @@ namespace Hypha.MetamodelGen.Tests
             var model = TestModel.Model;
             Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
 
-            var metaclass = MetaclassFileGenerator.QueryMetaclasses(model!).Single(@class => @class.Name == metaclassName);
-            var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass));
+            var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
+            var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
+            var metaclass = metaclasses.Single(@class => @class.Name == metaclassName);
+            var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass, subtypeIndex));
 
             var expectedPath = Path.Combine(
                 TestContext.CurrentContext.TestDirectory, "Expected", "sysml2", "elements", $"{metaclassName}.md");
@@ -76,11 +78,13 @@ namespace Hypha.MetamodelGen.Tests
             Directory.CreateDirectory(expectedDirectory);
 
             var generator = new MetaclassFileGenerator();
+            var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
+            var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
 
             foreach (var name in InterestingMetaclassNames())
             {
-                var metaclass = MetaclassFileGenerator.QueryMetaclasses(model!).Single(@class => @class.Name == name);
-                var content = generator.GenerateElement(metaclass);
+                var metaclass = metaclasses.Single(@class => @class.Name == name);
+                var content = generator.GenerateElement(metaclass, subtypeIndex);
 
                 File.WriteAllText(Path.Combine(expectedDirectory, $"{name}.md"), content, new UTF8Encoding(false));
             }
