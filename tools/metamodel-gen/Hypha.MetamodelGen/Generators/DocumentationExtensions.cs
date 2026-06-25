@@ -20,6 +20,13 @@ namespace Hypha.MetamodelGen.Generators
     /// </summary>
     public static class DocumentationExtensions
     {
+        // Convention: every Regex in this tool is constructed with an explicit match timeout to
+        // guard against catastrophic backtracking (ReDoS). Reuse RegexTimeout for any new patterns.
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(2);
+
+        private static readonly Regex WhitespaceRegex =
+            new(@"\s+", RegexOptions.Compiled, RegexTimeout);
+
         /// <summary>
         /// Returns the element's documentation as a single clean paragraph: the comment-body
         /// fragments are joined and runs of whitespace collapsed to single spaces.
@@ -30,7 +37,7 @@ namespace Hypha.MetamodelGen.Generators
 
             var joined = string.Join(" ", element.QueryDocumentation());
 
-            return Regex.Replace(joined, @"\s+", " ").Trim();
+            return WhitespaceRegex.Replace(joined, " ").Trim();
         }
 
         /// <summary>
