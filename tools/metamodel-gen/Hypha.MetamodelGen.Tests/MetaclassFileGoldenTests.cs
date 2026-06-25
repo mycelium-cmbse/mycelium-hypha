@@ -51,7 +51,7 @@ namespace Hypha.MetamodelGen.Tests
 
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
-            var linkableTypeNames = MetaclassFileGenerator.QueryMetaclassNames(metaclasses);
+            var linkableTypeNames = ElementCatalog.LinkableTypeNames(model!);
             var metaclass = metaclasses.Single(@class => @class.Name == metaclassName);
             var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass, subtypeIndex, linkableTypeNames));
 
@@ -81,7 +81,7 @@ namespace Hypha.MetamodelGen.Tests
             var generator = new MetaclassFileGenerator();
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
-            var linkableTypeNames = MetaclassFileGenerator.QueryMetaclassNames(metaclasses);
+            var linkableTypeNames = ElementCatalog.LinkableTypeNames(model!);
 
             foreach (var name in InterestingMetaclassNames())
             {

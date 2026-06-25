@@ -27,20 +27,20 @@ A SuccessionFlow is a Flow that also provides temporal ordering. It classifies T
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
 | association | [Association](Association.md) | [0..*] | [Connector](Connector.md) | derived, ordered |
 | behavior | [Behavior](Behavior.md) | [0..*] | [Step](Step.md) | derived, ordered |
 | chainingFeature | [Feature](Feature.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | connectorEnd | [Feature](Feature.md) | [0..*] | [Connector](Connector.md) | derived, ordered |
 | crossFeature | [Feature](Feature.md) | [0..1] | [Feature](Feature.md) | derived |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | defaultFeaturingType | [Type](Type.md) | [0..1] | [Connector](Connector.md) | derived |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| direction | FeatureDirectionKind | [0..1] | [Feature](Feature.md) |  |
+| direction | [FeatureDirectionKind](FeatureDirectionKind.md) | [0..1] | [Feature](Feature.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | endOwningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
 | feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -54,24 +54,24 @@ A SuccessionFlow is a Flow that also provides temporal ordering. It classifies T
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | interaction | [Interaction](Interaction.md) | [0..*] | [Flow](Flow.md) | derived, ordered |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
-| isComposite | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
-| isConstant | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isDerived | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isEnd | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| isOrdered | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isPortion | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| isUnique | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isVariable | Boolean | [1..1] | [Feature](Feature.md) |  |
+| isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isComposite | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isConjugated | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) | derived |
+| isConstant | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isDerived | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isEnd | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isImplied | [Boolean](Boolean.md) | [1..1] | [Relationship](Relationship.md) |  |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isOrdered | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isPortion | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isUnique | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isVariable | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedConjugator | [Conjugation](Conjugation.md) | [0..1] | [Type](Type.md) | derived, composite |
@@ -107,10 +107,10 @@ A SuccessionFlow is a Flow that also provides temporal ordering. It classifies T
 | parameter | [Feature](Feature.md) | [0..*] | [Step](Step.md) | derived, ordered |
 | payloadFeature | [PayloadFeature](PayloadFeature.md) | [0..1] | [Flow](Flow.md) | derived |
 | payloadType | [Classifier](Classifier.md) | [0..*] | [Flow](Flow.md) | derived, ordered |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | relatedFeature | [Feature](Feature.md) | [0..*] | [Connector](Connector.md) | derived, ordered |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | sourceFeature | [Feature](Feature.md) | [0..1] | [Connector](Connector.md) | derived, ordered |
 | sourceOutputFeature | [Feature](Feature.md) | [0..1] | [Flow](Flow.md) | derived, ordered |

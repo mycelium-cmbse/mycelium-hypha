@@ -36,7 +36,7 @@ Redefines [associationEnd](Association.md#associationend)
 
 ### isSufficient
 
-`+` Boolean · `[1..1]`
+`+` [Boolean](Boolean.md) · `[1..1]`
 
 A ConnectionDefinition always has isSufficient = true.
 
@@ -47,15 +47,15 @@ Redefines [isSufficient](#issufficient)
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
 | associationEnd | [Feature](Feature.md) | [0..*] | [Association](Association.md) | derived |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedUsage | [Usage](Usage.md) | [0..*] | [Definition](Definition.md) | derived, ordered |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -64,17 +64,17 @@ Redefines [isSufficient](#issufficient)
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
-| isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
-| isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isIndividual | Boolean | [1..1] | [OccurrenceDefinition](OccurrenceDefinition.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| isVariation | Boolean | [1..1] | [Definition](Definition.md) |  |
+| isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isConjugated | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) | derived |
+| isImplied | [Boolean](Boolean.md) | [1..1] | [Relationship](Relationship.md) |  |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isIndividual | [Boolean](Boolean.md) | [1..1] | [OccurrenceDefinition](OccurrenceDefinition.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isVariation | [Boolean](Boolean.md) | [1..1] | [Definition](Definition.md) |  |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | ownedAction | [ActionUsage](ActionUsage.md) | [0..*] | [Definition](Definition.md) | derived, ordered |
 | ownedAllocation | [AllocationUsage](AllocationUsage.md) | [0..*] | [Definition](Definition.md) | derived, ordered |
@@ -125,10 +125,10 @@ Redefines [isSufficient](#issufficient)
 | owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
 | owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | relatedType | [Type](Type.md) | [0..*] | [Association](Association.md) | derived, ordered |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | sourceType | [Type](Type.md) | [0..1] | [Association](Association.md) | derived |
 | target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |

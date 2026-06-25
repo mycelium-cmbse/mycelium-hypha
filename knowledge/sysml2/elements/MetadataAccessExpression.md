@@ -33,17 +33,17 @@ Subsets [member](Namespace.md#member)
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
 | behavior | [Behavior](Behavior.md) | [0..*] | [Step](Step.md) | derived, ordered |
 | chainingFeature | [Feature](Feature.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | crossFeature | [Feature](Feature.md) | [0..1] | [Feature](Feature.md) | derived |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| direction | FeatureDirectionKind | [0..1] | [Feature](Feature.md) |  |
+| direction | [FeatureDirectionKind](FeatureDirectionKind.md) | [0..1] | [Feature](Feature.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | endOwningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
 | feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -56,24 +56,24 @@ Subsets [member](Namespace.md#member)
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
-| isComposite | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
-| isConstant | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isDerived | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isEnd | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| isModelLevelEvaluable | Boolean | [1..1] | [Expression](Expression.md) | derived |
-| isOrdered | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isPortion | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| isUnique | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isVariable | Boolean | [1..1] | [Feature](Feature.md) |  |
+| isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isComposite | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isConjugated | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) | derived |
+| isConstant | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isDerived | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isEnd | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isModelLevelEvaluable | [Boolean](Boolean.md) | [1..1] | [Expression](Expression.md) | derived |
+| isOrdered | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isPortion | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isUnique | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isVariable | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedConjugator | [Conjugation](Conjugation.md) | [0..1] | [Type](Type.md) | derived, composite |
@@ -105,9 +105,9 @@ Subsets [member](Namespace.md#member)
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | owningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
 | parameter | [Feature](Feature.md) | [0..*] | [Step](Step.md) | derived, ordered |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | result | [Feature](Feature.md) | [1..1] | [Expression](Expression.md) | derived |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |

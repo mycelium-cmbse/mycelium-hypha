@@ -40,21 +40,21 @@ The PartUsages that identify the stakeholders with concerns framed by this Viewp
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
 | actorParameter | [PartUsage](PartUsage.md) | [0..*] | [RequirementUsage](RequirementUsage.md) | derived, ordered |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
 | assumedConstraint | [ConstraintUsage](ConstraintUsage.md) | [0..*] | [RequirementUsage](RequirementUsage.md) | derived, ordered |
 | behavior | [Behavior](Behavior.md) | [0..*] | [Step](Step.md) | derived, ordered |
 | chainingFeature | [Feature](Feature.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | constraintDefinition | [Predicate](Predicate.md) | [0..1] | [ConstraintUsage](ConstraintUsage.md) | derived |
 | crossFeature | [Feature](Feature.md) | [0..1] | [Feature](Feature.md) | derived |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | definition | [Classifier](Classifier.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedUsage | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
-| direction | FeatureDirectionKind | [0..1] | [Feature](Feature.md) |  |
+| direction | [FeatureDirectionKind](FeatureDirectionKind.md) | [0..1] | [Feature](Feature.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | endOwningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
 | feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -69,28 +69,28 @@ The PartUsages that identify the stakeholders with concerns framed by this Viewp
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
-| isComposite | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
-| isConstant | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isDerived | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isEnd | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isIndividual | Boolean | [1..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| isModelLevelEvaluable | Boolean | [1..1] | [Expression](Expression.md) | derived |
-| isOrdered | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isPortion | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isReference | Boolean | [1..1] | [Usage](Usage.md) | derived |
-| isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| isUnique | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isVariable | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isVariation | Boolean | [1..1] | [Usage](Usage.md) |  |
-| mayTimeVary | Boolean | [1..1] | [Usage](Usage.md) | derived |
+| isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isComposite | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isConjugated | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) | derived |
+| isConstant | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isDerived | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isEnd | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isIndividual | [Boolean](Boolean.md) | [1..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isModelLevelEvaluable | [Boolean](Boolean.md) | [1..1] | [Expression](Expression.md) | derived |
+| isOrdered | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isPortion | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isReference | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) | derived |
+| isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isUnique | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isVariable | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isVariation | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) |  |
+| mayTimeVary | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) | derived |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | nestedAction | [ActionUsage](ActionUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | nestedAllocation | [AllocationUsage](AllocationUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | nestedAnalysisCase | [AnalysisCaseUsage](AnalysisCaseUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
@@ -152,17 +152,17 @@ The PartUsages that identify the stakeholders with concerns framed by this Viewp
 | owningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
 | owningUsage | [Usage](Usage.md) | [0..1] | [Usage](Usage.md) | derived |
 | parameter | [Feature](Feature.md) | [0..*] | [Step](Step.md) | derived, ordered |
-| portionKind | PortionKind | [0..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
+| portionKind | [PortionKind](PortionKind.md) | [0..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
 | predicate | [Predicate](Predicate.md) | [0..1] | [BooleanExpression](BooleanExpression.md) | derived |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| reqId | String | [0..1] | [RequirementUsage](RequirementUsage.md) |  |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| reqId | [String](String.md) | [0..1] | [RequirementUsage](RequirementUsage.md) |  |
 | requiredConstraint | [ConstraintUsage](ConstraintUsage.md) | [0..*] | [RequirementUsage](RequirementUsage.md) | derived, ordered |
 | requirementDefinition | [RequirementDefinition](RequirementDefinition.md) | [0..1] | [RequirementUsage](RequirementUsage.md) | derived |
 | result | [Feature](Feature.md) | [1..1] | [Expression](Expression.md) | derived |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | stakeholderParameter | [PartUsage](PartUsage.md) | [0..*] | [RequirementUsage](RequirementUsage.md) | derived, ordered |
 | subjectParameter | [Usage](Usage.md) | [1..1] | [RequirementUsage](RequirementUsage.md) | derived |
-| text | String | [0..*] | [RequirementUsage](RequirementUsage.md) | derived |
+| text | [String](String.md) | [0..*] | [RequirementUsage](RequirementUsage.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
