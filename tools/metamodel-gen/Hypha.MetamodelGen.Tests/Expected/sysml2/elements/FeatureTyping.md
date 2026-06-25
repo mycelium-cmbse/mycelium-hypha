@@ -1,7 +1,9 @@
 ---
 name: FeatureTyping
 package: Features
+fully qualified name: KerML::Core::Features::FeatureTyping
 isAbstract: false
+visibility: public
 generalizes: [Specialization]
 specializedBy: [ConjugatedPortTyping]
 ---
@@ -22,25 +24,31 @@ FeatureTyping is Specialization in which the specific Type is a Feature. This me
 
 ## Owned features
 
-### owningFeature : Feature [0..1] {derived}
+### owningFeature
+
+`+` [Feature](Feature.md) · `[0..1]` · *derived*
 
 A typedFeature that is also the owningRelatedElement of this FeatureTyping.
 
-Redefines: `owningType`
+Redefines [owningType](Specialization.md#owningtype)
 
-Subsets: `typedFeature`
+Subsets [typedFeature](#typedfeature)
 
-### type : Type [1..1]
+### type
+
+`+` [Type](Type.md) · `[1..1]`
 
 The Type that is being applied by this FeatureTyping.
 
-Redefines: `general`
+Redefines [general](Specialization.md#general)
 
-### typedFeature : Feature [1..1]
+### typedFeature
+
+`+` [Feature](Feature.md) · `[1..1]`
 
 The Feature that has a type determined by this FeatureTyping.
 
-Redefines: `specific`
+Redefines [specific](Specialization.md#specific)
 
 
 ## Inherited features
@@ -50,27 +58,27 @@ Redefines: `specific`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
-| general | Type | [1..1] | [Specialization](Specialization.md) |  |
+| general | [Type](Type.md) | [1..1] | [Specialization](Specialization.md) |  |
 | isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelatedElement | Element | [0..*] | [Relationship](Relationship.md) | composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelatedElement | Element | [0..1] | [Relationship](Relationship.md) |  |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
-| owningType | Type | [0..1] | [Specialization](Specialization.md) | derived |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
+| owningType | [Type](Type.md) | [0..1] | [Specialization](Specialization.md) | derived |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| relatedElement | Element | [0..*] | [Relationship](Relationship.md) | derived, ordered |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| source | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| specific | Type | [1..1] | [Specialization](Specialization.md) |  |
-| target | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| specific | [Type](Type.md) | [1..1] | [Specialization](Specialization.md) |  |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |

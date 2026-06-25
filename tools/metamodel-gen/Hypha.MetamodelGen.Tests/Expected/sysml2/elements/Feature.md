@@ -1,7 +1,9 @@
 ---
 name: Feature
 package: Features
+fully qualified name: KerML::Core::Features::Feature
 isAbstract: false
+visibility: public
 generalizes: [Type]
 specializedBy: [Connector, FlowEnd, MetadataFeature, Multiplicity, PayloadFeature, Step, Usage]
 ---
@@ -28,125 +30,175 @@ A Feature is a Type that classifies relations between multiple things (in the un
 
 ## Owned features
 
-### chainingFeature : Feature [0..*] {derived, ordered}
+### chainingFeature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 The Feature that are chained together to determine the values of this Feature, derived from the chainingFeatures of the ownedFeatureChainings of this Feature, in the same order. The values of a Feature with chainingFeatures are the same as values of the last Feature in the chain, which can be found by starting with the values of the first Feature (for each instance of the domain of the original Feature), then using each of those as domain instances to find the values of the second Feature in chainingFeatures, and so on, to values of the last Feature.
 
-### crossFeature : Feature [0..1] {derived}
+### crossFeature
+
+`+` [Feature](Feature.md) · `[0..1]` · *derived*
 
 The second chainingFeature of the crossedFeature of the ownedCrossSubsetting of this Feature, if it has one. Semantically, the values of the crossFeature of an end Feature must include all values of the end Feature obtained when navigating from values of the other end Features of the same owningType.
 
-### direction : FeatureDirectionKind [0..1]
+### direction
+
+`+` FeatureDirectionKind · `[0..1]`
 
 Indicates how values of this Feature are determined or used (as specified for the FeatureDirectionKind).
 
-### endOwningType : Type [0..1] {derived}
+### endOwningType
+
+`+` [Type](Type.md) · `[0..1]` · *derived*
 
 The Type that is related to this Feature by an EndFeatureMembership in which the Feature is an ownedMemberFeature.
 
-Subsets: `typeWithEndFeature`, `owningType`
+Subsets `typeWithEndFeature`, [owningType](#owningtype)
 
-### featureTarget : Feature [1..1] {derived}
+### featureTarget
+
+`+` [Feature](Feature.md) · `[1..1]` · *derived*
 
 The last of the chainingFeatures of this Feature, if it has any. Otherwise, this Feature itself.
 
-### featuringType : Type [0..*] {derived, ordered}
+### featuringType
+
+`+` [Type](Type.md) · `[0..*]` · *derived, ordered*
 
 Types that feature this Feature, such that any instance in the domain of the Feature must be classified by all of these Types, including at least all the featuringTypes of its typeFeaturings. If the Feature is chained, then the featuringTypes of the first Feature in the chain are also featuringTypes of the chained Feature.
 
-### isComposite : Boolean [1..1]
+### isComposite
+
+`+` Boolean · `[1..1]`
 
 Whether the Feature is a composite feature of its featuringType. If so, the values of the Feature cannot exist after its featuring instance no longer does and cannot be values of another composite feature that is not on the same featuring instance.
 
-### isConstant : Boolean [1..1]
+### isConstant
+
+`+` Boolean · `[1..1]`
 
 If isVariable is true, then whether the value of this Feature nevertheless does not change over all snapshots of its owningType.
 
-### isDerived : Boolean [1..1]
+### isDerived
+
+`+` Boolean · `[1..1]`
 
 Whether the values of this Feature can always be computed from the values of other Features.
 
-### isEnd : Boolean [1..1]
+### isEnd
+
+`+` Boolean · `[1..1]`
 
 Whether or not this Feature is an end Feature. An end Feature always has multiplicity 1, mapping each of its domain instances to a single co-domain instance. However, it may have a crossFeature, in which case values of the crossFeature must be the same as those found by navigation across instances of the owningType from values of other end Features to values of this Feature. If the owningType has n end Features, then the multiplicity, ordering, and uniqueness declared for the crossFeature of any one of these end Features constrains the cardinality, ordering, and uniqueness of the collection of values of that Feature reached by navigation when the values of the other n-1 end Features are held fixed.
 
-### isOrdered : Boolean [1..1]
+### isOrdered
+
+`+` Boolean · `[1..1]`
 
 Whether an order exists for the values of this Feature or not.
 
-### isPortion : Boolean [1..1]
+### isPortion
+
+`+` Boolean · `[1..1]`
 
 Whether the values of this Feature are contained in the space and time of instances of the domain of the Feature and represent the same thing as those instances.
 
-### isUnique : Boolean [1..1]
+### isUnique
+
+`+` Boolean · `[1..1]`
 
 Whether or not values for this Feature must have no duplicates or not.
 
-### isVariable : Boolean [1..1]
+### isVariable
+
+`+` Boolean · `[1..1]`
 
 Whether the value of this Feature might vary over time. That is, whether the Feature may have a different value for each snapshot of an owningType that is an Occurrence.
 
-### ownedCrossSubsetting : CrossSubsetting [0..1] {derived, composite}
+### ownedCrossSubsetting
+
+`+` [CrossSubsetting](CrossSubsetting.md) · `[0..1]` · *derived, composite*
 
 The one ownedSubsetting of this Feature, if any, that is a CrossSubsetting}, for which the Feature is the crossingFeature.
 
-Subsets: `ownedSubsetting`
+Subsets [ownedSubsetting](#ownedsubsetting)
 
-### ownedFeatureChaining : FeatureChaining [0..*] {derived, composite, ordered}
+### ownedFeatureChaining
+
+`+` [FeatureChaining](FeatureChaining.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Feature that are FeatureChainings, for which the Feature will be the featureChained.
 
-Subsets: `ownedRelationship`, `sourceRelationship`
+Subsets [ownedRelationship](Element.md#ownedrelationship), `sourceRelationship`
 
-### ownedFeatureInverting : FeatureInverting [0..*] {derived, composite}
+### ownedFeatureInverting
+
+`+` [FeatureInverting](FeatureInverting.md) · `[0..*]` · *derived, composite*
 
 The ownedRelationships of this Feature that are FeatureInvertings and for which the Feature is the featureInverted.
 
-Subsets: `invertingFeatureInverting`, `ownedRelationship`
+Subsets `invertingFeatureInverting`, [ownedRelationship](Element.md#ownedrelationship)
 
-### ownedRedefinition : Redefinition [0..*] {derived, composite}
+### ownedRedefinition
+
+`+` [Redefinition](Redefinition.md) · `[0..*]` · *derived, composite*
 
 The ownedSubsettings of this Feature that are Redefinitions, for which the Feature is the redefiningFeature.
 
-Subsets: `ownedSubsetting`
+Subsets [ownedSubsetting](#ownedsubsetting)
 
-### ownedReferenceSubsetting : ReferenceSubsetting [0..1] {derived, composite}
+### ownedReferenceSubsetting
+
+`+` [ReferenceSubsetting](ReferenceSubsetting.md) · `[0..1]` · *derived, composite*
 
 The one ownedSubsetting of this Feature, if any, that is a ReferenceSubsetting, for which the Feature is the referencingFeature.
 
-Subsets: `ownedSubsetting`
+Subsets [ownedSubsetting](#ownedsubsetting)
 
-### ownedSubsetting : Subsetting [0..*] {derived, composite}
+### ownedSubsetting
+
+`+` [Subsetting](Subsetting.md) · `[0..*]` · *derived, composite*
 
 The ownedSpecializations of this Feature that are Subsettings, for which the Feature is the subsettingFeature.
 
-Subsets: `ownedSpecialization`, `subsetting`
+Subsets [ownedSpecialization](Type.md#ownedspecialization), `subsetting`
 
-### ownedTypeFeaturing : TypeFeaturing [0..*] {derived, composite, ordered}
+### ownedTypeFeaturing
+
+`+` [TypeFeaturing](TypeFeaturing.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Feature that are TypeFeaturings and for which the Feature is the featureOfType.
 
-Subsets: `typeFeaturing`, `ownedRelationship`
+Subsets `typeFeaturing`, [ownedRelationship](Element.md#ownedrelationship)
 
-### ownedTyping : FeatureTyping [0..*] {derived, composite, ordered}
+### ownedTyping
+
+`+` [FeatureTyping](FeatureTyping.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedSpecializations of this Feature that are FeatureTypings, for which the Feature is the typedFeature.
 
-Subsets: `ownedSpecialization`, `typing`
+Subsets [ownedSpecialization](Type.md#ownedspecialization), `typing`
 
-### owningFeatureMembership : FeatureMembership [0..1] {derived}
+### owningFeatureMembership
+
+`+` [FeatureMembership](FeatureMembership.md) · `[0..1]` · *derived*
 
 The FeatureMembership that owns this Feature as an ownedMemberFeature, determining its owningType.
 
-Subsets: `owningMembership`
+Subsets [owningMembership](Element.md#owningmembership)
 
-### owningType : Type [0..1] {derived}
+### owningType
+
+`+` [Type](Type.md) · `[0..1]` · *derived*
 
 The Type that is the owningType of the owningFeatureMembership of this Feature.
 
-Subsets: `typeWithFeature`, `owningNamespace`, `featuringType`
+Subsets `typeWithFeature`, [owningNamespace](Element.md#owningnamespace), [featuringType](#featuringtype)
 
-### type : Type [0..*] {derived, ordered}
+### type
+
+`+` [Type](Type.md) · `[0..*]` · *derived, ordered*
 
 Types that restrict the values of this Feature, such that the values must be instances of all the types. The types of a Feature are derived from its typings and the types of its subsettings. If the Feature is chained, then the types of the last Feature in the chain are also types of the chained Feature.
 
@@ -158,51 +210,51 @@ Types that restrict the values of this Feature, such that the values must be ins
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| differencingType | Type | [0..*] | [Type](Type.md) | derived, ordered |
-| directedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
-| endFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
+| endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | feature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| featureMembership | FeatureMembership | [0..*] | [Type](Type.md) | derived, ordered |
-| importedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| inheritedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| inheritedMembership | Membership | [0..*] | [Type](Type.md) | derived, ordered |
-| input | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| intersectingType | Type | [0..*] | [Type](Type.md) | derived, ordered |
+| featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| inheritedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
 | isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| member | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| membership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| multiplicity | Multiplicity | [0..1] | [Type](Type.md) | derived |
+| member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| output | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedConjugator | Conjugation | [0..1] | [Type](Type.md) | derived, composite |
-| ownedDifferencing | Differencing | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedDisjoining | Disjoining | [0..*] | [Type](Type.md) | derived, composite |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedEndFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedFeatureMembership | FeatureMembership | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedImport | Import | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedIntersecting | Intersecting | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedMember | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| ownedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| ownedSpecialization | Specialization | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedUnioning | Unioning | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedConjugator | [Conjugation](Conjugation.md) | [0..1] | [Type](Type.md) | derived, composite |
+| ownedDifferencing | [Differencing](Differencing.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedDisjoining | [Disjoining](Disjoining.md) | [0..*] | [Type](Type.md) | derived, composite |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedEndFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedFeatureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedImport | [Import](Import.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedIntersecting | [Intersecting](Intersecting.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedMember | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| ownedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| ownedSpecialization | [Specialization](Specialization.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedUnioning | [Unioning](Unioning.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
-| unioningType | Type | [0..*] | [Type](Type.md) | derived, ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
 ## Constraints
 
