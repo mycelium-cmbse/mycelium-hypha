@@ -1,0 +1,11 @@
+# The metamodel-gen tool (and its golden-file tests) write their Markdown outputs with
+# LF newlines. Without these rules, core.autocrlf=true makes Git expect CRLF in the
+# working tree and flags every generated file as "modified" after each generation run,
+# even though the content is identical. Pin the generated artifacts to LF so Git and the
+# generator agree and the spurious diffs stop.
+knowledge/** text eol=lf
+tools/metamodel-gen/Hypha.MetamodelGen.Tests/Expected/** text eol=lf
+
+# Handlebars templates are read verbatim and their newlines flow into generated output;
+# keep them LF so generation is deterministic regardless of platform checkout settings.
+*.hbs text eol=lf
