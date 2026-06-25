@@ -17,14 +17,18 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="MetaclassConstraint"/> class.
         /// </summary>
-        public MetaclassConstraint(string name, string body)
+        public MetaclassConstraint(string name, string documentation, string body)
         {
             this.Name = name;
+            this.Documentation = documentation;
             this.Body = body;
         }
 
         /// <summary>Gets the constraint name.</summary>
         public string Name { get; }
+
+        /// <summary>Gets the constraint documentation/intent text (may be empty).</summary>
+        public string Documentation { get; }
 
         /// <summary>Gets the constraint body/specification text (may be empty).</summary>
         public string Body { get; }

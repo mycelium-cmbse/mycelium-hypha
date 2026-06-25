@@ -25,7 +25,9 @@ namespace Hypha.MetamodelGen.Generators
             bool isAbstract,
             string documentation,
             IReadOnlyList<string> generalizations,
+            IReadOnlyList<string> specializations,
             IReadOnlyList<MetaclassFeature> features,
+            IReadOnlyList<InheritedFeature> inheritedFeatures,
             IReadOnlyList<MetaclassConstraint> constraints)
         {
             this.Name = name;
@@ -33,7 +35,9 @@ namespace Hypha.MetamodelGen.Generators
             this.IsAbstract = isAbstract;
             this.Documentation = documentation;
             this.Generalizations = generalizations;
+            this.Specializations = specializations;
             this.Features = features;
+            this.InheritedFeatures = inheritedFeatures;
             this.Constraints = constraints;
         }
 
@@ -52,8 +56,14 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>Gets the direct supertype (generalization) names, ordered.</summary>
         public IReadOnlyList<string> Generalizations { get; }
 
+        /// <summary>Gets the direct subtype (specialization) names, ordered.</summary>
+        public IReadOnlyList<string> Specializations { get; }
+
         /// <summary>Gets the owned features, ordered by name.</summary>
         public IReadOnlyList<MetaclassFeature> Features { get; }
+
+        /// <summary>Gets the features inherited from supertypes, ordered by name.</summary>
+        public IReadOnlyList<InheritedFeature> InheritedFeatures { get; }
 
         /// <summary>Gets the owned constraints, ordered by name.</summary>
         public IReadOnlyList<MetaclassConstraint> Constraints { get; }

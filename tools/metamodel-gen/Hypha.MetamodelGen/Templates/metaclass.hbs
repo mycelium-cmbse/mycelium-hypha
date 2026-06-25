@@ -1,3 +1,11 @@
+---
+name: {{Name}}
+package: {{Package}}
+isAbstract: {{#if IsAbstract}}true{{else}}false{{/if}}
+generalizes: [{{#each Generalizations}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]
+specializedBy: [{{#each Specializations}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]
+---
+
 # {{Name}}
 
 `{{Package}}` package · {{#if IsAbstract}}abstract metaclass{{else}}concrete metaclass{{/if}}
@@ -13,12 +21,20 @@
 - [{{this}}]({{this}}.md)
 {{/each}}
 {{/if}}
+{{#if Specializations}}
+
+## Specializations
+
+{{#each Specializations}}
+- [{{this}}]({{this}}.md)
+{{/each}}
+{{/if}}
 {{#if Features}}
 
 ## Owned features
 
 {{#each Features}}
-### {{Name}} : {{Type}} {{Multiplicity}}
+### {{Name}} : {{{Type}}} {{Multiplicity}}{{#if Modifiers}} {{{Modifiers}}}{{/if}}
 {{#if Documentation}}
 
 {{{Documentation}}}
@@ -34,11 +50,32 @@ Subsets: {{#each Subsets}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}
 
 {{/each}}
 {{/if}}
+{{#if InheritedFeatures}}
+
+## Inherited features
+
+| Feature | Type | Multiplicity | Owner | Modifiers |
+| --- | --- | --- | --- | --- |
+{{#each InheritedFeatures}}
+| {{Name}} | {{{Type}}} | {{Multiplicity}} | [{{Owner}}]({{Owner}}.md) | {{Modifiers}} |
+{{/each}}
+{{/if}}
 {{#if Constraints}}
 
 ## Constraints
 
 {{#each Constraints}}
-- **{{Name}}**{{#if Body}} — {{{Body}}}{{/if}}
+### {{Name}}
+{{#if Documentation}}
+
+{{{Documentation}}}
+{{/if}}
+{{#if Body}}
+
+```ocl
+{{{Body}}}
+```
+{{/if}}
+
 {{/each}}
 {{/if}}

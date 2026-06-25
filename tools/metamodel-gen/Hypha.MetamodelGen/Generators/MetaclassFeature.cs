@@ -23,6 +23,7 @@ namespace Hypha.MetamodelGen.Generators
             string name,
             string type,
             string multiplicity,
+            string modifiers,
             string documentation,
             IReadOnlyList<string> redefines,
             IReadOnlyList<string> subsets)
@@ -30,6 +31,7 @@ namespace Hypha.MetamodelGen.Generators
             this.Name = name;
             this.Type = type;
             this.Multiplicity = multiplicity;
+            this.Modifiers = modifiers;
             this.Documentation = documentation;
             this.Redefines = redefines;
             this.Subsets = subsets;
@@ -43,6 +45,9 @@ namespace Hypha.MetamodelGen.Generators
 
         /// <summary>Gets the formatted multiplicity (e.g. <c>0..*</c>).</summary>
         public string Multiplicity { get; }
+
+        /// <summary>Gets the modifier annotation (e.g. <c>{derived, ordered}</c>); may be empty.</summary>
+        public string Modifiers { get; }
 
         /// <summary>Gets the feature documentation (may be empty).</summary>
         public string Documentation { get; }
