@@ -41,16 +41,16 @@ Redefines [originalType](Conjugation.md#originaltype)
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
 | conjugatedType | [Type](Type.md) | [1..1] | [Conjugation](Conjugation.md) |  |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
-| isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
+| isImplied | [Boolean](Boolean.md) | [1..1] | [Relationship](Relationship.md) |  |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | originalType | [Type](Type.md) | [1..1] | [Conjugation](Conjugation.md) |  |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
@@ -62,9 +62,9 @@ Redefines [originalType](Conjugation.md#originaltype)
 | owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | owningType | [Type](Type.md) | [0..1] | [Conjugation](Conjugation.md) | derived |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |

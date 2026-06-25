@@ -1,0 +1,23 @@
+---
+name: {{Name}}
+package: {{Package}}
+fully qualified name: {{FullyQualifiedName}}
+visibility: {{Visibility}}
+kind: enumeration
+---
+
+# {{Name}}
+
+`{{Package}}` package · enumeration
+{{#if Documentation}}
+
+{{{Documentation}}}
+{{/if}}
+{{#if Literals}}
+
+## Literals
+
+{{#each Literals}}
+- `{{Name}}`{{#if Documentation}} — {{{Documentation}}}{{/if}}
+{{/each}}
+{{/if}}

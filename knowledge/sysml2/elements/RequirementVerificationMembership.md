@@ -22,7 +22,7 @@ A RequirementVerificationMembership is a RequirementConstraintMembership used in
 
 ### kind
 
-`+` RequirementConstraintKind · `[1..1]`
+`+` [RequirementConstraintKind](RequirementConstraintKind.md) · `[1..1]`
 
 The kind of a RequirementVerificationMembership must be requirement.
 
@@ -49,28 +49,28 @@ Redefines [referencedConstraint](RequirementConstraintMembership.md#referencedco
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
-| isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
+| isImplied | [Boolean](Boolean.md) | [1..1] | [Relationship](Relationship.md) |  |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
 | memberElement | [Element](Element.md) | [1..1] | [Membership](Membership.md) |  |
-| memberElementId | String | [1..1] | [Membership](Membership.md) | derived |
-| memberName | String | [0..1] | [Membership](Membership.md) |  |
-| memberShortName | String | [0..1] | [Membership](Membership.md) |  |
+| memberElementId | [String](String.md) | [1..1] | [Membership](Membership.md) | derived |
+| memberName | [String](String.md) | [0..1] | [Membership](Membership.md) |  |
+| memberShortName | [String](String.md) | [0..1] | [Membership](Membership.md) |  |
 | membershipOwningNamespace | [Namespace](Namespace.md) | [1..1] | [Membership](Membership.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedConstraint | [ConstraintUsage](ConstraintUsage.md) | [1..1] | [RequirementConstraintMembership](RequirementConstraintMembership.md) | derived, composite |
 | ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | ownedMemberElement | [Element](Element.md) | [1..1] | [OwningMembership](OwningMembership.md) | derived, composite |
-| ownedMemberElementId | String | [1..1] | [OwningMembership](OwningMembership.md) | derived |
+| ownedMemberElementId | [String](String.md) | [1..1] | [OwningMembership](OwningMembership.md) | derived |
 | ownedMemberFeature | [Feature](Feature.md) | [1..1] | [FeatureMembership](FeatureMembership.md) | derived, composite |
-| ownedMemberName | String | [0..1] | [OwningMembership](OwningMembership.md) | derived |
-| ownedMemberShortName | String | [0..1] | [OwningMembership](OwningMembership.md) | derived |
+| ownedMemberName | [String](String.md) | [0..1] | [OwningMembership](OwningMembership.md) | derived |
+| ownedMemberShortName | [String](String.md) | [0..1] | [OwningMembership](OwningMembership.md) | derived |
 | ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
 | ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
 | owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
@@ -79,14 +79,14 @@ Redefines [referencedConstraint](RequirementConstraintMembership.md#referencedco
 | owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | owningType | [Type](Type.md) | [1..1] | [FeatureMembership](FeatureMembership.md) | derived |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | referencedConstraint | [ConstraintUsage](ConstraintUsage.md) | [1..1] | [RequirementConstraintMembership](RequirementConstraintMembership.md) | derived |
 | relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| visibility | VisibilityKind | [1..1] | [Membership](Membership.md) |  |
+| visibility | [VisibilityKind](VisibilityKind.md) | [1..1] | [Membership](Membership.md) |  |
 
 ## Constraints
 

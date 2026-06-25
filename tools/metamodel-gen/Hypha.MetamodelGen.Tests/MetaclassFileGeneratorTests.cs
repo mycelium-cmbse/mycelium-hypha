@@ -44,6 +44,8 @@ namespace Hypha.MetamodelGen.Tests
                 Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "sysml2", "elements"));
 
             await this.generator.GenerateAsync(model!, outputDirectory);
+            await new EnumerationFileGenerator().GenerateAsync(model!, outputDirectory);
+            await new PrimitiveTypeFileGenerator().GenerateAsync(model!, outputDirectory);
 
             var partUsage = Path.Combine(outputDirectory.FullName, "PartUsage.md");
             Assert.That(File.Exists(partUsage), Is.True);

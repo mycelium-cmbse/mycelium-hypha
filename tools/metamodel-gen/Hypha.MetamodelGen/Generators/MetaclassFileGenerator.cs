@@ -19,7 +19,6 @@ namespace Hypha.MetamodelGen.Generators
     using uml4net.Classification;
     using uml4net.CommonStructure;
     using uml4net.Extensions;
-    using uml4net.Packages;
     using uml4net.StructuredClassifiers;
     using uml4net.Values;
     using uml4net.xmi.Readers;
@@ -75,7 +74,7 @@ namespace Hypha.MetamodelGen.Generators
 
             var metaclasses = QueryMetaclasses(model);
             var subtypeIndex = BuildSubtypeIndex(metaclasses);
-            var linkableTypeNames = QueryMetaclassNames(metaclasses);
+            var linkableTypeNames = ElementCatalog.LinkableTypeNames(model);
 
             foreach (var @class in metaclasses)
             {
@@ -83,17 +82,6 @@ namespace Hypha.MetamodelGen.Generators
 
                 await WriteAsync(content, outputDirectory, $"{@class.Name}.md");
             }
-        }
-
-        /// <summary>
-        /// Returns the set of metaclass names that have a generated element file, used to decide
-        /// whether a feature type can be rendered as a link.
-        /// </summary>
-        public static IReadOnlySet<string> QueryMetaclassNames(IEnumerable<IClass> metaclasses)
-        {
-            ArgumentNullException.ThrowIfNull(metaclasses);
-
-            return metaclasses.Select(@class => @class.Name).ToHashSet(StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -138,18 +126,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Returns all metaclasses (<see cref="IClass"/>) in the model, ordered by name.
         /// </summary>
-        public static IReadOnlyList<IClass> QueryMetaclasses(XmiReaderResult model)
-        {
-            ArgumentNullException.ThrowIfNull(model);
-
-            return model.Packages
-                .SelectMany(ExpandPackages)
-                .DistinctBy(package => package.XmiId)
-                .SelectMany(package => package.PackagedElement.OfType<IClass>())
-                .DistinctBy(@class => @class.XmiId)
-                .OrderBy(@class => @class.Name, StringComparer.Ordinal)
-                .ToList();
-        }
+        public static IReadOnlyList<IClass> QueryMetaclasses(XmiReaderResult model) =>
+            ElementCatalog.Metaclasses(model);
 
         /// <summary>
         /// Builds the deterministic payload for a metaclass from the model.
@@ -219,9 +197,9 @@ namespace Hypha.MetamodelGen.Generators
             return new MetaclassPayload(
                 @class.Name,
                 @class.Namespace?.Name ?? string.Empty,
-                QueryFullyQualifiedName(@class),
+                ElementCatalog.FullyQualifiedName(@class),
                 @class.IsAbstract,
-                @class.Visibility.ToString().ToLowerInvariant(),
+                ElementCatalog.VisibilityName(@class.Visibility),
                 @class.QueryDocumentationText(),
                 generalizations,
                 specializations,
@@ -303,27 +281,6 @@ namespace Hypha.MetamodelGen.Generators
         };
 
         /// <summary>
-        /// Builds the fully qualified name by walking the owning-namespace chain up to the root model
-        /// and joining the names with <c>::</c> (e.g. <c>SysML::Systems::Actions::AcceptActionUsage</c>).
-        /// </summary>
-        private static string QueryFullyQualifiedName(IClass @class)
-        {
-            var parts = new List<string>();
-
-            for (INamedElement current = @class; current is not null; current = current.Namespace)
-            {
-                if (!string.IsNullOrEmpty(current.Name))
-                {
-                    parts.Add(current.Name);
-                }
-            }
-
-            parts.Reverse();
-
-            return string.Join("::", parts);
-        }
-
-        /// <summary>
         /// Extracts the textual body of a constraint specification. The specification is held in a
         /// container; the contained opaque expression carries the (OCL) body.
         /// </summary>
@@ -340,19 +297,6 @@ namespace Hypha.MetamodelGen.Generators
             }
 
             return string.Empty;
-        }
-
-        /// <summary>
-        /// Yields a package together with all of its (recursively) nested packages.
-        /// </summary>
-        private static IEnumerable<IPackage> ExpandPackages(IPackage package)
-        {
-            yield return package;
-
-            foreach (var nested in package.QueryPackages())
-            {
-                yield return nested;
-            }
         }
     }
 }

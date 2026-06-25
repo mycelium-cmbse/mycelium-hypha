@@ -33,19 +33,19 @@ Redefines [attributeDefinition](AttributeUsage.md#attributedefinition)
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
 | attributeDefinition | [DataType](DataType.md) | [0..*] | [AttributeUsage](AttributeUsage.md) | derived, ordered |
 | chainingFeature | [Feature](Feature.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | crossFeature | [Feature](Feature.md) | [0..1] | [Feature](Feature.md) | derived |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | definition | [Classifier](Classifier.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedUsage | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
-| direction | FeatureDirectionKind | [0..1] | [Feature](Feature.md) |  |
+| direction | [FeatureDirectionKind](FeatureDirectionKind.md) | [0..1] | [Feature](Feature.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | endOwningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
 | feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -57,26 +57,26 @@ Redefines [attributeDefinition](AttributeUsage.md#attributedefinition)
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
-| isComposite | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
-| isConstant | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isDerived | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isEnd | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| isOrdered | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isPortion | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isReference | Boolean | [1..1] | [AttributeUsage](AttributeUsage.md) | derived |
-| isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| isUnique | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isVariable | Boolean | [1..1] | [Feature](Feature.md) |  |
-| isVariation | Boolean | [1..1] | [Usage](Usage.md) |  |
-| mayTimeVary | Boolean | [1..1] | [Usage](Usage.md) | derived |
+| isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isComposite | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isConjugated | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) | derived |
+| isConstant | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isDerived | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isEnd | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isOrdered | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isPortion | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isReference | [Boolean](Boolean.md) | [1..1] | [AttributeUsage](AttributeUsage.md) | derived |
+| isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isUnique | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isVariable | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isVariation | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) |  |
+| mayTimeVary | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) | derived |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | nestedAction | [ActionUsage](ActionUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | nestedAllocation | [AllocationUsage](AllocationUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | nestedAnalysisCase | [AnalysisCaseUsage](AnalysisCaseUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
@@ -136,8 +136,8 @@ Redefines [attributeDefinition](AttributeUsage.md#attributedefinition)
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | owningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
 | owningUsage | [Usage](Usage.md) | [0..1] | [Usage](Usage.md) | derived |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |

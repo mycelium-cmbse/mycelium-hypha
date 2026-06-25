@@ -53,4 +53,9 @@ One file per metaclass, named `<MetaclassName>.md`. Each file opens with YAML fr
   sees the whole feature set without walking the generalization chain;
 - **Constraints** — the constraint intent text plus its OCL body.
 
+Enumerations and primitive types referenced as feature types get their own element files too (same
+folder, `kind: enumeration` / `kind: primitive` in the front matter), so those types resolve to a
+real link. An enumeration file lists its literals (with documentation, in declaration order); a
+primitive-type file carries its documentation.
+
 Every entry is traceable to the source XMI.

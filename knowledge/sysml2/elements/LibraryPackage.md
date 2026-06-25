@@ -22,7 +22,7 @@ A LibraryPackage is a Package that is the container for a model library. A Libra
 
 ### isStandard
 
-`+` Boolean · `[1..1]`
+`+` [Boolean](Boolean.md) · `[1..1]`
 
 Whether this LibraryPackage contains a standard library model. This should only be set to true for LibraryPackages in the standard Kernel Model Libraries or in normative model libraries for a language built on KerML.
 
@@ -31,18 +31,18 @@ Whether this LibraryPackage contains a standard library model. This should only 
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | filterCondition | [Expression](Expression.md) | [0..*] | [Package](Package.md) | derived, ordered |
 | importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | ownedImport | [Import](Import.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
@@ -53,6 +53,6 @@ Whether this LibraryPackage contains a standard library model. This should only 
 | owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
 | owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |

@@ -35,7 +35,7 @@ Subsets [directedFeature](Type.md#directedfeature)
 
 ### isVariation
 
-`+` Boolean · `[1..1]`
+`+` [Boolean](Boolean.md) · `[1..1]`
 
 Whether this Definition is for a variation point or not. If true, then all the memberships of the Definition must be VariantMemberships.
 
@@ -284,13 +284,13 @@ Subsets [ownedMembership](Namespace.md#ownedmembership)
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -299,15 +299,15 @@ Subsets [ownedMembership](Namespace.md#ownedmembership)
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
-| isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
+| isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isConjugated | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) | derived |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedConjugator | [Conjugation](Conjugation.md) | [0..1] | [Type](Type.md) | derived, composite |
@@ -329,8 +329,8 @@ Subsets [ownedMembership](Namespace.md#ownedmembership)
 | owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
 | owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 

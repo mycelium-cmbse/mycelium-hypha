@@ -30,7 +30,7 @@ An OccurrenceDefinition is a Definition of a Class of individuals that have an i
 
 ### isIndividual
 
-`+` Boolean · `[1..1]`
+`+` [Boolean](Boolean.md) · `[1..1]`
 
 Whether this OccurrenceDefinition is constrained to represent at most one thing.
 
@@ -39,14 +39,14 @@ Whether this OccurrenceDefinition is constrained to represent at most one thing.
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedUsage | [Usage](Usage.md) | [0..*] | [Definition](Definition.md) | derived, ordered |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -55,16 +55,16 @@ Whether this OccurrenceDefinition is constrained to represent at most one thing.
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
-| isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| isVariation | Boolean | [1..1] | [Definition](Definition.md) |  |
+| isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isConjugated | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) | derived |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
+| isVariation | [Boolean](Boolean.md) | [1..1] | [Definition](Definition.md) |  |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | ownedAction | [ActionUsage](ActionUsage.md) | [0..*] | [Definition](Definition.md) | derived, ordered |
 | ownedAllocation | [AllocationUsage](AllocationUsage.md) | [0..*] | [Definition](Definition.md) | derived, ordered |
@@ -113,8 +113,8 @@ Whether this OccurrenceDefinition is constrained to represent at most one thing.
 | owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
 | owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | usage | [Usage](Usage.md) | [0..*] | [Definition](Definition.md) | derived, ordered |

@@ -93,19 +93,19 @@ The interpretations of a Type with intersectingTypes are asserted to be those in
 
 ### isAbstract
 
-`+` Boolean · `[1..1]`
+`+` [Boolean](Boolean.md) · `[1..1]`
 
 Indicates whether instances of this Type must also be instances of at least one of its specialized Types.
 
 ### isConjugated
 
-`+` Boolean · `[1..1]` · *derived*
+`+` [Boolean](Boolean.md) · `[1..1]` · *derived*
 
 Indicates whether this Type has an ownedConjugator.
 
 ### isSufficient
 
-`+` Boolean · `[1..1]`
+`+` [Boolean](Boolean.md) · `[1..1]`
 
 Whether all things that meet the classification conditions of this Type must be classified by the Type.(A Type&nbsp;gives conditions that must be met by whatever it classifies, but when isSufficient is false, things may meet those conditions but still not be classified by the Type. For example, a Type Car that is not sufficient could require everything it classifies to have four wheels, but not all four wheeled things would classify as cars. However, if the Type Car were sufficient, it would classify all four-wheeled things.)
 
@@ -208,17 +208,17 @@ The interpretations of a Type with unioningTypes are asserted to be the same as 
 
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
-| aliasIds | String | [0..*] | [Element](Element.md) | ordered |
-| declaredName | String | [0..1] | [Element](Element.md) |  |
-| declaredShortName | String | [0..1] | [Element](Element.md) |  |
+| aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
+| declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
-| elementId | String | [1..1] | [Element](Element.md) |  |
+| elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
 | importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
-| isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
+| isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| name | String | [0..1] | [Element](Element.md) | derived |
+| name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | ownedImport | [Import](Import.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
@@ -229,8 +229,8 @@ The interpretations of a Type with unioningTypes are asserted to be the same as 
 | owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
 | owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
-| qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| shortName | String | [0..1] | [Element](Element.md) | derived |
+| qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
 ## Constraints
