@@ -1,7 +1,9 @@
 ---
 name: FeatureChaining
 package: Features
+fully qualified name: KerML::Core::Features::FeatureChaining
 isAbstract: false
+visibility: public
 generalizes: [Relationship]
 specializedBy: []
 ---
@@ -18,19 +20,23 @@ FeatureChaining is a Relationship that makes its target Feature one of the chain
 
 ## Owned features
 
-### chainingFeature : Feature [1..1]
+### chainingFeature
+
+`+` [Feature](Feature.md) · `[1..1]`
 
 The Feature whose values partly determine values of featureChained, as described in Feature::chainingFeature.
 
-Redefines: `target`
+Redefines [target](Relationship.md#target)
 
-### featureChained : Feature [1..1] {derived}
+### featureChained
+
+`+` [Feature](Feature.md) · `[1..1]` · *derived*
 
 The Feature whose values are partly determined by values of the chainingFeature, as described in Feature::chainingFeature.
 
-Redefines: `source`
+Redefines [source](Relationship.md#source)
 
-Subsets: `owningRelatedElement`
+Subsets [owningRelatedElement](Relationship.md#owningrelatedelement)
 
 
 ## Inherited features
@@ -40,24 +46,24 @@ Subsets: `owningRelatedElement`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelatedElement | Element | [0..*] | [Relationship](Relationship.md) | composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelatedElement | Element | [0..1] | [Relationship](Relationship.md) |  |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| relatedElement | Element | [0..*] | [Relationship](Relationship.md) | derived, ordered |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| source | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| target | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |

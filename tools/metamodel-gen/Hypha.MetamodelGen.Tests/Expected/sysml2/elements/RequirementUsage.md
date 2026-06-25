@@ -117,7 +117,7 @@ An optional textual statement of the requirement represented by this Requirement
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | endOwningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
-| feature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
+| feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureTarget | [Feature](Feature.md) | [1..1] | [Feature](Feature.md) | derived |
 | featuringType | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |

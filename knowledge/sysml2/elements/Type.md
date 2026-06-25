@@ -1,7 +1,9 @@
 ---
 name: Type
 package: Types
+fully qualified name: KerML::Core::Types::Type
 isAbstract: false
+visibility: public
 generalizes: [Namespace]
 specializedBy: [Classifier, Feature]
 ---
@@ -23,133 +25,181 @@ A Type is a Namespace that is the most general kind of Element supporting the se
 
 ## Owned features
 
-### differencingType : Type [0..*] {derived, ordered}
+### differencingType
+
+`+` [Type](Type.md) · `[0..*]` · *derived, ordered*
 
 The interpretations of a Type with differencingTypes are asserted to be those of the first of those Types, but not including those of the remaining Types. For example, a Classifier might be the difference of a Classifier for people and another for people of a particular nationality, leaving people who are not of that nationality. Similarly, a feature of people might be the difference between a feature for their children and a Classifier for people of a particular sex, identifying their children not of that sex (because the interpretations of the children Feature that identify those of that sex are also interpretations of the Classifier for that sex).
 
-### directedFeature : Feature [0..*] {derived, ordered}
+### directedFeature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 The features of this Type that have a non-null direction.
 
-Subsets: `feature`
+Subsets [feature](#feature)
 
-### endFeature : Feature [0..*] {derived, ordered}
+### endFeature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 All features of this Type with isEnd = true.
 
-Subsets: `feature`
+Subsets [feature](#feature)
 
-### feature : Feature [0..*] {derived, ordered}
+### feature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 The ownedMemberFeatures of the featureMemberships of this Type.
 
-Subsets: `member`
+Subsets [member](Namespace.md#member)
 
-### featureMembership : FeatureMembership [0..*] {derived, ordered}
+### featureMembership
+
+`+` [FeatureMembership](FeatureMembership.md) · `[0..*]` · *derived, ordered*
 
 The FeatureMemberships for features of this Type, which include all ownedFeatureMemberships and those inheritedMemberships that are FeatureMemberships (but does not include any importedMemberships).
 
-### inheritedFeature : Feature [0..*] {derived, ordered}
+### inheritedFeature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 All the memberFeatures of the inheritedMemberships of this Type that are FeatureMemberships.
 
-Subsets: `feature`
+Subsets [feature](#feature)
 
-### inheritedMembership : Membership [0..*] {derived, ordered}
+### inheritedMembership
+
+`+` [Membership](Membership.md) · `[0..*]` · *derived, ordered*
 
 All Memberships inherited by this Type via Specialization or Conjugation. These are included in the derived union for the memberships of the Type.
 
-Subsets: `membership`
+Subsets [membership](Namespace.md#membership)
 
-### input : Feature [0..*] {derived, ordered}
+### input
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 All features related to this Type by FeatureMemberships that have direction in or inout.
 
-Subsets: `directedFeature`
+Subsets [directedFeature](#directedfeature)
 
-### intersectingType : Type [0..*] {derived, ordered}
+### intersectingType
+
+`+` [Type](Type.md) · `[0..*]` · *derived, ordered*
 
 The interpretations of a Type with intersectingTypes are asserted to be those in common among the intersectingTypes, which are the Types derived from the intersectingType of the ownedIntersectings of this Type. For example, a Classifier might be an intersection of Classifiers for people of a particular sex and of a particular nationality. Similarly, a feature for people&#39;s children of a particular sex might be the intersection of a Feature for their children and a Classifier for people of that sex (because the interpretations of the children Feature that identify those of that sex are also interpretations of the Classifier for that sex).
 
-### isAbstract : Boolean [1..1]
+### isAbstract
+
+`+` Boolean · `[1..1]`
 
 Indicates whether instances of this Type must also be instances of at least one of its specialized Types.
 
-### isConjugated : Boolean [1..1] {derived}
+### isConjugated
+
+`+` Boolean · `[1..1]` · *derived*
 
 Indicates whether this Type has an ownedConjugator.
 
-### isSufficient : Boolean [1..1]
+### isSufficient
+
+`+` Boolean · `[1..1]`
 
 Whether all things that meet the classification conditions of this Type must be classified by the Type.(A Type&nbsp;gives conditions that must be met by whatever it classifies, but when isSufficient is false, things may meet those conditions but still not be classified by the Type. For example, a Type Car that is not sufficient could require everything it classifies to have four wheels, but not all four wheeled things would classify as cars. However, if the Type Car were sufficient, it would classify all four-wheeled things.)
 
-### multiplicity : Multiplicity [0..1] {derived}
+### multiplicity
+
+`+` [Multiplicity](Multiplicity.md) · `[0..1]` · *derived*
 
 An ownedMember of this Type that is a Multiplicity, which constraints the cardinality of the Type. If there is no such ownedMember, then the cardinality of this Type is constrained by all the Multiplicity constraints applicable to any direct supertypes.
 
-Subsets: `ownedMember`
+Subsets [ownedMember](Namespace.md#ownedmember)
 
-### output : Feature [0..*] {derived, ordered}
+### output
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 All features related to this Type by FeatureMemberships that have direction out or inout.
 
-Subsets: `directedFeature`
+Subsets [directedFeature](#directedfeature)
 
-### ownedConjugator : Conjugation [0..1] {derived, composite}
+### ownedConjugator
+
+`+` [Conjugation](Conjugation.md) · `[0..1]` · *derived, composite*
 
 A Conjugation owned by this Type for which the Type is the originalType.
 
-Subsets: `conjugator`, `ownedRelationship`
+Subsets `conjugator`, [ownedRelationship](Element.md#ownedrelationship)
 
-### ownedDifferencing : Differencing [0..*] {derived, composite, ordered}
+### ownedDifferencing
+
+`+` [Differencing](Differencing.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Type that are Differencings, having this Type as their typeDifferenced.
 
-Subsets: `sourceRelationship`, `ownedRelationship`
+Subsets `sourceRelationship`, [ownedRelationship](Element.md#ownedrelationship)
 
-### ownedDisjoining : Disjoining [0..*] {derived, composite}
+### ownedDisjoining
+
+`+` [Disjoining](Disjoining.md) · `[0..*]` · *derived, composite*
 
 The ownedRelationships of this Type that are Disjoinings, for which the Type is the typeDisjoined Type.
 
-Subsets: `ownedRelationship`, `disjoiningTypeDisjoining`
+Subsets [ownedRelationship](Element.md#ownedrelationship), `disjoiningTypeDisjoining`
 
-### ownedEndFeature : Feature [0..*] {derived, ordered}
+### ownedEndFeature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 All endFeatures of this Type that are ownedFeatures.
 
-Subsets: `endFeature`, `ownedFeature`
+Subsets [endFeature](#endfeature), [ownedFeature](#ownedfeature)
 
-### ownedFeature : Feature [0..*] {derived, ordered}
+### ownedFeature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
 The ownedMemberFeatures of the ownedFeatureMemberships of this Type.
 
-Subsets: `ownedMember`
+Subsets [ownedMember](Namespace.md#ownedmember)
 
-### ownedFeatureMembership : FeatureMembership [0..*] {derived, composite, ordered}
+### ownedFeatureMembership
+
+`+` [FeatureMembership](FeatureMembership.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedMemberships of this Type that are FeatureMemberships, for which the Type is the owningType. Each such FeatureMembership identifies an ownedFeature of the Type.
 
-Subsets: `ownedMembership`, `featureMembership`
+Subsets [ownedMembership](Namespace.md#ownedmembership), [featureMembership](#featuremembership)
 
-### ownedIntersecting : Intersecting [0..*] {derived, composite, ordered}
+### ownedIntersecting
+
+`+` [Intersecting](Intersecting.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Type that are Intersectings, have the Type as their typeIntersected.
 
-Subsets: `sourceRelationship`, `ownedRelationship`
+Subsets `sourceRelationship`, [ownedRelationship](Element.md#ownedrelationship)
 
-### ownedSpecialization : Specialization [0..*] {derived, composite, ordered}
+### ownedSpecialization
+
+`+` [Specialization](Specialization.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Type that are Specializations, for which the Type is the specific Type.
 
-Subsets: `ownedRelationship`, `specialization`
+Subsets [ownedRelationship](Element.md#ownedrelationship), `specialization`
 
-### ownedUnioning : Unioning [0..*] {derived, composite, ordered}
+### ownedUnioning
+
+`+` [Unioning](Unioning.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this Type that are Unionings, having the Type as their typeUnioned.
 
-Subsets: `ownedRelationship`, `sourceRelationship`
+Subsets [ownedRelationship](Element.md#ownedrelationship), `sourceRelationship`
 
-### unioningType : Type [0..*] {derived, ordered}
+### unioningType
+
+`+` [Type](Type.md) · `[0..*]` · *derived, ordered*
 
 The interpretations of a Type with unioningTypes are asserted to be the same as those of all the unioningTypes together, which are the Types derived from the unioningType of the ownedUnionings of this Type. For example, a Classifier for people might be the union of Classifiers for all the sexes. Similarly, a feature for people&#39;s children might be the union of features dividing them in the same ways as people in general.
 
@@ -161,27 +211,27 @@ The interpretations of a Type with unioningTypes are asserted to be the same as 
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
-| importedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| member | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| membership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedImport | Import | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedMember | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| ownedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedImport | [Import](Import.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedMember | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| ownedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
 ## Constraints
 

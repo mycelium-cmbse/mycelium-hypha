@@ -43,7 +43,7 @@ The PartUsages that identify the stakeholders with concerns framed by this Viewp
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | expression | [Expression](Expression.md) | [0..*] | [Function](Function.md) | derived |
-| feature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
+| feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | framedConcern | [ConcernUsage](ConcernUsage.md) | [0..*] | [RequirementDefinition](RequirementDefinition.md) | derived, ordered |
 | importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |

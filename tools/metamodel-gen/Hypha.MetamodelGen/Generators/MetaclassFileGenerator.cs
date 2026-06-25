@@ -46,14 +46,20 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Renders the element markdown for a single metaclass. The <paramref name="subtypeIndex"/>
         /// (see <see cref="BuildSubtypeIndex"/>) supplies the direct subtypes, which cannot be
-        /// derived from the metaclass alone.
+        /// derived from the metaclass alone. The <paramref name="linkableTypeNames"/> (see
+        /// <see cref="QueryMetaclassNames"/>) are the metaclasses that have a generated element file,
+        /// so feature types pointing at them can be rendered as links.
         /// </summary>
-        public string GenerateElement(IClass @class, IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex)
+        public string GenerateElement(
+            IClass @class,
+            IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,
+            IReadOnlySet<string> linkableTypeNames)
         {
             ArgumentNullException.ThrowIfNull(@class);
             ArgumentNullException.ThrowIfNull(subtypeIndex);
+            ArgumentNullException.ThrowIfNull(linkableTypeNames);
 
-            var payload = CreatePayload(@class, subtypeIndex);
+            var payload = CreatePayload(@class, subtypeIndex, linkableTypeNames);
 
             return this.Templates[TemplateName](payload);
         }
@@ -69,13 +75,25 @@ namespace Hypha.MetamodelGen.Generators
 
             var metaclasses = QueryMetaclasses(model);
             var subtypeIndex = BuildSubtypeIndex(metaclasses);
+            var linkableTypeNames = QueryMetaclassNames(metaclasses);
 
             foreach (var @class in metaclasses)
             {
-                var content = this.GenerateElement(@class, subtypeIndex);
+                var content = this.GenerateElement(@class, subtypeIndex, linkableTypeNames);
 
                 await WriteAsync(content, outputDirectory, $"{@class.Name}.md");
             }
+        }
+
+        /// <summary>
+        /// Returns the set of metaclass names that have a generated element file, used to decide
+        /// whether a feature type can be rendered as a link.
+        /// </summary>
+        public static IReadOnlySet<string> QueryMetaclassNames(IEnumerable<IClass> metaclasses)
+        {
+            ArgumentNullException.ThrowIfNull(metaclasses);
+
+            return metaclasses.Select(@class => @class.Name).ToHashSet(StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -138,7 +156,8 @@ namespace Hypha.MetamodelGen.Generators
         /// </summary>
         private static MetaclassPayload CreatePayload(
             IClass @class,
-            IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex)
+            IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,
+            IReadOnlySet<string> linkableTypeNames)
         {
             var generalizations = @class.SuperClass
                 .Select(super => super.Name)
@@ -153,18 +172,6 @@ namespace Hypha.MetamodelGen.Generators
                 .Select(property => property.Name)
                 .ToHashSet(StringComparer.Ordinal);
 
-            var features = @class.OwnedAttribute
-                .OrderBy(property => property.Name, StringComparer.Ordinal)
-                .Select(property => new MetaclassFeature(
-                    property.Name,
-                    property.Type?.Name ?? "«untyped»",
-                    property.QueryFormattedMultiplicity(),
-                    QueryOwnedModifiers(property),
-                    property.QueryDocumentationText(),
-                    property.RedefinedProperty.Select(redefined => redefined.Name).ToList(),
-                    property.SubsettedProperty.Select(subsetted => subsetted.Name).ToList()))
-                .ToList();
-
             // The XMI reader does not populate the IProperty.Class back-reference, so attribute each
             // inherited feature to its declaring ancestor by walking the supertype classifiers.
             var inheritedFeatures = @class.QueryAllGeneralClassifiers()
@@ -173,7 +180,7 @@ namespace Hypha.MetamodelGen.Generators
                 .SelectMany(ancestor => ancestor.OwnedAttribute
                     .Select(property => new InheritedFeature(
                         property.Name,
-                        property.Type?.Name ?? "«untyped»",
+                        RenderTypeLink(property.Type?.Name ?? "«untyped»", linkableTypeNames),
                         property.QueryFormattedMultiplicity(),
                         ancestor.Name,
                         string.Join(", ", QueryModifierTokens(property)))))
@@ -181,6 +188,24 @@ namespace Hypha.MetamodelGen.Generators
                 .GroupBy(feature => feature.Name, StringComparer.Ordinal)
                 .Select(group => group.First())
                 .OrderBy(feature => feature.Name, StringComparer.Ordinal)
+                .ToList();
+
+            // Resolve a redefined/subsetted feature name to the supertype that declares it, so the
+            // reference can link to that owner's element file (#anchor when it is owned locally).
+            var inheritedOwners = inheritedFeatures.ToDictionary(
+                feature => feature.Name, feature => feature.Owner, StringComparer.Ordinal);
+
+            var features = @class.OwnedAttribute
+                .OrderBy(property => property.Name, StringComparer.Ordinal)
+                .Select(property => new MetaclassFeature(
+                    property.Name,
+                    QueryVisibilitySigil(property.Visibility),
+                    RenderTypeLink(property.Type?.Name ?? "«untyped»", linkableTypeNames),
+                    property.QueryFormattedMultiplicity(),
+                    string.Join(", ", QueryModifierTokens(property)),
+                    property.QueryDocumentationText(),
+                    property.RedefinedProperty.Select(redefined => RenderFeatureReference(redefined.Name, ownedNames, inheritedOwners)).ToList(),
+                    property.SubsettedProperty.Select(subsetted => RenderFeatureReference(subsetted.Name, ownedNames, inheritedOwners)).ToList()))
                 .ToList();
 
             var constraints = @class.OwnedRule
@@ -194,7 +219,9 @@ namespace Hypha.MetamodelGen.Generators
             return new MetaclassPayload(
                 @class.Name,
                 @class.Namespace?.Name ?? string.Empty,
+                QueryFullyQualifiedName(@class),
                 @class.IsAbstract,
+                @class.Visibility.ToString().ToLowerInvariant(),
                 @class.QueryDocumentationText(),
                 generalizations,
                 specializations,
@@ -226,14 +253,74 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>
-        /// Renders the owned-feature modifier annotation (e.g. <c>{derived, ordered}</c>), or an
-        /// empty string when the property has no modifiers.
+        /// Renders a feature type as markdown: a link to its element file when the type resolves to a
+        /// generated metaclass, otherwise the plain type name (e.g. a primitive, enumeration or the
+        /// <c>«untyped»</c> placeholder).
         /// </summary>
-        private static string QueryOwnedModifiers(IProperty property)
+        private static string RenderTypeLink(string typeName, IReadOnlySet<string> linkableTypeNames)
         {
-            var tokens = QueryModifierTokens(property).ToList();
+            return linkableTypeNames.Contains(typeName) ? $"[{typeName}]({typeName}.md)" : typeName;
+        }
 
-            return tokens.Count == 0 ? string.Empty : $"{{{string.Join(", ", tokens)}}}";
+        /// <summary>
+        /// Renders a redefined/subsetted feature reference as a markdown link: a same-file anchor when
+        /// the feature is owned locally, the declaring supertype's element file when it is inherited,
+        /// otherwise plain backtick text when the target is outside this metaclass' feature set.
+        /// </summary>
+        private static string RenderFeatureReference(
+            string featureName,
+            ISet<string> ownedNames,
+            IReadOnlyDictionary<string, string> inheritedOwners)
+        {
+            if (ownedNames.Contains(featureName))
+            {
+                return $"[{featureName}](#{Slug(featureName)})";
+            }
+
+            if (inheritedOwners.TryGetValue(featureName, out var owner))
+            {
+                return $"[{featureName}]({owner}.md#{Slug(featureName)})";
+            }
+
+            return $"`{featureName}`";
+        }
+
+        /// <summary>
+        /// Returns the GitHub-style heading anchor for a feature name (identifiers only need lowercasing).
+        /// </summary>
+        private static string Slug(string name) => name.ToLowerInvariant();
+
+        /// <summary>
+        /// Returns the UML visibility sigil (<c>+</c> public, <c>-</c> private, <c>#</c> protected,
+        /// <c>~</c> package).
+        /// </summary>
+        private static string QueryVisibilitySigil(VisibilityKind visibility) => visibility switch
+        {
+            VisibilityKind.Private => "-",
+            VisibilityKind.Protected => "#",
+            VisibilityKind.Package => "~",
+            _ => "+",
+        };
+
+        /// <summary>
+        /// Builds the fully qualified name by walking the owning-namespace chain up to the root model
+        /// and joining the names with <c>::</c> (e.g. <c>SysML::Systems::Actions::AcceptActionUsage</c>).
+        /// </summary>
+        private static string QueryFullyQualifiedName(IClass @class)
+        {
+            var parts = new List<string>();
+
+            for (INamedElement current = @class; current is not null; current = current.Namespace)
+            {
+                if (!string.IsNullOrEmpty(current.Name))
+                {
+                    parts.Add(current.Name);
+                }
+            }
+
+            parts.Reverse();
+
+            return string.Join("::", parts);
         }
 
         /// <summary>

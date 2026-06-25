@@ -1,7 +1,9 @@
 ---
 name: AnnotatingElement
 package: Annotations
+fully qualified name: KerML::Root::Annotations::AnnotatingElement
 isAbstract: false
+visibility: public
 generalizes: [Element]
 specializedBy: [Comment, MetadataFeature, TextualRepresentation]
 ---
@@ -24,27 +26,35 @@ An AnnotatingElement is an Element that provides additional description of or me
 
 ## Owned features
 
-### annotatedElement : Element [1..*] {derived, ordered}
+### annotatedElement
+
+`+` [Element](Element.md) · `[1..*]` · *derived, ordered*
 
 The Elements that are annotated by this AnnotatingElement. If annotation is not empty, these are the annotatedElements of the annotations. If annotation is empty, then it is the owningNamespace of the AnnotatingElement.
 
-### annotation : Annotation [0..*] {derived, ordered}
+### annotation
+
+`+` [Annotation](Annotation.md) · `[0..*]` · *derived, ordered*
 
 The Annotations that relate this AnnotatingElement to its annotatedElements. This includes the owningAnnotatingRelationship (if any) followed by all the ownedAnnotatingRelationshps.
 
-Subsets: `sourceRelationship`
+Subsets `sourceRelationship`
 
-### ownedAnnotatingRelationship : Annotation [0..*] {derived, composite, ordered}
+### ownedAnnotatingRelationship
+
+`+` [Annotation](Annotation.md) · `[0..*]` · *derived, composite, ordered*
 
 The ownedRelationships of this AnnotatingElement that are Annotations, for which this AnnotatingElement is the annotatingElement.
 
-Subsets: `annotation`, `ownedRelationship`
+Subsets [annotation](#annotation), [ownedRelationship](Element.md#ownedrelationship)
 
-### owningAnnotatingRelationship : Annotation [0..1] {derived}
+### owningAnnotatingRelationship
+
+`+` [Annotation](Annotation.md) · `[0..1]` · *derived*
 
 The owningRelationship of this AnnotatingRelationship, if it is an Annotation
 
-Subsets: `owningRelationship`, `annotation`
+Subsets [owningRelationship](Element.md#owningrelationship), [annotation](#annotation)
 
 
 ## Inherited features
@@ -54,21 +64,21 @@ Subsets: `owningRelationship`, `annotation`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
 ## Constraints
 

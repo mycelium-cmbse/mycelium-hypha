@@ -21,7 +21,8 @@ namespace Hypha.MetamodelGen.Generators
         /// </summary>
         public MetaclassFeature(
             string name,
-            string type,
+            string visibility,
+            string typeMarkdown,
             string multiplicity,
             string modifiers,
             string documentation,
@@ -29,7 +30,8 @@ namespace Hypha.MetamodelGen.Generators
             IReadOnlyList<string> subsets)
         {
             this.Name = name;
-            this.Type = type;
+            this.Visibility = visibility;
+            this.TypeMarkdown = typeMarkdown;
             this.Multiplicity = multiplicity;
             this.Modifiers = modifiers;
             this.Documentation = documentation;
@@ -40,22 +42,26 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>Gets the feature name.</summary>
         public string Name { get; }
 
-        /// <summary>Gets the feature type name.</summary>
-        public string Type { get; }
+        /// <summary>Gets the visibility sigil (<c>+</c>, <c>-</c>, <c>#</c> or <c>~</c>).</summary>
+        public string Visibility { get; }
 
-        /// <summary>Gets the formatted multiplicity (e.g. <c>0..*</c>).</summary>
+        /// <summary>Gets the feature type rendered as markdown: a link when the type resolves to a
+        /// generated element file, otherwise the plain type name.</summary>
+        public string TypeMarkdown { get; }
+
+        /// <summary>Gets the formatted multiplicity (e.g. <c>[0..*]</c>).</summary>
         public string Multiplicity { get; }
 
-        /// <summary>Gets the modifier annotation (e.g. <c>{derived, ordered}</c>); may be empty.</summary>
+        /// <summary>Gets the comma-separated modifier list (e.g. <c>derived, ordered</c>); may be empty.</summary>
         public string Modifiers { get; }
 
         /// <summary>Gets the feature documentation (may be empty).</summary>
         public string Documentation { get; }
 
-        /// <summary>Gets the names of the features this feature redefines.</summary>
+        /// <summary>Gets the rendered (markdown link) references to the features this feature redefines.</summary>
         public IReadOnlyList<string> Redefines { get; }
 
-        /// <summary>Gets the names of the features this feature subsets.</summary>
+        /// <summary>Gets the rendered (markdown link) references to the features this feature subsets.</summary>
         public IReadOnlyList<string> Subsets { get; }
     }
 }

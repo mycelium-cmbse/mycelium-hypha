@@ -1,7 +1,9 @@
 ---
 name: Redefinition
 package: Features
+fully qualified name: KerML::Core::Features::Redefinition
 isAbstract: false
+visibility: public
 generalizes: [Subsetting]
 specializedBy: []
 ---
@@ -18,17 +20,21 @@ Redefinition is a kind of Subsetting that requires the redefinedFeature and the 
 
 ## Owned features
 
-### redefinedFeature : Feature [1..1]
+### redefinedFeature
+
+`+` [Feature](Feature.md) · `[1..1]`
 
 The Feature that is redefined by the redefiningFeature of this Redefinition.
 
-Redefines: `subsettedFeature`
+Redefines [subsettedFeature](Subsetting.md#subsettedfeature)
 
-### redefiningFeature : Feature [1..1]
+### redefiningFeature
+
+`+` [Feature](Feature.md) · `[1..1]`
 
 The Feature that is redefining the redefinedFeature of this Redefinition.
 
-Redefines: `subsettingFeature`
+Redefines [subsettingFeature](Subsetting.md#subsettingfeature)
 
 
 ## Inherited features
@@ -38,33 +44,33 @@ Redefines: `subsettingFeature`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
-| general | Type | [1..1] | [Specialization](Specialization.md) |  |
+| general | [Type](Type.md) | [1..1] | [Specialization](Specialization.md) |  |
 | isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelatedElement | Element | [0..*] | [Relationship](Relationship.md) | composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningFeature | Feature | [0..1] | [Subsetting](Subsetting.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelatedElement | Element | [0..1] | [Relationship](Relationship.md) |  |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
-| owningType | Type | [0..1] | [Specialization](Specialization.md) | derived |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningFeature | [Feature](Feature.md) | [0..1] | [Subsetting](Subsetting.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
+| owningType | [Type](Type.md) | [0..1] | [Specialization](Specialization.md) | derived |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| relatedElement | Element | [0..*] | [Relationship](Relationship.md) | derived, ordered |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| source | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| specific | Type | [1..1] | [Specialization](Specialization.md) |  |
-| subsettedFeature | Feature | [1..1] | [Subsetting](Subsetting.md) |  |
-| subsettingFeature | Feature | [1..1] | [Subsetting](Subsetting.md) |  |
-| target | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| specific | [Type](Type.md) | [1..1] | [Specialization](Specialization.md) |  |
+| subsettedFeature | [Feature](Feature.md) | [1..1] | [Subsetting](Subsetting.md) |  |
+| subsettingFeature | [Feature](Feature.md) | [1..1] | [Subsetting](Subsetting.md) |  |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
 ## Constraints
 

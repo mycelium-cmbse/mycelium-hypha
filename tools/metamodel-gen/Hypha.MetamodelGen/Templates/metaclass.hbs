@@ -1,7 +1,9 @@
 ---
 name: {{Name}}
 package: {{Package}}
+fully qualified name: {{FullyQualifiedName}}
 isAbstract: {{#if IsAbstract}}true{{else}}false{{/if}}
+visibility: {{Visibility}}
 generalizes: [{{#each Generalizations}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]
 specializedBy: [{{#each Specializations}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]
 ---
@@ -34,18 +36,20 @@ specializedBy: [{{#each Specializations}}{{this}}{{#unless @last}}, {{/unless}}{
 ## Owned features
 
 {{#each Features}}
-### {{Name}} : {{{Type}}} {{Multiplicity}}{{#if Modifiers}} {{{Modifiers}}}{{/if}}
+### {{Name}}
+
+`{{Visibility}}` {{{TypeMarkdown}}} · `{{Multiplicity}}`{{#if Modifiers}} · *{{Modifiers}}*{{/if}}
 {{#if Documentation}}
 
 {{{Documentation}}}
 {{/if}}
 {{#if Redefines}}
 
-Redefines: {{#each Redefines}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}
+Redefines {{#each Redefines}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 {{/if}}
 {{#if Subsets}}
 
-Subsets: {{#each Subsets}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}
+Subsets {{#each Subsets}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 {{/if}}
 
 {{/each}}
@@ -57,7 +61,7 @@ Subsets: {{#each Subsets}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
 {{#each InheritedFeatures}}
-| {{Name}} | {{{Type}}} | {{Multiplicity}} | [{{Owner}}]({{Owner}}.md) | {{Modifiers}} |
+| {{Name}} | {{{TypeMarkdown}}} | {{Multiplicity}} | [{{Owner}}]({{Owner}}.md) | {{Modifiers}} |
 {{/each}}
 {{/if}}
 {{#if Constraints}}

@@ -51,8 +51,9 @@ namespace Hypha.MetamodelGen.Tests
 
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
+            var linkableTypeNames = MetaclassFileGenerator.QueryMetaclassNames(metaclasses);
             var metaclass = metaclasses.Single(@class => @class.Name == metaclassName);
-            var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass, subtypeIndex));
+            var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass, subtypeIndex, linkableTypeNames));
 
             var expectedPath = Path.Combine(
                 TestContext.CurrentContext.TestDirectory, "Expected", "sysml2", "elements", $"{metaclassName}.md");
@@ -80,11 +81,12 @@ namespace Hypha.MetamodelGen.Tests
             var generator = new MetaclassFileGenerator();
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
+            var linkableTypeNames = MetaclassFileGenerator.QueryMetaclassNames(metaclasses);
 
             foreach (var name in InterestingMetaclassNames())
             {
                 var metaclass = metaclasses.Single(@class => @class.Name == name);
-                var content = generator.GenerateElement(metaclass, subtypeIndex);
+                var content = generator.GenerateElement(metaclass, subtypeIndex, linkableTypeNames);
 
                 File.WriteAllText(Path.Combine(expectedDirectory, $"{name}.md"), content, new UTF8Encoding(false));
             }

@@ -22,7 +22,9 @@ namespace Hypha.MetamodelGen.Generators
         public MetaclassPayload(
             string name,
             string package,
+            string fullyQualifiedName,
             bool isAbstract,
+            string visibility,
             string documentation,
             IReadOnlyList<string> generalizations,
             IReadOnlyList<string> specializations,
@@ -32,7 +34,9 @@ namespace Hypha.MetamodelGen.Generators
         {
             this.Name = name;
             this.Package = package;
+            this.FullyQualifiedName = fullyQualifiedName;
             this.IsAbstract = isAbstract;
+            this.Visibility = visibility;
             this.Documentation = documentation;
             this.Generalizations = generalizations;
             this.Specializations = specializations;
@@ -47,8 +51,14 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>Gets the owning package name.</summary>
         public string Package { get; }
 
+        /// <summary>Gets the fully qualified name (e.g. <c>SysML::Systems::Actions::AcceptActionUsage</c>).</summary>
+        public string FullyQualifiedName { get; }
+
         /// <summary>Gets a value indicating whether the metaclass is abstract.</summary>
         public bool IsAbstract { get; }
+
+        /// <summary>Gets the metaclass visibility (e.g. <c>public</c>).</summary>
+        public string Visibility { get; }
 
         /// <summary>Gets the metaclass documentation (may be empty).</summary>
         public string Documentation { get; }

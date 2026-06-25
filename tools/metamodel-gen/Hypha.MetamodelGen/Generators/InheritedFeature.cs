@@ -19,10 +19,10 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="InheritedFeature"/> class.
         /// </summary>
-        public InheritedFeature(string name, string type, string multiplicity, string owner, string modifiers)
+        public InheritedFeature(string name, string typeMarkdown, string multiplicity, string owner, string modifiers)
         {
             this.Name = name;
-            this.Type = type;
+            this.TypeMarkdown = typeMarkdown;
             this.Multiplicity = multiplicity;
             this.Owner = owner;
             this.Modifiers = modifiers;
@@ -31,8 +31,9 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>Gets the feature name.</summary>
         public string Name { get; }
 
-        /// <summary>Gets the feature type name.</summary>
-        public string Type { get; }
+        /// <summary>Gets the feature type rendered as markdown: a link when the type resolves to a
+        /// generated element file, otherwise the plain type name.</summary>
+        public string TypeMarkdown { get; }
 
         /// <summary>Gets the formatted multiplicity (e.g. <c>[0..*]</c>).</summary>
         public string Multiplicity { get; }

@@ -1,7 +1,9 @@
 ---
 name: Conjugation
 package: Types
+fully qualified name: KerML::Core::Types::Conjugation
 isAbstract: false
+visibility: public
 generalizes: [Relationship]
 specializedBy: [PortConjugation]
 ---
@@ -22,23 +24,29 @@ Conjugation is a Relationship between two types in which the conjugatedType inhe
 
 ## Owned features
 
-### conjugatedType : Type [1..1]
+### conjugatedType
+
+`+` [Type](Type.md) · `[1..1]`
 
 The Type that is the result of applying Conjugation to the originalType.
 
-Redefines: `source`
+Redefines [source](Relationship.md#source)
 
-### originalType : Type [1..1]
+### originalType
+
+`+` [Type](Type.md) · `[1..1]`
 
 The Type to be conjugated.
 
-Redefines: `target`
+Redefines [target](Relationship.md#target)
 
-### owningType : Type [0..1] {derived}
+### owningType
+
+`+` [Type](Type.md) · `[0..1]` · *derived*
 
 The conjugatedType of this Conjugation that is also its owningRelatedElement.
 
-Subsets: `conjugatedType`, `owningRelatedElement`
+Subsets [conjugatedType](#conjugatedtype), [owningRelatedElement](Relationship.md#owningrelatedelement)
 
 
 ## Inherited features
@@ -48,24 +56,24 @@ Subsets: `conjugatedType`, `owningRelatedElement`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | isImplied | Boolean | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelatedElement | Element | [0..*] | [Relationship](Relationship.md) | composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelatedElement | Element | [0..1] | [Relationship](Relationship.md) |  |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
-| relatedElement | Element | [0..*] | [Relationship](Relationship.md) | derived, ordered |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| source | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| target | Element | [0..*] | [Relationship](Relationship.md) | ordered |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |

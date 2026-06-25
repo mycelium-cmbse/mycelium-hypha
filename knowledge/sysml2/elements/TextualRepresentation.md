@@ -1,7 +1,9 @@
 ---
 name: TextualRepresentation
 package: Annotations
+fully qualified name: KerML::Root::Annotations::TextualRepresentation
 isAbstract: false
+visibility: public
 generalizes: [AnnotatingElement]
 specializedBy: []
 ---
@@ -18,21 +20,27 @@ A TextualRepresentation is an AnnotatingElement whose body represents the repres
 
 ## Owned features
 
-### body : String [1..1]
+### body
+
+`+` String · `[1..1]`
 
 The textual representation of the representedElement in the given language.
 
-### language : String [1..1]
+### language
+
+`+` String · `[1..1]`
 
 The natural or artifical language in which the body text is written.
 
-### representedElement : Element [1..1] {derived}
+### representedElement
+
+`+` [Element](Element.md) · `[1..1]` · *derived*
 
 The Element that is represented by this TextualRepresentation.
 
-Redefines: `annotatedElement`
+Redefines [annotatedElement](AnnotatingElement.md#annotatedelement)
 
-Subsets: `owner`
+Subsets [owner](Element.md#owner)
 
 
 ## Inherited features
@@ -40,24 +48,24 @@ Subsets: `owner`
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
-| annotatedElement | Element | [1..*] | [AnnotatingElement](AnnotatingElement.md) | derived, ordered |
-| annotation | Annotation | [0..*] | [AnnotatingElement](AnnotatingElement.md) | derived, ordered |
+| annotatedElement | [Element](Element.md) | [1..*] | [AnnotatingElement](AnnotatingElement.md) | derived, ordered |
+| annotation | [Annotation](Annotation.md) | [0..*] | [AnnotatingElement](AnnotatingElement.md) | derived, ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotatingRelationship | Annotation | [0..*] | [AnnotatingElement](AnnotatingElement.md) | derived, composite, ordered |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningAnnotatingRelationship | Annotation | [0..1] | [AnnotatingElement](AnnotatingElement.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotatingRelationship | [Annotation](Annotation.md) | [0..*] | [AnnotatingElement](AnnotatingElement.md) | derived, composite, ordered |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningAnnotatingRelationship | [Annotation](Annotation.md) | [0..1] | [AnnotatingElement](AnnotatingElement.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
