@@ -37,16 +37,20 @@ knowledge/
 ## Element file convention (`kerml/elements`, `sysml2/elements`)
 
 One file per metaclass, named `<MetaclassName>.md`. Each file opens with YAML front matter
-(`name`, `package`, `isAbstract`, `generalizes`, `specializedBy`) for machine-readable lookup,
-followed by:
+(`name`, `package`, `fully qualified name`, `isAbstract`, `visibility`, `generalizes`,
+`specializedBy`) for machine-readable lookup, followed by:
 
 - the metaclass documentation;
 - **Generalizations** (direct supertypes) and **Specializations** (direct subtypes), cross-linked;
-- **Owned features** — `name : type [multiplicity]` with modifier annotations (`{derived, ordered,
-  composite}`), documentation, and redefinitions/subsettings;
+- **Owned features** — one heading per feature (a stable anchor), followed by a signature line
+  giving the visibility sigil (`+`/`-`/`#`/`~`), the type (linked to its element file when the type
+  is a generated metaclass), the multiplicity, and italic modifiers (`derived`, `composite`,
+  `ordered`); then the documentation and any redefinitions/subsettings, each rendered as a link to
+  the feature it refines (a same-file `#anchor` when owned locally, `Owner.md#feature` when
+  inherited);
 - **Inherited features** — a compact table of the effective feature set inherited from supertypes,
-  each row giving type, multiplicity, declaring owner, and modifiers, so the reader sees the whole
-  feature set without walking the generalization chain;
+  each row giving the (linked) type, multiplicity, declaring owner, and modifiers, so the reader
+  sees the whole feature set without walking the generalization chain;
 - **Constraints** — the constraint intent text plus its OCL body.
 
 Every entry is traceable to the source XMI.

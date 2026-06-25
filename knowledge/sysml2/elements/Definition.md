@@ -1,7 +1,9 @@
 ---
 name: Definition
 package: DefinitionAndUsage
+fully qualified name: SysML::Systems::DefinitionAndUsage::Definition
 isAbstract: false
+visibility: public
 generalizes: [Classifier]
 specializedBy: [AttributeDefinition, OccurrenceDefinition]
 ---
@@ -23,195 +25,259 @@ A Definition is a Classifier of Usages. The actual kinds of Definition that may 
 
 ## Owned features
 
-### directedUsage : Usage [0..*] {derived, ordered}
+### directedUsage
+
+`+` [Usage](Usage.md) · `[0..*]` · *derived, ordered*
 
 The usages of this Definition that are directedFeatures.
 
-Subsets: `directedFeature`
+Subsets [directedFeature](Type.md#directedfeature)
 
-### isVariation : Boolean [1..1]
+### isVariation
+
+`+` Boolean · `[1..1]`
 
 Whether this Definition is for a variation point or not. If true, then all the memberships of the Definition must be VariantMemberships.
 
-### ownedAction : ActionUsage [0..*] {derived, ordered}
+### ownedAction
+
+`+` [ActionUsage](ActionUsage.md) · `[0..*]` · *derived, ordered*
 
 The ActionUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedOccurrence`
+Subsets [ownedOccurrence](#ownedoccurrence)
 
-### ownedAllocation : AllocationUsage [0..*] {derived, ordered}
+### ownedAllocation
+
+`+` [AllocationUsage](AllocationUsage.md) · `[0..*]` · *derived, ordered*
 
 The AllocationUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedConnection`
+Subsets [ownedConnection](#ownedconnection)
 
-### ownedAnalysisCase : AnalysisCaseUsage [0..*] {derived, ordered}
+### ownedAnalysisCase
+
+`+` [AnalysisCaseUsage](AnalysisCaseUsage.md) · `[0..*]` · *derived, ordered*
 
 The AnalysisCaseUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedCase`
+Subsets [ownedCase](#ownedcase)
 
-### ownedAttribute : AttributeUsage [0..*] {derived, ordered}
+### ownedAttribute
+
+`+` [AttributeUsage](AttributeUsage.md) · `[0..*]` · *derived, ordered*
 
 The AttributeUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedUsage`
+Subsets [ownedUsage](#ownedusage)
 
-### ownedCalculation : CalculationUsage [0..*] {derived, ordered}
+### ownedCalculation
+
+`+` [CalculationUsage](CalculationUsage.md) · `[0..*]` · *derived, ordered*
 
 The CalculationUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedAction`
+Subsets [ownedAction](#ownedaction)
 
-### ownedCase : CaseUsage [0..*] {derived, ordered}
+### ownedCase
+
+`+` [CaseUsage](CaseUsage.md) · `[0..*]` · *derived, ordered*
 
 The code>CaseUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedCalculation`
+Subsets [ownedCalculation](#ownedcalculation)
 
-### ownedConcern : ConcernUsage [0..*] {derived}
+### ownedConcern
+
+`+` [ConcernUsage](ConcernUsage.md) · `[0..*]` · *derived*
 
 The ConcernUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedRequirement`
+Subsets [ownedRequirement](#ownedrequirement)
 
-### ownedConnection : ConnectorAsUsage [0..*] {derived, ordered}
+### ownedConnection
+
+`+` [ConnectorAsUsage](ConnectorAsUsage.md) · `[0..*]` · *derived, ordered*
 
 The ConnectorAsUsages that are ownedUsages of this Definition. Note that this list includes BindingConnectorAsUsages, SuccessionAsUsages, and FlowUsages because these are ConnectorAsUsages even though they are not ConnectionUsages.
 
-Subsets: `ownedUsage`
+Subsets [ownedUsage](#ownedusage)
 
-### ownedConstraint : ConstraintUsage [0..*] {derived, ordered}
+### ownedConstraint
+
+`+` [ConstraintUsage](ConstraintUsage.md) · `[0..*]` · *derived, ordered*
 
 The ConstraintUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedOccurrence`
+Subsets [ownedOccurrence](#ownedoccurrence)
 
-### ownedEnumeration : EnumerationUsage [0..*] {derived, ordered}
+### ownedEnumeration
+
+`+` [EnumerationUsage](EnumerationUsage.md) · `[0..*]` · *derived, ordered*
 
 The EnumerationUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedAttribute`
+Subsets [ownedAttribute](#ownedattribute)
 
-### ownedFlow : FlowUsage [0..*] {derived}
+### ownedFlow
+
+`+` [FlowUsage](FlowUsage.md) · `[0..*]` · *derived*
 
 The FlowUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedConnection`
+Subsets [ownedConnection](#ownedconnection)
 
-### ownedInterface : InterfaceUsage [0..*] {derived, ordered}
+### ownedInterface
+
+`+` [InterfaceUsage](InterfaceUsage.md) · `[0..*]` · *derived, ordered*
 
 The InterfaceUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedConnection`
+Subsets [ownedConnection](#ownedconnection)
 
-### ownedItem : ItemUsage [0..*] {derived, ordered}
+### ownedItem
+
+`+` [ItemUsage](ItemUsage.md) · `[0..*]` · *derived, ordered*
 
 The ItemUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedOccurrence`
+Subsets [ownedOccurrence](#ownedoccurrence)
 
-### ownedMetadata : MetadataUsage [0..*] {derived, ordered}
+### ownedMetadata
+
+`+` [MetadataUsage](MetadataUsage.md) · `[0..*]` · *derived, ordered*
 
 The MetadataUsages that are ownedMembers of this Definition.
 
-Subsets: `ownedItem`
+Subsets [ownedItem](#owneditem)
 
-### ownedOccurrence : OccurrenceUsage [0..*] {derived, ordered}
+### ownedOccurrence
+
+`+` [OccurrenceUsage](OccurrenceUsage.md) · `[0..*]` · *derived, ordered*
 
 The OccurrenceUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedUsage`
+Subsets [ownedUsage](#ownedusage)
 
-### ownedPart : PartUsage [0..*] {derived, ordered}
+### ownedPart
+
+`+` [PartUsage](PartUsage.md) · `[0..*]` · *derived, ordered*
 
 The PartUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedItem`
+Subsets [ownedItem](#owneditem)
 
-### ownedPort : PortUsage [0..*] {derived, ordered}
+### ownedPort
+
+`+` [PortUsage](PortUsage.md) · `[0..*]` · *derived, ordered*
 
 The PortUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedUsage`
+Subsets [ownedUsage](#ownedusage)
 
-### ownedReference : ReferenceUsage [0..*] {derived, ordered}
+### ownedReference
+
+`+` [ReferenceUsage](ReferenceUsage.md) · `[0..*]` · *derived, ordered*
 
 The ReferenceUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedUsage`
+Subsets [ownedUsage](#ownedusage)
 
-### ownedRendering : RenderingUsage [0..*] {derived, ordered}
+### ownedRendering
+
+`+` [RenderingUsage](RenderingUsage.md) · `[0..*]` · *derived, ordered*
 
 The RenderingUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedPart`
+Subsets [ownedPart](#ownedpart)
 
-### ownedRequirement : RequirementUsage [0..*] {derived, ordered}
+### ownedRequirement
+
+`+` [RequirementUsage](RequirementUsage.md) · `[0..*]` · *derived, ordered*
 
 The RequirementUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedConstraint`
+Subsets [ownedConstraint](#ownedconstraint)
 
-### ownedState : StateUsage [0..*] {derived, ordered}
+### ownedState
+
+`+` [StateUsage](StateUsage.md) · `[0..*]` · *derived, ordered*
 
 The StateUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedAction`
+Subsets [ownedAction](#ownedaction)
 
-### ownedTransition : TransitionUsage [0..*] {derived}
+### ownedTransition
+
+`+` [TransitionUsage](TransitionUsage.md) · `[0..*]` · *derived*
 
 The TransitionUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedUsage`
+Subsets [ownedUsage](#ownedusage)
 
-### ownedUsage : Usage [0..*] {derived, ordered}
+### ownedUsage
+
+`+` [Usage](Usage.md) · `[0..*]` · *derived, ordered*
 
 The Usages that are ownedFeatures of this Definition.
 
-Subsets: `ownedFeature`
+Subsets [ownedFeature](Type.md#ownedfeature)
 
-### ownedUseCase : UseCaseUsage [0..*] {derived, ordered}
+### ownedUseCase
+
+`+` [UseCaseUsage](UseCaseUsage.md) · `[0..*]` · *derived, ordered*
 
 The UseCaseUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedCase`
+Subsets [ownedCase](#ownedcase)
 
-### ownedVerificationCase : VerificationCaseUsage [0..*] {derived, ordered}
+### ownedVerificationCase
+
+`+` [VerificationCaseUsage](VerificationCaseUsage.md) · `[0..*]` · *derived, ordered*
 
 The VerificationCaseUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedCase`
+Subsets [ownedCase](#ownedcase)
 
-### ownedView : ViewUsage [0..*] {derived, ordered}
+### ownedView
+
+`+` [ViewUsage](ViewUsage.md) · `[0..*]` · *derived, ordered*
 
 The ViewUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedPart`
+Subsets [ownedPart](#ownedpart)
 
-### ownedViewpoint : ViewpointUsage [0..*] {derived, ordered}
+### ownedViewpoint
+
+`+` [ViewpointUsage](ViewpointUsage.md) · `[0..*]` · *derived, ordered*
 
 The ViewpointUsages that are ownedUsages of this Definition.
 
-Subsets: `ownedRequirement`
+Subsets [ownedRequirement](#ownedrequirement)
 
-### usage : Usage [0..*] {derived, ordered}
+### usage
+
+`+` [Usage](Usage.md) · `[0..*]` · *derived, ordered*
 
 The Usages that are features of this Definition (not necessarily owned).
 
-Subsets: `feature`
+Subsets [feature](Type.md#feature)
 
-### variant : Usage [0..*] {derived}
+### variant
+
+`+` [Usage](Usage.md) · `[0..*]` · *derived*
 
 The Usages which represent the variants of this Definition as a variation point Definition, if isVariation = true. If isVariation = false, the there must be no variants.
 
-Subsets: `ownedMember`
+Subsets [ownedMember](Namespace.md#ownedmember)
 
-### variantMembership : VariantMembership [0..*] {derived, composite}
+### variantMembership
+
+`+` [VariantMembership](VariantMembership.md) · `[0..*]` · *derived, composite*
 
 The ownedMemberships of this Definition that are VariantMemberships. If isVariation = true, then this must be all ownedMemberships of the Definition. If isVariation = false, then variantMembershipmust be empty.
 
-Subsets: `ownedMembership`
+Subsets [ownedMembership](Namespace.md#ownedmembership)
 
 
 ## Inherited features
@@ -221,52 +287,52 @@ Subsets: `ownedMembership`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| differencingType | Type | [0..*] | [Type](Type.md) | derived, ordered |
-| directedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
-| endFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| feature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| featureMembership | FeatureMembership | [0..*] | [Type](Type.md) | derived, ordered |
-| importedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| inheritedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| inheritedMembership | Membership | [0..*] | [Type](Type.md) | derived, ordered |
-| input | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| intersectingType | Type | [0..*] | [Type](Type.md) | derived, ordered |
+| endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| inheritedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | isAbstract | Boolean | [1..1] | [Type](Type.md) |  |
 | isConjugated | Boolean | [1..1] | [Type](Type.md) | derived |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
 | isSufficient | Boolean | [1..1] | [Type](Type.md) |  |
-| member | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| membership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| multiplicity | Multiplicity | [0..1] | [Type](Type.md) | derived |
+| member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| output | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedConjugator | Conjugation | [0..1] | [Type](Type.md) | derived, composite |
-| ownedDifferencing | Differencing | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedDisjoining | Disjoining | [0..*] | [Type](Type.md) | derived, composite |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedEndFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedFeature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
-| ownedFeatureMembership | FeatureMembership | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedImport | Import | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedIntersecting | Intersecting | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedMember | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| ownedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| ownedSpecialization | Specialization | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| ownedSubclassification | Subclassification | [0..*] | [Classifier](Classifier.md) | derived, composite |
-| ownedUnioning | Unioning | [0..*] | [Type](Type.md) | derived, composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedConjugator | [Conjugation](Conjugation.md) | [0..1] | [Type](Type.md) | derived, composite |
+| ownedDifferencing | [Differencing](Differencing.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedDisjoining | [Disjoining](Disjoining.md) | [0..*] | [Type](Type.md) | derived, composite |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedEndFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| ownedFeatureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedImport | [Import](Import.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedIntersecting | [Intersecting](Intersecting.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedMember | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| ownedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| ownedSpecialization | [Specialization](Specialization.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| ownedSubclassification | [Subclassification](Subclassification.md) | [0..*] | [Classifier](Classifier.md) | derived, composite |
+| ownedUnioning | [Unioning](Unioning.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
-| unioningType | Type | [0..*] | [Type](Type.md) | derived, ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
 ## Constraints
 

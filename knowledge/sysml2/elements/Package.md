@@ -1,7 +1,9 @@
 ---
 name: Package
 package: Packages
+fully qualified name: KerML::Kernel::Packages::Package
 isAbstract: false
+visibility: public
 generalizes: [Namespace]
 specializedBy: [LibraryPackage]
 ---
@@ -22,11 +24,13 @@ A Package is a Namespace used to group Elements, without any instance-level sema
 
 ## Owned features
 
-### filterCondition : Expression [0..*] {derived, ordered}
+### filterCondition
+
+`+` [Expression](Expression.md) · `[0..*]` · *derived, ordered*
 
 The model-level evaluable Boolean-valued Expression used to filter the members of this Package, which are owned by the Package are via ElementFilterMemberships.
 
-Subsets: `ownedMember`
+Subsets [ownedMember](Namespace.md#ownedmember)
 
 
 ## Inherited features
@@ -36,27 +40,27 @@ Subsets: `ownedMember`
 | aliasIds | String | [0..*] | [Element](Element.md) | ordered |
 | declaredName | String | [0..1] | [Element](Element.md) |  |
 | declaredShortName | String | [0..1] | [Element](Element.md) |  |
-| documentation | Documentation | [0..*] | [Element](Element.md) | derived, ordered |
+| documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
-| importedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | isImpliedIncluded | Boolean | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | Boolean | [1..1] | [Element](Element.md) | derived |
-| member | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| membership | Membership | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | name | String | [0..1] | [Element](Element.md) | derived |
-| ownedAnnotation | Annotation | [0..*] | [Element](Element.md) | derived, composite, ordered |
-| ownedElement | Element | [0..*] | [Element](Element.md) | derived, ordered |
-| ownedImport | Import | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedMember | Element | [0..*] | [Namespace](Namespace.md) | derived, ordered |
-| ownedMembership | Membership | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
-| ownedRelationship | Relationship | [0..*] | [Element](Element.md) | composite, ordered |
-| owner | Element | [0..1] | [Element](Element.md) | derived |
-| owningMembership | OwningMembership | [0..1] | [Element](Element.md) | derived |
-| owningNamespace | Namespace | [0..1] | [Element](Element.md) | derived |
-| owningRelationship | Relationship | [0..1] | [Element](Element.md) |  |
+| ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
+| ownedImport | [Import](Import.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedMember | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| ownedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
+| ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
+| owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
+| owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | qualifiedName | String | [0..1] | [Element](Element.md) | derived |
 | shortName | String | [0..1] | [Element](Element.md) | derived |
-| textualRepresentation | TextualRepresentation | [0..*] | [Element](Element.md) | derived, ordered |
+| textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
 ## Constraints
 

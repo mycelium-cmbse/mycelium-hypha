@@ -50,7 +50,7 @@ Redefines [isVariation](#isvariation)
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | String | [1..1] | [Element](Element.md) |  |
 | endFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| feature | Feature | [0..*] | [Type](Type.md) | derived, ordered |
+| feature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | inheritedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
