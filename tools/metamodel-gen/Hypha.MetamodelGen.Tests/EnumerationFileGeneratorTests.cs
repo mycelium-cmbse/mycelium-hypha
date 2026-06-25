@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------------------------------------
-// <copyright file="MetaclassFileGeneratorTests.cs" company="Starion Group S.A.">
+// <copyright file="EnumerationFileGeneratorTests.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
 //   SPDX-License-Identifier: Apache-2.0
@@ -17,22 +17,22 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests for <see cref="MetaclassFileGenerator"/>. Running these regenerates the per-metaclass
+    /// Tests for <see cref="EnumerationFileGenerator"/>. Running these regenerates the per-enumeration
     /// files under <c>knowledge/sysml2/elements/</c>.
     /// </summary>
     [TestFixture]
-    public class MetaclassFileGeneratorTests
+    public class EnumerationFileGeneratorTests
     {
-        private MetaclassFileGenerator generator = null!;
+        private EnumerationFileGenerator generator = null!;
 
         [SetUp]
         public void SetUp()
         {
-            this.generator = new MetaclassFileGenerator();
+            this.generator = new EnumerationFileGenerator();
         }
 
         [Test]
-        public async Task Generates_per_metaclass_element_files()
+        public async Task Generates_per_enumeration_element_files()
         {
             var model = TestModel.LoadSysmlModel();
             if (model is null)
@@ -45,14 +45,15 @@ namespace Hypha.MetamodelGen.Tests
 
             await this.generator.GenerateAsync(model!, outputDirectory);
 
-            var partUsage = Path.Combine(outputDirectory.FullName, "PartUsage.md");
-            Assert.That(File.Exists(partUsage), Is.True);
+            var featureDirectionKind = Path.Combine(outputDirectory.FullName, "FeatureDirectionKind.md");
+            Assert.That(File.Exists(featureDirectionKind), Is.True);
 
-            var content = await File.ReadAllTextAsync(partUsage);
+            var content = await File.ReadAllTextAsync(featureDirectionKind);
             Assert.Multiple(() =>
             {
-                Assert.That(content, Does.StartWith("---\nname: PartUsage").IgnoreCase.Or.StartWith("---\r\nname: PartUsage"));
-                Assert.That(content, Does.Contain("\n# PartUsage"));
+                Assert.That(content, Does.StartWith("---\nname: FeatureDirectionKind").IgnoreCase.Or.StartWith("---\r\nname: FeatureDirectionKind"));
+                Assert.That(content, Does.Contain("kind: enumeration"));
+                Assert.That(content, Does.Contain("\n## Literals"));
             });
         }
     }

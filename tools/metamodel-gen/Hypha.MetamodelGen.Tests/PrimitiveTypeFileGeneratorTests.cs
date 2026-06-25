@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------------------------------------
-// <copyright file="MetaclassFileGeneratorTests.cs" company="Starion Group S.A.">
+// <copyright file="PrimitiveTypeFileGeneratorTests.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
 //   SPDX-License-Identifier: Apache-2.0
@@ -17,22 +17,22 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests for <see cref="MetaclassFileGenerator"/>. Running these regenerates the per-metaclass
-    /// files under <c>knowledge/sysml2/elements/</c>.
+    /// Tests for <see cref="PrimitiveTypeFileGenerator"/>. Running these regenerates the
+    /// per-primitive-type files under <c>knowledge/sysml2/elements/</c>.
     /// </summary>
     [TestFixture]
-    public class MetaclassFileGeneratorTests
+    public class PrimitiveTypeFileGeneratorTests
     {
-        private MetaclassFileGenerator generator = null!;
+        private PrimitiveTypeFileGenerator generator = null!;
 
         [SetUp]
         public void SetUp()
         {
-            this.generator = new MetaclassFileGenerator();
+            this.generator = new PrimitiveTypeFileGenerator();
         }
 
         [Test]
-        public async Task Generates_per_metaclass_element_files()
+        public async Task Generates_per_primitive_type_element_files()
         {
             var model = TestModel.LoadSysmlModel();
             if (model is null)
@@ -45,14 +45,15 @@ namespace Hypha.MetamodelGen.Tests
 
             await this.generator.GenerateAsync(model!, outputDirectory);
 
-            var partUsage = Path.Combine(outputDirectory.FullName, "PartUsage.md");
-            Assert.That(File.Exists(partUsage), Is.True);
+            var stringType = Path.Combine(outputDirectory.FullName, "String.md");
+            Assert.That(File.Exists(stringType), Is.True);
 
-            var content = await File.ReadAllTextAsync(partUsage);
+            var content = await File.ReadAllTextAsync(stringType);
             Assert.Multiple(() =>
             {
-                Assert.That(content, Does.StartWith("---\nname: PartUsage").IgnoreCase.Or.StartWith("---\r\nname: PartUsage"));
-                Assert.That(content, Does.Contain("\n# PartUsage"));
+                Assert.That(content, Does.StartWith("---\nname: String").IgnoreCase.Or.StartWith("---\r\nname: String"));
+                Assert.That(content, Does.Contain("kind: primitive"));
+                Assert.That(content, Does.Contain("\n# String"));
             });
         }
     }
