@@ -12,12 +12,9 @@ the upstream OMG sources change.
 
 ```
 knowledge/
-├── kerml/
-│   ├── index.md            Manifest: every KerML metaclass → its element file
-│   └── elements/           One markdown file per KerML metaclass
-├── sysml2/
-│   ├── index.md            Manifest: every SysML v2 metaclass → its element file
-│   └── elements/           One markdown file per SysML v2 metaclass
+├── sysml2/                 Combined KerML + SysML v2 metamodel (one tree)
+│   ├── index.md            Manifest: every metaclass (+ enumeration, primitive type) → its element file
+│   └── elements/           One markdown file per element (metaclasses, enumerations, primitive types)
 ├── spec/
 │   ├── kerml/              KerML 1.0 spec text, segmented by clause
 │   └── sysml2/             SysML v2 (Parts 1–2) spec text, segmented by clause
@@ -30,11 +27,11 @@ knowledge/
 
 | Output | Source | Pipeline |
 | --- | --- | --- |
-| `kerml/`, `sysml2/` | `sources/xmi/*.kermlx`, `*.sysmlx` | `tools/metamodel-gen` (C# / uml4net) |
+| `sysml2/` | `sources/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
 | `spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) |
 | `textual-notation/` | `sources/textual/`, grammar (`bnf/`) | curated + scripted |
 
-## Element file convention (`kerml/elements`, `sysml2/elements`)
+## Element file convention (`sysml2/elements`)
 
 One file per metaclass, named `<MetaclassName>.md`. Each file opens with YAML front matter
 (`name`, `package`, `fully qualified name`, `isAbstract`, `visibility`, `generalizes`,

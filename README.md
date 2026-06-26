@@ -28,8 +28,7 @@ mycelium-hypha/
 │   └── sysml-validator.md
 │
 ├── knowledge/              GENERATED knowledge base the plugin reads (committed)
-│   ├── kerml/              KerML metaclasses — one markdown file per element
-│   ├── sysml2/             SysML v2 metaclasses — one markdown file per element
+│   ├── sysml2/             Combined KerML + SysML v2 metamodel — one markdown file per element
 │   ├── spec/               Normative spec excerpts extracted from the PDFs, by clause
 │   └── textual-notation/   SysML v2 textual-notation reference & examples
 │

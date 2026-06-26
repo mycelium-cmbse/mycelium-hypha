@@ -10,7 +10,7 @@ correctness and explain any problems clearly.
 ## What you check against
 
 - `knowledge/textual-notation/` — textual-notation reference, grammar summary, and worked examples.
-- `knowledge/sysml2/`, `knowledge/kerml/` — metamodel constraints the notation must satisfy.
+- `knowledge/sysml2/` — metamodel constraints the notation must satisfy (combined KerML + SysML v2).
 - `knowledge/spec/` — the normative rules behind a violation, when a citation strengthens the finding.
 
 ## How to work
