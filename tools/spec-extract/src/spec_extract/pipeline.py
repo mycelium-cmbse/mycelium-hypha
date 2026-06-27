@@ -22,7 +22,7 @@ class DocMeta:
 
 def extract_document(pdf_path: str | Path, meta: DocMeta) -> list[Clause]:
     """Extract and classify all clauses from a spec PDF (pure: reads the PDF, writes nothing)."""
-    pages = pdf_reader.extract_words(pdf_path)
+    pages = pdf_reader.extract_chars(pdf_path)
     lines = layout.assemble_lines(pages)
     detected = clauses.detect_clauses(lines, meta.document, meta.version)
     return [normative.classify(clause) for clause in detected]

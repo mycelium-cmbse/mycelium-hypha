@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pdfplumber
 
-from spec_extract.model import Word
+from spec_extract.model import Char, Word
 
 
 def page_count(pdf_path: str | Path) -> int:
@@ -56,4 +56,29 @@ def extract_words(pdf_path: str | Path) -> list[list[Word]]:
                 for word in page.extract_words(use_text_flow=False)
             ]
             pages.append(words)
+    return pages
+
+
+def extract_chars(pdf_path: str | Path) -> list[list[Char]]:
+    """Return the positioned characters of each page (1-based ``page`` index).
+
+    Character-level extraction (with font + size) lets the layout layer rebuild inter-word spacing
+    that pdfplumber's word grouping drops in italic/bold runs, and recover code/bold/italic styling.
+    """
+    pages: list[list[Char]] = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for index, page in enumerate(pdf.pages, start=1):
+            chars = [
+                Char(
+                    text=char["text"],
+                    x0=float(char["x0"]),
+                    x1=float(char["x1"]),
+                    top=float(char["top"]),
+                    size=float(char["size"]),
+                    fontname=str(char["fontname"]),
+                    page=index,
+                )
+                for char in page.chars
+            ]
+            pages.append(chars)
     return pages

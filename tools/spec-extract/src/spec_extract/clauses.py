@@ -36,7 +36,7 @@ def detect_clauses(lines: list[Line], document: str, version: str) -> list[Claus
                 version=version,
                 page_start=page_start,
                 page_end=page_end,
-                blocks=[Block("text", "\n".join(line.text for line in body))],
+                blocks=[Block("text", body)],
             )
         )
     return clauses

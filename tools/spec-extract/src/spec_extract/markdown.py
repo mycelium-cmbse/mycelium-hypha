@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 
-from spec_extract.model import Clause
+from spec_extract.model import Block, Clause, Line, Span
 
 _SLUG_STRIP = re.compile(r"[^a-z0-9]+")
 
@@ -71,15 +71,37 @@ def render(clause: Clause) -> str:
 
 
 def _render_body(clause: Clause) -> str:
-    parts: list[str] = []
-    for block in clause.blocks:
-        if not block.text:
-            continue
-        if block.kind == "text":
-            parts.append(block.text)
-        else:
-            parts.append(f"<!-- informative:{block.kind} -->\n{block.text}\n<!-- /informative -->")
+    parts = [rendered for block in clause.blocks if (rendered := _render_block(block))]
     return "\n\n".join(parts)
+
+
+def _render_block(block: Block) -> str:
+    if block.kind == "code":
+        code = "\n".join(line.text for line in block.lines)
+        return f"```\n{code}\n```" if code.strip() else ""
+
+    body = "\n".join(_render_line(line) for line in block.lines)
+    if not body.strip():
+        return ""
+    if block.kind in ("note", "example"):
+        return f"<!-- informative:{block.kind} -->\n{body}\n<!-- /informative -->"
+    return body
+
+
+def _render_line(line: Line) -> str:
+    if not line.spans:
+        return line.text
+    return "".join(_render_span(span) for span in line.spans)
+
+
+def _render_span(span: Span) -> str:
+    """Render an inline span, keeping any surrounding spaces *outside* the emphasis markers."""
+    if span.style == "text" or not span.text.strip():
+        return span.text
+    marker = {"italic": "*", "bold": "**", "code": "`"}[span.style]
+    lead = " " * (len(span.text) - len(span.text.lstrip(" ")))
+    trail = " " * (len(span.text) - len(span.text.rstrip(" ")))
+    return f"{lead}{marker}{span.text.strip(' ')}{marker}{trail}"
 
 
 def _page_range(clause: Clause) -> str:
