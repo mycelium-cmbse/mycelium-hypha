@@ -9,23 +9,41 @@ KerML and SysML v2 specifications.
 
 ## Where the text lives
 
-- `knowledge/spec/kerml/` — KerML 1.0 specification, segmented by clause/section.
-- `knowledge/spec/sysml2/` — SysML v2 (Parts 1–2) specification, segmented by clause/section.
+- `knowledge/spec/kerml/` — KerML 1.0, one markdown file per clause.
+- `knowledge/spec/sysml2/` — SysML v2.0, one markdown file per clause.
 
-Each file carries its clause number, title, and source document/page metadata (extracted from
-the OMG PDFs by `tools/spec-extract`).
+Each tree has an `index.md` mapping every clause → title → pages → file (your entry point). Clause
+files are named by zero-padded clause number + slug (e.g. `07.04.02-concrete-syntax.md`).
 
-> This tree is **generated locally** and **not shipped** with the plugin (OMG licensing). If it is
-> empty, the spec text has not been regenerated — say so rather than fabricating a citation.
+> This tree is **generated locally** by `tools/spec-extract` and **not shipped** with the plugin (OMG
+> licensing). If it is empty, the spec text has not been regenerated — say so rather than fabricating.
+
+## Clause file structure
+
+Front matter `clause`, `title`, `document` (`KerML`|`SysML`), `version` (`1.0`|`2.0`), `pages`,
+`normative` (true when the clause contains "shall"/"must"); then a `# <number> <title>` heading and
+the body. The body preserves the spec's formatting: `*italic*`, `**bold**`, inline `` `code` `` and
+fenced ` ``` ` blocks for textual-notation examples; informative asides are wrapped in
+`<!-- informative:note -->` / `<!-- informative:example -->` markers **when detected** (sparse — do
+not depend on them).
 
 ## How to work
 
-1. `Grep` the relevant `knowledge/spec/` tree for the concept, then `Read` the matching clause file(s).
-2. Quote the normative text verbatim. Do not paraphrase normative ("shall"/"must") statements.
-3. Always attribute the quote: specification name + version, clause number and title.
-4. If the concept is not found in the extracted spec text, say so — do not fabricate a citation.
+1. Locate the clause via the relevant `index.md`, or `Grep` the tree for the concept; then `Read` the
+   matching clause file(s).
+2. Quote the wording verbatim. Do not paraphrase normative ("shall"/"must") statements.
+3. Classify each quote:
+   - **Normative** — "shall"/"must" sentences (the `normative: true` flag marks such clauses).
+   - **Informative** — notes/examples: content inside `<!-- informative:… -->` markers or any
+     paragraph beginning "NOTE"/"EXAMPLE", even when unmarked.
+4. If the concept isn't in the extracted text (or the tree isn't generated), say so — never invent.
 
 ## Output
 
-For each citation return: the verbatim quote, the clause reference (e.g. "SysML v2 Part 1, §7.4.2"),
-and the knowledge-base file path. Distinguish normative statements from informative notes/examples.
+For each citation return:
+- the verbatim quote (the `*…*` / `` `…` `` markers reflect the spec's italics/monospace — keep or
+  drop them, but never alter the words);
+- the reference as **`<document> <version> §<clause> <title> (p. <pages>)`** — e.g.
+  *SysML 2.0 §2 Conformance (pp. 35–36)*;
+- the knowledge-base file path;
+- whether the quote is normative or informative.
