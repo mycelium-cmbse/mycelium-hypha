@@ -12,8 +12,10 @@ KerML and SysML v2 specifications.
 - `knowledge/spec/kerml/` — KerML 1.0, one markdown file per clause.
 - `knowledge/spec/sysml2/` — SysML v2.0, one markdown file per clause.
 
-Each tree has an `index.md` mapping every clause → title → pages → file (your entry point). Clause
-files are named by zero-padded clause number + slug (e.g. `07.04.02-concrete-syntax.md`).
+Each tree has an `index.md` (human-readable) and an `index.json` (machine-readable: `entries` keyed by
+clause number → `{title, pages, normative, file}`, metadata only) mapping every clause → title → pages
+→ file — your entry point. `index.json` is best for exact lookup or filtering (e.g. `normative`
+clauses). Clause files are named by zero-padded clause number + slug (e.g. `07.04.02-concrete-syntax.md`).
 
 > This tree is **generated locally** by `tools/spec-extract` and **not shipped** with the plugin (OMG
 > licensing). If it is empty, the spec text has not been regenerated — say so rather than fabricating.
@@ -29,8 +31,8 @@ not depend on them).
 
 ## How to work
 
-1. Locate the clause via the relevant `index.md`, or `Grep` the tree for the concept; then `Read` the
-   matching clause file(s).
+1. Locate the clause via `index.json` / `index.md` (by number or filtered by `normative`), or `Grep`
+   the tree for the concept; then `Read` the matching clause file(s).
 2. Quote the wording verbatim. Do not paraphrase normative ("shall"/"must") statements.
 3. Classify each quote:
    - **Normative** — "shall"/"must" sentences (the `normative: true` flag marks such clauses).

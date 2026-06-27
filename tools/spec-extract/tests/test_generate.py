@@ -9,9 +9,10 @@ The output is git-ignored, so it is never committed.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
-from spec_extract.pipeline import DocMeta, extract_document, write_clauses, write_index
+from spec_extract.pipeline import DocMeta, extract_document, write_clauses, write_index, write_index_json
 
 
 def test_regenerates_spec_knowledge_base(repo_root: Path, kerml_pdf: Path, sysml_pdf: Path) -> None:
@@ -25,7 +26,12 @@ def test_regenerates_spec_knowledge_base(repo_root: Path, kerml_pdf: Path, sysml
         out_dir = repo_root / "knowledge" / "spec" / meta.out_subdir
         paths = write_clauses(clauses, out_dir)
         index_path = write_index(clauses, out_dir)
+        index_json_path = write_index_json(clauses, out_dir)
 
         assert paths, f"no clauses extracted from {pdf_path.name}"
         assert all(path.read_text(encoding="utf-8").startswith("---\n") for path in paths)
         assert index_path.read_text(encoding="utf-8").startswith("---\n")
+
+        catalog = json.loads(index_json_path.read_text(encoding="utf-8"))
+        assert catalog["clauses"] == len(clauses)
+        assert len(catalog["entries"]) == len(clauses)

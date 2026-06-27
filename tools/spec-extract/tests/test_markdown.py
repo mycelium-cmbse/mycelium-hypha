@@ -4,7 +4,9 @@
 
 from __future__ import annotations
 
-from spec_extract.markdown import clause_filename, render, render_index
+import json
+
+from spec_extract.markdown import clause_filename, render, render_index, render_index_json
 from spec_extract.model import Block, Clause, Line, Span
 
 
@@ -97,3 +99,19 @@ def test_render_index_lists_clauses_with_links_and_count() -> None:
     assert "| Clause | Title | Pages | File |" in output
     assert "[07.04.02-concrete-syntax.md](07.04.02-concrete-syntax.md)" in output
     assert "Scope \\| overview" in output
+
+
+def test_render_index_json_is_a_keyed_metadata_catalog() -> None:
+    scope = Clause("1", "Scope", "KerML", "1.0", 1, 2)
+
+    data = json.loads(render_index_json([scope, _clause()]))
+
+    assert data["schemaVersion"] == "1.0.0"
+    assert (data["document"], data["version"], data["clauses"]) == ("KerML", "1.0", 2)
+    assert data["entries"]["1"]["pages"] == "1-2"
+    assert data["entries"]["7.4.2"] == {
+        "title": "Concrete Syntax",
+        "pages": "45-47",
+        "normative": True,
+        "file": "07.04.02-concrete-syntax.md",
+    }

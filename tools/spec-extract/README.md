@@ -76,7 +76,9 @@ One markdown file per clause under `knowledge/spec/kerml/` and `knowledge/spec/s
 front matter (`clause`, `title`, `document`, `version`, `pages`, `normative`) and a verbatim body;
 informative `NOTE`/`EXAMPLE` runs are wrapped in `<!-- informative:note -->` markers (original text
 untouched, but greppable). Each document also gets an `index.md` table of contents (clause → title →
-pages → file, in document order). This tree is **git-ignored** (see *Licensing & OMG terms*).
+pages → file, in document order) and a machine-readable `index.json` catalog (same metadata, keyed by
+clause number for O(1) lookup — metadata only, no clause text). This tree is **git-ignored** (see
+*Licensing & OMG terms*).
 
 ### Regenerating
 
