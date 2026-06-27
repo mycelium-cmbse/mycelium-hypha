@@ -86,3 +86,16 @@ The generated knowledge base is built from third-party, separately-licensed inpu
   under the **Eclipse Public License 2.0**.
 
 See [sources/README.md](sources/README.md) for exact input provenance (upstream source + version).
+
+## Code Quality
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
