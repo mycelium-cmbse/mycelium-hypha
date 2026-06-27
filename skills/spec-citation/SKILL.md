@@ -15,6 +15,11 @@ clause reference. Never paraphrase a normative ("shall"/"must") statement.
 
 Each file records its clause number, title, and source document/page.
 
+> `knowledge/spec/` is **generated locally** by `tools/spec-extract` from your own copies of the OMG
+> PDFs and is **not shipped** with the plugin (OMG licensing forbids redistributing the spec text). If
+> the tree is empty, regenerate it first; otherwise tell the user the spec text is unavailable rather
+> than guessing a citation.
+
 ## Procedure
 
 1. Search the relevant `knowledge/spec/` tree for the concept and read the matching clause file(s).

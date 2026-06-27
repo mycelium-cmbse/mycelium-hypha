@@ -12,6 +12,8 @@ from pathlib import Path
 
 import pdfplumber
 
+from spec_extract.model import Word
+
 
 def page_count(pdf_path: str | Path) -> int:
     """Return the number of pages in the PDF at ``pdf_path``."""
@@ -32,3 +34,26 @@ def extract_pages(pdf_path: str | Path) -> list[str]:
 def extract_text(pdf_path: str | Path) -> str:
     """Return the whole document's extracted text, pages joined by newlines."""
     return "\n".join(extract_pages(pdf_path))
+
+
+def extract_words(pdf_path: str | Path) -> list[list[Word]]:
+    """Return the positioned words of each page (1-based ``page`` index).
+
+    Keeping word positions lets the layout layer reconstruct reading order across columns and drop
+    running headers/footers — things a flat ``extract_text`` cannot do.
+    """
+    pages: list[list[Word]] = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for index, page in enumerate(pdf.pages, start=1):
+            words = [
+                Word(
+                    text=word["text"],
+                    x0=float(word["x0"]),
+                    x1=float(word["x1"]),
+                    top=float(word["top"]),
+                    page=index,
+                )
+                for word in page.extract_words(use_text_flow=False)
+            ]
+            pages.append(words)
+    return pages

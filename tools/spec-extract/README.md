@@ -57,18 +57,38 @@ its XMI inputs.
 PyMuPDF was considered (faster, excellent raw extraction) but rejected: it is AGPL-3.0 (or paid
 commercial), an awkward licensing fit even for a non-distributed dev tool.
 
-The current code surface is intentionally minimal — `spec_extract.pdf_reader` (`page_count`,
-`extract_pages`, `extract_text`) — proving the library reads the specs cleanly. Clause segmentation
-and markdown emission are built on top of it next.
+## Pipeline
+
+The extractor is a small chain of pure, independently-testable layers (`spec_extract.*`):
+
+| Module | Responsibility |
+| --- | --- |
+| `pdf_reader` | `pdfplumber` access: `page_count`, `extract_pages`, `extract_text`, `extract_words` (positioned words). |
+| `layout` | Assemble positioned words into reading-ordered lines: multi-column ordering and running header/footer/page-number stripping. |
+| `clauses` | Detect clause/section headings (successor-numbering rule; skips TOC and stray in-text numbers) and group body text, with page ranges. |
+| `normative` | Split a clause into normative prose vs informative `NOTE`/`EXAMPLE` blocks; flag clauses containing `shall`/`must`. Lossless. |
+| `markdown` | Render a clause to deterministic markdown (front matter + body), e.g. `07.04.02-concrete-syntax.md`. |
+| `pipeline` | `extract_document(pdf, DocMeta)` → clauses; `write_clauses(clauses, out_dir)` → files. |
+
+### Output
+
+One markdown file per clause under `knowledge/spec/kerml/` and `knowledge/spec/sysml2/`, with YAML
+front matter (`clause`, `title`, `document`, `version`, `pages`, `normative`) and a verbatim body;
+informative `NOTE`/`EXAMPLE` runs are wrapped in `<!-- informative:note -->` markers (original text
+untouched, but greppable). Each document also gets an `index.md` table of contents (clause → title →
+pages → file, in document order). This tree is **git-ignored** (see *Licensing & OMG terms*).
+
+### Regenerating
+
+Running `pytest` with the PDFs present in `sources/specs/` runs `test_generate.py`, which writes the
+(git-ignored) `knowledge/spec/` tree from the real specs — the same "tests write the knowledge base"
+convention `metamodel-gen` uses. Without the PDFs that test (and the real-PDF smoke test) **skip**;
+the assertion-based unit tests always run.
 
 ## Status
 
-Project scaffold + PDF tooling in place (issue #6). Still to come, as a Python tool that:
-
-1. Reads each PDF (text + structure) and detects clause/section boundaries.
-2. Emits clause-referenced excerpts (one markdown file per clause) for citation, tagging normative
-   vs. informative content — within the OMG terms above.
-3. Records source document, version, clause number/title, and page range as front matter.
+- [x] Project scaffold + PDF tooling (issue #6).
+- [x] Per-clause extraction pipeline + tests (issue #7).
 
 Input provenance (upstream source + version/commit) is recorded in
 [`sources/README.md`](../../sources/README.md#provenance).

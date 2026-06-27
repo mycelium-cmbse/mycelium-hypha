@@ -9,6 +9,15 @@ sources/textual/*
 !sources/**/.gitkeep
 
 # ---------------------------------------------------------------------------
+# Generated spec knowledge base (verbatim OMG spec text). Regenerated locally
+# from the PDFs by tools/spec-extract; NOT redistributed (OMG terms). The
+# directory placeholders are kept so the layout is tracked.
+# ---------------------------------------------------------------------------
+knowledge/spec/kerml/*
+knowledge/spec/sysml2/*
+!knowledge/spec/**/.gitkeep
+
+# ---------------------------------------------------------------------------
 # .NET (tools/metamodel-gen)
 # ---------------------------------------------------------------------------
 bin/
