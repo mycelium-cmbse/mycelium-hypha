@@ -28,12 +28,17 @@ knowledge/
 | Output | Source | Pipeline |
 | --- | --- | --- |
 | `sysml2/` | `sources/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
-| `spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) |
+| `spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) — **git-ignored output** |
 | `textual-notation/` | `sources/textual/`, grammar (`bnf/`) | curated + scripted |
 
 The exact upstream source, version and commit of each input (and its license) are recorded in
 [`sources/README.md`](../sources/README.md#provenance), so a regenerated knowledge base is traceable
 to a specific specification version.
+
+> **Exception:** `spec/` holds verbatim OMG specification text and is **git-ignored** — it is *not*
+> committed (OMG licensing forbids redistributing the spec). Regenerate it locally by running
+> `tools/spec-extract`'s tests with the PDFs present in `sources/specs/`. Everything else under
+> `knowledge/` is committed.
 
 ## Element file convention (`sysml2/elements`)
 

@@ -15,6 +15,9 @@ KerML and SysML v2 specifications.
 Each file carries its clause number, title, and source document/page metadata (extracted from
 the OMG PDFs by `tools/spec-extract`).
 
+> This tree is **generated locally** and **not shipped** with the plugin (OMG licensing). If it is
+> empty, the spec text has not been regenerated — say so rather than fabricating a citation.
+
 ## How to work
 
 1. `Grep` the relevant `knowledge/spec/` tree for the concept, then `Read` the matching clause file(s).

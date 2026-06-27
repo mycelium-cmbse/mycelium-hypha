@@ -24,9 +24,24 @@ def specs_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
+def repo_root() -> Path:
+    """Repository root (the directory containing ``sources/specs``)."""
+    return _repo_root()
+
+
+@pytest.fixture(scope="session")
 def kerml_pdf(specs_dir: Path) -> Path:
     """Path to the KerML 1.0 specification PDF; skips the test when it is not present."""
-    path = specs_dir / "1-Kernel_Modeling_Language.pdf"
+    return _require_pdf(specs_dir / "1-Kernel_Modeling_Language.pdf")
+
+
+@pytest.fixture(scope="session")
+def sysml_pdf(specs_dir: Path) -> Path:
+    """Path to the SysML v2 specification PDF; skips the test when it is not present."""
+    return _require_pdf(specs_dir / "2a-OMG_Systems_Modeling_Language.pdf")
+
+
+def _require_pdf(path: Path) -> Path:
     if not path.is_file():
         pytest.skip(f"OMG spec PDF not present (git-ignored): {path}")
     return path
