@@ -1,0 +1,2073 @@
+{
+  "schemaVersion": "1.0.0",
+  "metamodel": "SysML",
+  "modelVersionUri": "https://www.omg.org/spec/SysML/20250201",
+  "entries": {
+    "AcceptActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::AcceptActionUsage",
+      "isAbstract": false,
+      "summary": "An AcceptActionUsage is an ActionUsage that specifies the acceptance of an incomingTransfer from the Occurrence given by the result of its receiverArgument Expr…",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/AcceptActionUsage.md"
+    },
+    "ActionDefinition": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::ActionDefinition",
+      "isAbstract": false,
+      "summary": "An ActionDefinition is a Definition that is also a Behavior that defines an Action performed by a system or part of a system.",
+      "extends": [
+        "Behavior",
+        "OccurrenceDefinition"
+      ],
+      "file": "elements/ActionDefinition.md"
+    },
+    "ActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::ActionUsage",
+      "isAbstract": false,
+      "summary": "An ActionUsage is a Usage that is also a Step, and, so, is typed by a Behavior.",
+      "extends": [
+        "OccurrenceUsage",
+        "Step"
+      ],
+      "file": "elements/ActionUsage.md"
+    },
+    "ActorMembership": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::ActorMembership",
+      "isAbstract": false,
+      "summary": "An ActorMembership is a ParameterMembership that identifies a PartUsage as an actor parameter, which specifies a role played by an external entity in interactio…",
+      "extends": [
+        "ParameterMembership"
+      ],
+      "file": "elements/ActorMembership.md"
+    },
+    "AllocationDefinition": {
+      "kind": "class",
+      "package": "Allocations",
+      "qualifiedName": "SysML::Systems::Allocations::AllocationDefinition",
+      "isAbstract": false,
+      "summary": "An AllocationDefinition is a ConnectionDefinition that specifies that some or all of the responsibility to realize the intent of the source is allocated to the…",
+      "extends": [
+        "ConnectionDefinition"
+      ],
+      "file": "elements/AllocationDefinition.md"
+    },
+    "AllocationUsage": {
+      "kind": "class",
+      "package": "Allocations",
+      "qualifiedName": "SysML::Systems::Allocations::AllocationUsage",
+      "isAbstract": false,
+      "summary": "An AllocationUsage is a usage of an AllocationDefinition asserting the allocation of the source feature to the target feature.",
+      "extends": [
+        "ConnectionUsage"
+      ],
+      "file": "elements/AllocationUsage.md"
+    },
+    "AnalysisCaseDefinition": {
+      "kind": "class",
+      "package": "AnalysisCases",
+      "qualifiedName": "SysML::Systems::AnalysisCases::AnalysisCaseDefinition",
+      "isAbstract": false,
+      "summary": "An AnalysisCaseDefinition is a CaseDefinition for the case of carrying out an analysis.",
+      "extends": [
+        "CaseDefinition"
+      ],
+      "file": "elements/AnalysisCaseDefinition.md"
+    },
+    "AnalysisCaseUsage": {
+      "kind": "class",
+      "package": "AnalysisCases",
+      "qualifiedName": "SysML::Systems::AnalysisCases::AnalysisCaseUsage",
+      "isAbstract": false,
+      "summary": "An AnalysisCaseUsage is a Usage of an AnalysisCaseDefinition.",
+      "extends": [
+        "CaseUsage"
+      ],
+      "file": "elements/AnalysisCaseUsage.md"
+    },
+    "AnnotatingElement": {
+      "kind": "class",
+      "package": "Annotations",
+      "qualifiedName": "KerML::Root::Annotations::AnnotatingElement",
+      "isAbstract": false,
+      "summary": "An AnnotatingElement is an Element that provides additional description of or metadata on some other Element.",
+      "extends": [
+        "Element"
+      ],
+      "file": "elements/AnnotatingElement.md"
+    },
+    "Annotation": {
+      "kind": "class",
+      "package": "Annotations",
+      "qualifiedName": "KerML::Root::Annotations::Annotation",
+      "isAbstract": false,
+      "summary": "An Annotation is a Relationship between an AnnotatingElement and the Element that is annotated by that AnnotatingElement.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Annotation.md"
+    },
+    "AssertConstraintUsage": {
+      "kind": "class",
+      "package": "Constraints",
+      "qualifiedName": "SysML::Systems::Constraints::AssertConstraintUsage",
+      "isAbstract": false,
+      "summary": "An AssertConstraintUsage is a ConstraintUsage that is also an Invariant and, so, is asserted to be true (by default).",
+      "extends": [
+        "ConstraintUsage",
+        "Invariant"
+      ],
+      "file": "elements/AssertConstraintUsage.md"
+    },
+    "AssignmentActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::AssignmentActionUsage",
+      "isAbstract": false,
+      "summary": "An AssignmentActionUsage is an ActionUsage that is defined, directly or indirectly, by the ActionDefinition AssignmentAction from the Systems Model Library.",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/AssignmentActionUsage.md"
+    },
+    "Association": {
+      "kind": "class",
+      "package": "Associations",
+      "qualifiedName": "KerML::Kernel::Associations::Association",
+      "isAbstract": false,
+      "summary": "An Association is a Relationship and a Classifier to enable classification of links between things (in the universe).",
+      "extends": [
+        "Classifier",
+        "Relationship"
+      ],
+      "file": "elements/Association.md"
+    },
+    "AssociationStructure": {
+      "kind": "class",
+      "package": "Associations",
+      "qualifiedName": "KerML::Kernel::Associations::AssociationStructure",
+      "isAbstract": false,
+      "summary": "An AssociationStructure is an Association that is also a Structure, classifying link objects that are both links and objects.",
+      "extends": [
+        "Association",
+        "Structure"
+      ],
+      "file": "elements/AssociationStructure.md"
+    },
+    "AttributeDefinition": {
+      "kind": "class",
+      "package": "Attributes",
+      "qualifiedName": "SysML::Systems::Attributes::AttributeDefinition",
+      "isAbstract": false,
+      "summary": "An AttributeDefinition is a Definition and a DataType of information about a quality or characteristic of a system or part of a system that has no independent i…",
+      "extends": [
+        "DataType",
+        "Definition"
+      ],
+      "file": "elements/AttributeDefinition.md"
+    },
+    "AttributeUsage": {
+      "kind": "class",
+      "package": "Attributes",
+      "qualifiedName": "SysML::Systems::Attributes::AttributeUsage",
+      "isAbstract": false,
+      "summary": "An AttributeUsage is a Usage whose type is a DataType.",
+      "extends": [
+        "Usage"
+      ],
+      "file": "elements/AttributeUsage.md"
+    },
+    "Behavior": {
+      "kind": "class",
+      "package": "Behaviors",
+      "qualifiedName": "KerML::Kernel::Behaviors::Behavior",
+      "isAbstract": false,
+      "summary": "A Behavior coordinates occurrences of other Behaviors, as well as changes in objects.",
+      "extends": [
+        "Class"
+      ],
+      "file": "elements/Behavior.md"
+    },
+    "BindingConnector": {
+      "kind": "class",
+      "package": "Connectors",
+      "qualifiedName": "KerML::Kernel::Connectors::BindingConnector",
+      "isAbstract": false,
+      "summary": "A BindingConnector is a binary Connector that requires its relatedFeatures to identify the same things (have the same values).",
+      "extends": [
+        "Connector"
+      ],
+      "file": "elements/BindingConnector.md"
+    },
+    "BindingConnectorAsUsage": {
+      "kind": "class",
+      "package": "Connections",
+      "qualifiedName": "SysML::Systems::Connections::BindingConnectorAsUsage",
+      "isAbstract": false,
+      "summary": "A BindingConnectorAsUsage is both a BindingConnector and a ConnectorAsUsage.",
+      "extends": [
+        "BindingConnector",
+        "ConnectorAsUsage"
+      ],
+      "file": "elements/BindingConnectorAsUsage.md"
+    },
+    "Boolean": {
+      "kind": "primitiveType",
+      "package": "PrimitiveTypes",
+      "qualifiedName": "PrimitiveTypes::Boolean",
+      "isAbstract": false,
+      "summary": "Boolean is used for logical expressions, consisting of the predefined values true and false.",
+      "extends": [],
+      "file": "elements/Boolean.md"
+    },
+    "BooleanExpression": {
+      "kind": "class",
+      "package": "Functions",
+      "qualifiedName": "KerML::Kernel::Functions::BooleanExpression",
+      "isAbstract": false,
+      "summary": "A BooleanExpression is a Boolean-valued Expression whose type is a Predicate.",
+      "extends": [
+        "Expression"
+      ],
+      "file": "elements/BooleanExpression.md"
+    },
+    "CalculationDefinition": {
+      "kind": "class",
+      "package": "Calculations",
+      "qualifiedName": "SysML::Systems::Calculations::CalculationDefinition",
+      "isAbstract": false,
+      "summary": "A CalculationDefinition is an <coed>ActionDefinition that also defines a Function producing a result.</coed>",
+      "extends": [
+        "ActionDefinition",
+        "Function"
+      ],
+      "file": "elements/CalculationDefinition.md"
+    },
+    "CalculationUsage": {
+      "kind": "class",
+      "package": "Calculations",
+      "qualifiedName": "SysML::Systems::Calculations::CalculationUsage",
+      "isAbstract": false,
+      "summary": "A CalculationUsage is an ActionUsage that is also an Expression, and, so, is typed by a Function.",
+      "extends": [
+        "ActionUsage",
+        "Expression"
+      ],
+      "file": "elements/CalculationUsage.md"
+    },
+    "CaseDefinition": {
+      "kind": "class",
+      "package": "Cases",
+      "qualifiedName": "SysML::Systems::Cases::CaseDefinition",
+      "isAbstract": false,
+      "summary": "A CaseDefinition is a CalculationDefinition for a process, often involving collecting evidence or data, relative to a subject, possibly involving the collaborat…",
+      "extends": [
+        "CalculationDefinition"
+      ],
+      "file": "elements/CaseDefinition.md"
+    },
+    "CaseUsage": {
+      "kind": "class",
+      "package": "Cases",
+      "qualifiedName": "SysML::Systems::Cases::CaseUsage",
+      "isAbstract": false,
+      "summary": "A CaseUsage is a Usage of a CaseDefinition.",
+      "extends": [
+        "CalculationUsage"
+      ],
+      "file": "elements/CaseUsage.md"
+    },
+    "Class": {
+      "kind": "class",
+      "package": "Classes",
+      "qualifiedName": "KerML::Kernel::Classes::Class",
+      "isAbstract": false,
+      "summary": "A Class is a Classifier of things (in the universe) that can be distinguished without regard to how they are related to other things (via Features).",
+      "extends": [
+        "Classifier"
+      ],
+      "file": "elements/Class.md"
+    },
+    "Classifier": {
+      "kind": "class",
+      "package": "Classifiers",
+      "qualifiedName": "KerML::Core::Classifiers::Classifier",
+      "isAbstract": false,
+      "summary": "A Classifier is a Type that classifies:<ul> <li>Things (in the universe) regardless of how Features relate them.",
+      "extends": [
+        "Type"
+      ],
+      "file": "elements/Classifier.md"
+    },
+    "CollectExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::CollectExpression",
+      "isAbstract": false,
+      "summary": "A CollectExpression is an OperatorExpression whose operator is \"collect\", which resolves to the Function ControlFunctions::collect from the Kernel Functions Lib…",
+      "extends": [
+        "OperatorExpression"
+      ],
+      "file": "elements/CollectExpression.md"
+    },
+    "Comment": {
+      "kind": "class",
+      "package": "Annotations",
+      "qualifiedName": "KerML::Root::Annotations::Comment",
+      "isAbstract": false,
+      "summary": "A Comment is an AnnotatingElement whose body in some way describes its annotatedElements.",
+      "extends": [
+        "AnnotatingElement"
+      ],
+      "file": "elements/Comment.md"
+    },
+    "ConcernDefinition": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::ConcernDefinition",
+      "isAbstract": false,
+      "summary": "A ConcernDefinition is a RequirementDefinition that one or more stakeholders may be interested in having addressed.",
+      "extends": [
+        "RequirementDefinition"
+      ],
+      "file": "elements/ConcernDefinition.md"
+    },
+    "ConcernUsage": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::ConcernUsage",
+      "isAbstract": false,
+      "summary": "A ConcernUsage is a Usage of a ConcernDefinition.",
+      "extends": [
+        "RequirementUsage"
+      ],
+      "file": "elements/ConcernUsage.md"
+    },
+    "ConjugatedPortDefinition": {
+      "kind": "class",
+      "package": "Ports",
+      "qualifiedName": "SysML::Systems::Ports::ConjugatedPortDefinition",
+      "isAbstract": false,
+      "summary": "A ConjugatedPortDefinition is a PortDefinition that is a PortDefinition of its original PortDefinition.",
+      "extends": [
+        "PortDefinition"
+      ],
+      "file": "elements/ConjugatedPortDefinition.md"
+    },
+    "ConjugatedPortTyping": {
+      "kind": "class",
+      "package": "Ports",
+      "qualifiedName": "SysML::Systems::Ports::ConjugatedPortTyping",
+      "isAbstract": false,
+      "summary": "A ConjugatedPortTyping is a FeatureTyping whose type is a ConjugatedPortDefinition.",
+      "extends": [
+        "FeatureTyping"
+      ],
+      "file": "elements/ConjugatedPortTyping.md"
+    },
+    "Conjugation": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Conjugation",
+      "isAbstract": false,
+      "summary": "Conjugation is a Relationship between two types in which the conjugatedType inherits all the Features of the originalType, but with all input and output Feature…",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Conjugation.md"
+    },
+    "ConnectionDefinition": {
+      "kind": "class",
+      "package": "Connections",
+      "qualifiedName": "SysML::Systems::Connections::ConnectionDefinition",
+      "isAbstract": false,
+      "summary": "A ConnectionDefinition is a PartDefinition that is also an AssociationStructure.",
+      "extends": [
+        "AssociationStructure",
+        "PartDefinition"
+      ],
+      "file": "elements/ConnectionDefinition.md"
+    },
+    "ConnectionUsage": {
+      "kind": "class",
+      "package": "Connections",
+      "qualifiedName": "SysML::Systems::Connections::ConnectionUsage",
+      "isAbstract": false,
+      "summary": "A ConnectionUsage is a ConnectorAsUsage that is also a PartUsage.",
+      "extends": [
+        "ConnectorAsUsage",
+        "PartUsage"
+      ],
+      "file": "elements/ConnectionUsage.md"
+    },
+    "Connector": {
+      "kind": "class",
+      "package": "Connectors",
+      "qualifiedName": "KerML::Kernel::Connectors::Connector",
+      "isAbstract": false,
+      "summary": "A Connector is a usage of Associations, with links restricted according to instances of the Type in which they are used (domain of the Connector).",
+      "extends": [
+        "Feature",
+        "Relationship"
+      ],
+      "file": "elements/Connector.md"
+    },
+    "ConnectorAsUsage": {
+      "kind": "class",
+      "package": "Connections",
+      "qualifiedName": "SysML::Systems::Connections::ConnectorAsUsage",
+      "isAbstract": true,
+      "summary": "A ConnectorAsUsage is both a Connector and a Usage.",
+      "extends": [
+        "Connector",
+        "Usage"
+      ],
+      "file": "elements/ConnectorAsUsage.md"
+    },
+    "ConstraintDefinition": {
+      "kind": "class",
+      "package": "Constraints",
+      "qualifiedName": "SysML::Systems::Constraints::ConstraintDefinition",
+      "isAbstract": false,
+      "summary": "A ConstraintDefinition is an OccurrenceDefinition that is also a Predicate that defines a constraint that may be asserted to hold on a system or part of a syste…",
+      "extends": [
+        "OccurrenceDefinition",
+        "Predicate"
+      ],
+      "file": "elements/ConstraintDefinition.md"
+    },
+    "ConstraintUsage": {
+      "kind": "class",
+      "package": "Constraints",
+      "qualifiedName": "SysML::Systems::Constraints::ConstraintUsage",
+      "isAbstract": false,
+      "summary": "A ConstraintUsage is an OccurrenceUsage that is also a BooleanExpression, and, so, is typed by a Predicate.",
+      "extends": [
+        "BooleanExpression",
+        "OccurrenceUsage"
+      ],
+      "file": "elements/ConstraintUsage.md"
+    },
+    "ConstructorExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::ConstructorExpression",
+      "isAbstract": false,
+      "summary": "A ConstructorExpression is an InstantiationExpression whose result specializes its instantiatedType, binding some or all of the features of the instantiatedType…",
+      "extends": [
+        "InstantiationExpression"
+      ],
+      "file": "elements/ConstructorExpression.md"
+    },
+    "ControlNode": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::ControlNode",
+      "isAbstract": true,
+      "summary": "A ControlNode is an ActionUsage that does not have any inherent behavior but provides constraints on incoming and outgoing Successions that are used to control…",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/ControlNode.md"
+    },
+    "CrossSubsetting": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::CrossSubsetting",
+      "isAbstract": false,
+      "summary": "CrossSubsetting is a kind of Subsetting for end Features, as identified by crossingFeature, to subset a chained Feature, identified by crossedFeature.",
+      "extends": [
+        "Subsetting"
+      ],
+      "file": "elements/CrossSubsetting.md"
+    },
+    "DataType": {
+      "kind": "class",
+      "package": "DataTypes",
+      "qualifiedName": "KerML::Kernel::DataTypes::DataType",
+      "isAbstract": false,
+      "summary": "A DataType is a Classifier of things (in the universe) that can only be distinguished by how they are related to other things (via Features).",
+      "extends": [
+        "Classifier"
+      ],
+      "file": "elements/DataType.md"
+    },
+    "DecisionNode": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::DecisionNode",
+      "isAbstract": false,
+      "summary": "A DecisionNode is a ControlNode that makes a selection from its outgoing Successions.",
+      "extends": [
+        "ControlNode"
+      ],
+      "file": "elements/DecisionNode.md"
+    },
+    "Definition": {
+      "kind": "class",
+      "package": "DefinitionAndUsage",
+      "qualifiedName": "SysML::Systems::DefinitionAndUsage::Definition",
+      "isAbstract": false,
+      "summary": "A Definition is a Classifier of Usages.",
+      "extends": [
+        "Classifier"
+      ],
+      "file": "elements/Definition.md"
+    },
+    "Dependency": {
+      "kind": "class",
+      "package": "Dependencies",
+      "qualifiedName": "KerML::Root::Dependencies::Dependency",
+      "isAbstract": false,
+      "summary": "A Dependency is a Relationship that indicates that one or more client Elements require one more supplier Elements for their complete specification.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Dependency.md"
+    },
+    "Differencing": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Differencing",
+      "isAbstract": false,
+      "summary": "Differencing is a Relationship that makes its differencingType one of the differencingTypes of its typeDifferenced.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Differencing.md"
+    },
+    "Disjoining": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Disjoining",
+      "isAbstract": false,
+      "summary": "A Disjoining is a Relationship between Types asserted to have interpretations that are not shared (disjoint) between them, identified as typeDisjoined and disjo…",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Disjoining.md"
+    },
+    "Documentation": {
+      "kind": "class",
+      "package": "Annotations",
+      "qualifiedName": "KerML::Root::Annotations::Documentation",
+      "isAbstract": false,
+      "summary": "Documentation is a Comment that specifically documents a documentedElement, which must be its owner.",
+      "extends": [
+        "Comment"
+      ],
+      "file": "elements/Documentation.md"
+    },
+    "Element": {
+      "kind": "class",
+      "package": "Elements",
+      "qualifiedName": "KerML::Root::Elements::Element",
+      "isAbstract": true,
+      "summary": "An Element is a constituent of a model that is uniquely identified relative to all other Elements.",
+      "extends": [],
+      "file": "elements/Element.md"
+    },
+    "ElementFilterMembership": {
+      "kind": "class",
+      "package": "Packages",
+      "qualifiedName": "KerML::Kernel::Packages::ElementFilterMembership",
+      "isAbstract": false,
+      "summary": "ElementFilterMembership is a Membership between a Namespace and a model-level evaluable Boolean-valued Expression, asserting that imported members of the Namesp…",
+      "extends": [
+        "OwningMembership"
+      ],
+      "file": "elements/ElementFilterMembership.md"
+    },
+    "EndFeatureMembership": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::EndFeatureMembership",
+      "isAbstract": false,
+      "summary": "EndFeatureMembership is a FeatureMembership that requires its memberFeature be owned and have isEnd = true.",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/EndFeatureMembership.md"
+    },
+    "EnumerationDefinition": {
+      "kind": "class",
+      "package": "Enumerations",
+      "qualifiedName": "SysML::Systems::Enumerations::EnumerationDefinition",
+      "isAbstract": false,
+      "summary": "An EnumerationDefinition is an AttributeDefinition all of whose instances are given by an explicit list of enumeratedValues.",
+      "extends": [
+        "AttributeDefinition"
+      ],
+      "file": "elements/EnumerationDefinition.md"
+    },
+    "EnumerationUsage": {
+      "kind": "class",
+      "package": "Enumerations",
+      "qualifiedName": "SysML::Systems::Enumerations::EnumerationUsage",
+      "isAbstract": false,
+      "summary": "An EnumerationUsage is an AttributeUsage whose attributeDefinition is an EnumerationDefinition.",
+      "extends": [
+        "AttributeUsage"
+      ],
+      "file": "elements/EnumerationUsage.md"
+    },
+    "EventOccurrenceUsage": {
+      "kind": "class",
+      "package": "Occurrences",
+      "qualifiedName": "SysML::Systems::Occurrences::EventOccurrenceUsage",
+      "isAbstract": false,
+      "summary": "An EventOccurrenceUsage is an OccurrenceUsage that represents another OccurrenceUsage occurring as a suboccurrence of the containing occurrence of the EventOccu…",
+      "extends": [
+        "OccurrenceUsage"
+      ],
+      "file": "elements/EventOccurrenceUsage.md"
+    },
+    "ExhibitStateUsage": {
+      "kind": "class",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::ExhibitStateUsage",
+      "isAbstract": false,
+      "summary": "An ExhibitStateUsage is a StateUsage that represents the exhibiting of a StateUsage.",
+      "extends": [
+        "PerformActionUsage",
+        "StateUsage"
+      ],
+      "file": "elements/ExhibitStateUsage.md"
+    },
+    "Expose": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::Expose",
+      "isAbstract": true,
+      "summary": "An Expose is an Import of Memberships into a ViewUsage that provide the Elements to be included in a view.",
+      "extends": [
+        "Import"
+      ],
+      "file": "elements/Expose.md"
+    },
+    "Expression": {
+      "kind": "class",
+      "package": "Functions",
+      "qualifiedName": "KerML::Kernel::Functions::Expression",
+      "isAbstract": false,
+      "summary": "An Expression is a Step that is typed by a Function.",
+      "extends": [
+        "Step"
+      ],
+      "file": "elements/Expression.md"
+    },
+    "Feature": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::Feature",
+      "isAbstract": false,
+      "summary": "A Feature is a Type that classifies relations between multiple things (in the universe).",
+      "extends": [
+        "Type"
+      ],
+      "file": "elements/Feature.md"
+    },
+    "FeatureChainExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::FeatureChainExpression",
+      "isAbstract": false,
+      "summary": "A FeatureChainExpression is an OperatorExpression whose operator is \".\", which resolves to the Function ControlFunctions::'.' from the Kernel Functions Library.",
+      "extends": [
+        "OperatorExpression"
+      ],
+      "file": "elements/FeatureChainExpression.md"
+    },
+    "FeatureChaining": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::FeatureChaining",
+      "isAbstract": false,
+      "summary": "FeatureChaining is a Relationship that makes its target Feature one of the chainingFeatures of its owning Feature.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/FeatureChaining.md"
+    },
+    "FeatureDirectionKind": {
+      "kind": "enumeration",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::FeatureDirectionKind",
+      "isAbstract": false,
+      "summary": "FeatureDirectionKind enumerates the possible kinds of direction that a Feature may be given as a member of a Type.",
+      "extends": [],
+      "file": "elements/FeatureDirectionKind.md"
+    },
+    "FeatureInverting": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::FeatureInverting",
+      "isAbstract": false,
+      "summary": "A FeatureInverting is a Relationship between Features asserting that their interpretations (sequences) are the reverse of each other, identified as featureInver…",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/FeatureInverting.md"
+    },
+    "FeatureMembership": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::FeatureMembership",
+      "isAbstract": false,
+      "summary": "A FeatureMembership is an OwningMembership between an ownedMemberFeature and an owningType.",
+      "extends": [
+        "OwningMembership"
+      ],
+      "file": "elements/FeatureMembership.md"
+    },
+    "FeatureReferenceExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::FeatureReferenceExpression",
+      "isAbstract": false,
+      "summary": "A FeatureReferenceExpression is an Expression whose result is bound to a referent Feature.",
+      "extends": [
+        "Expression"
+      ],
+      "file": "elements/FeatureReferenceExpression.md"
+    },
+    "FeatureTyping": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::FeatureTyping",
+      "isAbstract": false,
+      "summary": "FeatureTyping is Specialization in which the specific Type is a Feature.",
+      "extends": [
+        "Specialization"
+      ],
+      "file": "elements/FeatureTyping.md"
+    },
+    "FeatureValue": {
+      "kind": "class",
+      "package": "FeatureValues",
+      "qualifiedName": "KerML::Kernel::FeatureValues::FeatureValue",
+      "isAbstract": false,
+      "summary": "A FeatureValue is a Membership that identifies a particular member Expression that provides the value of the Feature that owns the FeatureValue.",
+      "extends": [
+        "OwningMembership"
+      ],
+      "file": "elements/FeatureValue.md"
+    },
+    "Flow": {
+      "kind": "class",
+      "package": "Interactions",
+      "qualifiedName": "KerML::Kernel::Interactions::Flow",
+      "isAbstract": false,
+      "summary": "An Flow is a Step that represents the transfer of values from one Feature to another.",
+      "extends": [
+        "Connector",
+        "Step"
+      ],
+      "file": "elements/Flow.md"
+    },
+    "FlowDefinition": {
+      "kind": "class",
+      "package": "Flows",
+      "qualifiedName": "SysML::Systems::Flows::FlowDefinition",
+      "isAbstract": false,
+      "summary": "A FlowDefinition is an ActionDefinition that is also an Interaction (which is both a KerML Behavior and Association), representing flows between Usages.",
+      "extends": [
+        "ActionDefinition",
+        "Interaction"
+      ],
+      "file": "elements/FlowDefinition.md"
+    },
+    "FlowEnd": {
+      "kind": "class",
+      "package": "Interactions",
+      "qualifiedName": "KerML::Kernel::Interactions::FlowEnd",
+      "isAbstract": false,
+      "summary": "A FlowEnd is a Feature that is one of the connectorEnds giving the source or target of a Flow.",
+      "extends": [
+        "Feature"
+      ],
+      "file": "elements/FlowEnd.md"
+    },
+    "FlowUsage": {
+      "kind": "class",
+      "package": "Flows",
+      "qualifiedName": "SysML::Systems::Flows::FlowUsage",
+      "isAbstract": false,
+      "summary": "A FlowUsage is an ActionUsage that is also a ConnectorAsUsage and a KerML Flow.",
+      "extends": [
+        "ActionUsage",
+        "ConnectorAsUsage",
+        "Flow"
+      ],
+      "file": "elements/FlowUsage.md"
+    },
+    "ForLoopActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::ForLoopActionUsage",
+      "isAbstract": false,
+      "summary": "A ForLoopActionUsage is a LoopActionUsage that specifies that its bodyAction ActionUsage should be performed once for each value, in order, from the sequence of…",
+      "extends": [
+        "LoopActionUsage"
+      ],
+      "file": "elements/ForLoopActionUsage.md"
+    },
+    "ForkNode": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::ForkNode",
+      "isAbstract": false,
+      "summary": "A ForkNode is a ControlNode that must be followed by successor Actions as given by all its outgoing Successions.",
+      "extends": [
+        "ControlNode"
+      ],
+      "file": "elements/ForkNode.md"
+    },
+    "FramedConcernMembership": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::FramedConcernMembership",
+      "isAbstract": false,
+      "summary": "A FramedConcernMembership is a RequirementConstraintMembership for a framed ConcernUsage of a RequirementDefinition or RequirementUsage.",
+      "extends": [
+        "RequirementConstraintMembership"
+      ],
+      "file": "elements/FramedConcernMembership.md"
+    },
+    "Function": {
+      "kind": "class",
+      "package": "Functions",
+      "qualifiedName": "KerML::Kernel::Functions::Function",
+      "isAbstract": false,
+      "summary": "A Function is a Behavior that has an out parameter that is identified as its result.",
+      "extends": [
+        "Behavior"
+      ],
+      "file": "elements/Function.md"
+    },
+    "IfActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::IfActionUsage",
+      "isAbstract": false,
+      "summary": "An IfActionUsage is an ActionUsage that specifies that the thenAction ActionUsage should be performed if the result of the ifArgument Expression is true.",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/IfActionUsage.md"
+    },
+    "Import": {
+      "kind": "class",
+      "package": "Namespaces",
+      "qualifiedName": "KerML::Root::Namespaces::Import",
+      "isAbstract": true,
+      "summary": "An Import is an Relationship between its importOwningNamespace and either a Membership (for a MembershipImport) or another Namespace (for a NamespaceImport), wh…",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Import.md"
+    },
+    "IncludeUseCaseUsage": {
+      "kind": "class",
+      "package": "UseCases",
+      "qualifiedName": "SysML::Systems::UseCases::IncludeUseCaseUsage",
+      "isAbstract": false,
+      "summary": "An IncludeUseCaseUsage is a UseCaseUsage that represents the inclusion of a UseCaseUsage by a UseCaseDefinition or UseCaseUsage.",
+      "extends": [
+        "PerformActionUsage",
+        "UseCaseUsage"
+      ],
+      "file": "elements/IncludeUseCaseUsage.md"
+    },
+    "IndexExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::IndexExpression",
+      "isAbstract": false,
+      "summary": "An IndexExpression is an OperatorExpression whose operator is \"#\", which resolves to the Function BasicFunctions::'#' from the Kernel Functions Library.",
+      "extends": [
+        "OperatorExpression"
+      ],
+      "file": "elements/IndexExpression.md"
+    },
+    "InstantiationExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::InstantiationExpression",
+      "isAbstract": true,
+      "summary": "An InstantiationExpression is an Expression that instantiates its instantiatedType, binding some or all of the features of that Type to the results of its argum…",
+      "extends": [
+        "Expression"
+      ],
+      "file": "elements/InstantiationExpression.md"
+    },
+    "Integer": {
+      "kind": "primitiveType",
+      "package": "PrimitiveTypes",
+      "qualifiedName": "PrimitiveTypes::Integer",
+      "isAbstract": false,
+      "summary": "Integer is a primitive type representing integer values.",
+      "extends": [],
+      "file": "elements/Integer.md"
+    },
+    "Interaction": {
+      "kind": "class",
+      "package": "Interactions",
+      "qualifiedName": "KerML::Kernel::Interactions::Interaction",
+      "isAbstract": false,
+      "summary": "An Interaction is a Behavior that is also an Association, providing a context for multiple objects that have behaviors that impact one another.",
+      "extends": [
+        "Association",
+        "Behavior"
+      ],
+      "file": "elements/Interaction.md"
+    },
+    "InterfaceDefinition": {
+      "kind": "class",
+      "package": "Interfaces",
+      "qualifiedName": "SysML::Systems::Interfaces::InterfaceDefinition",
+      "isAbstract": false,
+      "summary": "An InterfaceDefinition is a ConnectionDefinition all of whose ends are PortUsages, defining an interface between elements that interact through such ports.",
+      "extends": [
+        "ConnectionDefinition"
+      ],
+      "file": "elements/InterfaceDefinition.md"
+    },
+    "InterfaceUsage": {
+      "kind": "class",
+      "package": "Interfaces",
+      "qualifiedName": "SysML::Systems::Interfaces::InterfaceUsage",
+      "isAbstract": false,
+      "summary": "An InterfaceUsage is a Usage of an InterfaceDefinition to represent an interface connecting parts of a system through specific ports.",
+      "extends": [
+        "ConnectionUsage"
+      ],
+      "file": "elements/InterfaceUsage.md"
+    },
+    "Intersecting": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Intersecting",
+      "isAbstract": false,
+      "summary": "Intersecting is a Relationship that makes its intersectingType one of the intersectingTypes of its typeIntersected.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Intersecting.md"
+    },
+    "Invariant": {
+      "kind": "class",
+      "package": "Functions",
+      "qualifiedName": "KerML::Kernel::Functions::Invariant",
+      "isAbstract": false,
+      "summary": "An Invariant is a BooleanExpression that is asserted to have a specific Boolean result value.",
+      "extends": [
+        "BooleanExpression"
+      ],
+      "file": "elements/Invariant.md"
+    },
+    "InvocationExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::InvocationExpression",
+      "isAbstract": false,
+      "summary": "An InvocationExpression is an InstantiationExpression whose instantiatedType must be a Behavior or a Feature typed by a single Behavior (such as a Step).",
+      "extends": [
+        "InstantiationExpression"
+      ],
+      "file": "elements/InvocationExpression.md"
+    },
+    "ItemDefinition": {
+      "kind": "class",
+      "package": "Items",
+      "qualifiedName": "SysML::Systems::Items::ItemDefinition",
+      "isAbstract": false,
+      "summary": "An ItemDefinition is an OccurrenceDefinition of the Structure of things that may themselves be systems or parts of systems, but may also be things that are acte…",
+      "extends": [
+        "OccurrenceDefinition",
+        "Structure"
+      ],
+      "file": "elements/ItemDefinition.md"
+    },
+    "ItemUsage": {
+      "kind": "class",
+      "package": "Items",
+      "qualifiedName": "SysML::Systems::Items::ItemUsage",
+      "isAbstract": false,
+      "summary": "An ItemUsage is an OccurrenceUsage whose definition is a Structure.",
+      "extends": [
+        "OccurrenceUsage"
+      ],
+      "file": "elements/ItemUsage.md"
+    },
+    "JoinNode": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::JoinNode",
+      "isAbstract": false,
+      "summary": "A JoinNode is a ControlNode that waits for the completion of all the predecessor Actions given by incoming Successions.",
+      "extends": [
+        "ControlNode"
+      ],
+      "file": "elements/JoinNode.md"
+    },
+    "LibraryPackage": {
+      "kind": "class",
+      "package": "Packages",
+      "qualifiedName": "KerML::Kernel::Packages::LibraryPackage",
+      "isAbstract": false,
+      "summary": "A LibraryPackage is a Package that is the container for a model library.",
+      "extends": [
+        "Package"
+      ],
+      "file": "elements/LibraryPackage.md"
+    },
+    "LiteralBoolean": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::LiteralBoolean",
+      "isAbstract": false,
+      "summary": "LiteralBoolean is a LiteralExpression that provides a Boolean value as a result.",
+      "extends": [
+        "LiteralExpression"
+      ],
+      "file": "elements/LiteralBoolean.md"
+    },
+    "LiteralExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::LiteralExpression",
+      "isAbstract": false,
+      "summary": "A LiteralExpression is an Expression that provides a basic DataValue as a result.",
+      "extends": [
+        "Expression"
+      ],
+      "file": "elements/LiteralExpression.md"
+    },
+    "LiteralInfinity": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::LiteralInfinity",
+      "isAbstract": false,
+      "summary": "A LiteralInfinity is a LiteralExpression that provides the positive infinity value (*).",
+      "extends": [
+        "LiteralExpression"
+      ],
+      "file": "elements/LiteralInfinity.md"
+    },
+    "LiteralInteger": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::LiteralInteger",
+      "isAbstract": false,
+      "summary": "A LiteralInteger is a LiteralExpression that provides an Integer value as a result.",
+      "extends": [
+        "LiteralExpression"
+      ],
+      "file": "elements/LiteralInteger.md"
+    },
+    "LiteralRational": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::LiteralRational",
+      "isAbstract": false,
+      "summary": "A LiteralRational is a LiteralExpression that provides a Rational value as a result.",
+      "extends": [
+        "LiteralExpression"
+      ],
+      "file": "elements/LiteralRational.md"
+    },
+    "LiteralString": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::LiteralString",
+      "isAbstract": false,
+      "summary": "A LiteralString is a LiteralExpression that provides a String value as a result.",
+      "extends": [
+        "LiteralExpression"
+      ],
+      "file": "elements/LiteralString.md"
+    },
+    "LoopActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::LoopActionUsage",
+      "isAbstract": true,
+      "summary": "A LoopActionUsage is an ActionUsage that specifies that its bodyAction should be performed repeatedly.",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/LoopActionUsage.md"
+    },
+    "Membership": {
+      "kind": "class",
+      "package": "Namespaces",
+      "qualifiedName": "KerML::Root::Namespaces::Membership",
+      "isAbstract": false,
+      "summary": "A Membership is a Relationship between a Namespace and an Element that indicates the Element is a member of (i.e., is contained in) the Namespace.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Membership.md"
+    },
+    "MembershipExpose": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::MembershipExpose",
+      "isAbstract": false,
+      "summary": "A MembershipExpose is an Expose <> that exposes a specific importedMembership and, if isRecursive = true, additional Memberships recursively.",
+      "extends": [
+        "Expose",
+        "MembershipImport"
+      ],
+      "file": "elements/MembershipExpose.md"
+    },
+    "MembershipImport": {
+      "kind": "class",
+      "package": "Namespaces",
+      "qualifiedName": "KerML::Root::Namespaces::MembershipImport",
+      "isAbstract": false,
+      "summary": "A MembershipImport is an Import that imports its importedMembership into the importOwningNamespace.",
+      "extends": [
+        "Import"
+      ],
+      "file": "elements/MembershipImport.md"
+    },
+    "MergeNode": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::MergeNode",
+      "isAbstract": false,
+      "summary": "A MergeNode is a ControlNode that asserts the merging of its incoming Successions.",
+      "extends": [
+        "ControlNode"
+      ],
+      "file": "elements/MergeNode.md"
+    },
+    "Metaclass": {
+      "kind": "class",
+      "package": "Metadata",
+      "qualifiedName": "KerML::Kernel::Metadata::Metaclass",
+      "isAbstract": false,
+      "summary": "A Metaclass is a Structure used to type MetadataFeatures.",
+      "extends": [
+        "Structure"
+      ],
+      "file": "elements/Metaclass.md"
+    },
+    "MetadataAccessExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::MetadataAccessExpression",
+      "isAbstract": false,
+      "summary": "A MetadataAccessExpression is an Expression whose result is a sequence of instances of Metaclasses representing all the MetadataFeature annotations of the refer…",
+      "extends": [
+        "Expression"
+      ],
+      "file": "elements/MetadataAccessExpression.md"
+    },
+    "MetadataDefinition": {
+      "kind": "class",
+      "package": "Metadata",
+      "qualifiedName": "SysML::Systems::Metadata::MetadataDefinition",
+      "isAbstract": false,
+      "summary": "A MetadataDefinition is an ItemDefinition that is also a Metaclass.",
+      "extends": [
+        "ItemDefinition",
+        "Metaclass"
+      ],
+      "file": "elements/MetadataDefinition.md"
+    },
+    "MetadataFeature": {
+      "kind": "class",
+      "package": "Metadata",
+      "qualifiedName": "KerML::Kernel::Metadata::MetadataFeature",
+      "isAbstract": false,
+      "summary": "A MetadataFeature is a Feature that is an AnnotatingElement used to annotate another Element with metadata.",
+      "extends": [
+        "AnnotatingElement",
+        "Feature"
+      ],
+      "file": "elements/MetadataFeature.md"
+    },
+    "MetadataUsage": {
+      "kind": "class",
+      "package": "Metadata",
+      "qualifiedName": "SysML::Systems::Metadata::MetadataUsage",
+      "isAbstract": false,
+      "summary": "A MetadataUsage is a Usage and a MetadataFeature, used to annotate other Elements in a system model with metadata.",
+      "extends": [
+        "ItemUsage",
+        "MetadataFeature"
+      ],
+      "file": "elements/MetadataUsage.md"
+    },
+    "Multiplicity": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Multiplicity",
+      "isAbstract": false,
+      "summary": "A Multiplicity is a Feature whose co-domain is a set of natural numbers giving the allowed cardinalities of each typeWithMultiplicity.",
+      "extends": [
+        "Feature"
+      ],
+      "file": "elements/Multiplicity.md"
+    },
+    "MultiplicityRange": {
+      "kind": "class",
+      "package": "Multiplicities",
+      "qualifiedName": "KerML::Kernel::Multiplicities::MultiplicityRange",
+      "isAbstract": false,
+      "summary": "A MultiplicityRange is a Multiplicity whose value is defined to be the (inclusive) range of natural numbers given by the result of a lowerBound Expression and t…",
+      "extends": [
+        "Multiplicity"
+      ],
+      "file": "elements/MultiplicityRange.md"
+    },
+    "Namespace": {
+      "kind": "class",
+      "package": "Namespaces",
+      "qualifiedName": "KerML::Root::Namespaces::Namespace",
+      "isAbstract": false,
+      "summary": "A Namespace is an Element that contains other Elements, known as its members, via Membership Relationships with those Elements.",
+      "extends": [
+        "Element"
+      ],
+      "file": "elements/Namespace.md"
+    },
+    "NamespaceExpose": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::NamespaceExpose",
+      "isAbstract": false,
+      "summary": "A NamespaceExpose is an Expose Relationship that exposes the Memberships of a specific importedNamespace and, if isRecursive = true, additional Memberships recu…",
+      "extends": [
+        "Expose",
+        "NamespaceImport"
+      ],
+      "file": "elements/NamespaceExpose.md"
+    },
+    "NamespaceImport": {
+      "kind": "class",
+      "package": "Namespaces",
+      "qualifiedName": "KerML::Root::Namespaces::NamespaceImport",
+      "isAbstract": false,
+      "summary": "A NamespaceImport is an Import that imports Memberships from its importedNamespace into the importOwningNamespace.",
+      "extends": [
+        "Import"
+      ],
+      "file": "elements/NamespaceImport.md"
+    },
+    "NullExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::NullExpression",
+      "isAbstract": false,
+      "summary": "A NullExpression is an Expression that results in a null value.",
+      "extends": [
+        "Expression"
+      ],
+      "file": "elements/NullExpression.md"
+    },
+    "ObjectiveMembership": {
+      "kind": "class",
+      "package": "Cases",
+      "qualifiedName": "SysML::Systems::Cases::ObjectiveMembership",
+      "isAbstract": false,
+      "summary": "An ObjectiveMembership is a FeatureMembership that indicates that its ownedObjectiveRequirement is the objective RequirementUsage for its owningType, which must…",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/ObjectiveMembership.md"
+    },
+    "OccurrenceDefinition": {
+      "kind": "class",
+      "package": "Occurrences",
+      "qualifiedName": "SysML::Systems::Occurrences::OccurrenceDefinition",
+      "isAbstract": false,
+      "summary": "An OccurrenceDefinition is a Definition of a Class of individuals that have an independent life over time and potentially an extent over space.",
+      "extends": [
+        "Class",
+        "Definition"
+      ],
+      "file": "elements/OccurrenceDefinition.md"
+    },
+    "OccurrenceUsage": {
+      "kind": "class",
+      "package": "Occurrences",
+      "qualifiedName": "SysML::Systems::Occurrences::OccurrenceUsage",
+      "isAbstract": false,
+      "summary": "An OccurrenceUsage is a Usage whose types are all Classes.",
+      "extends": [
+        "Usage"
+      ],
+      "file": "elements/OccurrenceUsage.md"
+    },
+    "OperatorExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::OperatorExpression",
+      "isAbstract": false,
+      "summary": "An OperatorExpression is an InvocationExpression whose function is determined by resolving its operator in the context of one of the standard packages from the…",
+      "extends": [
+        "InvocationExpression"
+      ],
+      "file": "elements/OperatorExpression.md"
+    },
+    "OwningMembership": {
+      "kind": "class",
+      "package": "Namespaces",
+      "qualifiedName": "KerML::Root::Namespaces::OwningMembership",
+      "isAbstract": false,
+      "summary": "An OwningMembership is a Membership that owns its memberElement as a ownedRelatedElement.",
+      "extends": [
+        "Membership"
+      ],
+      "file": "elements/OwningMembership.md"
+    },
+    "Package": {
+      "kind": "class",
+      "package": "Packages",
+      "qualifiedName": "KerML::Kernel::Packages::Package",
+      "isAbstract": false,
+      "summary": "A Package is a Namespace used to group Elements, without any instance-level semantics.",
+      "extends": [
+        "Namespace"
+      ],
+      "file": "elements/Package.md"
+    },
+    "ParameterMembership": {
+      "kind": "class",
+      "package": "Behaviors",
+      "qualifiedName": "KerML::Kernel::Behaviors::ParameterMembership",
+      "isAbstract": false,
+      "summary": "A ParameterMembership is a FeatureMembership that identifies its memberFeature as a parameter, which is always owned, and must have a direction.",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/ParameterMembership.md"
+    },
+    "PartDefinition": {
+      "kind": "class",
+      "package": "Parts",
+      "qualifiedName": "SysML::Systems::Parts::PartDefinition",
+      "isAbstract": false,
+      "summary": "A PartDefinition is an ItemDefinition of a Class of systems or parts of systems.",
+      "extends": [
+        "ItemDefinition"
+      ],
+      "file": "elements/PartDefinition.md"
+    },
+    "PartUsage": {
+      "kind": "class",
+      "package": "Parts",
+      "qualifiedName": "SysML::Systems::Parts::PartUsage",
+      "isAbstract": false,
+      "summary": "A PartUsage is a usage of a PartDefinition to represent a system or a part of a system.",
+      "extends": [
+        "ItemUsage"
+      ],
+      "file": "elements/PartUsage.md"
+    },
+    "PayloadFeature": {
+      "kind": "class",
+      "package": "Interactions",
+      "qualifiedName": "KerML::Kernel::Interactions::PayloadFeature",
+      "isAbstract": false,
+      "summary": "A PayloadFeature is the ownedFeature of a Flow that identifies the things carried by the kinds of transfers that are instances of the Flow.",
+      "extends": [
+        "Feature"
+      ],
+      "file": "elements/PayloadFeature.md"
+    },
+    "PerformActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::PerformActionUsage",
+      "isAbstract": false,
+      "summary": "A PerformActionUsage is an ActionUsage that represents the performance of an ActionUsage.",
+      "extends": [
+        "ActionUsage",
+        "EventOccurrenceUsage"
+      ],
+      "file": "elements/PerformActionUsage.md"
+    },
+    "PortConjugation": {
+      "kind": "class",
+      "package": "Ports",
+      "qualifiedName": "SysML::Systems::Ports::PortConjugation",
+      "isAbstract": false,
+      "summary": "A PortConjugation is a Conjugation Relationship between a PortDefinition and its corresponding ConjugatedPortDefinition.",
+      "extends": [
+        "Conjugation"
+      ],
+      "file": "elements/PortConjugation.md"
+    },
+    "PortDefinition": {
+      "kind": "class",
+      "package": "Ports",
+      "qualifiedName": "SysML::Systems::Ports::PortDefinition",
+      "isAbstract": false,
+      "summary": "A PortDefinition defines a point at which external entities can connect to and interact with a system or part of a system.",
+      "extends": [
+        "OccurrenceDefinition",
+        "Structure"
+      ],
+      "file": "elements/PortDefinition.md"
+    },
+    "PortUsage": {
+      "kind": "class",
+      "package": "Ports",
+      "qualifiedName": "SysML::Systems::Ports::PortUsage",
+      "isAbstract": false,
+      "summary": "A PortUsage is a usage of a PortDefinition.",
+      "extends": [
+        "OccurrenceUsage"
+      ],
+      "file": "elements/PortUsage.md"
+    },
+    "PortionKind": {
+      "kind": "enumeration",
+      "package": "Occurrences",
+      "qualifiedName": "SysML::Systems::Occurrences::PortionKind",
+      "isAbstract": false,
+      "summary": "PortionKind is an enumeration of the specific kinds of Occurrence portions that can be represented by an OccurrenceUsage.",
+      "extends": [],
+      "file": "elements/PortionKind.md"
+    },
+    "Predicate": {
+      "kind": "class",
+      "package": "Functions",
+      "qualifiedName": "KerML::Kernel::Functions::Predicate",
+      "isAbstract": false,
+      "summary": "A Predicate is a Function whose result parameter has type Boolean and multiplicity 1..1.",
+      "extends": [
+        "Function"
+      ],
+      "file": "elements/Predicate.md"
+    },
+    "Real": {
+      "kind": "primitiveType",
+      "package": "PrimitiveTypes",
+      "qualifiedName": "PrimitiveTypes::Real",
+      "isAbstract": false,
+      "summary": "Real is a primitive type representing the mathematical concept of real.",
+      "extends": [],
+      "file": "elements/Real.md"
+    },
+    "Redefinition": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::Redefinition",
+      "isAbstract": false,
+      "summary": "Redefinition is a kind of Subsetting that requires the redefinedFeature and the redefiningFeature to have the same values (on each instance of the domain of the…",
+      "extends": [
+        "Subsetting"
+      ],
+      "file": "elements/Redefinition.md"
+    },
+    "ReferenceSubsetting": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::ReferenceSubsetting",
+      "isAbstract": false,
+      "summary": "ReferenceSubsetting is a kind of Subsetting in which the referencedFeature is syntactically distinguished from other Features subsetted by the referencingFeatur…",
+      "extends": [
+        "Subsetting"
+      ],
+      "file": "elements/ReferenceSubsetting.md"
+    },
+    "ReferenceUsage": {
+      "kind": "class",
+      "package": "DefinitionAndUsage",
+      "qualifiedName": "SysML::Systems::DefinitionAndUsage::ReferenceUsage",
+      "isAbstract": false,
+      "summary": "A ReferenceUsage is a Usage that specifies a non-compositional (isComposite = false) reference to something.",
+      "extends": [
+        "Usage"
+      ],
+      "file": "elements/ReferenceUsage.md"
+    },
+    "Relationship": {
+      "kind": "class",
+      "package": "Elements",
+      "qualifiedName": "KerML::Root::Elements::Relationship",
+      "isAbstract": true,
+      "summary": "A Relationship is an Element that relates other Element.",
+      "extends": [
+        "Element"
+      ],
+      "file": "elements/Relationship.md"
+    },
+    "RenderingDefinition": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::RenderingDefinition",
+      "isAbstract": false,
+      "summary": "A RenderingDefinition is a PartDefinition that defines a specific rendering of the content of a model view (e.g., symbols, style, layout, etc.).",
+      "extends": [
+        "PartDefinition"
+      ],
+      "file": "elements/RenderingDefinition.md"
+    },
+    "RenderingUsage": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::RenderingUsage",
+      "isAbstract": false,
+      "summary": "A RenderingUsage is the usage of a RenderingDefinition to specify the rendering of a specific model view to produce a physical view artifact.",
+      "extends": [
+        "PartUsage"
+      ],
+      "file": "elements/RenderingUsage.md"
+    },
+    "RequirementConstraintKind": {
+      "kind": "enumeration",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::RequirementConstraintKind",
+      "isAbstract": false,
+      "summary": "A RequirementConstraintKind indicates whether a ConstraintUsage is an assumption or a requirement in a RequirementDefinition or RequirementUsage.",
+      "extends": [],
+      "file": "elements/RequirementConstraintKind.md"
+    },
+    "RequirementConstraintMembership": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::RequirementConstraintMembership",
+      "isAbstract": false,
+      "summary": "A RequirementConstraintMembership is a FeatureMembership for an assumed or required ConstraintUsage of a RequirementDefinition or RequirementUsage.",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/RequirementConstraintMembership.md"
+    },
+    "RequirementDefinition": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::RequirementDefinition",
+      "isAbstract": false,
+      "summary": "A RequirementDefinition is a ConstraintDefinition that defines a requirement used in the context of a specification as a constraint that a valid solution must s…",
+      "extends": [
+        "ConstraintDefinition"
+      ],
+      "file": "elements/RequirementDefinition.md"
+    },
+    "RequirementUsage": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::RequirementUsage",
+      "isAbstract": false,
+      "summary": "A RequirementUsage is a Usage of a RequirementDefinition.",
+      "extends": [
+        "ConstraintUsage"
+      ],
+      "file": "elements/RequirementUsage.md"
+    },
+    "RequirementVerificationMembership": {
+      "kind": "class",
+      "package": "VerificationCases",
+      "qualifiedName": "SysML::Systems::VerificationCases::RequirementVerificationMembership",
+      "isAbstract": false,
+      "summary": "A RequirementVerificationMembership is a RequirementConstraintMembership used in the objective of a VerificationCase to identify a RequirementUsage that is veri…",
+      "extends": [
+        "RequirementConstraintMembership"
+      ],
+      "file": "elements/RequirementVerificationMembership.md"
+    },
+    "ResultExpressionMembership": {
+      "kind": "class",
+      "package": "Functions",
+      "qualifiedName": "KerML::Kernel::Functions::ResultExpressionMembership",
+      "isAbstract": false,
+      "summary": "A ResultExpressionMembership is a FeatureMembership that indicates that the ownedResultExpression provides the result values for the Function or Expression that…",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/ResultExpressionMembership.md"
+    },
+    "ReturnParameterMembership": {
+      "kind": "class",
+      "package": "Functions",
+      "qualifiedName": "KerML::Kernel::Functions::ReturnParameterMembership",
+      "isAbstract": false,
+      "summary": "A ReturnParameterMembership is a ParameterMembership that indicates that the ownedMemberParameter is the result parameter of a Function or Expression.",
+      "extends": [
+        "ParameterMembership"
+      ],
+      "file": "elements/ReturnParameterMembership.md"
+    },
+    "SatisfyRequirementUsage": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::SatisfyRequirementUsage",
+      "isAbstract": false,
+      "summary": "A SatisfyRequirementUsage is an AssertConstraintUsage that asserts, by default, that a satisfied RequirementUsage is true for a specific satisfyingFeature, or,…",
+      "extends": [
+        "AssertConstraintUsage",
+        "RequirementUsage"
+      ],
+      "file": "elements/SatisfyRequirementUsage.md"
+    },
+    "SelectExpression": {
+      "kind": "class",
+      "package": "Expressions",
+      "qualifiedName": "KerML::Kernel::Expressions::SelectExpression",
+      "isAbstract": false,
+      "summary": "A SelectExpression is an OperatorExpression whose operator is \"select\", which resolves to the Function ControlFunctions::select from the Kernel Functions Librar…",
+      "extends": [
+        "OperatorExpression"
+      ],
+      "file": "elements/SelectExpression.md"
+    },
+    "SendActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::SendActionUsage",
+      "isAbstract": false,
+      "summary": "A SendActionUsage is an ActionUsage that specifies the sending of a payload given by the result of its payloadArgument Expression via a MessageTransfer whose so…",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/SendActionUsage.md"
+    },
+    "Specialization": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Specialization",
+      "isAbstract": false,
+      "summary": "Specialization is a Relationship between two Types that requires all instances of the specific type to also be instances of the general Type (i.e., the set of i…",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Specialization.md"
+    },
+    "StakeholderMembership": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::StakeholderMembership",
+      "isAbstract": false,
+      "summary": "A StakeholderMembership is a ParameterMembership that identifies a PartUsage as a stakeholderParameter of a RequirementDefinition or RequirementUsage, which spe…",
+      "extends": [
+        "ParameterMembership"
+      ],
+      "file": "elements/StakeholderMembership.md"
+    },
+    "StateDefinition": {
+      "kind": "class",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::StateDefinition",
+      "isAbstract": false,
+      "summary": "A StateDefinition is the Definition of the Behavior of a system or part of a system in a certain state condition.A StateDefinition may be related to up to three…",
+      "extends": [
+        "ActionDefinition"
+      ],
+      "file": "elements/StateDefinition.md"
+    },
+    "StateSubactionKind": {
+      "kind": "enumeration",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::StateSubactionKind",
+      "isAbstract": false,
+      "summary": "A StateSubactionKind indicates whether the action of a StateSubactionMembership is an entry, do or exit action.",
+      "extends": [],
+      "file": "elements/StateSubactionKind.md"
+    },
+    "StateSubactionMembership": {
+      "kind": "class",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::StateSubactionMembership",
+      "isAbstract": false,
+      "summary": "A StateSubactionMembership is a FeatureMembership for an entry, do or exit ActionUsage of a StateDefinition or StateUsage.",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/StateSubactionMembership.md"
+    },
+    "StateUsage": {
+      "kind": "class",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::StateUsage",
+      "isAbstract": false,
+      "summary": "A StateUsage is an ActionUsage that is nominally the Usage of a StateDefinition.",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/StateUsage.md"
+    },
+    "Step": {
+      "kind": "class",
+      "package": "Behaviors",
+      "qualifiedName": "KerML::Kernel::Behaviors::Step",
+      "isAbstract": false,
+      "summary": "A Step is a Feature that is typed by one or more Behaviors.",
+      "extends": [
+        "Feature"
+      ],
+      "file": "elements/Step.md"
+    },
+    "String": {
+      "kind": "primitiveType",
+      "package": "PrimitiveTypes",
+      "qualifiedName": "PrimitiveTypes::String",
+      "isAbstract": false,
+      "summary": "String is a sequence of characters in some suitable character set used to display information about the model.",
+      "extends": [],
+      "file": "elements/String.md"
+    },
+    "Structure": {
+      "kind": "class",
+      "package": "Structures",
+      "qualifiedName": "KerML::Kernel::Structures::Structure",
+      "isAbstract": false,
+      "summary": "A Structure is a Class of objects in the modeled universe that are primarily structural in nature.",
+      "extends": [
+        "Class"
+      ],
+      "file": "elements/Structure.md"
+    },
+    "Subclassification": {
+      "kind": "class",
+      "package": "Classifiers",
+      "qualifiedName": "KerML::Core::Classifiers::Subclassification",
+      "isAbstract": false,
+      "summary": "Subclassification is Specialization in which both the specific and general Types are Classifier.",
+      "extends": [
+        "Specialization"
+      ],
+      "file": "elements/Subclassification.md"
+    },
+    "SubjectMembership": {
+      "kind": "class",
+      "package": "Requirements",
+      "qualifiedName": "SysML::Systems::Requirements::SubjectMembership",
+      "isAbstract": false,
+      "summary": "A SubjectMembership is a ParameterMembership that indicates that its ownedSubjectParameter is the subject of its owningType.",
+      "extends": [
+        "ParameterMembership"
+      ],
+      "file": "elements/SubjectMembership.md"
+    },
+    "Subsetting": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::Subsetting",
+      "isAbstract": false,
+      "summary": "Subsetting is Specialization in which the specific and general Types are Features.",
+      "extends": [
+        "Specialization"
+      ],
+      "file": "elements/Subsetting.md"
+    },
+    "Succession": {
+      "kind": "class",
+      "package": "Connectors",
+      "qualifiedName": "KerML::Kernel::Connectors::Succession",
+      "isAbstract": false,
+      "summary": "A Succession is a binary Connector that requires its relatedFeatures to happen separately in time.",
+      "extends": [
+        "Connector"
+      ],
+      "file": "elements/Succession.md"
+    },
+    "SuccessionAsUsage": {
+      "kind": "class",
+      "package": "Connections",
+      "qualifiedName": "SysML::Systems::Connections::SuccessionAsUsage",
+      "isAbstract": false,
+      "summary": "A SuccessionAsUsage is both a ConnectorAsUsage and a Succession.",
+      "extends": [
+        "ConnectorAsUsage",
+        "Succession"
+      ],
+      "file": "elements/SuccessionAsUsage.md"
+    },
+    "SuccessionFlow": {
+      "kind": "class",
+      "package": "Interactions",
+      "qualifiedName": "KerML::Kernel::Interactions::SuccessionFlow",
+      "isAbstract": false,
+      "summary": "A SuccessionFlow is a Flow that also provides temporal ordering.",
+      "extends": [
+        "Flow",
+        "Succession"
+      ],
+      "file": "elements/SuccessionFlow.md"
+    },
+    "SuccessionFlowUsage": {
+      "kind": "class",
+      "package": "Flows",
+      "qualifiedName": "SysML::Systems::Flows::SuccessionFlowUsage",
+      "isAbstract": false,
+      "summary": "A SuccessionFlowUsage is a FlowUsage that is also a KerML SuccessionFlow.",
+      "extends": [
+        "FlowUsage",
+        "SuccessionFlow"
+      ],
+      "file": "elements/SuccessionFlowUsage.md"
+    },
+    "TerminateActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::TerminateActionUsage",
+      "isAbstract": false,
+      "summary": "A TerminateActionUsage is an ActionUsage that directly or indirectly specializes the ActionDefinition TerminateAction from the Systems Model Library, which caus…",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/TerminateActionUsage.md"
+    },
+    "TextualRepresentation": {
+      "kind": "class",
+      "package": "Annotations",
+      "qualifiedName": "KerML::Root::Annotations::TextualRepresentation",
+      "isAbstract": false,
+      "summary": "A TextualRepresentation is an AnnotatingElement whose body represents the representedElement in a given language.",
+      "extends": [
+        "AnnotatingElement"
+      ],
+      "file": "elements/TextualRepresentation.md"
+    },
+    "TransitionFeatureKind": {
+      "kind": "enumeration",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::TransitionFeatureKind",
+      "isAbstract": false,
+      "summary": "A TransitionActionKind indicates whether the transitionFeature of a TransitionFeatureMembership is a trigger, guard or effect.",
+      "extends": [],
+      "file": "elements/TransitionFeatureKind.md"
+    },
+    "TransitionFeatureMembership": {
+      "kind": "class",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::TransitionFeatureMembership",
+      "isAbstract": false,
+      "summary": "A TransitionFeatureMembership is a FeatureMembership for a trigger, guard or effect of a TransitionUsage, whose transitionFeature is a AcceptActionUsage, Boolea…",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/TransitionFeatureMembership.md"
+    },
+    "TransitionUsage": {
+      "kind": "class",
+      "package": "States",
+      "qualifiedName": "SysML::Systems::States::TransitionUsage",
+      "isAbstract": false,
+      "summary": "A TransitionUsage is an ActionUsage representing a triggered transition between ActionUsages or StateUsages.",
+      "extends": [
+        "ActionUsage"
+      ],
+      "file": "elements/TransitionUsage.md"
+    },
+    "TriggerInvocationExpression": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::TriggerInvocationExpression",
+      "isAbstract": false,
+      "summary": "A TriggerInvocationExpression is an InvocationExpression that invokes one of the trigger Functions from the Kernel Semantic Library Triggers package, as indicat…",
+      "extends": [
+        "InvocationExpression"
+      ],
+      "file": "elements/TriggerInvocationExpression.md"
+    },
+    "TriggerKind": {
+      "kind": "enumeration",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::TriggerKind",
+      "isAbstract": false,
+      "summary": "TriggerKind enumerates the kinds of triggers that can be represented by a TriggerInvocationExpression.",
+      "extends": [],
+      "file": "elements/TriggerKind.md"
+    },
+    "Type": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Type",
+      "isAbstract": false,
+      "summary": "A Type is a Namespace that is the most general kind of Element supporting the semantics of classification.",
+      "extends": [
+        "Namespace"
+      ],
+      "file": "elements/Type.md"
+    },
+    "TypeFeaturing": {
+      "kind": "class",
+      "package": "Features",
+      "qualifiedName": "KerML::Core::Features::TypeFeaturing",
+      "isAbstract": false,
+      "summary": "A TypeFeaturing is a Featuring Relationship in which the featureOfType is the source and the featuringType is the target.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/TypeFeaturing.md"
+    },
+    "Unioning": {
+      "kind": "class",
+      "package": "Types",
+      "qualifiedName": "KerML::Core::Types::Unioning",
+      "isAbstract": false,
+      "summary": "Unioning is a Relationship that makes its unioningType one of the unioningTypes of its typeUnioned.",
+      "extends": [
+        "Relationship"
+      ],
+      "file": "elements/Unioning.md"
+    },
+    "UnlimitedNatural": {
+      "kind": "primitiveType",
+      "package": "PrimitiveTypes",
+      "qualifiedName": "PrimitiveTypes::UnlimitedNatural",
+      "isAbstract": false,
+      "summary": "UnlimitedNatural is a primitive type representing unlimited natural values.",
+      "extends": [],
+      "file": "elements/UnlimitedNatural.md"
+    },
+    "Usage": {
+      "kind": "class",
+      "package": "DefinitionAndUsage",
+      "qualifiedName": "SysML::Systems::DefinitionAndUsage::Usage",
+      "isAbstract": false,
+      "summary": "A Usage is a usage of a Definition.A Usage may have nestedUsages that model features that apply in the context of the owningUsage.",
+      "extends": [
+        "Feature"
+      ],
+      "file": "elements/Usage.md"
+    },
+    "UseCaseDefinition": {
+      "kind": "class",
+      "package": "UseCases",
+      "qualifiedName": "SysML::Systems::UseCases::UseCaseDefinition",
+      "isAbstract": false,
+      "summary": "A UseCaseDefinition is a CaseDefinition that specifies a set of actions performed by its subject, in interaction with one or more actors external to the subject…",
+      "extends": [
+        "CaseDefinition"
+      ],
+      "file": "elements/UseCaseDefinition.md"
+    },
+    "UseCaseUsage": {
+      "kind": "class",
+      "package": "UseCases",
+      "qualifiedName": "SysML::Systems::UseCases::UseCaseUsage",
+      "isAbstract": false,
+      "summary": "A UseCaseUsage is a Usage of a UseCaseDefinition.",
+      "extends": [
+        "CaseUsage"
+      ],
+      "file": "elements/UseCaseUsage.md"
+    },
+    "VariantMembership": {
+      "kind": "class",
+      "package": "DefinitionAndUsage",
+      "qualifiedName": "SysML::Systems::DefinitionAndUsage::VariantMembership",
+      "isAbstract": false,
+      "summary": "A VariantMembership is a Membership between a variation point Definition or Usage and a Usage that represents a variant in the context of that variation.",
+      "extends": [
+        "OwningMembership"
+      ],
+      "file": "elements/VariantMembership.md"
+    },
+    "VerificationCaseDefinition": {
+      "kind": "class",
+      "package": "VerificationCases",
+      "qualifiedName": "SysML::Systems::VerificationCases::VerificationCaseDefinition",
+      "isAbstract": false,
+      "summary": "A VerificationCaseDefinition is a CaseDefinition for the purpose of verification of the subject of the case against its requirements.",
+      "extends": [
+        "CaseDefinition"
+      ],
+      "file": "elements/VerificationCaseDefinition.md"
+    },
+    "VerificationCaseUsage": {
+      "kind": "class",
+      "package": "VerificationCases",
+      "qualifiedName": "SysML::Systems::VerificationCases::VerificationCaseUsage",
+      "isAbstract": false,
+      "summary": "A VerificationCaseUsage is a Usage of a VerificationCaseDefinition.",
+      "extends": [
+        "CaseUsage"
+      ],
+      "file": "elements/VerificationCaseUsage.md"
+    },
+    "ViewDefinition": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::ViewDefinition",
+      "isAbstract": false,
+      "summary": "A ViewDefinition is a PartDefinition that specifies how a view artifact is constructed to satisfy a viewpoint.",
+      "extends": [
+        "PartDefinition"
+      ],
+      "file": "elements/ViewDefinition.md"
+    },
+    "ViewRenderingMembership": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::ViewRenderingMembership",
+      "isAbstract": false,
+      "summary": "A ViewRenderingMembership is a <coed>FeatureMembership that identifies the viewRendering of a ViewDefinition or ViewUsage.</coed>",
+      "extends": [
+        "FeatureMembership"
+      ],
+      "file": "elements/ViewRenderingMembership.md"
+    },
+    "ViewUsage": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::ViewUsage",
+      "isAbstract": false,
+      "summary": "A ViewUsage is a usage of a ViewDefinition to specify the generation of a view of the members of a collection of exposedNamespaces.",
+      "extends": [
+        "PartUsage"
+      ],
+      "file": "elements/ViewUsage.md"
+    },
+    "ViewpointDefinition": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::ViewpointDefinition",
+      "isAbstract": false,
+      "summary": "A ViewpointDefinition is a RequirementDefinition that specifies one or more stakeholder concerns that are to be satisfied by creating a view of a model.",
+      "extends": [
+        "RequirementDefinition"
+      ],
+      "file": "elements/ViewpointDefinition.md"
+    },
+    "ViewpointUsage": {
+      "kind": "class",
+      "package": "Views",
+      "qualifiedName": "SysML::Systems::Views::ViewpointUsage",
+      "isAbstract": false,
+      "summary": "A ViewpointUsage is a Usage of a ViewpointDefinition.",
+      "extends": [
+        "RequirementUsage"
+      ],
+      "file": "elements/ViewpointUsage.md"
+    },
+    "VisibilityKind": {
+      "kind": "enumeration",
+      "package": "Namespaces",
+      "qualifiedName": "KerML::Root::Namespaces::VisibilityKind",
+      "isAbstract": false,
+      "summary": "VisibilityKind is an enumeration whose literals specify the visibility of a Membership of an Element in a Namespace outside of that Namespace.",
+      "extends": [],
+      "file": "elements/VisibilityKind.md"
+    },
+    "WhileLoopActionUsage": {
+      "kind": "class",
+      "package": "Actions",
+      "qualifiedName": "SysML::Systems::Actions::WhileLoopActionUsage",
+      "isAbstract": false,
+      "summary": "A WhileLoopActionUsage is a LoopActionUsage that specifies that the bodyAction ActionUsage should be performed repeatedly while the result of the whileArgument…",
+      "extends": [
+        "LoopActionUsage"
+      ],
+      "file": "elements/WhileLoopActionUsage.md"
+    }
+  }
+}
