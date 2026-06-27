@@ -13,9 +13,12 @@ clause reference. Never paraphrase a normative ("shall"/"must") statement.
 - `knowledge/spec/kerml/` — KerML 1.0, one markdown file per clause.
 - `knowledge/spec/sysml2/` — SysML v2.0, one markdown file per clause.
 
-Each tree has an `index.md` (a table of every clause → title → pages → file) — use it as the entry
-point. Clause files are named by zero-padded clause number + slug, e.g. `07.04.02-concrete-syntax.md`,
-so a clause number sorts and greps directly.
+Each tree has an `index.md` (a human-readable table of every clause → title → pages → file) and an
+`index.json` (the same catalog, machine-readable, with `entries` keyed by clause number →
+`{title, pages, normative, file}`) — use either as the entry point. `index.json` is handy for exact
+lookup ("clause 7.4.2") or filtering (e.g. `normative` clauses) before reading a file; it carries
+metadata only, never clause text. Clause files are named by zero-padded clause number + slug, e.g.
+`07.04.02-concrete-syntax.md`, so a clause number sorts and greps directly.
 
 > `knowledge/spec/` is **generated locally** by `tools/spec-extract` from your own copies of the OMG
 > PDFs and is **not shipped** with the plugin (OMG licensing forbids redistributing the spec text). If
@@ -58,8 +61,8 @@ change the words.
 
 ## Procedure
 
-1. Find the clause: scan the relevant `index.md`, or `Grep` the tree for the concept, then `Read` the
-   matching clause file(s).
+1. Find the clause: look it up in `index.json` / `index.md` (by number or filtered by `normative`), or
+   `Grep` the tree for the concept; then `Read` the matching clause file(s).
 2. Quote verbatim, attributed in the format above.
 3. Flag whether each quote is normative or informative.
 4. If the spec text doesn't cover it (or the tree isn't generated), say so — do not fabricate.

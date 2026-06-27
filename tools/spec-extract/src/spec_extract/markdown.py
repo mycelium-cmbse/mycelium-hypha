@@ -9,11 +9,14 @@ clause segment so a lexical sort matches document order.
 
 from __future__ import annotations
 
+import json
 import re
 
 from spec_extract.model import Block, Clause, Line, Span
 
 _SLUG_STRIP = re.compile(r"[^a-z0-9]+")
+
+SPEC_INDEX_SCHEMA_VERSION = "1.0.0"
 
 
 def clause_filename(clause: Clause) -> str:
@@ -49,6 +52,32 @@ def render_index(clauses: list[Clause]) -> str:
 
     table = "\n".join(rows)
     return f"{front_matter}\n\n{heading}\n\n{table}\n".replace("\r\n", "\n")
+
+
+def render_index_json(clauses: list[Clause]) -> str:
+    """Render a machine-readable ``index.json`` catalog of one document's clauses (document order).
+
+    The twin of ``index.md``: ``entries`` is keyed by clause number for O(1) lookup. Like the rest of
+    ``knowledge/spec/`` it is git-ignored (spec-derived); it carries metadata only, never clause text.
+    """
+    document = clauses[0].document if clauses else ""
+    version = clauses[0].version if clauses else ""
+    payload = {
+        "schemaVersion": SPEC_INDEX_SCHEMA_VERSION,
+        "document": document,
+        "version": version,
+        "clauses": len(clauses),
+        "entries": {
+            clause.number: {
+                "title": clause.title,
+                "pages": _page_range(clause),
+                "normative": clause.is_normative,
+                "file": clause_filename(clause),
+            }
+            for clause in clauses
+        },
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
 
 
 def render(clause: Clause) -> str:

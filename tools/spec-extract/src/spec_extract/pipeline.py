@@ -47,3 +47,12 @@ def write_index(clauses_to_index: list[Clause], out_dir: str | Path) -> Path:
     path = out_dir / "index.md"
     path.write_text(markdown.render_index(clauses_to_index), encoding="utf-8", newline="\n")
     return path
+
+
+def write_index_json(clauses_to_index: list[Clause], out_dir: str | Path) -> Path:
+    """Write the machine-readable ``index.json`` clause catalog into ``out_dir``."""
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "index.json"
+    path.write_text(markdown.render_index_json(clauses_to_index), encoding="utf-8", newline="\n")
+    return path
