@@ -10,7 +10,6 @@
 namespace Hypha.MetamodelGen.Generators
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -20,7 +19,6 @@ namespace Hypha.MetamodelGen.Generators
     using uml4net.CommonStructure;
     using uml4net.Extensions;
     using uml4net.StructuredClassifiers;
-    using uml4net.Values;
     using uml4net.xmi.Readers;
 
     /// <summary>
@@ -191,7 +189,7 @@ namespace Hypha.MetamodelGen.Generators
                 .Select(rule => new MetaclassConstraint(
                     rule.Name,
                     rule.QueryDocumentationText(),
-                    QueryConstraintBody(rule)))
+                    rule.QueryConstraintBody()))
                 .ToList();
 
             return new MetaclassPayload(
@@ -279,24 +277,5 @@ namespace Hypha.MetamodelGen.Generators
             VisibilityKind.Package => "~",
             _ => "+",
         };
-
-        /// <summary>
-        /// Extracts the textual body of a constraint specification. The specification is held in a
-        /// container; the contained opaque expression carries the (OCL) body.
-        /// </summary>
-        private static string QueryConstraintBody(IConstraint constraint)
-        {
-            if (constraint.Specification is IEnumerable specifications)
-            {
-                var expression = specifications.OfType<IOpaqueExpression>().FirstOrDefault();
-
-                if (expression is not null)
-                {
-                    return string.Join("\n", expression.Body).Replace("\r\n", "\n").Trim();
-                }
-            }
-
-            return string.Empty;
-        }
     }
 }
