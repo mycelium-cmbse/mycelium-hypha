@@ -1,3 +1,197 @@
 mycelium-hypha
 Copyright 2026 Starion Group S.A.
 
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+================================================================================
+THIRD-PARTY MATERIAL
+================================================================================
+
+--------------------------------------------------------------------------------
+1. OMG specifications (derived, informational use)
+--------------------------------------------------------------------------------
+
+The contents of `knowledge/` are a derivative "special purpose specification ...
+based upon" the Object Management Group (OMG) specifications listed below, used
+for informational purposes under the OMG specification license reproduced at the
+end of this section.
+
+The OMG specification PDFs themselves are copyrighted by OMG and the
+organizations listed below and are NOT redistributed in this repository. Obtain
+them from https://www.omg.org/spec/ . (The OMG license forbids posting the
+specifications on a network computer; only this notice and the derived knowledge
+base are distributed here.)
+
+Kernel Modeling Language (KerML) Version 1.0 — OMG document formal/26-03-01
+  Copyright © 2024 88solutions
+  Copyright © 2024 Adaptive Analytics, Inc.
+  Copyright © 2024 Aerospace Corporation
+  Copyright © 2024 Airbus Group
+  Copyright © 2024 Ansys Government Initiatives
+  Copyright © 2024 Boeing
+  Copyright © 2024 Budapest University of Technology and Economics
+  Copyright © 2024 Commissariat a l Energie Atomique CEA
+  Copyright © 2024 DEKonsult
+  Copyright © 2024 Dassault Systemes
+  Copyright © 2024 Elemental Reasoning
+  Copyright © 2024 GfSE e.V.
+  Copyright © 2024 INCOSE
+  Copyright © 2024 PTC
+  Copyright © 2024 InterCAX
+  Copyright © 2024 International Business Machines
+  Copyright © 2024 Lockheed Martin
+  Copyright © 2024 Model Driven Solutions
+  Copyright © 2024 Office of the Secretary of Defense
+  Copyright © 2024 OntoAge
+  Copyright © 2024 OpenText Inc.
+  Copyright © 2024 RTX
+  Copyright © 2024 Sensmetry
+  Copyright © 2024 Siemens
+  Copyright © 2024 Sierra Nevada
+  Copyright © 2024 Sparx Systems Pty Ltd
+  Copyright © 2024 Thematix Partners LLC
+  Copyright © 2024 University of Arizona
+  Copyright © 2024 oose Innovative Informatik eG
+
+OMG Systems Modeling Language (SysML) Version 2.0 — OMG document formal/26-03-02
+  Copyright © 2024 88solutions
+  Copyright © 2024 Aerospace Corporation
+  Copyright © 2024 Airbus Group
+  Copyright © 2024 Ansys Government Initiatives
+  Copyright © 2024 Boeing
+  Copyright © 2024 Budapest University of Technology and Economics
+  Copyright © 2024 CONTACT Software
+  Copyright © 2024 Commissariat a l Energie Atomique CEA
+  Copyright © 2024 DEKonsult
+  Copyright © 2024 Dassault Systemes
+  Copyright © 2024 Elemental Reasoning
+  Copyright © 2024 Georgia Institute of Technology
+  Copyright © 2024 GfSE e.V.
+  Copyright © 2024 INCOSE
+  Copyright © 2024 IncQuery Labs Ltd. now (PTC)
+  Copyright © 2024 InterCAX
+  Copyright © 2024 International Business Machines
+  Copyright © 2024 Jackrabbit Consulting
+  Copyright © 2024 Lockheed Martin
+  Copyright © 2024 Model Driven Solutions
+  Copyright © 2024 OntoAge
+  Copyright © 2024 OpenText Inc.
+  Copyright © 2024 Ostfold University College
+  Copyright © 2024 RTX
+  Copyright © 2024 Sensmetry
+  Copyright © 2024 Siemens
+  Copyright © 2024 Sierra Nevada
+  Copyright © 2024 Sparx Systems Pty Ltd
+  Copyright © 2024 The MathWorks
+  Copyright © 2024 Thematix Partners LLC
+  Copyright © 2024 Universidad de Cantabria
+  Copyright © 2024 University of Arizona
+  Copyright © 2024 Zuken Vitech Inc.
+  Copyright © 2024 i3 Corporation now (Integration Innovation, Inc. (i3))
+  Copyright © 2024 oose eG now (oose Innovative Informatik eG)
+
+Systems Modeling API and Services Version 1.0 — OMG document formal/26-03-04
+  Copyright © 2024 Object Management Group, Inc. and the contributing
+  organizations listed in the specification.
+
+The following OMG specification license (the "USE OF SPECIFICATION — TERMS,
+CONDITIONS & NOTICES", reproduced verbatim) applies to each of the OMG
+specifications listed above:
+
+  USE OF SPECIFICATION - TERMS, CONDITIONS & NOTICES
+  The material in this document details an Object Management Group specification in accordance with the
+  terms, conditions and notices set forth below. This document does not represent a commitment to
+  implement any portion of this specification in any companys products. The information contained in this
+  document is subject to change without notice.
+  LICENSES
+  The companies listed above have granted to the Object Management Group, Inc. (OMG) a nonexclusive,
+  royalty-free, paid up, worldwide license to copy and distribute this document and to modify this document
+  and distribute copies of the modified version. Each of the copyright holders listed above has agreed that
+  no person shall be deemed to have infringed the copyright in the included material of any such copyright
+  holder by reason of having used the specification set forth herein or having conformed any computer
+  software to the specification.
+  Subject to all of the terms and conditions below, the owners of the copyright in this specification hereby
+  grant you a fully-paid up, non-exclusive, nontransferable, perpetual, worldwide license (without the right to
+  sublicense), to use this specification to create and distribute software and special purpose specifications
+  that are based upon this specification, and to use, copy, and distribute this specification as provided
+  under the Copyright Act; provided that: (1) both the copyright notice identified above and this permission
+  notice appear on any copies of this specification; (2) the use of the specifications is for informational
+  purposes and will not be copied or posted on any network computer or broadcast in any media and will
+  not be otherwise resold or transferred for commercial purposes; and (3) no modifications are made to this
+  specification. This limited permission automatically terminates without notice if you breach any of these
+  terms or conditions. Upon termination, you will destroy immediately any copies of the specifications in
+  your possession or control.
+  PATENTS
+  The attention of adopters is directed to the possibility that compliance with or adoption of OMG
+  specifications may require use of an invention covered by patent rights. OMG shall not be responsible for
+  identifying patents for which a license may be required by any OMG specification, or for conducting legal
+  inquiries into the legal validity or scope of those patents that are brought to its attention. OMG
+  specifications are prospective and advisory only. Prospective users are responsible for protecting
+  themselves against liability for infringement of patents.
+  GENERAL USE RESTRICTIONS
+  Any unauthorized use of this specification may violate copyright laws, trademark laws, and
+  communications regulations and statutes. This document contains information which is protected by
+  copyright. All Rights Reserved. No part of this work covered by copyright herein may be reproduced or
+  used in any form or by any means--graphic, electronic, or mechanical, including photocopying, recording,
+  taping, or information storage and retrieval systems--without permission of the copyright owner.
+  DISCLAIMER OF WARRANTY
+  WHILE THIS PUBLICATION IS BELIEVED TO BE ACCURATE, IT IS PROVIDED "AS IS" AND MAY
+  CONTAIN ERRORS OR MISPRINTS. THE OBJECT MANAGEMENT GROUP AND THE COMPANIES
+  LISTED ABOVE MAKE NO WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, WITH REGARD TO
+  THIS PUBLICATION, INCLUDING BUT NOT LIMITED TO ANY WARRANTY OF TITLE OR
+  OWNERSHIP, IMPLIED WARRANTY OF MERCHANTABILITY OR WARRANTY OF FITNESS FOR A
+  PARTICULAR PURPOSE OR USE. IN NO EVENT SHALL THE OBJECT MANAGEMENT GROUP OR
+  ANY OF THE COMPANIES LISTED ABOVE BE LIABLE FOR ERRORS CONTAINED HEREIN OR FOR
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, RELIANCE OR COVER DAMAGES,
+  INCLUDING LOSS OF PROFITS, REVENUE, DATA OR USE, INCURRED BY ANY USER OR ANY
+  THIRD PARTY IN CONNECTION WITH THE FURNISHING, PERFORMANCE, OR USE OF THIS
+  MATERIAL, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+  The entire risk as to the quality and performance of software developed using this specification is borne
+  by you. This disclaimer of warranty constitutes an essential part of the license granted to you to use this
+  specification.
+  RESTRICTED RIGHTS LEGEND
+  Use, duplication or disclosure by the U.S. Government is subject to the restrictions set forth in
+  subparagraph (c) (1) (ii) of The Rights in Technical Data and Computer Software Clause at DFARS
+  252.227-7013 or in subparagraph (c)(1) and (2) of the Commercial Computer Software - Restricted Rights
+  clauses at 48 C.F.R. 52.227-19 or as specified in 48 C.F.R. 227-7202-2 of the DoD F.A.R. Supplement
+  and its successors, or as specified in 48 C.F.R. 12.212 of the Federal Acquisition Regulations and its
+  successors, as applicable. The specification copyright owners are as indicated above and may be
+  contacted through the Object Management Group, 9C Medway Road, PMB 274, Milford, MA 01757,
+  U.S.A.
+  TRADEMARKS
+  CORBA®, CORBA logos®, FIBO®, Financial Industry Business Ontology®, Financial Instrument Global
+  Identifier®, IIOP®, IMM®, Model Driven Architecture®, MDA®, Object Management Group®, OMG®, OMG
+  Logo®, SoaML®, SOAML®, SysML®, UAF®, Unified Modeling Language™, UML®, UML Cube Logo®,
+  VSIPL®, and XMI® are registered trademarks of the Object Management Group, Inc.
+  For a complete list of trademarks, see: https://www.omg.org/legal/tm_list.htm. All other products or
+  company names mentioned are used for identification purposes only, and may be trademarks of their
+  respective owners.
+  COMPLIANCE
+  The copyright holders listed above acknowledge that the Object Management Group (acting itself or
+  through its designees) is and shall at all times be the sole entity that may authorize developers, suppliers
+  and sellers of computer software to use certification marks, trademarks or other special designations to
+  indicate compliance with these materials.
+  Software developed under the terms of this license may claim compliance or conformance with this
+  specification if and only if the software compliance is of a nature fully matching the applicable compliance
+  points as stated in the specification. Software developed only partially matching the applicable
+  compliance points may claim only that the software was based on this specification, but may not claim
+  compliance or conformance with this specification. In the event that testing suites are implemented or
+  approved by Object Management Group, Inc., software developed using this specification may claim
+  compliance or conformance with the specification only if the software satisfactorily completes the testing
+  suites.
+
+--------------------------------------------------------------------------------
+2. Metamodel XMI — Eclipse Public License 2.0
+--------------------------------------------------------------------------------
+
+The committed metamodel XMI files
+
+  sources/xmi/SysML_only_xmi.uml   (model version https://www.omg.org/spec/SysML/20250201)
+  sources/xmi/KerML_only_xmi.uml   (model version https://www.omg.org/spec/KerML/20250201)
+  sources/xmi/PrimitiveTypes.xmi
+
+originate from the SysML v2 pilot implementation repository,
+Systems-Modeling/SysML-v2-Pilot-Implementation
+(https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) at commit
+22dbbc30d13e5cde39a2d69cbd68cab895d6c9e1, licensed under the Eclipse Public
+License 2.0 (https://www.eclipse.org/legal/epl-2.0/).

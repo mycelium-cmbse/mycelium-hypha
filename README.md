@@ -38,14 +38,14 @@ mycelium-hypha/
 │   └── textual/            Textual-notation source material
 │
 └── tools/                  Generation pipelines (NOT part of the shipped plugin)
-    ├── metamodel-gen/      C# (uml4net): XMI  → knowledge/{kerml,sysml2}/elements
+    ├── metamodel-gen/      C# (uml4net): XMI  → knowledge/sysml2/elements
     └── spec-extract/       Python:       PDFs → knowledge/spec
 ```
 
 ## The pipeline
 
 ```
-sources/xmi/*.kermlx,*.sysmlx ──[ tools/metamodel-gen (uml4net) ]──▶ knowledge/{kerml,sysml2}/
+sources/xmi/*.uml             ──[ tools/metamodel-gen (uml4net) ]──▶ knowledge/sysml2/
 sources/specs/*.pdf           ──[ tools/spec-extract (Python)   ]──▶ knowledge/spec/
 sources/textual/, bnf/        ──[ curated / scripted            ]──▶ knowledge/textual-notation/
 ```
@@ -63,4 +63,26 @@ The normative inputs come from the OMG SysML v2 submission team and Starion Grou
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+This repository's own code and content are licensed under **Apache-2.0** — see
+[LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+### Specifications & licensing
+
+The generated knowledge base is built from third-party, separately-licensed inputs:
+
+- **Generated `knowledge/`** is a derivative "special purpose specification … based upon" the OMG
+  specifications, used for informational purposes as permitted by the OMG specification license. It
+  ships under this repository's Apache-2.0 license; the upstream OMG attributions and the OMG license
+  text are reproduced in [NOTICE](NOTICE).
+- **OMG specification PDFs are copyrighted and intentionally NOT committed** here — the OMG license
+  forbids posting the specifications on a network. They stay git-ignored (`sources/specs/`). Obtain
+  them from OMG:
+  [KerML 1.0](https://www.omg.org/spec/KerML/1.0) (`formal/26-03-01`),
+  [SysML 2.0](https://www.omg.org/spec/SysML/2.0) (`formal/26-03-02`),
+  [Systems Modeling API & Services 1.0](https://www.omg.org/spec/SystemsModelingAPI/1.0)
+  (`formal/26-03-04`).
+- **Committed metamodel XMI** (`sources/xmi/*.uml`, `PrimitiveTypes.xmi`, model version `20250201`)
+  comes from [Systems-Modeling/SysML-v2-Pilot-Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation)
+  under the **Eclipse Public License 2.0**.
+
+See [sources/README.md](sources/README.md) for exact input provenance (upstream source + version).
