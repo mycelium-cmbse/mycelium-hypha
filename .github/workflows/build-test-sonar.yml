@@ -31,6 +31,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install spec-extract (Python)
+        run: pip install -e 'tools/spec-extract[dev]'
+
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
@@ -49,13 +57,20 @@ jobs:
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
-          dotnet sonarscanner begin /k:"mycelium-cmbse_mycelium-hypha" /o:"mycelium-cmbse" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          dotnet sonarscanner begin /k:"mycelium-cmbse_mycelium-hypha" /o:"mycelium-cmbse" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.python.coverage.reportPaths="tools/spec-extract/coverage.xml" /d:sonar.python.version="3.12"
 
       - name: Build
         run: dotnet build mycelium-hypha.sln --no-restore --no-incremental /p:ContinuousIntegrationBuild=true
 
       - name: Run tests and compute coverage
         run: dotnet-coverage collect "dotnet test mycelium-hypha.sln --no-restore --no-build --verbosity normal" -f xml -o "coverage.xml"
+
+      - name: Lint Python (ruff)
+        run: ruff check tools/spec-extract
+
+      - name: Test Python and compute coverage
+        working-directory: tools/spec-extract
+        run: pytest --cov=spec_extract --cov-report=xml
 
       - name: SonarQube end
         env:
