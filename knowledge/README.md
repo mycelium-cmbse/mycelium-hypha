@@ -31,6 +31,10 @@ knowledge/
 | `spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) |
 | `textual-notation/` | `sources/textual/`, grammar (`bnf/`) | curated + scripted |
 
+The exact upstream source, version and commit of each input (and its license) are recorded in
+[`sources/README.md`](../sources/README.md#provenance), so a regenerated knowledge base is traceable
+to a specific specification version.
+
 ## Element file convention (`sysml2/elements`)
 
 One file per metaclass, named `<MetaclassName>.md`. Each file opens with YAML front matter
