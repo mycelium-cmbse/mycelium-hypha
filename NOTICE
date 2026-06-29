@@ -181,7 +181,7 @@ specifications listed above:
   suites.
 
 --------------------------------------------------------------------------------
-2. Metamodel XMI — Eclipse Public License 2.0
+2. Metamodel XMI and textual-notation sources — Eclipse Public License 2.0
 --------------------------------------------------------------------------------
 
 The committed metamodel XMI files
@@ -194,4 +194,15 @@ originate from the SysML v2 pilot implementation repository,
 Systems-Modeling/SysML-v2-Pilot-Implementation
 (https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) at commit
 22dbbc30d13e5cde39a2d69cbd68cab895d6c9e1, licensed under the Eclipse Public
+License 2.0 (https://www.eclipse.org/legal/epl-2.0/).
+
+The committed textual-notation sources under
+
+  sources/textual/bnf/      (KerML / SysML textual & graphical grammar)
+  sources/textual/kerml/    (KerML example models)
+  sources/textual/sysml/    (SysML v2 example models)
+
+originate from the SysML v2 release repository, Systems-Modeling/SysML-v2-Release
+(https://github.com/Systems-Modeling/SysML-v2-Release) at commit
+9baca5908ca28b53da085de69336fde48420ea8f, licensed under the Eclipse Public
 License 2.0 (https://www.eclipse.org/legal/epl-2.0/).

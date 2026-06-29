@@ -32,10 +32,10 @@ mycelium-hypha/
 │   ├── spec/               Normative spec excerpts extracted from the PDFs, by clause
 │   └── textual-notation/   SysML v2 textual-notation reference & examples
 │
-├── sources/                RAW inputs (git-ignored; see sources/README.md)
-│   ├── xmi/                OMG / pilot XMI metamodel + normative libraries
+├── sources/                RAW inputs (see sources/README.md)
+│   ├── xmi/                OMG / pilot XMI metamodel (EPL-2.0, committed)
 │   ├── specs/              OMG PDF specifications (copyrighted — not committed)
-│   └── textual/            Textual-notation source material
+│   └── textual/            Textual-notation grammar + examples (EPL-2.0, committed)
 │
 └── tools/                  Generation pipelines (NOT part of the shipped plugin)
     ├── metamodel-gen/      C# (uml4net): XMI  → knowledge/sysml2/elements
