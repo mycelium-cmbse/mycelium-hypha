@@ -1,6 +1,6 @@
 ---
 name: sysml-validator
-description: Validates SysML v2 textual notation against the grammar and metamodel constraints, and explains violations. Use when given SysML v2 (or KerML) textual notation that needs to be checked for syntactic and structural correctness.
+description: Validates SysML v2 / KerML textual notation (.sysml / .kerml, not UML) against the grammar and metamodel constraints, and explains violations. Use when given SysML v2 or KerML textual notation that needs to be checked for syntactic and structural correctness.
 tools: Read, Grep, Glob
 ---
 

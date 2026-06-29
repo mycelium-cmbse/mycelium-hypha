@@ -1,6 +1,6 @@
 ---
 name: metamodel-navigator
-description: Sweeps the generated KerML / SysML v2 metamodel knowledge base to answer cross-cutting questions that touch many element files — e.g. "which metaclasses have a feature typed by Expression", comparing several metaclasses, or tracing a redefinition across the hierarchy. Use for multi-element / fan-out lookups so the bulk file reading stays out of the calling context; a single-metaclass lookup can be answered inline without this agent.
+description: Sweeps the generated OMG SysML v2 / KerML metamodel knowledge base (not OMG UML) to answer cross-cutting questions that touch many element files – e.g. 'which metaclasses have a feature typed by Expression', comparing several metaclasses, or tracing a redefinition across the hierarchy. Use for multi-element / fan-out lookups so the bulk file reading stays out of the calling context; a single-metaclass lookup can be answered inline without this agent.
 tools: Read, Grep, Glob
 ---
 
