@@ -53,7 +53,13 @@ In Claude Code, add the marketplace and install the plugin:
 
 Then use the skills: ask a metamodel-lookup question, request a spec citation, or paste SysML v2
 textual notation to validate. Metamodel lookup and validation work out of the box; **spec citation
-needs the specification text generated locally first** (see below).
+needs the specification text generated locally first** (see below). For example:
+
+- *Metamodel lookup* – "What features does `PartUsage` own and inherit?", "How does `ConnectionUsage`
+  relate to `ConnectionDefinition`?", or "Which metaclasses specialize `Feature`?"
+- *Spec citation* – "What does the SysML v2 spec say about conformance?" or "Quote the normative rule
+  for redefinition."
+- *Validation* – "Is this valid SysML v2? `part def Vehicle { attribute mass : Real[2..1]; }`"
 
 ## The knowledge base
 
