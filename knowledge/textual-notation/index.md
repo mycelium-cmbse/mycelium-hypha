@@ -7,7 +7,7 @@
 ## Worked examples
 
 Each example pairs a small, valid SysML v2 notation snippet with the metamodel elements it exercises
-(linked to `knowledge/sysml2/elements/`). Curated from the SysML v2 release training set (EPL-2.0;
+(linked to `knowledge/metamodel/elements/`). Curated from the SysML v2 release training set (EPL-2.0;
 see [NOTICE](../../NOTICE)).
 
 | Example | Demonstrates |
@@ -30,21 +30,21 @@ paired with its metamodel element.
 
 | Construct | Element | Reference model |
 | --- | --- | --- |
-| Item | [ItemDefinition](../sysml2/elements/ItemDefinition.md) | [Items Example](<../../sources/textual/sysml/training/08. Items/Items Example.sysml>) |
-| Flow | [FlowUsage](../sysml2/elements/FlowUsage.md) | [Flow Definition Example](<../../sources/textual/sysml/training/13. Flows/Flow Definition Example.sysml>) |
-| Enumeration | [EnumerationDefinition](../sysml2/elements/EnumerationDefinition.md) | [Enumeration Definitions-1](<../../sources/textual/sysml/training/06. Enumeration Definitions/Enumeration Definitions-1.sysml>) |
-| Interface | [InterfaceDefinition](../sysml2/elements/InterfaceDefinition.md) | [Interface Example](<../../sources/textual/sysml/training/11. Interfaces/Interface Example.sysml>) |
-| Occurrence | [OccurrenceDefinition](../sysml2/elements/OccurrenceDefinition.md) | [Event Occurrence Example](<../../sources/textual/sysml/training/27. Occurrences/Event Occurrence Example.sysml>) |
-| Use case | [UseCaseDefinition](../sysml2/elements/UseCaseDefinition.md) | [Use Case Definition Example](<../../sources/textual/sysml/training/35. Use Cases/Use Case Definition Example.sysml>) |
-| Analysis case | [AnalysisCaseDefinition](../sysml2/elements/AnalysisCaseDefinition.md) | [Analysis Case Definition Example](<../../sources/textual/sysml/training/33. Analysis/Analysis Case Definition Example.sysml>) |
-| Verification case | [VerificationCaseDefinition](../sysml2/elements/VerificationCaseDefinition.md) | [Verification Case Definition Example](<../../sources/textual/sysml/training/34. Verification/Verification Case Definition Example.sysml>) |
-| Calculation | [CalculationDefinition](../sysml2/elements/CalculationDefinition.md) | [Calculation Definitions](<../../sources/textual/sysml/training/30. Calculations/Calculation Definitions.sysml>) |
-| Allocation | [AllocationDefinition](../sysml2/elements/AllocationDefinition.md) | [Allocation Definition Example](<../../sources/textual/sysml/training/38. Allocation/Allocation Definition Example.sysml>) |
-| Metadata | [MetadataDefinition](../sysml2/elements/MetadataDefinition.md) | [Metadata Example-1](<../../sources/textual/sysml/training/39. Metadata/Metadata Example-1.sysml>) |
-| View | [ViewDefinition](../sysml2/elements/ViewDefinition.md) | [Views Example](<../../sources/textual/sysml/training/42. Views/Views Example.sysml>) |
-| Viewpoint | [ViewpointDefinition](../sysml2/elements/ViewpointDefinition.md) | [Viewpoint Example](<../../sources/textual/sysml/training/42. Views/Viewpoint Example.sysml>) |
-| Rendering | [RenderingDefinition](../sysml2/elements/RenderingDefinition.md) | [Views Example](<../../sources/textual/sysml/training/42. Views/Views Example.sysml>) |
-| Concern | [ConcernDefinition](../sysml2/elements/ConcernDefinition.md) | [ViewTest](<../../sources/textual/sysml/examples/Simple Tests/ViewTest.sysml>) |
+| Item | [ItemDefinition](../metamodel/elements/ItemDefinition.md) | [Items Example](<../../sources/textual/sysml/training/08. Items/Items Example.sysml>) |
+| Flow | [FlowUsage](../metamodel/elements/FlowUsage.md) | [Flow Definition Example](<../../sources/textual/sysml/training/13. Flows/Flow Definition Example.sysml>) |
+| Enumeration | [EnumerationDefinition](../metamodel/elements/EnumerationDefinition.md) | [Enumeration Definitions-1](<../../sources/textual/sysml/training/06. Enumeration Definitions/Enumeration Definitions-1.sysml>) |
+| Interface | [InterfaceDefinition](../metamodel/elements/InterfaceDefinition.md) | [Interface Example](<../../sources/textual/sysml/training/11. Interfaces/Interface Example.sysml>) |
+| Occurrence | [OccurrenceDefinition](../metamodel/elements/OccurrenceDefinition.md) | [Event Occurrence Example](<../../sources/textual/sysml/training/27. Occurrences/Event Occurrence Example.sysml>) |
+| Use case | [UseCaseDefinition](../metamodel/elements/UseCaseDefinition.md) | [Use Case Definition Example](<../../sources/textual/sysml/training/35. Use Cases/Use Case Definition Example.sysml>) |
+| Analysis case | [AnalysisCaseDefinition](../metamodel/elements/AnalysisCaseDefinition.md) | [Analysis Case Definition Example](<../../sources/textual/sysml/training/33. Analysis/Analysis Case Definition Example.sysml>) |
+| Verification case | [VerificationCaseDefinition](../metamodel/elements/VerificationCaseDefinition.md) | [Verification Case Definition Example](<../../sources/textual/sysml/training/34. Verification/Verification Case Definition Example.sysml>) |
+| Calculation | [CalculationDefinition](../metamodel/elements/CalculationDefinition.md) | [Calculation Definitions](<../../sources/textual/sysml/training/30. Calculations/Calculation Definitions.sysml>) |
+| Allocation | [AllocationDefinition](../metamodel/elements/AllocationDefinition.md) | [Allocation Definition Example](<../../sources/textual/sysml/training/38. Allocation/Allocation Definition Example.sysml>) |
+| Metadata | [MetadataDefinition](../metamodel/elements/MetadataDefinition.md) | [Metadata Example-1](<../../sources/textual/sysml/training/39. Metadata/Metadata Example-1.sysml>) |
+| View | [ViewDefinition](../metamodel/elements/ViewDefinition.md) | [Views Example](<../../sources/textual/sysml/training/42. Views/Views Example.sysml>) |
+| Viewpoint | [ViewpointDefinition](../metamodel/elements/ViewpointDefinition.md) | [Viewpoint Example](<../../sources/textual/sysml/training/42. Views/Viewpoint Example.sysml>) |
+| Rendering | [RenderingDefinition](../metamodel/elements/RenderingDefinition.md) | [Views Example](<../../sources/textual/sysml/training/42. Views/Views Example.sysml>) |
+| Concern | [ConcernDefinition](../metamodel/elements/ConcernDefinition.md) | [ViewTest](<../../sources/textual/sysml/examples/Simple Tests/ViewTest.sysml>) |
 
 ## Grammar summary
 
@@ -89,50 +89,50 @@ Feature values bind with `=`; connections use `connect … to …`; flows use `f
 Reserved keywords grouped by purpose; the main definitional keywords link to their metamodel element.
 
 ### Packaging & members
-`package` ([Package](../sysml2/elements/Package.md)), `import`, `alias`, `library`, `standard`,
+`package` ([Package](../metamodel/elements/Package.md)), `import`, `alias`, `library`, `standard`,
 `public`, `private`, `protected`, `all`, `as`, `filter`.
 
 ### Structure
-`attribute` ([AttributeDefinition](../sysml2/elements/AttributeDefinition.md)),
-`item` ([ItemDefinition](../sysml2/elements/ItemDefinition.md)),
-`part` ([PartDefinition](../sysml2/elements/PartDefinition.md)),
-`port` ([PortDefinition](../sysml2/elements/PortDefinition.md)),
-`connection` / `connect` ([ConnectionDefinition](../sysml2/elements/ConnectionDefinition.md)),
-`interface` ([InterfaceDefinition](../sysml2/elements/InterfaceDefinition.md)),
-`flow` ([FlowUsage](../sysml2/elements/FlowUsage.md)), `binding` / `bind`, `end`,
-`occurrence` ([OccurrenceDefinition](../sysml2/elements/OccurrenceDefinition.md)), `individual`,
+`attribute` ([AttributeDefinition](../metamodel/elements/AttributeDefinition.md)),
+`item` ([ItemDefinition](../metamodel/elements/ItemDefinition.md)),
+`part` ([PartDefinition](../metamodel/elements/PartDefinition.md)),
+`port` ([PortDefinition](../metamodel/elements/PortDefinition.md)),
+`connection` / `connect` ([ConnectionDefinition](../metamodel/elements/ConnectionDefinition.md)),
+`interface` ([InterfaceDefinition](../metamodel/elements/InterfaceDefinition.md)),
+`flow` ([FlowUsage](../metamodel/elements/FlowUsage.md)), `binding` / `bind`, `end`,
+`occurrence` ([OccurrenceDefinition](../metamodel/elements/OccurrenceDefinition.md)), `individual`,
 `snapshot`, `timeslice`, `event`, `message`.
 
 ### Values & types
-`enum` ([EnumerationDefinition](../sysml2/elements/EnumerationDefinition.md)), `def`, `abstract`,
+`enum` ([EnumerationDefinition](../metamodel/elements/EnumerationDefinition.md)), `def`, `abstract`,
 `ref`, `variation` / `variant`, `derived`, `ordered`, `nonunique`, `constant`, `true`, `false`, `null`.
 
 ### Behavior & actions
-`action` ([ActionDefinition](../sysml2/elements/ActionDefinition.md)), `perform`, `do`, `send`,
+`action` ([ActionDefinition](../metamodel/elements/ActionDefinition.md)), `perform`, `do`, `send`,
 `accept`, `after`, `at`, `via`, `fork`, `join`, `merge`, `decide`, `terminate`, `assign`,
 `if` / `then` / `else`, `while` / `loop` / `until` / `for`.
 
 ### States
-`state` ([StateDefinition](../sysml2/elements/StateDefinition.md)), `transition`, `entry`, `exit`,
+`state` ([StateDefinition](../metamodel/elements/StateDefinition.md)), `transition`, `entry`, `exit`,
 `first` / `then`, `exhibit`, `when`, `accept`.
 
 ### Calculations & expressions
-`calc` ([CalculationDefinition](../sysml2/elements/CalculationDefinition.md)), `return`, `and`, `or`,
+`calc` ([CalculationDefinition](../metamodel/elements/CalculationDefinition.md)), `return`, `and`, `or`,
 `not`, `xor`, `implies`, `istype`, `hastype`, `meta`.
 
 ### Requirements, cases & views
-`requirement` ([RequirementDefinition](../sysml2/elements/RequirementDefinition.md)),
-`constraint` ([ConstraintDefinition](../sysml2/elements/ConstraintDefinition.md)), `require`,
+`requirement` ([RequirementDefinition](../metamodel/elements/RequirementDefinition.md)),
+`constraint` ([ConstraintDefinition](../metamodel/elements/ConstraintDefinition.md)), `require`,
 `assume`, `assert`, `satisfy`, `subject`, `stakeholder`,
-`concern` ([ConcernDefinition](../sysml2/elements/ConcernDefinition.md)), `actor`, `objective`,
-`case` / `use` / `include` ([UseCaseDefinition](../sysml2/elements/UseCaseDefinition.md)),
-`analysis` ([AnalysisCaseDefinition](../sysml2/elements/AnalysisCaseDefinition.md)),
-`verification` / `verify` ([VerificationCaseDefinition](../sysml2/elements/VerificationCaseDefinition.md)),
-`frame`, `view` ([ViewDefinition](../sysml2/elements/ViewDefinition.md)),
-`viewpoint` ([ViewpointDefinition](../sysml2/elements/ViewpointDefinition.md)),
-`render` / `rendering` ([RenderingDefinition](../sysml2/elements/RenderingDefinition.md)), `expose`,
-`dependency`, `allocate` / `allocation` ([AllocationDefinition](../sysml2/elements/AllocationDefinition.md)),
-`metadata` ([MetadataDefinition](../sysml2/elements/MetadataDefinition.md)), `language`, `rep`.
+`concern` ([ConcernDefinition](../metamodel/elements/ConcernDefinition.md)), `actor`, `objective`,
+`case` / `use` / `include` ([UseCaseDefinition](../metamodel/elements/UseCaseDefinition.md)),
+`analysis` ([AnalysisCaseDefinition](../metamodel/elements/AnalysisCaseDefinition.md)),
+`verification` / `verify` ([VerificationCaseDefinition](../metamodel/elements/VerificationCaseDefinition.md)),
+`frame`, `view` ([ViewDefinition](../metamodel/elements/ViewDefinition.md)),
+`viewpoint` ([ViewpointDefinition](../metamodel/elements/ViewpointDefinition.md)),
+`render` / `rendering` ([RenderingDefinition](../metamodel/elements/RenderingDefinition.md)), `expose`,
+`dependency`, `allocate` / `allocation` ([AllocationDefinition](../metamodel/elements/AllocationDefinition.md)),
+`metadata` ([MetadataDefinition](../metamodel/elements/MetadataDefinition.md)), `language`, `rep`.
 
 ### Relationships & navigation
 `specializes`, `subsets`, `redefines`, `references`, `crosses`, `defined by`, `from`, `to`, `of`,

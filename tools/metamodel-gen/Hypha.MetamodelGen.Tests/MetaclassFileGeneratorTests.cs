@@ -18,7 +18,7 @@ namespace Hypha.MetamodelGen.Tests
 
     /// <summary>
     /// Tests for <see cref="MetaclassFileGenerator"/>. Running these regenerates the per-metaclass
-    /// files under <c>knowledge/sysml2/elements/</c>.
+    /// files under <c>knowledge/metamodel/elements/</c>.
     /// </summary>
     [TestFixture]
     public class MetaclassFileGeneratorTests
@@ -41,7 +41,7 @@ namespace Hypha.MetamodelGen.Tests
             }
 
             var outputDirectory = new DirectoryInfo(
-                Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "sysml2", "elements"));
+                Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "metamodel", "elements"));
 
             await this.generator.GenerateAsync(model!, outputDirectory);
 

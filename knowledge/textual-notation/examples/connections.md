@@ -62,11 +62,11 @@ package 'Connections Example' {
 
 ## Constructs & elements
 
-- `connection def { end … }` – [ConnectionDefinition](../../sysml2/elements/ConnectionDefinition.md): a definition relating two or more ends.
-- `end [1] part bead : TireBead` – a connection end, a [PartUsage](../../sysml2/elements/PartUsage.md) playing the role of an end.
-- `connection : PressureSeat connect … to …` – a named [ConnectionUsage](../../sysml2/elements/ConnectionUsage.md) typed by the definition.
+- `connection def { end … }` – [ConnectionDefinition](../../metamodel/elements/ConnectionDefinition.md): a definition relating two or more ends.
+- `end [1] part bead : TireBead` – a connection end, a [PartUsage](../../metamodel/elements/PartUsage.md) playing the role of an end.
+- `connection : PressureSeat connect … to …` – a named [ConnectionUsage](../../metamodel/elements/ConnectionUsage.md) typed by the definition.
 - `connect [m] a to [n] b` – an inline `ConnectionUsage` with end multiplicities.
-- `part x : T[mult]` – [PartUsage](../../sysml2/elements/PartUsage.md) with a multiplicity.
+- `part x : T[mult]` – [PartUsage](../../metamodel/elements/PartUsage.md) with a multiplicity.
 
 ## Source
 

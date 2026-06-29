@@ -26,7 +26,7 @@ mycelium-hypha/
 ├── agents/                 Subagents (metamodel-navigator, spec-citation, sysml-validator)
 │
 ├── knowledge/              Knowledge base the plugin reads
-│   ├── sysml2/             Combined KerML + SysML v2 metamodel: one file per element, + index.json   (committed)
+│   ├── metamodel/          Combined KerML + SysML v2 metamodel: one file per element, + index.json   (committed)
 │   ├── spec/               Per-clause specification text                  (generated locally, git-ignored)
 │   └── textual-notation/   Grammar summary, worked examples, fixtures      (committed)
 │
@@ -36,7 +36,7 @@ mycelium-hypha/
 │   └── textual/            Grammar + example models           (EPL-2.0, committed)
 │
 └── tools/                  Generation pipelines (not part of the shipped plugin)
-    ├── metamodel-gen/      C# (uml4net): XMI → knowledge/sysml2/ (element files, index, JSON sidecar)
+    ├── metamodel-gen/      C# (uml4net): XMI → knowledge/metamodel/ (element files, index, JSON sidecar)
     └── spec-extract/       Python:       PDFs → knowledge/spec/
 ```
 
@@ -63,11 +63,11 @@ needs the specification text generated locally first** (see below). For example:
 
 | Tree | Built from | Pipeline | Shipped |
 | --- | --- | --- | --- |
-| `knowledge/sysml2/` | `sources/xmi/*.uml` | `tools/metamodel-gen` (C# / uml4net) | committed |
+| `knowledge/metamodel/` | `sources/xmi/*.uml` | `tools/metamodel-gen` (C# / uml4net) | committed |
 | `knowledge/spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) | **git-ignored – regenerate locally** |
 | `knowledge/textual-notation/` | `sources/textual/` (grammar + examples) | hand-curated | committed |
 
-`knowledge/sysml2/` and `knowledge/textual-notation/` are committed, so the plugin works without
+`knowledge/metamodel/` and `knowledge/textual-notation/` are committed, so the plugin works without
 running any pipeline. `knowledge/spec/` holds **verbatim OMG specification text** and is deliberately
 **not committed** (the OMG license forbids redistributing it). To enable spec citation, obtain the
 three PDFs and regenerate it locally with `tools/spec-extract`; a SessionStart hook
@@ -91,7 +91,7 @@ This repository's own code and content are licensed under **Apache-2.0** – see
 
 The knowledge base is built from third-party, separately-licensed inputs:
 
-- The **committed** knowledge (`knowledge/sysml2/`, `knowledge/textual-notation/`) is a derivative
+- The **committed** knowledge (`knowledge/metamodel/`, `knowledge/textual-notation/`) is a derivative
   "special purpose specification … based upon" the OMG specifications, used for informational purposes
   as permitted by the OMG specification license; it ships under this repository's Apache-2.0 license.
   The upstream OMG attributions and the OMG license text are reproduced in [NOTICE](NOTICE).

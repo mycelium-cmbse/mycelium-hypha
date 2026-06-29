@@ -14,7 +14,7 @@ findings with locations and corrections.
   visibility, relationship operators) and **keyword reference**. Start here for syntax rules.
 - `knowledge/textual-notation/examples/` – worked valid examples (each links the metamodel elements it
   uses); `knowledge/textual-notation/fixtures/` – the valid/invalid regression suite.
-- `knowledge/sysml2/` – the combined KerML + SysML v2 metamodel: `elements/<Metaclass>.md` for
+- `knowledge/metamodel/` – the combined KerML + SysML v2 metamodel: `elements/<Metaclass>.md` for
   structural constraints, `index.json` (or `index.md`) for fast name → element lookup.
 - `knowledge/spec/` – normative clauses to cite. **Git-ignored / generated locally** (see
   `tools/spec-extract`); if it is empty, cite the metamodel/grammar instead and note the spec text is
@@ -38,7 +38,7 @@ findings with locations and corrections.
 ## Procedure
 
 1. Parse structurally: declarations, memberships, relationships, keywords (per the grammar summary).
-2. Run the syntax checks, then the structural checks against `knowledge/sysml2/elements/`.
+2. Run the syntax checks, then the structural checks against `knowledge/metamodel/elements/`.
 3. For each issue report **location**, the **violated rule**, **why** it is wrong, and a **corrected
    snippet**; add a knowledge-base **reference** (metamodel element or spec clause) for non-obvious rulings.
 4. If nothing is wrong, state that the notation is valid.

@@ -16,3 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Source-document layout (`sources/`) for OMG XMI and PDF specifications.
 - Generation pipelines layout (`tools/`): C#/uml4net metamodel generator and
   Python PDF spec extractor.
+
+### Changed
+- Renamed the metamodel knowledge folder `knowledge/sysml2/` → `knowledge/metamodel/`
+  (consistent content-type naming alongside `spec/` and `textual-notation/`, and no longer
+  overloaded with the `knowledge/spec/sysml2/` clause folder).

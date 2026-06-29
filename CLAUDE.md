@@ -36,7 +36,7 @@ pytest tests/test_clauses.py::test_detects_clauses_and_groups_body   # one test 
 There is no command-line entry point — **the unit tests are the generators**, and running them
 (re)writes the knowledge base:
 
-- `metamodel-gen` tests write `knowledge/sysml2/` from `sources/xmi/*.uml`. The **committed files are the
+- `metamodel-gen` tests write `knowledge/metamodel/` from `sources/xmi/*.uml`. The **committed files are the
   golden**; after an intended format change, run the `[Explicit]` `Bless_*` tests to regenerate them.
 - `spec-extract`'s `test_generate.py` writes `knowledge/spec/` from `sources/specs/*.pdf`.
 - Tests **skip** (never fail) when their inputs are absent (no XMI / no PDFs), so CI stays green without
@@ -45,7 +45,7 @@ There is no command-line entry point — **the unit tests are the generators**, 
 
 ## Committed vs git-ignored (and why)
 
-- **Committed:** `knowledge/sysml2/`, `knowledge/textual-notation/`; `sources/xmi/` and
+- **Committed:** `knowledge/metamodel/`, `knowledge/textual-notation/`; `sources/xmi/` and
   `sources/textual/` (both EPL-2.0).
 - **Git-ignored — never commit:** `sources/specs/*.pdf` and the generated `knowledge/spec/`. These are
   **full verbatim OMG specification text**; the OMG license forbids redistributing it, so it is
@@ -63,7 +63,7 @@ normalization. Golden tests compare against the committed files, so non-determin
 
 ## Knowledge-base shape (what the skills/agents consume)
 
-- `knowledge/sysml2/elements/<Name>.md` — one file per metaclass / enumeration / primitive: front
+- `knowledge/metamodel/elements/<Name>.md` — one file per metaclass / enumeration / primitive: front
   matter, Generalizations/Specializations, **Owned features**, an **Inherited features** table giving
   the *full effective* feature set (read it directly — do not re-walk the generalization chain), and
   Constraints (OCL). `index.md` + `index.json` resolve a name → element.

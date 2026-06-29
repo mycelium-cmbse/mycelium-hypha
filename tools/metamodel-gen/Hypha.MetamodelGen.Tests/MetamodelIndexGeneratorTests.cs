@@ -18,7 +18,7 @@ namespace Hypha.MetamodelGen.Tests
 
     /// <summary>
     /// Tests for <see cref="MetamodelIndexGenerator"/>. Running these regenerates
-    /// <c>knowledge/sysml2/index.md</c> from the SysML metamodel XMI.
+    /// <c>knowledge/metamodel/index.md</c> from the SysML metamodel XMI.
     /// </summary>
     [TestFixture]
     public class MetamodelIndexGeneratorTests
@@ -32,7 +32,7 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         [Test]
-        public async Task Generates_a_deterministic_sysml2_index()
+        public async Task Generates_a_deterministic_metamodel_index()
         {
             var model = TestModel.LoadSysmlModel();
             if (model is null)
@@ -73,7 +73,7 @@ namespace Hypha.MetamodelGen.Tests
 
             // Produce the committed knowledge base file.
             var outputDirectory = new DirectoryInfo(
-                Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "sysml2"));
+                Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "metamodel"));
 
             await this.generator.GenerateAsync(model!, outputDirectory, "SysML v2");
 

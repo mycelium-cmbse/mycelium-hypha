@@ -39,10 +39,10 @@ package 'Generalization Example' {
 
 ## Constructs & elements
 
-- `abstract part def` – an abstract [PartDefinition](../../sysml2/elements/PartDefinition.md) (cannot be instantiated directly).
-- `specializes` / `:>` – [Subclassification](../../sysml2/elements/Subclassification.md), a kind of [Specialization](../../sysml2/elements/Specialization.md): the subtype inherits the supertype's features.
+- `abstract part def` – an abstract [PartDefinition](../../metamodel/elements/PartDefinition.md) (cannot be instantiated directly).
+- `specializes` / `:>` – [Subclassification](../../metamodel/elements/Subclassification.md), a kind of [Specialization](../../metamodel/elements/Specialization.md): the subtype inherits the supertype's features.
 - `:> A, B` – multiple specialization: several `Subclassification` relationships on one definition.
-- `ref part` – [ReferenceUsage](../../sysml2/elements/ReferenceUsage.md).
+- `ref part` – [ReferenceUsage](../../metamodel/elements/ReferenceUsage.md).
 
 ## Source
 

@@ -28,6 +28,6 @@ package Vehicles {
 }
 ```
 
-**Reference:** [Namespace](../../../sysml2/elements/Namespace.md) – its `ownedMember` / `membership`
+**Reference:** [Namespace](../../../metamodel/elements/Namespace.md) – its `ownedMember` / `membership`
 features; KerML name *distinguishability* requires distinct member names within a namespace. (No single
 `validate…` constraint for this is exposed in the element file.)

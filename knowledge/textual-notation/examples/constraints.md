@@ -52,10 +52,10 @@ package 'Constraints Example-1' {
 
 ## Constructs & elements
 
-- `constraint def { in …; <expr> }` – [ConstraintDefinition](../../sysml2/elements/ConstraintDefinition.md): a Boolean-valued definition with parameters.
-- `constraint massConstraint : MassConstraint { in … = … }` – [ConstraintUsage](../../sysml2/elements/ConstraintUsage.md): a constraint applied with bound arguments.
-- `in partMasses : MassValue[0..*]` – directed parameter features ([AttributeUsage](../../sysml2/elements/AttributeUsage.md)) with multiplicity.
-- `attribute x : T` – [AttributeUsage](../../sysml2/elements/AttributeUsage.md); `part x : T` – [PartUsage](../../sysml2/elements/PartUsage.md).
+- `constraint def { in …; <expr> }` – [ConstraintDefinition](../../metamodel/elements/ConstraintDefinition.md): a Boolean-valued definition with parameters.
+- `constraint massConstraint : MassConstraint { in … = … }` – [ConstraintUsage](../../metamodel/elements/ConstraintUsage.md): a constraint applied with bound arguments.
+- `in partMasses : MassValue[0..*]` – directed parameter features ([AttributeUsage](../../metamodel/elements/AttributeUsage.md)) with multiplicity.
+- `attribute x : T` – [AttributeUsage](../../metamodel/elements/AttributeUsage.md); `part x : T` – [PartUsage](../../metamodel/elements/PartUsage.md).
 - `sum(partMasses) <= massLimit` – the constraint's Boolean expression.
 
 ## Source

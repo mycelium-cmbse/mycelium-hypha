@@ -19,7 +19,7 @@ namespace Hypha.MetamodelGen.Tests
 
     /// <summary>
     /// Tests for <see cref="MetamodelJsonGenerator"/>. Running these regenerates
-    /// <c>knowledge/sysml2/metamodel.json</c> and <c>index.json</c>.
+    /// <c>knowledge/metamodel/metamodel.json</c> and <c>index.json</c>.
     /// </summary>
     [TestFixture]
     public class MetamodelJsonGeneratorTests
