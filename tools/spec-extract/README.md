@@ -1,12 +1,12 @@
 # spec-extract (Python)
 
-Extracts **clause-referenced citations** from the OMG PDF specifications into segmented markdown, so
-the Hypha plugin can quote and point at the normative text without redistributing the specifications
-themselves.
+Extracts the **full verbatim text** of the OMG PDF specifications into per-clause markdown, so the
+Hypha plugin can quote the normative wording exactly. The output is **never committed or
+redistributed** (see below).
 
-- **Input:** `sources/specs/*.pdf` (KerML 1.0, SysML v2 Parts 1–2) — OMG-copyrighted, git-ignored.
-- **Output:** `knowledge/spec/kerml/` and `knowledge/spec/sysml2/` — excerpts segmented by
-  clause/section, each carrying clause number, title, and source page metadata for citation.
+- **Input:** `sources/specs/*.pdf` (KerML 1.0, SysML v2) – OMG-copyrighted, git-ignored.
+- **Output:** `knowledge/spec/kerml/` and `knowledge/spec/sysml2/` – one file per clause/section
+  carrying its full text plus clause number, title and source page metadata.
 
 Like `tools/metamodel-gen`, this tool is **driven by tests, not a distributed CLI**.
 
@@ -18,10 +18,10 @@ the OMG specification license. Two constraints shape this tool:
 - The **PDFs are never redistributed**. They stay git-ignored in `sources/specs/` (the OMG license
   forbids posting the specifications on a network); provenance is recorded in
   [`sources/README.md`](../../sources/README.md#provenance) instead.
-- The **output is a derivative "special purpose specification … based upon"** the specs, for
-  **informational citation only** — clause-referenced excerpts with provenance, *not* a wholesale
-  verbatim re-publication of the specification text. Extraction is scoped to what citation needs so
-  `knowledge/spec/` stays within the OMG terms.
+- The **generated `knowledge/spec/` is the full verbatim specification text**, so it is treated exactly
+  like the PDFs: **git-ignored and regenerated locally** from the user's own copies, never committed or
+  posted. Because it is not redistributed, holding the verbatim text locally for informational use
+  stays within the OMG terms.
 
 ## Setup
 
