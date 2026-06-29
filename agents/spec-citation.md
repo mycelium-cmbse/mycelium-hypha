@@ -1,6 +1,6 @@
 ---
 name: spec-citation
-description: Finds and quotes the exact normative text of the KerML and SysML v2 specifications, with clause/section references. Use when an answer must be backed by the wording of the OMG specification rather than paraphrase.
+description: Finds and quotes the exact normative text of the OMG SysML v2 and KerML specifications (not OMG UML), with clause/section references. Use when an answer must be backed by the wording of the SysML v2 or KerML specification rather than paraphrase.
 tools: Read, Grep, Glob
 ---
 

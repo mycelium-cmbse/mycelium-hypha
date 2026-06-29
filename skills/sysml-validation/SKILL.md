@@ -1,6 +1,6 @@
 ---
 name: sysml-validation
-description: Validate SysML v2 (or KerML) textual notation for syntactic and structural correctness, and explain any violations with fixes. Use when the user provides SysML v2 textual notation to check, or asks whether a snippet is valid.
+description: Validate SysML v2 / KerML textual notation (.sysml / .kerml, not UML) for syntactic and structural correctness against the grammar and metamodel, and explain any violations with fixes. Use when the user provides SysML v2 or KerML textual notation to check, or asks whether a snippet is valid.
 ---
 
 # SysML v2 validation

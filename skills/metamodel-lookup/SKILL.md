@@ -1,6 +1,6 @@
 ---
 name: metamodel-lookup
-description: Look up KerML / SysML v2 metamodel structure — what a metaclass is, its features, supertypes, subtypes, redefinitions, multiplicities, and constraints (plus enumerations and primitive types). Use when the user asks how a SysML v2 or KerML element is defined in the metamodel, or how elements relate.
+description: Look up the structure of the OMG SysML v2 / KerML metamodel (not OMG UML 2.x) – a metaclass's features, supertypes, subtypes, redefinitions, multiplicities and constraints, plus enumerations and primitive types. Use when the user asks how a SysML v2 or KerML element (e.g. PartUsage, ConnectionDefinition, Feature) is defined in the metamodel, or how elements relate.
 ---
 
 # Metamodel lookup

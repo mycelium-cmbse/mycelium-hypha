@@ -1,6 +1,6 @@
 ---
 name: spec-citation
-description: Quote the normative KerML / SysML v2 specification text with an exact clause reference. Use when the user wants the authoritative wording of the OMG specification, or asks "what does the spec say about ...".
+description: Quote the normative OMG SysML v2 / KerML specification text with an exact clause reference. Covers the SysML v2 and KerML specifications, not the OMG UML specification. Use when the user wants the authoritative wording of the SysML v2 or KerML spec, or asks 'what does the SysML v2 / KerML spec say about ...'.
 ---
 
 # Spec citation
