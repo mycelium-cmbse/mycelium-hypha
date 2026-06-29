@@ -50,7 +50,7 @@ namespace Hypha.MetamodelGen.Tests
             var model = TestModel.Model;
             Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
 
-            var document = new MetamodelJsonGenerator().BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
+            var document = MetamodelJsonGenerator.BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
             return MetamodelJsonGenerator.Serialize(document);
         }
 
@@ -59,9 +59,8 @@ namespace Hypha.MetamodelGen.Tests
             var model = TestModel.Model;
             Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
 
-            var generator = new MetamodelJsonGenerator();
-            var document = generator.BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
-            return MetamodelJsonGenerator.Serialize(generator.BuildIndex(document));
+            var document = MetamodelJsonGenerator.BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
+            return MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildIndex(document));
         }
 
         private static void AssertMatchesCommitted(string fileName, string generated)

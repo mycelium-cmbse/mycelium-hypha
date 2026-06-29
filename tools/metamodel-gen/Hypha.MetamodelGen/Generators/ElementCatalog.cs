@@ -83,7 +83,7 @@ namespace Hypha.MetamodelGen.Generators
         /// Returns the named, ordered packaged elements of type <typeparamref name="T"/> across every
         /// package (recursively), de-duplicated by XMI id.
         /// </summary>
-        private static IReadOnlyList<T> PackagedElements<T>(XmiReaderResult model)
+        private static List<T> PackagedElements<T>(XmiReaderResult model)
             where T : class, INamedElement
         {
             ArgumentNullException.ThrowIfNull(model);

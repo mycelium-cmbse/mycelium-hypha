@@ -29,7 +29,7 @@ namespace Hypha.MetamodelGen.Tests
         /// <summary>
         /// The metaclass names to golden-test: the ModelInspector's interesting classes (not hard-coded).
         /// </summary>
-        public static IEnumerable<string> InterestingMetaclassNames()
+        private static IEnumerable<string> InterestingMetaclassNames()
         {
             var model = TestModel.Model;
             if (model is null)

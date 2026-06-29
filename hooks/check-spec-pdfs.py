@@ -40,7 +40,7 @@ def main():
 
     missing = [(name, url) for name, url in PDFS if not (specs_dir / name).is_file()]
     if not missing:
-        return 0  # all present: nothing to report
+        return  # all present: nothing to report
 
     context = "\n".join(
         [
@@ -64,8 +64,7 @@ def main():
         {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}},
         sys.stdout,
     )
-    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

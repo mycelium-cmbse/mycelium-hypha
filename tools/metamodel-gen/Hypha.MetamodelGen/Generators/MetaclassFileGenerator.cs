@@ -95,17 +95,17 @@ namespace Hypha.MetamodelGen.Generators
 
             foreach (var @class in metaclasses)
             {
-                foreach (var super in @class.SuperClass)
+                foreach (var superName in @class.SuperClass.Select(super => super.Name))
                 {
-                    if (string.IsNullOrEmpty(super.Name))
+                    if (string.IsNullOrEmpty(superName))
                     {
                         continue;
                     }
 
-                    if (!map.TryGetValue(super.Name, out var subtypes))
+                    if (!map.TryGetValue(superName, out var subtypes))
                     {
                         subtypes = new List<string>();
-                        map[super.Name] = subtypes;
+                        map[superName] = subtypes;
                     }
 
                     subtypes.Add(@class.Name);
@@ -173,15 +173,17 @@ namespace Hypha.MetamodelGen.Generators
 
             var features = @class.OwnedAttribute
                 .OrderBy(property => property.Name, StringComparer.Ordinal)
-                .Select(property => new MetaclassFeature(
-                    property.Name,
-                    QueryVisibilitySigil(property.Visibility),
-                    RenderTypeLink(property.Type?.Name ?? "«untyped»", linkableTypeNames),
-                    property.QueryFormattedMultiplicity(),
-                    string.Join(", ", QueryModifierTokens(property)),
-                    property.QueryDocumentationText(),
-                    property.RedefinedProperty.Select(redefined => RenderFeatureReference(redefined.Name, ownedNames, inheritedOwners)).ToList(),
-                    property.SubsettedProperty.Select(subsetted => RenderFeatureReference(subsetted.Name, ownedNames, inheritedOwners)).ToList()))
+                .Select(property => new MetaclassFeature
+                {
+                    Name = property.Name,
+                    Visibility = QueryVisibilitySigil(property.Visibility),
+                    TypeMarkdown = RenderTypeLink(property.Type?.Name ?? "«untyped»", linkableTypeNames),
+                    Multiplicity = property.QueryFormattedMultiplicity(),
+                    Modifiers = string.Join(", ", QueryModifierTokens(property)),
+                    Documentation = property.QueryDocumentationText(),
+                    Redefines = property.RedefinedProperty.Select(redefined => RenderFeatureReference(redefined.Name, ownedNames, inheritedOwners)).ToList(),
+                    Subsets = property.SubsettedProperty.Select(subsetted => RenderFeatureReference(subsetted.Name, ownedNames, inheritedOwners)).ToList(),
+                })
                 .ToList();
 
             var constraints = @class.OwnedRule
@@ -192,18 +194,20 @@ namespace Hypha.MetamodelGen.Generators
                     rule.QueryConstraintBody()))
                 .ToList();
 
-            return new MetaclassPayload(
-                @class.Name,
-                @class.Namespace?.Name ?? string.Empty,
-                ElementCatalog.FullyQualifiedName(@class),
-                @class.IsAbstract,
-                ElementCatalog.VisibilityName(@class.Visibility),
-                @class.QueryDocumentationText(),
-                generalizations,
-                specializations,
-                features,
-                inheritedFeatures,
-                constraints);
+            return new MetaclassPayload
+            {
+                Name = @class.Name,
+                Package = @class.Namespace?.Name ?? string.Empty,
+                FullyQualifiedName = ElementCatalog.FullyQualifiedName(@class),
+                IsAbstract = @class.IsAbstract,
+                Visibility = ElementCatalog.VisibilityName(@class.Visibility),
+                Documentation = @class.QueryDocumentationText(),
+                Generalizations = generalizations,
+                Specializations = specializations,
+                Features = features,
+                InheritedFeatures = inheritedFeatures,
+                Constraints = constraints,
+            };
         }
 
         /// <summary>
@@ -245,8 +249,8 @@ namespace Hypha.MetamodelGen.Generators
         /// </summary>
         private static string RenderFeatureReference(
             string featureName,
-            ISet<string> ownedNames,
-            IReadOnlyDictionary<string, string> inheritedOwners)
+            HashSet<string> ownedNames,
+            Dictionary<string, string> inheritedOwners)
         {
             if (ownedNames.Contains(featureName))
             {

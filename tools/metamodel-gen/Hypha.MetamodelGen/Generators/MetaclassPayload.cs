@@ -16,66 +16,37 @@ namespace Hypha.MetamodelGen.Generators
     /// </summary>
     public sealed class MetaclassPayload
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MetaclassPayload"/> class.
-        /// </summary>
-        public MetaclassPayload(
-            string name,
-            string package,
-            string fullyQualifiedName,
-            bool isAbstract,
-            string visibility,
-            string documentation,
-            IReadOnlyList<string> generalizations,
-            IReadOnlyList<string> specializations,
-            IReadOnlyList<MetaclassFeature> features,
-            IReadOnlyList<InheritedFeature> inheritedFeatures,
-            IReadOnlyList<MetaclassConstraint> constraints)
-        {
-            this.Name = name;
-            this.Package = package;
-            this.FullyQualifiedName = fullyQualifiedName;
-            this.IsAbstract = isAbstract;
-            this.Visibility = visibility;
-            this.Documentation = documentation;
-            this.Generalizations = generalizations;
-            this.Specializations = specializations;
-            this.Features = features;
-            this.InheritedFeatures = inheritedFeatures;
-            this.Constraints = constraints;
-        }
-
         /// <summary>Gets the metaclass name.</summary>
-        public string Name { get; }
+        public required string Name { get; init; }
 
         /// <summary>Gets the owning package name.</summary>
-        public string Package { get; }
+        public required string Package { get; init; }
 
         /// <summary>Gets the fully qualified name (e.g. <c>SysML::Systems::Actions::AcceptActionUsage</c>).</summary>
-        public string FullyQualifiedName { get; }
+        public required string FullyQualifiedName { get; init; }
 
         /// <summary>Gets a value indicating whether the metaclass is abstract.</summary>
-        public bool IsAbstract { get; }
+        public required bool IsAbstract { get; init; }
 
         /// <summary>Gets the metaclass visibility (e.g. <c>public</c>).</summary>
-        public string Visibility { get; }
+        public required string Visibility { get; init; }
 
         /// <summary>Gets the metaclass documentation (may be empty).</summary>
-        public string Documentation { get; }
+        public required string Documentation { get; init; }
 
         /// <summary>Gets the direct supertype (generalization) names, ordered.</summary>
-        public IReadOnlyList<string> Generalizations { get; }
+        public required IReadOnlyList<string> Generalizations { get; init; }
 
         /// <summary>Gets the direct subtype (specialization) names, ordered.</summary>
-        public IReadOnlyList<string> Specializations { get; }
+        public required IReadOnlyList<string> Specializations { get; init; }
 
         /// <summary>Gets the owned features, ordered by name.</summary>
-        public IReadOnlyList<MetaclassFeature> Features { get; }
+        public required IReadOnlyList<MetaclassFeature> Features { get; init; }
 
         /// <summary>Gets the features inherited from supertypes, ordered by name.</summary>
-        public IReadOnlyList<InheritedFeature> InheritedFeatures { get; }
+        public required IReadOnlyList<InheritedFeature> InheritedFeatures { get; init; }
 
         /// <summary>Gets the owned constraints, ordered by name.</summary>
-        public IReadOnlyList<MetaclassConstraint> Constraints { get; }
+        public required IReadOnlyList<MetaclassConstraint> Constraints { get; init; }
     }
 }
