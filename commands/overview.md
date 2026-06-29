@@ -8,7 +8,7 @@ Show the user the following overview of the Hypha plugin, verbatim.
 # Hypha – SysML v2 / KerML assistant
 
 Hypha grounds answers about the OMG **SysML v2 / KerML** metamodel, specification, and textual
-notation (not OMG UML) in a committed knowledge base. Just ask in natural language – the right skill is
+notation in a built-in knowledge base. Just ask in natural language – the right skill is
 selected automatically. Three capabilities:
 
 - **Metamodel lookup** – how a metaclass is defined: features, supertypes, subtypes, redefinitions,
