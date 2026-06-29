@@ -27,4 +27,6 @@ part def Vehicle {
 ```
 
 **Reference:** [relationship operators](../../index.md#relationship-operators);
-[FeatureValue](../../../sysml2/elements/FeatureValue.md).
+[FeatureValue](../../../sysml2/elements/FeatureValue.md) (`=` binds a value);
+[PartUsage](../../../sysml2/elements/PartUsage.md) – its `partDefinition` is the part's definition, of
+which `= Engine` provides none.
