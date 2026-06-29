@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-29
+
 ### Added
 - Initial Claude plugin scaffolding (`.claude-plugin/plugin.json`, marketplace manifest).
 - Skills: `metamodel-lookup`, `spec-citation`, `sysml-validation`.
