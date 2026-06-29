@@ -12,7 +12,7 @@ Like `tools/metamodel-gen`, this tool is **driven by tests, not a distributed CL
 
 ## Licensing & OMG terms
 
-The OMG specifications are copyrighted — see the [NOTICE](../../NOTICE) for the full attribution and
+The OMG specifications are copyrighted – see the [NOTICE](../../NOTICE) for the full attribution and
 the OMG specification license. Two constraints shape this tool:
 
 - The **PDFs are never redistributed**. They stay git-ignored in `sources/specs/` (the OMG license
@@ -43,15 +43,15 @@ pytest
 
 The spec PDFs are git-ignored (see **Licensing & OMG terms** above). When they are present in
 `sources/specs/`, the extraction-proof test runs against the real KerML PDF; when they are absent
-(e.g. in CI), that test **skips** rather than fails — the same convention `metamodel-gen` uses for
+(e.g. in CI), that test **skips** rather than fails – the same convention `metamodel-gen` uses for
 its XMI inputs.
 
 ## PDF library
 
 **pdfplumber** (MIT) is the pinned PDF reader (`pyproject.toml`):
 
-- **License** — MIT, a clean fit for this Apache-2.0 repository.
-- **Capability** — exposes per-word/character positions and layout, which the later clause/section
+- **License** – MIT, a clean fit for this Apache-2.0 repository.
+- **Capability** – exposes per-word/character positions and layout, which the later clause/section
   segmentation step needs to detect headings and structure (not just a flat text dump).
 
 PyMuPDF was considered (faster, excellent raw extraction) but rejected: it is AGPL-3.0 (or paid
@@ -77,13 +77,13 @@ front matter (`clause`, `title`, `document`, `version`, `pages`, `normative`) an
 informative `NOTE`/`EXAMPLE` runs are wrapped in `<!-- informative:note -->` markers (original text
 untouched, but greppable). Each document also gets an `index.md` table of contents (clause → title →
 pages → file, in document order) and a machine-readable `index.json` catalog (same metadata, keyed by
-clause number for O(1) lookup — metadata only, no clause text). This tree is **git-ignored** (see
+clause number for O(1) lookup – metadata only, no clause text). This tree is **git-ignored** (see
 *Licensing & OMG terms*).
 
 ### Regenerating
 
 Running `pytest` with the PDFs present in `sources/specs/` runs `test_generate.py`, which writes the
-(git-ignored) `knowledge/spec/` tree from the real specs — the same "tests write the knowledge base"
+(git-ignored) `knowledge/spec/` tree from the real specs – the same "tests write the knowledge base"
 convention `metamodel-gen` uses. Without the PDFs that test (and the real-PDF smoke test) **skip**;
 the assertion-based unit tests always run.
 
