@@ -34,8 +34,13 @@ See **Provenance** below for exact commits.
   permitted. The model version is `20250201` (per each file's `URI` attribute).
 
 ### `specs/` — PDF specifications (→ `tools/spec-extract`)
-- From `doc/` in the release repo: KerML 1.0, SysML v2 (Parts 1–2), Systems Modeling API & Services 1.0.
-- Drop the PDFs here. (Kept out of git for copyright reasons.)
+- KerML 1.0, SysML v2, and Systems Modeling API & Services 1.0, from `doc/` in the release repo.
+  Download these three files into this folder:
+  - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/1-Kernel_Modeling_Language.pdf
+  - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/2a-OMG_Systems_Modeling_Language.pdf
+  - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/3-Systems_Modeling_API_and_Services.pdf
+- Kept out of git for copyright reasons. A plugin **SessionStart** hook (`hooks/check-spec-pdfs.py`)
+  detects when any are missing and reminds you to download them.
 
 ### `textual/` — textual-notation material (→ `knowledge/textual-notation`) — committed
 - Grammar (`bnf/*.kebnf`, `*.kgbnf`) and example models (`kerml/`, `sysml/`) from the release repo,
