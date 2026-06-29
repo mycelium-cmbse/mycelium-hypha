@@ -24,14 +24,6 @@ namespace Hypha.MetamodelGen.Tests
     [TestFixture]
     public class MetamodelJsonGeneratorTests
     {
-        private MetamodelJsonGenerator generator = null!;
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.generator = new MetamodelJsonGenerator();
-        }
-
         [Test]
         public async Task Generates_deterministic_sidecar_files()
         {
@@ -61,7 +53,7 @@ namespace Hypha.MetamodelGen.Tests
 
             // Produce the committed knowledge-base files.
             var outputDirectory = JsonSidecarTestSupport.KnowledgeDirectory();
-            await this.generator.GenerateAsync(model!, outputDirectory, hash);
+            await MetamodelJsonGenerator.GenerateAsync(model!, outputDirectory, hash);
 
             Assert.Multiple(() =>
             {
