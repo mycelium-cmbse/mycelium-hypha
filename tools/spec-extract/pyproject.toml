@@ -34,3 +34,8 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+# Measure only the product package; keep the test suite itself out of the coverage figures.
+source = ["spec_extract"]
+omit = ["tests/*"]

@@ -59,7 +59,7 @@ jobs:
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
-          dotnet sonarscanner begin /k:"mycelium-cmbse_mycelium-hypha" /o:"mycelium-cmbse" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.python.coverage.reportPaths="tools/spec-extract/coverage.xml" /d:sonar.python.version="3.12"
+          dotnet sonarscanner begin /k:"mycelium-cmbse_mycelium-hypha" /o:"mycelium-cmbse" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.python.coverage.reportPaths="tools/spec-extract/coverage.xml" /d:sonar.python.version="3.12" /d:sonar.tests="tools/spec-extract/tests"
 
       - name: Build
         run: dotnet build mycelium-hypha.sln --no-restore --no-incremental /p:ContinuousIntegrationBuild=true
