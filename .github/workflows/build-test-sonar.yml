@@ -36,8 +36,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install spec-extract (Python)
-        run: pip install -e 'tools/spec-extract[dev]'
+      - name: Install spec-extract dependencies (Python)
+        # Wheels only (no source builds / setup scripts) and pinned to the committed lock.
+        run: |
+          pip install --only-binary :all: --no-deps -r tools/spec-extract/requirements-dev.lock
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -70,6 +72,9 @@ jobs:
 
       - name: Test Python and compute coverage
         working-directory: tools/spec-extract
+        # Import from the src layout without an editable (source-build) install.
+        env:
+          PYTHONPATH: src
         run: pytest --cov=spec_extract --cov-report=xml
 
       - name: SonarQube end
