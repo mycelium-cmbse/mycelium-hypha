@@ -4,8 +4,6 @@ Hypha is the AI agent of the Mycelium ecosystem, a connecting filament between e
 SysML v2 specification. It is packaged as a Claude plugin with skills and subagents for KerML / SysML
 v2 metamodel lookup, normative spec citation, and SysML v2 textual-notation validation.
 
-> Status: early (v0.0.1), under active development.
-
 ## What's in here
 
 mycelium-hypha is two things in one repository:
