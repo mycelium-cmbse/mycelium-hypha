@@ -1,0 +1,23 @@
+# Locked dev dependencies for tools/spec-extract.
+# Used by CI (.github/workflows/build-test-sonar.yml) for a reproducible, wheels-only install:
+#   pip install --only-binary :all: --no-deps -r requirements-dev.lock
+# This is the fully resolved set of `pip install -e .[dev]` (pyproject.toml is the source of truth
+# for the direct dependencies / version ranges). Regenerate from a clean install with:
+#   pip freeze --exclude-editable
+cffi==2.0.0
+charset-normalizer==3.4.7
+colorama==0.4.6
+coverage==7.14.3
+cryptography==49.0.0
+iniconfig==2.3.0
+packaging==26.2
+pdfminer.six==20260107
+pdfplumber==0.11.10
+pillow==12.2.0
+pluggy==1.6.0
+pycparser==3.0
+Pygments==2.20.0
+pypdfium2==5.10.1
+pytest==9.1.1
+pytest-cov==7.1.0
+ruff==0.15.20

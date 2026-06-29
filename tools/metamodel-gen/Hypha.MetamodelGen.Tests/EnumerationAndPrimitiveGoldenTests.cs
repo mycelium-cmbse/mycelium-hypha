@@ -27,7 +27,7 @@ namespace Hypha.MetamodelGen.Tests
     public class EnumerationAndPrimitiveGoldenTests
     {
         /// <summary>The enumeration names to golden-test (every enumeration in the model).</summary>
-        public static IEnumerable<string> EnumerationNames()
+        private static IEnumerable<string> EnumerationNames()
         {
             var model = TestModel.Model;
             if (model is null)
@@ -42,7 +42,7 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         /// <summary>The primitive-type names to golden-test (every primitive type in the model).</summary>
-        public static IEnumerable<string> PrimitiveTypeNames()
+        private static IEnumerable<string> PrimitiveTypeNames()
         {
             var model = TestModel.Model;
             if (model is null)

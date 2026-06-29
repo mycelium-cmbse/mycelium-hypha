@@ -46,7 +46,7 @@ namespace Hypha.MetamodelGen.Generators
         /// Builds the deterministic rich-graph document for the model. <paramref name="sourceXmiSha256"/>
         /// is the provenance digest of the input XMI (see <see cref="ComputeSourceXmiSha256"/>).
         /// </summary>
-        public MetamodelDocument BuildDocument(XmiReaderResult model, string sourceXmiSha256)
+        public static MetamodelDocument BuildDocument(XmiReaderResult model, string sourceXmiSha256)
         {
             ArgumentNullException.ThrowIfNull(model);
             ArgumentNullException.ThrowIfNull(sourceXmiSha256);
@@ -75,13 +75,13 @@ namespace Hypha.MetamodelGen.Generators
                 _ => new SortedSet<string>(StringComparer.Ordinal),
                 StringComparer.Ordinal);
 
-            foreach (var @class in metaclasses)
+            foreach (var className in metaclasses.Select(@class => @class.Name))
             {
-                foreach (var ancestor in ancestors[@class.Name])
+                foreach (var ancestor in ancestors[className])
                 {
                     if (descendants.TryGetValue(ancestor, out var set))
                     {
-                        set.Add(@class.Name);
+                        set.Add(className);
                     }
                 }
             }
@@ -111,7 +111,7 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>Builds the flat name → record lookup from a rich-graph document.</summary>
-        public MetamodelLookup BuildIndex(MetamodelDocument document)
+        public static MetamodelLookup BuildIndex(MetamodelDocument document)
         {
             ArgumentNullException.ThrowIfNull(document);
 
@@ -349,7 +349,7 @@ namespace Hypha.MetamodelGen.Generators
                 primitiveType.QueryDocumentationText(),
                 primitiveType.QuerySummary());
 
-        private static IReadOnlyList<PackageNode> BuildPackages(XmiReaderResult model) =>
+        private static List<PackageNode> BuildPackages(XmiReaderResult model) =>
             model.Packages
                 .SelectMany(ElementCatalog.ExpandPackages)
                 .DistinctBy(package => package.XmiId)

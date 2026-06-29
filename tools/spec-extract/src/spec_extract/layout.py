@@ -95,41 +95,58 @@ def _page_lines(chars: list[Char], y_tolerance: float) -> list[Line]:
     return lines
 
 
+class _SpanBuilder:
+    """Accumulate glyphs into style-runs, flushing a new ``Span`` whenever the style changes."""
+
+    def __init__(self) -> None:
+        self._spans: list[Span] = []
+        self._style: SpanStyle | None = None
+        self._buffer: list[str] = []
+
+    def add_space(self) -> None:
+        if self._buffer and not self._buffer[-1].endswith(" "):
+            self._buffer.append(" ")
+
+    def add(self, text: str, style: SpanStyle, separator: str) -> None:
+        if style != self._style:
+            self._flush()
+            self._style = style
+        self._buffer.append(separator + text)
+
+    def _flush(self) -> None:
+        if self._buffer:
+            self._spans.append(Span("".join(self._buffer), self._style or "text"))
+            self._buffer = []
+
+    def spans(self) -> list[Span]:
+        self._flush()
+        return self._spans
+
+
+def _separator(previous: Char | None, char: Char) -> str:
+    """A reinserted space when a wide horizontal gap separates two non-space glyphs."""
+    if previous is None or previous.text.isspace():
+        return ""
+    return " " if char.x0 - previous.x1 > _SPACE_RATIO * char.size else ""
+
+
 def _build_line(row: list[Char]) -> Line:
     """Reconstruct a line's text + style spans from its characters, restoring dropped spaces."""
     chars = sorted(row, key=lambda c: c.x0)
-    spans: list[Span] = []
-    current_style: SpanStyle | None = None
-    buffer: list[str] = []
+    builder = _SpanBuilder()
     previous: Char | None = None
 
     for char in chars:
         if char.text == "":
             continue
         if char.text.isspace():
-            if buffer and not buffer[-1].endswith(" "):
-                buffer.append(" ")
+            builder.add_space()
             previous = char
             continue
-
-        separator = ""
-        if previous is not None and not previous.text.isspace():
-            if char.x0 - previous.x1 > _SPACE_RATIO * char.size:
-                separator = " "
-
-        style = style_for(char.fontname)
-        if style == current_style:
-            buffer.append(separator + char.text)
-        else:
-            if buffer:
-                spans.append(Span("".join(buffer), current_style or "text"))
-            buffer = [separator + char.text if separator else char.text]
-            current_style = style
+        builder.add(char.text, style_for(char.fontname), _separator(previous, char))
         previous = char
 
-    if buffer:
-        spans.append(Span("".join(buffer), current_style or "text"))
-
+    spans = builder.spans()
     text = _MULTISPACE.sub(" ", "".join(span.text for span in spans)).strip()
     page = chars[0].page if chars else 0
     return Line(page=page, text=text, spans=spans, is_code=_is_code(chars))

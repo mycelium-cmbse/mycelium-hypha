@@ -43,7 +43,7 @@ namespace Hypha.MetamodelGen.Tests
 
             var hash = JsonSidecarTestSupport.ComputeSourceHash();
 
-            var document = this.generator.BuildDocument(model!, hash);
+            var document = MetamodelJsonGenerator.BuildDocument(model!, hash);
 
             Assert.Multiple(() =>
             {
@@ -55,8 +55,8 @@ namespace Hypha.MetamodelGen.Tests
             });
 
             // Deterministic: the same model serializes byte-for-byte identically.
-            var first = MetamodelJsonGenerator.Serialize(this.generator.BuildDocument(model!, hash));
-            var second = MetamodelJsonGenerator.Serialize(this.generator.BuildDocument(model!, hash));
+            var first = MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildDocument(model!, hash));
+            var second = MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildDocument(model!, hash));
             Assert.That(second, Is.EqualTo(first));
 
             // Produce the committed knowledge-base files.

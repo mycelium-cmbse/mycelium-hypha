@@ -23,7 +23,7 @@ namespace Hypha.MetamodelGen.Tests
     public class MetamodelClosureTests
     {
         private static MetamodelDocument document = null!;
-        private static IReadOnlyDictionary<string, ClassNode> classesByName = null!;
+        private static Dictionary<string, ClassNode> classesByName = null!;
 
         [OneTimeSetUp]
         public void Build()
@@ -34,7 +34,7 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.Ignore("No SysML model found under sources/xmi/.");
             }
 
-            document = new MetamodelJsonGenerator().BuildDocument(model!, "test-hash");
+            document = MetamodelJsonGenerator.BuildDocument(model!, "test-hash");
             classesByName = document.Classes.ToDictionary(@class => @class.Name);
         }
 

@@ -67,8 +67,11 @@ namespace Hypha.MetamodelGen.Tests
                              .Concat(@class.InheritedAttributes.Select(a => (a.Lower, a.Upper)))
                              .Concat(@class.OwnedOperations.Select(o => (o.ReturnLower, o.ReturnUpper))))
                 {
-                    Assert.That(lower, Is.GreaterThanOrEqualTo(0));
-                    Assert.That(upper, Is.GreaterThanOrEqualTo(-1));
+                    Assert.Multiple(() =>
+                    {
+                        Assert.That(lower, Is.GreaterThanOrEqualTo(0));
+                        Assert.That(upper, Is.GreaterThanOrEqualTo(-1));
+                    });
                 }
             }
         }
@@ -97,7 +100,7 @@ namespace Hypha.MetamodelGen.Tests
                 .Concat(document.PrimitiveTypes.Select(p => p.Name))
                 .ToHashSet();
 
-            Assert.That(index.Entries.Count, Is.EqualTo(expected.Count), "index entry count must equal classes + enums + primitives (no name collisions)");
+            Assert.That(index.Entries, Has.Count.EqualTo(expected.Count), "index entry count must equal classes + enums + primitives (no name collisions)");
 
             foreach (var name in expected)
             {
