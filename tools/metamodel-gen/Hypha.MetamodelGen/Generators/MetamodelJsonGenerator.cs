@@ -145,7 +145,7 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Writes <c>metamodel.json</c> and <c>index.json</c> into <paramref name="outputDirectory"/>.
         /// </summary>
-        public async Task GenerateAsync(
+        public static async Task GenerateAsync(
             XmiReaderResult model, DirectoryInfo outputDirectory, string sourceXmiSha256)
         {
             ArgumentNullException.ThrowIfNull(model);
