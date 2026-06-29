@@ -21,7 +21,7 @@ namespace Hypha.MetamodelGen.Tests
     /// <summary>
     /// Golden-file tests: the generated element markdown for each "interesting" metaclass (as
     /// determined by uml4net's <see cref="uml4net.Reporting.Generators.ModelInspector"/>) is
-    /// compared byte-for-byte against a committed expected file under <c>Expected/sysml2/elements/</c>.
+    /// compared byte-for-byte against a committed expected file under <c>Expected/metamodel/elements/</c>.
     /// </summary>
     [TestFixture]
     public class MetaclassFileGoldenTests
@@ -56,7 +56,7 @@ namespace Hypha.MetamodelGen.Tests
             var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass, subtypeIndex, linkableTypeNames));
 
             var expectedPath = Path.Combine(
-                TestContext.CurrentContext.TestDirectory, "Expected", "sysml2", "elements", $"{metaclassName}.md");
+                TestContext.CurrentContext.TestDirectory, "Expected", "metamodel", "elements", $"{metaclassName}.md");
 
             Assert.That(File.Exists(expectedPath), Is.True, $"Missing expected golden file: {expectedPath}");
 
@@ -74,7 +74,7 @@ namespace Hypha.MetamodelGen.Tests
 
             var expectedDirectory = Path.Combine(
                 TestModel.FindRepoRoot()!.FullName,
-                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "sysml2", "elements");
+                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "metamodel", "elements");
 
             Directory.CreateDirectory(expectedDirectory);
 

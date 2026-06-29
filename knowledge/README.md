@@ -12,7 +12,7 @@ the upstream OMG sources change.
 
 ```
 knowledge/
-├── sysml2/                 Combined KerML + SysML v2 metamodel (one tree)
+├── metamodel/              Combined KerML + SysML v2 metamodel (one tree)
 │   ├── index.md            Manifest: every metaclass (+ enumeration, primitive type) → its element file
 │   └── elements/           One markdown file per element (metaclasses, enumerations, primitive types)
 ├── spec/
@@ -27,7 +27,7 @@ knowledge/
 
 | Output | Source | Pipeline |
 | --- | --- | --- |
-| `sysml2/` | `sources/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
+| `metamodel/` | `sources/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
 | `spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) — **git-ignored output** |
 | `textual-notation/` | `sources/textual/`, grammar (`bnf/`) | curated + scripted |
 
@@ -40,7 +40,7 @@ to a specific specification version.
 > `tools/spec-extract`'s tests with the PDFs present in `sources/specs/`. Everything else under
 > `knowledge/` is committed.
 
-## Element file convention (`sysml2/elements`)
+## Element file convention (`metamodel/elements`)
 
 One file per metaclass, named `<MetaclassName>.md`. Each file opens with YAML front matter
 (`name`, `package`, `fully qualified name`, `isAbstract`, `visibility`, `generalizes`,

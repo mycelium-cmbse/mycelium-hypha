@@ -22,7 +22,7 @@ namespace Hypha.MetamodelGen.Tests
     {
         /// <summary>The committed knowledge directory the sidecar files live in.</summary>
         public static DirectoryInfo KnowledgeDirectory() =>
-            new(Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "sysml2"));
+            new(Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "metamodel"));
 
         /// <summary>The committed input XMI files the provenance digest is computed over.</summary>
         public static IReadOnlyList<string> SourceXmiPaths()

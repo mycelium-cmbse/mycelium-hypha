@@ -1,7 +1,7 @@
 # metamodel-gen (C# / uml4net)
 
 Reads the combined KerML / SysML v2 XMI metamodel and emits the per-element markdown knowledge base
-under `knowledge/sysml2/`, plus a structured **JSON sidecar** (see below) for programmatic queries.
+under `knowledge/metamodel/`, plus a structured **JSON sidecar** (see below) for programmatic queries.
 
 This tool is **never run as a CLI and is not distributed** — it is invoked exclusively from its
 unit tests, which both exercise the generators and write the generated knowledge base.
@@ -39,7 +39,7 @@ re-run the `[Explicit]` `Bless_*` tests to regenerate the golden/committed files
 ## JSON sidecar
 
 Alongside the markdown, the converter emits a structured JSON form of the metamodel (same `uml4net`
-pass, so the two never drift), committed under `knowledge/sysml2/`:
+pass, so the two never drift), committed under `knowledge/metamodel/`:
 
 - **`metamodel.json`** — the full graph: every class (with **precomputed** inheritance closures
   `allAncestors` / `allDescendants`, owned + inherited attributes, operations, constraints),
@@ -57,18 +57,18 @@ These structural questions are one-shot `jq` queries against the precomputed gra
 ```sh
 # Concrete subclasses of Usage (anywhere in the hierarchy)
 jq -r '.classes[] | select(.allAncestors | index("Usage")) | select(.isAbstract|not) | .name' \
-  knowledge/sysml2/metamodel.json
+  knowledge/metamodel/metamodel.json
 
 # All properties of PartUsage, owned + inherited
 jq -r '.classes[] | select(.name=="PartUsage") | (.ownedAttributes + .inheritedAttributes)[].name' \
-  knowledge/sysml2/metamodel.json
+  knowledge/metamodel/metamodel.json
 
 # Classes with a composite attribute typed by Expression
 jq -r '.classes[] | select(.ownedAttributes[]? | .isComposite and .type=="Expression") | .name' \
-  knowledge/sysml2/metamodel.json
+  knowledge/metamodel/metamodel.json
 
 # Resolve one element from the index
-jq '.entries["PartUsage"]' knowledge/sysml2/index.json
+jq '.entries["PartUsage"]' knowledge/metamodel/index.json
 ```
 
 **Requirement:** `jq` is a small standalone binary (not Python/Node) — install via `brew install jq`,

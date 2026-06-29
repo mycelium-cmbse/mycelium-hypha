@@ -62,14 +62,14 @@ package 'Requirement Definitions' {
 
 ## Constructs & elements
 
-- `requirement def { … }` – [RequirementDefinition](../../sysml2/elements/RequirementDefinition.md): a constraint-based definition of a requirement.
-- `subject x : T` – [SubjectMembership](../../sysml2/elements/SubjectMembership.md): the thing the requirement is about.
-- `require constraint { … }` – a required [ConstraintUsage](../../sysml2/elements/ConstraintUsage.md) carried by a [RequirementConstraintMembership](../../sysml2/elements/RequirementConstraintMembership.md) (kind `requirement`).
+- `requirement def { … }` – [RequirementDefinition](../../metamodel/elements/RequirementDefinition.md): a constraint-based definition of a requirement.
+- `subject x : T` – [SubjectMembership](../../metamodel/elements/SubjectMembership.md): the thing the requirement is about.
+- `require constraint { … }` – a required [ConstraintUsage](../../metamodel/elements/ConstraintUsage.md) carried by a [RequirementConstraintMembership](../../metamodel/elements/RequirementConstraintMembership.md) (kind `requirement`).
 - `assume constraint { … }` – an assumed constraint (a `RequirementConstraintMembership` of kind `assumption`).
-- `doc /* … */` – [Documentation](../../sysml2/elements/Documentation.md) attached to the element.
+- `doc /* … */` – [Documentation](../../metamodel/elements/Documentation.md) attached to the element.
 - `<'1'>` – a declared short name (identifier) for the requirement.
-- `:> MassLimitationRequirement` – [Subclassification](../../sysml2/elements/Subclassification.md): a requirement specializing another.
-- `attribute redefines massActual = …` – a redefining [AttributeUsage](../../sysml2/elements/AttributeUsage.md) with a bound value.
+- `:> MassLimitationRequirement` – [Subclassification](../../metamodel/elements/Subclassification.md): a requirement specializing another.
+- `attribute redefines massActual = …` – a redefining [AttributeUsage](../../metamodel/elements/AttributeUsage.md) with a bound value.
 
 ## Source
 

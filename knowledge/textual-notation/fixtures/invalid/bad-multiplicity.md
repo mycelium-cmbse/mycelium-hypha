@@ -26,6 +26,6 @@ part def Vehicle {
 }
 ```
 
-**Reference:** [MultiplicityRange](../../../sysml2/elements/MultiplicityRange.md) – its `lowerBound` /
+**Reference:** [MultiplicityRange](../../../metamodel/elements/MultiplicityRange.md) – its `lowerBound` /
 `upperBound` features; a range with `lowerBound > upperBound` is empty/ill-formed. (The metamodel has no
 dedicated `validate…` constraint for this; it is inherent range semantics.)

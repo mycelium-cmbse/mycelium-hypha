@@ -41,10 +41,10 @@ package 'Action Definition Example' {
 
 ## Constructs & elements
 
-- `action def { in …; out … }` – [ActionDefinition](../../sysml2/elements/ActionDefinition.md); `in`/`out` are directed parameter features.
-- `action focus : Focus` – [ActionUsage](../../sysml2/elements/ActionUsage.md): a step typed by an action definition.
-- `item def` – [ItemDefinition](../../sysml2/elements/ItemDefinition.md); the parameters are [ItemUsage](../../sysml2/elements/ItemUsage.md) features.
-- `flow from a to b` – an item flow between features (a [FlowUsage](../../sysml2/elements/FlowUsage.md) / flow connection).
+- `action def { in …; out … }` – [ActionDefinition](../../metamodel/elements/ActionDefinition.md); `in`/`out` are directed parameter features.
+- `action focus : Focus` – [ActionUsage](../../metamodel/elements/ActionUsage.md): a step typed by an action definition.
+- `item def` – [ItemDefinition](../../metamodel/elements/ItemDefinition.md); the parameters are [ItemUsage](../../metamodel/elements/ItemUsage.md) features.
+- `flow from a to b` – an item flow between features (a [FlowUsage](../../metamodel/elements/FlowUsage.md) / flow connection).
 - `bind x = y` – a binding connector equating two features.
 
 ## Source

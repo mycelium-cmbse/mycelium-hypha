@@ -29,11 +29,11 @@ package 'Package Example' {
 
 ## Constructs & elements
 
-- `package … { }` – [Package](../../sysml2/elements/Package.md): a namespace that owns its members.
-- `public import X::Y` – [MembershipImport](../../sysml2/elements/MembershipImport.md): import a single named member.
-- `private import X::*` – [NamespaceImport](../../sysml2/elements/NamespaceImport.md): import all members of a namespace; `public`/`private` set the import's visibility.
-- `part def` – [PartDefinition](../../sysml2/elements/PartDefinition.md).
-- `alias C for Automobile` – an aliasing [Membership](../../sysml2/elements/Membership.md): a second name for an existing member.
+- `package … { }` – [Package](../../metamodel/elements/Package.md): a namespace that owns its members.
+- `public import X::Y` – [MembershipImport](../../metamodel/elements/MembershipImport.md): import a single named member.
+- `private import X::*` – [NamespaceImport](../../metamodel/elements/NamespaceImport.md): import all members of a namespace; `public`/`private` set the import's visibility.
+- `part def` – [PartDefinition](../../metamodel/elements/PartDefinition.md).
+- `alias C for Automobile` – an aliasing [Membership](../../metamodel/elements/Membership.md): a second name for an existing member.
 
 ## Source
 

@@ -17,7 +17,7 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     /// <summary>
-    /// Golden-file tests for the JSON sidecar. The committed <c>knowledge/sysml2/metamodel.json</c>
+    /// Golden-file tests for the JSON sidecar. The committed <c>knowledge/metamodel/metamodel.json</c>
     /// and <c>index.json</c> ARE the golden files (regenerated in-memory and compared), so the large
     /// rich graph is not duplicated under <c>Expected/</c>.
     /// </summary>

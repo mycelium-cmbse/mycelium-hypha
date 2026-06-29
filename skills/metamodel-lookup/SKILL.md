@@ -14,10 +14,10 @@ KerML and SysML v2 are **combined** in one tree (the SysML v2 model is generated
 KerML + SysML metamodel, so KerML metaclasses such as `Feature`, `Element` and `Membership` live
 here too):
 
-- `knowledge/sysml2/index.md` — manifest: every metaclass grouped by package, plus
+- `knowledge/metamodel/index.md` — manifest: every metaclass grouped by package, plus
   `## Enumeration types` and `## Primitive types` sections. Each entry links to its element file
   and carries a one-line summary.
-- `knowledge/sysml2/elements/<Name>.md` — one file per element. This includes metaclasses,
+- `knowledge/metamodel/elements/<Name>.md` — one file per element. This includes metaclasses,
   enumerations (`kind: enumeration`) and primitive types (`kind: primitive`).
 
 ## Element file anatomy
@@ -42,8 +42,8 @@ documentation.
 
 ## Procedure
 
-1. Resolve the element name in `knowledge/sysml2/index.md` (or `Grep` `knowledge/sysml2/elements/`).
-2. Read `knowledge/sysml2/elements/<Name>.md`. Owned features are in **## Owned features**; for the
+1. Resolve the element name in `knowledge/metamodel/index.md` (or `Grep` `knowledge/metamodel/elements/`).
+2. Read `knowledge/metamodel/elements/<Name>.md`. Owned features are in **## Owned features**; for the
    full inherited set read the **## Inherited features** table (the `Owner` column says where each
    comes from).
 3. Report the metaclass, abstractness, supertypes/subtypes, and the relevant features (name, type,

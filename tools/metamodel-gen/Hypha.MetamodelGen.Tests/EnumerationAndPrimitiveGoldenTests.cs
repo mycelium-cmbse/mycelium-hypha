@@ -21,7 +21,7 @@ namespace Hypha.MetamodelGen.Tests
     /// <summary>
     /// Golden-file tests for the enumeration and primitive-type element files. Every enumeration and
     /// primitive type in the model is compared byte-for-byte against a committed expected file under
-    /// <c>Expected/sysml2/elements/</c>.
+    /// <c>Expected/metamodel/elements/</c>.
     /// </summary>
     [TestFixture]
     public class EnumerationAndPrimitiveGoldenTests
@@ -89,7 +89,7 @@ namespace Hypha.MetamodelGen.Tests
 
             var expectedDirectory = Path.Combine(
                 TestModel.FindRepoRoot()!.FullName,
-                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "sysml2", "elements");
+                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "metamodel", "elements");
 
             Directory.CreateDirectory(expectedDirectory);
 
@@ -115,7 +115,7 @@ namespace Hypha.MetamodelGen.Tests
         private static void AssertMatchesExpected(string name, string generated)
         {
             var expectedPath = Path.Combine(
-                TestContext.CurrentContext.TestDirectory, "Expected", "sysml2", "elements", $"{name}.md");
+                TestContext.CurrentContext.TestDirectory, "Expected", "metamodel", "elements", $"{name}.md");
 
             Assert.That(File.Exists(expectedPath), Is.True, $"Missing expected golden file: {expectedPath}");
 

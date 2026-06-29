@@ -27,7 +27,7 @@ part def Vehicle {
 }
 ```
 
-**Reference:** [Redefinition](../../../sysml2/elements/Redefinition.md) – `redefinedFeature` is `[1..1]`
+**Reference:** [Redefinition](../../../metamodel/elements/Redefinition.md) – `redefinedFeature` is `[1..1]`
 (the redefinition must resolve to an actual Feature), and `validateRedefinitionFeaturingTypes` requires
 the redefining feature to sit on a featuringType the redefined one does not (i.e. there must be a
 supertype to redefine through).

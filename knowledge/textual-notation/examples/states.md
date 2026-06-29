@@ -52,11 +52,11 @@ package 'State Definition Example-1' {
 
 ## Constructs & elements
 
-- `state def { … }` – [StateDefinition](../../sysml2/elements/StateDefinition.md): a definition of behavior as states and transitions.
-- `state off` – [StateUsage](../../sysml2/elements/StateUsage.md): a state of the definition.
+- `state def { … }` – [StateDefinition](../../metamodel/elements/StateDefinition.md): a definition of behavior as states and transitions.
+- `state off` – [StateUsage](../../metamodel/elements/StateUsage.md): a state of the definition.
 - `first start then off` – the initial succession into the first state.
-- `transition … first … accept … then …` – [TransitionUsage](../../sysml2/elements/TransitionUsage.md): a triggered transition between states.
-- `accept VehicleStartSignal` – an [AcceptActionUsage](../../sysml2/elements/AcceptActionUsage.md): the transition's trigger.
+- `transition … first … accept … then …` – [TransitionUsage](../../metamodel/elements/TransitionUsage.md): a triggered transition between states.
+- `accept VehicleStartSignal` – an [AcceptActionUsage](../../metamodel/elements/AcceptActionUsage.md): the transition's trigger.
 
 ## Source
 

@@ -12,9 +12,9 @@ the calling agent never has to load all those files into its own context.
 
 KerML and SysML v2 are **combined** under one tree:
 
-- `knowledge/sysml2/elements/<Name>.md` — one file per element: metaclasses, enumerations
+- `knowledge/metamodel/elements/<Name>.md` — one file per element: metaclasses, enumerations
   (`kind: enumeration`) and primitive types (`kind: primitive`).
-- `knowledge/sysml2/index.md` — manifest: metaclasses by package, plus `## Enumeration types` and
+- `knowledge/metamodel/index.md` — manifest: metaclasses by package, plus `## Enumeration types` and
   `## Primitive types` sections, each entry linked.
 
 Each element file carries: front matter (`name`, `package`, `fully qualified name`, `isAbstract`,
@@ -27,7 +27,7 @@ inherited set with each feature's declaring `Owner` — read it directly, never 
 ## How to work
 
 1. **Cast the net with `Grep`/`Glob`**, not by reading files one by one. To find every metaclass
-   with a feature typed by `Expression`, grep `knowledge/sysml2/elements/` for `Expression`; to
+   with a feature typed by `Expression`, grep `knowledge/metamodel/elements/` for `Expression`; to
    compare metaclasses, read just the relevant files. Use the index to enumerate or group elements.
 2. `Read` only the files the question needs, and only the sections it needs (owned vs inherited table
    vs constraints). Follow `[Type](Type.md)` links when a related element matters.
@@ -38,5 +38,5 @@ inherited set with each feature's declaring `Owner` — read it directly, never 
 ## Output
 
 Return a compact, structured result — the elements and the specific facts asked for (names, types,
-multiplicities, modifiers, owners, constraints) — each traceable to the `knowledge/sysml2/elements/`
+multiplicities, modifiers, owners, constraints) — each traceable to the `knowledge/metamodel/elements/`
 file it came from. Minimal prose; this is consumed by the calling agent, not shown to a user.

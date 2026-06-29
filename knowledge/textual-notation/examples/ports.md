@@ -46,11 +46,11 @@ package 'Port Example' {
 
 ## Constructs & elements
 
-- `port def { … }` – [PortDefinition](../../sysml2/elements/PortDefinition.md): a definition of a connection point.
-- `port fuelTankPort : FuelOutPort` – [PortUsage](../../sysml2/elements/PortUsage.md): a port feature on a part.
-- `in item` / `out item` – directed [ItemUsage](../../sysml2/elements/ItemUsage.md) features; the `in`/`out` direction flips on a conjugated port.
-- `attribute x : T` – [AttributeUsage](../../sysml2/elements/AttributeUsage.md).
-- `attribute def`, `part def` – [AttributeDefinition](../../sysml2/elements/AttributeDefinition.md), [PartDefinition](../../sysml2/elements/PartDefinition.md).
+- `port def { … }` – [PortDefinition](../../metamodel/elements/PortDefinition.md): a definition of a connection point.
+- `port fuelTankPort : FuelOutPort` – [PortUsage](../../metamodel/elements/PortUsage.md): a port feature on a part.
+- `in item` / `out item` – directed [ItemUsage](../../metamodel/elements/ItemUsage.md) features; the `in`/`out` direction flips on a conjugated port.
+- `attribute x : T` – [AttributeUsage](../../metamodel/elements/AttributeUsage.md).
+- `attribute def`, `part def` – [AttributeDefinition](../../metamodel/elements/AttributeDefinition.md), [PartDefinition](../../metamodel/elements/PartDefinition.md).
 
 ## Source
 
