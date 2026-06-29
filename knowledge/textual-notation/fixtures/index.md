@@ -6,6 +6,8 @@ validator should produce. **Valid** fixtures must yield no findings; each **inva
 the finding(s) that should be reported (location, violated rule, why, a corrected snippet, and a
 knowledge-base reference).
 
+A [dry-run report](dry-run.md) records the latest end-to-end check of the validator against this suite.
+
 ## Valid (expected: no findings)
 
 Use the known-valid real models (EPL-2.0) already in the knowledge base as the "should pass" set,
