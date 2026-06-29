@@ -19,23 +19,23 @@ namespaces with visibility, and defining aliases.
 package 'Package Example' {
 	public import ISQ::TorqueValue;
 	private import ScalarValues::*;
-
+	 
 	private part def Automobile;
-
-	public alias Car for Automobile;
+	
+	public alias Car for Automobile;	                         
 	alias Torque for ISQ::TorqueValue;
 }
 ```
 
 ## Constructs & elements
 
-- `package … { }` — [Package](../../sysml2/elements/Package.md): a namespace that owns its members.
-- `public import X::Y` — [MembershipImport](../../sysml2/elements/MembershipImport.md): import a single named member.
-- `private import X::*` — [NamespaceImport](../../sysml2/elements/NamespaceImport.md): import all members of a namespace; `public`/`private` set the import's visibility.
-- `part def` — [PartDefinition](../../sysml2/elements/PartDefinition.md).
-- `alias C for Automobile` — an aliasing [Membership](../../sysml2/elements/Membership.md): a second name for an existing member.
+- `package … { }` – [Package](../../sysml2/elements/Package.md): a namespace that owns its members.
+- `public import X::Y` – [MembershipImport](../../sysml2/elements/MembershipImport.md): import a single named member.
+- `private import X::*` – [NamespaceImport](../../sysml2/elements/NamespaceImport.md): import all members of a namespace; `public`/`private` set the import's visibility.
+- `part def` – [PartDefinition](../../sysml2/elements/PartDefinition.md).
+- `alias C for Automobile` – an aliasing [Membership](../../sysml2/elements/Membership.md): a second name for an existing member.
 
 ## Source
 
-`sources/textual/sysml/training/01. Packages/Package Example.sysml` — from
+`sources/textual/sysml/training/01. Packages/Package Example.sysml` – from
 Systems-Modeling/SysML-v2-Release (EPL-2.0); see [NOTICE](../../../NOTICE).

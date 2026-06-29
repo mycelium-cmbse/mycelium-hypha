@@ -22,7 +22,7 @@ see [NOTICE](../../NOTICE)).
 | [Constraints](examples/constraints.md) | `constraint def`, `constraint`, parameters, Boolean expression |
 | [Requirements](examples/requirements.md) | `requirement def`, `subject`, `require`/`assume constraint`, `doc` |
 
-## More constructs — reference models
+## More constructs – reference models
 
 Concepts without a dedicated worked example above are covered by these existing, committed model
 files under `sources/textual/` (real, valid notation from the SysML v2 release set, EPL-2.0). Each is

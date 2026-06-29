@@ -17,7 +17,7 @@ multiplicities, and both named and inline connections.
 
 ```sysml
 package 'Connections Example' {
-
+	
 	part def WheelHubAssembly;
 	part def WheelAssembly;
 	part def Tire;
@@ -28,27 +28,27 @@ package 'Connections Example' {
 	part def Hub;
 	part def LugBoltThreadableHole;
 	part def LugBoltJoint;
-
+	
 	connection def PressureSeat {
 		end [1] part bead : TireBead;
 		end [1] part mountingRim : TireMountingRim;
 	}
-
+	
 	part wheelHubAssembly : WheelHubAssembly {
-
+		
 		part wheel : WheelAssembly[1] {
 			part t : Tire[1] {
-				part bead : TireBead[2];
+				part bead : TireBead[2];			
 			}
 			part w: Wheel[1] {
 				part rim : TireMountingRim[2];
 				part mountingHoles : LugBoltMountingHole[5];
-			}
-			connection : PressureSeat
-				connect bead references t.bead
-				to mountingRim references w.rim;
+			}						
+			connection : PressureSeat 
+				connect bead references t.bead 
+				to mountingRim references w.rim;		
 		}
-
+		
 		part lugBoltJoints : LugBoltJoint[0..5];
 		part hub : Hub[1] {
 			part h : LugBoltThreadableHole[5];
@@ -56,18 +56,19 @@ package 'Connections Example' {
 		connect [0..1] lugBoltJoints to [1] wheel.w.mountingHoles;
 		connect [0..1] lugBoltJoints to [1] hub.h;
 	}
+	
 }
 ```
 
 ## Constructs & elements
 
-- `connection def { end … }` — [ConnectionDefinition](../../sysml2/elements/ConnectionDefinition.md): a definition relating two or more ends.
-- `end [1] part bead : TireBead` — a connection end, a [PartUsage](../../sysml2/elements/PartUsage.md) playing the role of an end.
-- `connection : PressureSeat connect … to …` — a named [ConnectionUsage](../../sysml2/elements/ConnectionUsage.md) typed by the definition.
-- `connect [m] a to [n] b` — an inline `ConnectionUsage` with end multiplicities.
-- `part x : T[mult]` — [PartUsage](../../sysml2/elements/PartUsage.md) with a multiplicity.
+- `connection def { end … }` – [ConnectionDefinition](../../sysml2/elements/ConnectionDefinition.md): a definition relating two or more ends.
+- `end [1] part bead : TireBead` – a connection end, a [PartUsage](../../sysml2/elements/PartUsage.md) playing the role of an end.
+- `connection : PressureSeat connect … to …` – a named [ConnectionUsage](../../sysml2/elements/ConnectionUsage.md) typed by the definition.
+- `connect [m] a to [n] b` – an inline `ConnectionUsage` with end multiplicities.
+- `part x : T[mult]` – [PartUsage](../../sysml2/elements/PartUsage.md) with a multiplicity.
 
 ## Source
 
-`sources/textual/sysml/training/09. Connections/Connections Example.sysml` — from
+`sources/textual/sysml/training/09. Connections/Connections Example.sysml` – from
 Systems-Modeling/SysML-v2-Release (EPL-2.0); see [NOTICE](../../../NOTICE).
