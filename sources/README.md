@@ -2,10 +2,10 @@
 
 Raw, unprocessed inputs to the generation pipelines.
 
-- **`xmi/` is committed** — the XMI / UML metamodel files are version-controlled so the
-  `metamodel-gen` tests are reproducible.
-- **`specs/` and `textual/` are git-ignored** (see the repository `.gitignore`) and must be
-  obtained separately; only this README and `.gitkeep` placeholders are tracked there.
+- **`xmi/` and `textual/` are committed** — the EPL-2.0 metamodel XMI and the textual-notation
+  grammar/example models are version-controlled so the pipelines are reproducible.
+- **`specs/` is git-ignored** (the OMG PDF specifications are copyrighted — see the repository
+  `.gitignore`) and must be obtained separately; only this README and a `.gitkeep` are tracked there.
 
 > ⚠️ The OMG PDF specifications are copyrighted. Do **not** commit them to this repository.
 
@@ -37,8 +37,9 @@ See **Provenance** below for exact commits.
 - From `doc/` in the release repo: KerML 1.0, SysML v2 (Parts 1–2), Systems Modeling API & Services 1.0.
 - Drop the PDFs here. (Kept out of git for copyright reasons.)
 
-### `textual/` — textual-notation material (→ `knowledge/textual-notation`)
-- Grammar from `bnf/`, and textual examples from `kerml/` and `sysml/` in the release repo.
+### `textual/` — textual-notation material (→ `knowledge/textual-notation`) — committed
+- Grammar (`bnf/*.kebnf`, `*.kgbnf`) and example models (`kerml/`, `sysml/`) from the release repo,
+  committed (EPL-2.0) so the textual-notation knowledge base is reproducible.
 
 ## Provenance
 
@@ -50,6 +51,9 @@ specific specification version. There are two upstreams:
 >
 > **PDFs** — [`Systems-Modeling/SysML-v2-Release`](https://github.com/Systems-Modeling/SysML-v2-Release)
 > @ commit `cd99f7ca70b96abb38f09dfd25725e3cf259baa3` (OMG-copyrighted; not committed)
+>
+> **Textual** — [`Systems-Modeling/SysML-v2-Release`](https://github.com/Systems-Modeling/SysML-v2-Release)
+> @ commit `9baca5908ca28b53da085de69336fde48420ea8f` (EPL-2.0)
 
 | Input | File(s) | Version | OMG document | Upstream / License |
 | --- | --- | --- | --- | --- |
@@ -59,8 +63,10 @@ specific specification version. There are two upstreams:
 | KerML spec PDF | `specs/1-Kernel_Modeling_Language.pdf` | 1.0 | `formal/26-03-01` | Release, OMG (not committed) |
 | SysML spec PDF | `specs/2a-OMG_Systems_Modeling_Language.pdf` | 2.0 | `formal/26-03-02` | Release, OMG (not committed) |
 | API & Services PDF | `specs/3-Systems_Modeling_API_and_Services.pdf` | 1.0 | `formal/26-03-04` | Release, OMG (not committed) |
+| Textual grammar | `textual/bnf/*.kebnf`, `*.kgbnf` | — | — | Release, EPL-2.0 |
+| Textual examples | `textual/kerml/`, `textual/sysml/` | — | — | Release, EPL-2.0 |
 
-The XMI is EPL-2.0 and committed; the OMG PDFs are copyrighted and git-ignored (the OMG license
-forbids redistributing them — see the repository [NOTICE](../NOTICE) for the full attribution and
-license terms). When updating any input, bump the relevant upstream commit above and the affected
-version/document numbers.
+The XMI and textual sources are EPL-2.0 and committed; the OMG PDFs are copyrighted and git-ignored
+(the OMG license forbids redistributing them — see the repository [NOTICE](../NOTICE) for the full
+attribution and license terms). When updating any input, bump the relevant upstream commit above and
+the affected version/document numbers.
