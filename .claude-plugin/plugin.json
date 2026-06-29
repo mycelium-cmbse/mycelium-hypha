@@ -18,5 +18,18 @@
     "omg",
     "metamodel",
     "systems-engineering"
-  ]
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/check-spec-pdfs.py\""
+          }
+        ]
+      }
+    ]
+  }
 }
