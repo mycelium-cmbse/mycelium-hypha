@@ -28,10 +28,14 @@ No false positives on the valid examples; no missed findings on the invalid ones
 - **Accuracy is sufficient on the suite** – the skill/agent procedure plus the metamodel + grammar
   knowledge base reproduce every expected finding, with correct locations and fixes. No correctness
   tuning was required.
-- **Grounding can be tighter than the fixtures** – the validator located the actual OCL constraints in
-  the element files (e.g. `validatePartUsagePartDefinition`, `validateRedefinitionFeaturingTypes`,
-  `redefinedFeature [1..1]`). *Future enhancement:* cite those specific constraint names in the invalid
-  fixtures' **Reference** lines for even tighter expectations.
+- **Grounding tightened (#51)** – the fixtures now cite the specific constraint or element member where
+  one genuinely matches: `redefines-nonexistent` → `validateRedefinitionFeaturingTypes` and
+  `redefinedFeature [1..1]` on [Redefinition]. The remaining rules have **no dedicated named OCL
+  constraint** in the metamodel and are grounded in the relevant element member instead:
+  `bad-multiplicity` → MultiplicityRange `lowerBound`/`upperBound`; `typing-with-equals` → `FeatureValue`
+  + PartUsage `partDefinition`; `duplicate-member-name` → Namespace member distinguishability. (Note: an
+  earlier draft of this report referenced a `validatePartUsagePartDefinition` constraint that does not
+  exist – PartUsage carries `checkPartUsage*Specialization` constraints instead.)
 - **Structural rulings are reasoned, not parser-definitive** – `redefines-nonexistent` and
   `duplicate-member-name` are resolved from the snippet's scope, not by a parser. The validator flagged
   this explicitly, consistent with the skill's "not a full compiler" limit. Keep framing such findings
