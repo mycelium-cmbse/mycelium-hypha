@@ -32,7 +32,7 @@ A CaseUsage is a Usage of a CaseDefinition.
 
 The parameters of this CaseUsage that represent actors involved in the case.
 
-Subsets [parameter](Step.md#parameter)
+Subsets [parameter](Step.md#parameter), [usage](Usage.md#usage)
 
 ### caseDefinition
 
@@ -56,7 +56,7 @@ Subsets [usage](Usage.md#usage)
 
 The parameter of this CaseUsage that represents its subject.
 
-Subsets [parameter](Step.md#parameter)
+Subsets [parameter](Step.md#parameter), [usage](Usage.md#usage)
 
 
 ## Inherited features

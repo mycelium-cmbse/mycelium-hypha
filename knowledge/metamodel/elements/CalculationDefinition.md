@@ -31,7 +31,7 @@ A CalculationDefinition is an <coed>ActionDefinition that also defines a Functio
 
 The actions of this CalculationDefinition that are CalculationUsages.
 
-Subsets [expression](Function.md#expression)
+Subsets [action](ActionDefinition.md#action), [expression](Function.md#expression)
 
 
 ## Inherited features

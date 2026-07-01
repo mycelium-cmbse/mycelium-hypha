@@ -31,7 +31,7 @@ A RequirementDefinition is a ConstraintDefinition that defines a requirement use
 
 The parameters of this RequirementDefinition that represent actors involved in the requirement.
 
-Subsets [parameter](Behavior.md#parameter)
+Subsets [parameter](Behavior.md#parameter), [usage](Definition.md#usage)
 
 ### assumedConstraint
 
@@ -71,7 +71,7 @@ Subsets [ownedFeature](Type.md#ownedfeature)
 
 The parameters of this RequirementDefinition that represent stakeholders for the requirement.
 
-Subsets [parameter](Behavior.md#parameter)
+Subsets [parameter](Behavior.md#parameter), [usage](Definition.md#usage)
 
 ### subjectParameter
 
@@ -79,7 +79,7 @@ Subsets [parameter](Behavior.md#parameter)
 
 The parameter of this RequirementDefinition that represents its subject.
 
-Subsets [parameter](Behavior.md#parameter)
+Subsets [parameter](Behavior.md#parameter), [usage](Definition.md#usage)
 
 ### text
 

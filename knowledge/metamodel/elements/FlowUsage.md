@@ -32,7 +32,7 @@ A FlowUsage is an ActionUsage that is also a ConnectorAsUsage and a KerML Flow.
 
 The Interactions that are the types of this FlowUsage. Nominally, these are FlowDefinitions, but other kinds of Kernel Interactions are also allowed, to permit use of Interactions from the Kernel Model Libraries.
 
-Redefines [interaction](Flow.md#interaction)
+Redefines [actionDefinition](ActionUsage.md#actiondefinition), [interaction](Flow.md#interaction)
 
 
 ## Inherited features

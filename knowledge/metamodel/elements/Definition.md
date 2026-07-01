@@ -31,7 +31,7 @@ A Definition is a Classifier of Usages. The actual kinds of Definition that may 
 
 The usages of this Definition that are directedFeatures.
 
-Subsets [directedFeature](Type.md#directedfeature)
+Subsets [directedFeature](Type.md#directedfeature), [usage](#usage)
 
 ### isVariation
 
@@ -221,7 +221,7 @@ Subsets [ownedUsage](#ownedusage)
 
 The Usages that are ownedFeatures of this Definition.
 
-Subsets [ownedFeature](Type.md#ownedfeature)
+Subsets [ownedFeature](Type.md#ownedfeature), [usage](#usage)
 
 ### ownedUseCase
 

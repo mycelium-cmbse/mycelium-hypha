@@ -41,7 +41,7 @@ Redefines [type](Feature.md#type)
 
 The usages of this Usage that are directedFeatures.
 
-Subsets [directedFeature](Type.md#directedfeature)
+Subsets [directedFeature](Type.md#directedfeature), [usage](#usage)
 
 ### isReference
 
@@ -245,7 +245,7 @@ Subsets [nestedUsage](#nestedusage)
 
 The Usages that are ownedFeatures of this Usage.
 
-Subsets [ownedFeature](Type.md#ownedfeature)
+Subsets [ownedFeature](Type.md#ownedfeature), [usage](#usage)
 
 ### nestedUseCase
 
@@ -285,7 +285,7 @@ Subsets [nestedRequirement](#nestedrequirement)
 
 The Definition that owns this Usage (if any).
 
-Subsets [owningType](Feature.md#owningtype)
+Subsets [owningType](Feature.md#owningtype), `featuringDefinition`
 
 ### owningUsage
 

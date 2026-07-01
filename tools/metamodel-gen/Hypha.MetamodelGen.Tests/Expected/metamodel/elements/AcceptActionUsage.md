@@ -32,7 +32,7 @@ An Expression whose result is bound to the payload parameter of this AcceptActio
 
 The nestedReference of this AcceptActionUsage that redefines the payload output parameter of the base AcceptActionUsage AcceptAction from the Systems Model Library.
 
-Subsets [parameter](Step.md#parameter)
+Subsets [nestedReference](Usage.md#nestedreference), [parameter](Step.md#parameter)
 
 ### receiverArgument
 
