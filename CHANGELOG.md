@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-01
+
 ### Changed
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) `8.1.2` → `8.2.1`,
   which reads the previously-missing subsetting information from the XMI. Regenerated the metamodel
   knowledge base accordingly (`knowledge/metamodel/`): several element files and `metamodel.json`
   now carry the complete `Subsets` sets (`fixes #62`).
+- Interesting-metaclass selection (used for the generator golden fixtures) now folds in operation
+  argument/return-type variations, broadening test coverage (`fixes #63`).
 
 ## [1.0.0] - 2026-06-29
 

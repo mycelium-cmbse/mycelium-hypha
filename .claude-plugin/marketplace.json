@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "The Mycelium ecosystem marketplace — Claude plugins for model-based systems engineering.",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "plugins": [
     {
@@ -14,7 +14,7 @@
       "source": {
         "source": "github",
         "repo": "mycelium-cmbse/mycelium-hypha",
-        "ref": "v1.0.0"
+        "ref": "v1.1.0"
       },
       "description": "SysML v2 agent: KerML/SysML v2 metamodel lookup, normative spec citation, and textual-notation validation."
     }

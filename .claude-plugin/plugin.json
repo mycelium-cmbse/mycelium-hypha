@@ -1,7 +1,7 @@
 {
   "name": "hypha",
   "displayName": "Hypha — SysML v2 Agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Hypha is the AI agent of the Mycelium ecosystem: a connecting filament between engineers and the SysML v2 specification. Provides skills and subagents for KerML/SysML v2 metamodel lookup, normative spec citation, and SysML v2 textual-notation validation.",
   "author": {
     "name": "Starion Group S.A.",
