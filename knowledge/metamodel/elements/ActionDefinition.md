@@ -33,7 +33,7 @@ An ActionDefinition is a Definition that is also a Behavior that defines an Acti
 
 The ActionUsages that are steps in this ActionDefinition, which define the actions that specify the behavior of the ActionDefinition.
 
-Subsets [step](Behavior.md#step)
+Subsets [step](Behavior.md#step), [usage](Definition.md#usage)
 
 
 ## Inherited features

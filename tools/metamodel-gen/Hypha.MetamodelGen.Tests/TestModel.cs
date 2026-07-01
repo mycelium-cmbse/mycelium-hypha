@@ -112,7 +112,7 @@ namespace Hypha.MetamodelGen.Tests
             var inspector = new ModelInspector(NullLoggerFactory.Instance);
 
             return model.Packages
-                .SelectMany(inspector.QueryInterestingClasses)
+                .SelectMany(package => inspector.QueryInterestingClasses(package))
                 .DistinctBy(@class => @class.XmiId)
                 .OrderBy(@class => @class.Name, StringComparer.Ordinal)
                 .ToList();

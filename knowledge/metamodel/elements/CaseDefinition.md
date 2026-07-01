@@ -32,7 +32,7 @@ A CaseDefinition is a CalculationDefinition for a process, often involving colle
 
 The parameters of this CaseDefinition that represent actors involved in the case.
 
-Subsets [parameter](Behavior.md#parameter)
+Subsets [parameter](Behavior.md#parameter), [usage](Definition.md#usage)
 
 ### objectiveRequirement
 
@@ -48,7 +48,7 @@ Subsets [usage](Definition.md#usage)
 
 The parameter of this CaseDefinition that represents its subject.
 
-Subsets [parameter](Behavior.md#parameter)
+Subsets [parameter](Behavior.md#parameter), [usage](Definition.md#usage)
 
 
 ## Inherited features

@@ -27,7 +27,7 @@ A MetadataUsage is a Usage and a MetadataFeature, used to annotate other Element
 
 The MetadataDefinition that is the definition of this MetadataUsage.
 
-Redefines [metaclass](MetadataFeature.md#metaclass)
+Redefines [itemDefinition](ItemUsage.md#itemdefinition), [metaclass](MetadataFeature.md#metaclass)
 
 
 ## Inherited features

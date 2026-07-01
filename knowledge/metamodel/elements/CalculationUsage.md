@@ -31,7 +31,7 @@ A CalculationUsage is an ActionUsage that is also an Expression, and, so, is typ
 
 The <ode>Function that is the type of this CalculationUsage. Nominally, this would be a CalculationDefinition, but a kernel Function is also allowed, to permit use of Functions from the Kernel Model Libraries.</ode>
 
-Redefines [function](Expression.md#function)
+Redefines [function](Expression.md#function), [actionDefinition](ActionUsage.md#actiondefinition)
 
 
 ## Inherited features

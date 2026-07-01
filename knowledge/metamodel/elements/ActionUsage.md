@@ -42,7 +42,7 @@ An ActionUsage is a Usage that is also a Step, and, so, is typed by a Behavior. 
 
 The Behaviors that are the types of this ActionUsage. Nominally, these would be ActionDefinitions, but other kinds of Kernel Behaviors are also allowed, to permit use of Behaviors from the Kernel Model Libraries.
 
-Redefines [behavior](Step.md#behavior)
+Redefines [behavior](Step.md#behavior), [occurrenceDefinition](OccurrenceUsage.md#occurrencedefinition)
 
 
 ## Inherited features

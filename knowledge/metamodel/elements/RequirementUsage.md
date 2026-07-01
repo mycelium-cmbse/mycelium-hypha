@@ -32,7 +32,7 @@ A RequirementUsage is a Usage of a RequirementDefinition.
 
 The parameters of this RequirementUsage that represent actors involved in the requirement.
 
-Subsets [parameter](Step.md#parameter)
+Subsets [parameter](Step.md#parameter), [usage](Usage.md#usage)
 
 ### assumedConstraint
 
@@ -80,7 +80,7 @@ Redefines [constraintDefinition](ConstraintUsage.md#constraintdefinition)
 
 The parameters of this RequirementUsage that represent stakeholders for the requirement.
 
-Subsets [parameter](Step.md#parameter)
+Subsets [parameter](Step.md#parameter), [usage](Usage.md#usage)
 
 ### subjectParameter
 
@@ -88,7 +88,7 @@ Subsets [parameter](Step.md#parameter)
 
 The parameter of this RequirementUsage that represents its subject.
 
-Subsets [parameter](Step.md#parameter)
+Subsets [parameter](Step.md#parameter), [usage](Usage.md#usage)
 
 ### text
 
