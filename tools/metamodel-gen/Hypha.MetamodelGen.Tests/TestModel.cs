@@ -101,9 +101,10 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         /// <summary>
-        /// Returns the "interesting" metaclasses (the minimal set covering property/type variations,
-        /// concrete and abstract) as determined by uml4net's <see cref="ModelInspector"/>. The
-        /// expected metaclasses are derived from uml4net, never hard-coded.
+        /// Returns the "interesting" metaclasses (the minimal set covering property/type variations
+        /// as well as operation argument/return-type variations, concrete and abstract) as determined
+        /// by uml4net's <see cref="ModelInspector"/>. The expected metaclasses are derived from
+        /// uml4net, never hard-coded.
         /// </summary>
         public static IReadOnlyList<IClass> QueryInterestingMetaclasses(XmiReaderResult model)
         {
@@ -112,7 +113,7 @@ namespace Hypha.MetamodelGen.Tests
             var inspector = new ModelInspector(NullLoggerFactory.Instance);
 
             return model.Packages
-                .SelectMany(package => inspector.QueryInterestingClasses(package))
+                .SelectMany(package => inspector.QueryInterestingClasses(package, includeOperations: true))
                 .DistinctBy(@class => @class.XmiId)
                 .OrderBy(@class => @class.Name, StringComparer.Ordinal)
                 .ToList();
