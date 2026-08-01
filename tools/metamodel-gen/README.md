@@ -86,3 +86,4 @@ neither `jq` nor a shell.
 - [x] Generate the metamodel `index.md` (issue #2).
 - [x] Generate the per-metaclass element files, enumerations and primitive types (issue #3, #23).
 - [x] Emit the `metamodel.json` / `index.json` JSON sidecar (issue #27).
+- [x] Emit a Mermaid class diagram per package under `knowledge/metamodel/diagrams/` (issue #69).

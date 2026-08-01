@@ -16,6 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provenance tiers (`NORMATIVE` / `MODEL` / `DERIVED`) documented in the skills and the README, and
   carried in the data itself via the `provenanceTiers` block, so every cross-reference edge says how
   it was obtained.
+- `knowledge/metamodel/diagrams/<Package>.md`: a Mermaid class diagram per package (41 files),
+  generated from the XMI by the new `PackageDiagramGenerator` and linked from each package section of
+  `knowledge/metamodel/index.md`. Each diagram carries the package's metaclasses (abstract ones
+  marked), their generalizations, one-hop boundary nodes for supertypes owned elsewhere, and the
+  structural owned features (`fixes #69`).
+- Two rules keep those diagrams legible: derived features are omitted (computed views rather than
+  structure, and they outnumber the structural features roughly three to one), and only
+  metaclass-typed features become edges – primitive- and enumeration-typed ones are drawn inside the
+  class box, so `String` and `Boolean` never become hub nodes.
+
+### Fixed
+- Packages that share a name across the two metamodels (`KerML::Kernel::Metadata` and
+  `SysML::Systems::Metadata`) are merged into one diagram. Treating them separately wrote two files
+  to the same path, silently discarding one of them.
 
 ### Changed
 - `metamodel-lookup` and the `metamodel-navigator` subagent now query

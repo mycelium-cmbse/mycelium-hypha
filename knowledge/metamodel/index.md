@@ -6,6 +6,8 @@
 
 ## Actions
 
+[Class diagram](diagrams/Actions.md)
+
 - [AcceptActionUsage](elements/AcceptActionUsage.md) — An AcceptActionUsage is an ActionUsage that specifies the acceptance of an incomingTransfer from the Occurrence given by the result of its receiverArgument Expr…
 - [ActionDefinition](elements/ActionDefinition.md) — An ActionDefinition is a Definition that is also a Behavior that defines an Action performed by a system or part of a system.
 - [ActionUsage](elements/ActionUsage.md) — An ActionUsage is a Usage that is also a Step, and, so, is typed by a Behavior.
@@ -26,15 +28,21 @@
 
 ## Allocations
 
+[Class diagram](diagrams/Allocations.md)
+
 - [AllocationDefinition](elements/AllocationDefinition.md) — An AllocationDefinition is a ConnectionDefinition that specifies that some or all of the responsibility to realize the intent of the source is allocated to the…
 - [AllocationUsage](elements/AllocationUsage.md) — An AllocationUsage is a usage of an AllocationDefinition asserting the allocation of the source feature to the target feature.
 
 ## AnalysisCases
 
+[Class diagram](diagrams/AnalysisCases.md)
+
 - [AnalysisCaseDefinition](elements/AnalysisCaseDefinition.md) — An AnalysisCaseDefinition is a CaseDefinition for the case of carrying out an analysis.
 - [AnalysisCaseUsage](elements/AnalysisCaseUsage.md) — An AnalysisCaseUsage is a Usage of an AnalysisCaseDefinition.
 
 ## Annotations
+
+[Class diagram](diagrams/Annotations.md)
 
 - [AnnotatingElement](elements/AnnotatingElement.md) — An AnnotatingElement is an Element that provides additional description of or metadata on some other Element.
 - [Annotation](elements/Annotation.md) — An Annotation is a Relationship between an AnnotatingElement and the Element that is annotated by that AnnotatingElement.
@@ -44,15 +52,21 @@
 
 ## Associations
 
+[Class diagram](diagrams/Associations.md)
+
 - [Association](elements/Association.md) — An Association is a Relationship and a Classifier to enable classification of links between things (in the universe).
 - [AssociationStructure](elements/AssociationStructure.md) — An AssociationStructure is an Association that is also a Structure, classifying link objects that are both links and objects.
 
 ## Attributes
 
+[Class diagram](diagrams/Attributes.md)
+
 - [AttributeDefinition](elements/AttributeDefinition.md) — An AttributeDefinition is a Definition and a DataType of information about a quality or characteristic of a system or part of a system that has no independent i…
 - [AttributeUsage](elements/AttributeUsage.md) — An AttributeUsage is a Usage whose type is a DataType.
 
 ## Behaviors
+
+[Class diagram](diagrams/Behaviors.md)
 
 - [Behavior](elements/Behavior.md) — A Behavior coordinates occurrences of other Behaviors, as well as changes in objects.
 - [ParameterMembership](elements/ParameterMembership.md) — A ParameterMembership is a FeatureMembership that identifies its memberFeature as a parameter, which is always owned, and must have a direction.
@@ -60,10 +74,14 @@
 
 ## Calculations
 
+[Class diagram](diagrams/Calculations.md)
+
 - [CalculationDefinition](elements/CalculationDefinition.md) — A CalculationDefinition is an <coed>ActionDefinition that also defines a Function producing a result.</coed>
 - [CalculationUsage](elements/CalculationUsage.md) — A CalculationUsage is an ActionUsage that is also an Expression, and, so, is typed by a Function.
 
 ## Cases
+
+[Class diagram](diagrams/Cases.md)
 
 - [CaseDefinition](elements/CaseDefinition.md) — A CaseDefinition is a CalculationDefinition for a process, often involving collecting evidence or data, relative to a subject, possibly involving the collaborat…
 - [CaseUsage](elements/CaseUsage.md) — A CaseUsage is a Usage of a CaseDefinition.
@@ -71,14 +89,20 @@
 
 ## Classes
 
+[Class diagram](diagrams/Classes.md)
+
 - [Class](elements/Class.md) — A Class is a Classifier of things (in the universe) that can be distinguished without regard to how they are related to other things (via Features).
 
 ## Classifiers
+
+[Class diagram](diagrams/Classifiers.md)
 
 - [Classifier](elements/Classifier.md) — A Classifier is a Type that classifies:<ul> <li>Things (in the universe) regardless of how Features relate them.
 - [Subclassification](elements/Subclassification.md) — Subclassification is Specialization in which both the specific and general Types are Classifier.
 
 ## Connections
+
+[Class diagram](diagrams/Connections.md)
 
 - [BindingConnectorAsUsage](elements/BindingConnectorAsUsage.md) — A BindingConnectorAsUsage is both a BindingConnector and a ConnectorAsUsage.
 - [ConnectionDefinition](elements/ConnectionDefinition.md) — A ConnectionDefinition is a PartDefinition that is also an AssociationStructure.
@@ -88,11 +112,15 @@
 
 ## Connectors
 
+[Class diagram](diagrams/Connectors.md)
+
 - [BindingConnector](elements/BindingConnector.md) — A BindingConnector is a binary Connector that requires its relatedFeatures to identify the same things (have the same values).
 - [Connector](elements/Connector.md) — A Connector is a usage of Associations, with links restricted according to instances of the Type in which they are used (domain of the Connector).
 - [Succession](elements/Succession.md) — A Succession is a binary Connector that requires its relatedFeatures to happen separately in time.
 
 ## Constraints
+
+[Class diagram](diagrams/Constraints.md)
 
 - [AssertConstraintUsage](elements/AssertConstraintUsage.md) — An AssertConstraintUsage is a ConstraintUsage that is also an Invariant and, so, is asserted to be true (by default).
 - [ConstraintDefinition](elements/ConstraintDefinition.md) — A ConstraintDefinition is an OccurrenceDefinition that is also a Predicate that defines a constraint that may be asserted to hold on a system or part of a syste…
@@ -100,9 +128,13 @@
 
 ## DataTypes
 
+[Class diagram](diagrams/DataTypes.md)
+
 - [DataType](elements/DataType.md) — A DataType is a Classifier of things (in the universe) that can only be distinguished by how they are related to other things (via Features).
 
 ## DefinitionAndUsage
+
+[Class diagram](diagrams/DefinitionAndUsage.md)
 
 - [Definition](elements/Definition.md) — A Definition is a Classifier of Usages.
 - [ReferenceUsage](elements/ReferenceUsage.md) — A ReferenceUsage is a Usage that specifies a non-compositional (isComposite = false) reference to something.
@@ -111,19 +143,27 @@
 
 ## Dependencies
 
+[Class diagram](diagrams/Dependencies.md)
+
 - [Dependency](elements/Dependency.md) — A Dependency is a Relationship that indicates that one or more client Elements require one more supplier Elements for their complete specification.
 
 ## Elements
+
+[Class diagram](diagrams/Elements.md)
 
 - [Element](elements/Element.md) — An Element is a constituent of a model that is uniquely identified relative to all other Elements.
 - [Relationship](elements/Relationship.md) — A Relationship is an Element that relates other Element.
 
 ## Enumerations
 
+[Class diagram](diagrams/Enumerations.md)
+
 - [EnumerationDefinition](elements/EnumerationDefinition.md) — An EnumerationDefinition is an AttributeDefinition all of whose instances are given by an explicit list of enumeratedValues.
 - [EnumerationUsage](elements/EnumerationUsage.md) — An EnumerationUsage is an AttributeUsage whose attributeDefinition is an EnumerationDefinition.
 
 ## Expressions
+
+[Class diagram](diagrams/Expressions.md)
 
 - [CollectExpression](elements/CollectExpression.md) — A CollectExpression is an OperatorExpression whose operator is "collect", which resolves to the Function ControlFunctions::collect from the Kernel Functions Lib…
 - [ConstructorExpression](elements/ConstructorExpression.md) — A ConstructorExpression is an InstantiationExpression whose result specializes its instantiatedType, binding some or all of the features of the instantiatedType…
@@ -145,9 +185,13 @@
 
 ## FeatureValues
 
+[Class diagram](diagrams/FeatureValues.md)
+
 - [FeatureValue](elements/FeatureValue.md) — A FeatureValue is a Membership that identifies a particular member Expression that provides the value of the Feature that owns the FeatureValue.
 
 ## Features
+
+[Class diagram](diagrams/Features.md)
 
 - [CrossSubsetting](elements/CrossSubsetting.md) — CrossSubsetting is a kind of Subsetting for end Features, as identified by crossingFeature, to subset a chained Feature, identified by crossedFeature.
 - [EndFeatureMembership](elements/EndFeatureMembership.md) — EndFeatureMembership is a FeatureMembership that requires its memberFeature be owned and have isEnd = true.
@@ -162,11 +206,15 @@
 
 ## Flows
 
+[Class diagram](diagrams/Flows.md)
+
 - [FlowDefinition](elements/FlowDefinition.md) — A FlowDefinition is an ActionDefinition that is also an Interaction (which is both a KerML Behavior and Association), representing flows between Usages.
 - [FlowUsage](elements/FlowUsage.md) — A FlowUsage is an ActionUsage that is also a ConnectorAsUsage and a KerML Flow.
 - [SuccessionFlowUsage](elements/SuccessionFlowUsage.md) — A SuccessionFlowUsage is a FlowUsage that is also a KerML SuccessionFlow.
 
 ## Functions
+
+[Class diagram](diagrams/Functions.md)
 
 - [BooleanExpression](elements/BooleanExpression.md) — A BooleanExpression is a Boolean-valued Expression whose type is a Predicate.
 - [Expression](elements/Expression.md) — An Expression is a Step that is typed by a Function.
@@ -178,6 +226,8 @@
 
 ## Interactions
 
+[Class diagram](diagrams/Interactions.md)
+
 - [Flow](elements/Flow.md) — An Flow is a Step that represents the transfer of values from one Feature to another.
 - [FlowEnd](elements/FlowEnd.md) — A FlowEnd is a Feature that is one of the connectorEnds giving the source or target of a Flow.
 - [Interaction](elements/Interaction.md) — An Interaction is a Behavior that is also an Association, providing a context for multiple objects that have behaviors that impact one another.
@@ -186,29 +236,41 @@
 
 ## Interfaces
 
+[Class diagram](diagrams/Interfaces.md)
+
 - [InterfaceDefinition](elements/InterfaceDefinition.md) — An InterfaceDefinition is a ConnectionDefinition all of whose ends are PortUsages, defining an interface between elements that interact through such ports.
 - [InterfaceUsage](elements/InterfaceUsage.md) — An InterfaceUsage is a Usage of an InterfaceDefinition to represent an interface connecting parts of a system through specific ports.
 
 ## Items
+
+[Class diagram](diagrams/Items.md)
 
 - [ItemDefinition](elements/ItemDefinition.md) — An ItemDefinition is an OccurrenceDefinition of the Structure of things that may themselves be systems or parts of systems, but may also be things that are acte…
 - [ItemUsage](elements/ItemUsage.md) — An ItemUsage is an OccurrenceUsage whose definition is a Structure.
 
 ## Metadata
 
+[Class diagram](diagrams/Metadata.md)
+
 - [MetadataDefinition](elements/MetadataDefinition.md) — A MetadataDefinition is an ItemDefinition that is also a Metaclass.
 - [MetadataUsage](elements/MetadataUsage.md) — A MetadataUsage is a Usage and a MetadataFeature, used to annotate other Elements in a system model with metadata.
 
 ## Metadata
+
+[Class diagram](diagrams/Metadata.md)
 
 - [Metaclass](elements/Metaclass.md) — A Metaclass is a Structure used to type MetadataFeatures.
 - [MetadataFeature](elements/MetadataFeature.md) — A MetadataFeature is a Feature that is an AnnotatingElement used to annotate another Element with metadata.
 
 ## Multiplicities
 
+[Class diagram](diagrams/Multiplicities.md)
+
 - [MultiplicityRange](elements/MultiplicityRange.md) — A MultiplicityRange is a Multiplicity whose value is defined to be the (inclusive) range of natural numbers given by the result of a lowerBound Expression and t…
 
 ## Namespaces
+
+[Class diagram](diagrams/Namespaces.md)
 
 - [Import](elements/Import.md) — An Import is an Relationship between its importOwningNamespace and either a Membership (for a MembershipImport) or another Namespace (for a NamespaceImport), wh…
 - [Membership](elements/Membership.md) — A Membership is a Relationship between a Namespace and an Element that indicates the Element is a member of (i.e., is contained in) the Namespace.
@@ -219,11 +281,15 @@
 
 ## Occurrences
 
+[Class diagram](diagrams/Occurrences.md)
+
 - [EventOccurrenceUsage](elements/EventOccurrenceUsage.md) — An EventOccurrenceUsage is an OccurrenceUsage that represents another OccurrenceUsage occurring as a suboccurrence of the containing occurrence of the EventOccu…
 - [OccurrenceDefinition](elements/OccurrenceDefinition.md) — An OccurrenceDefinition is a Definition of a Class of individuals that have an independent life over time and potentially an extent over space.
 - [OccurrenceUsage](elements/OccurrenceUsage.md) — An OccurrenceUsage is a Usage whose types are all Classes.
 
 ## Packages
+
+[Class diagram](diagrams/Packages.md)
 
 - [ElementFilterMembership](elements/ElementFilterMembership.md) — ElementFilterMembership is a Membership between a Namespace and a model-level evaluable Boolean-valued Expression, asserting that imported members of the Namesp…
 - [LibraryPackage](elements/LibraryPackage.md) — A LibraryPackage is a Package that is the container for a model library.
@@ -231,10 +297,14 @@
 
 ## Parts
 
+[Class diagram](diagrams/Parts.md)
+
 - [PartDefinition](elements/PartDefinition.md) — A PartDefinition is an ItemDefinition of a Class of systems or parts of systems.
 - [PartUsage](elements/PartUsage.md) — A PartUsage is a usage of a PartDefinition to represent a system or a part of a system.
 
 ## Ports
+
+[Class diagram](diagrams/Ports.md)
 
 - [ConjugatedPortDefinition](elements/ConjugatedPortDefinition.md) — A ConjugatedPortDefinition is a PortDefinition that is a PortDefinition of its original PortDefinition.
 - [ConjugatedPortTyping](elements/ConjugatedPortTyping.md) — A ConjugatedPortTyping is a FeatureTyping whose type is a ConjugatedPortDefinition.
@@ -243,6 +313,8 @@
 - [PortUsage](elements/PortUsage.md) — A PortUsage is a usage of a PortDefinition.
 
 ## Requirements
+
+[Class diagram](diagrams/Requirements.md)
 
 - [ActorMembership](elements/ActorMembership.md) — An ActorMembership is a ParameterMembership that identifies a PartUsage as an actor parameter, which specifies a role played by an external entity in interactio…
 - [ConcernDefinition](elements/ConcernDefinition.md) — A ConcernDefinition is a RequirementDefinition that one or more stakeholders may be interested in having addressed.
@@ -257,6 +329,8 @@
 
 ## States
 
+[Class diagram](diagrams/States.md)
+
 - [ExhibitStateUsage](elements/ExhibitStateUsage.md) — An ExhibitStateUsage is a StateUsage that represents the exhibiting of a StateUsage.
 - [StateDefinition](elements/StateDefinition.md) — A StateDefinition is the Definition of the Behavior of a system or part of a system in a certain state condition.A StateDefinition may be related to up to three…
 - [StateSubactionMembership](elements/StateSubactionMembership.md) — A StateSubactionMembership is a FeatureMembership for an entry, do or exit ActionUsage of a StateDefinition or StateUsage.
@@ -266,9 +340,13 @@
 
 ## Structures
 
+[Class diagram](diagrams/Structures.md)
+
 - [Structure](elements/Structure.md) — A Structure is a Class of objects in the modeled universe that are primarily structural in nature.
 
 ## Types
+
+[Class diagram](diagrams/Types.md)
 
 - [Conjugation](elements/Conjugation.md) — Conjugation is a Relationship between two types in which the conjugatedType inherits all the Features of the originalType, but with all input and output Feature…
 - [Differencing](elements/Differencing.md) — Differencing is a Relationship that makes its differencingType one of the differencingTypes of its typeDifferenced.
@@ -282,17 +360,23 @@
 
 ## UseCases
 
+[Class diagram](diagrams/UseCases.md)
+
 - [IncludeUseCaseUsage](elements/IncludeUseCaseUsage.md) — An IncludeUseCaseUsage is a UseCaseUsage that represents the inclusion of a UseCaseUsage by a UseCaseDefinition or UseCaseUsage.
 - [UseCaseDefinition](elements/UseCaseDefinition.md) — A UseCaseDefinition is a CaseDefinition that specifies a set of actions performed by its subject, in interaction with one or more actors external to the subject…
 - [UseCaseUsage](elements/UseCaseUsage.md) — A UseCaseUsage is a Usage of a UseCaseDefinition.
 
 ## VerificationCases
 
+[Class diagram](diagrams/VerificationCases.md)
+
 - [RequirementVerificationMembership](elements/RequirementVerificationMembership.md) — A RequirementVerificationMembership is a RequirementConstraintMembership used in the objective of a VerificationCase to identify a RequirementUsage that is veri…
 - [VerificationCaseDefinition](elements/VerificationCaseDefinition.md) — A VerificationCaseDefinition is a CaseDefinition for the purpose of verification of the subject of the case against its requirements.
 - [VerificationCaseUsage](elements/VerificationCaseUsage.md) — A VerificationCaseUsage is a Usage of a VerificationCaseDefinition.
 
 ## Views
+
+[Class diagram](diagrams/Views.md)
 
 - [Expose](elements/Expose.md) — An Expose is an Import of Memberships into a ViewUsage that provide the Elements to be included in a view.
 - [MembershipExpose](elements/MembershipExpose.md) — A MembershipExpose is an Expose <> that exposes a specific importedMembership and, if isRecursive = true, additional Memberships recursively.

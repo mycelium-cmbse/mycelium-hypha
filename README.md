@@ -26,8 +26,9 @@ mycelium-hypha/
 ├── agents/                 Subagents (metamodel-navigator, spec-citation, sysml-validator)
 │
 ├── knowledge/              Knowledge base the plugin reads
-│   ├── metamodel/          Combined KerML + SysML v2 metamodel: one file per element, + index.json
-│   │                       and metamodel.json (the structural graph)       (committed)
+│   ├── metamodel/          Combined KerML + SysML v2 metamodel: one file per element, + index.json,
+│   │                       metamodel.json (the structural graph) and
+│   │                       diagrams/ (a Mermaid class diagram per package)  (committed)
 │   ├── spec/               Per-clause specification text                  (generated locally, git-ignored)
 │   ├── textual-notation/   Grammar summary, worked examples, fixtures      (committed)
 │   └── cross-references.json  Element → clause id, grammar production, example   (committed)
