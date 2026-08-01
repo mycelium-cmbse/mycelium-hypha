@@ -93,14 +93,13 @@ Use it to point at the governing clause or a worked example after answering a st
 
 ## Provenance
 
-Every fact you report belongs to one of four tiers — say which when it matters, and never blur them:
+Every fact you report belongs to one of three tiers — say which when it matters, and never blur them:
 
 | Tier | Means | Where it comes from |
 | --- | --- | --- |
 | `NORMATIVE` | verbatim spec text, clause-anchored | `knowledge/spec/` (git-ignored; may be absent) |
 | `MODEL` | read directly from the XMI | element files, and `metamodel.json` fields other than the closures |
 | `DERIVED` | computed or asserted here | `allAncestors` / `allDescendants` / `inheritedAttributes`, and every edge in `cross-references.json` |
-| `PILOT` | pilot implementation diverges from the published spec | `pilotDivergences` in `cross-references.json` |
 
 The distinction that matters most in practice: a metaclass's own features are `MODEL`, its inherited
 set is `DERIVED`, and a clause reference obtained by name matching is `DERIVED` — it tells you where

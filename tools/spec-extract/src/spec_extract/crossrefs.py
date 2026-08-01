@@ -25,7 +25,6 @@ PROVENANCE_TIERS = {
     "NORMATIVE": "Verbatim specification text, clause-anchored. Lives only in the git-ignored knowledge/spec tree.",
     "MODEL": "Read directly from the metamodel XMI by tools/metamodel-gen.",
     "DERIVED": "Computed or asserted by this repository: a closure, a name match, or a curated cross-reference.",
-    "PILOT": "A point where the SysML v2 pilot implementation diverges from the published specification.",
 }
 
 _ELEMENTS_LINE = re.compile(r"^elements:\s*\[(?P<items>[^\]]*)\]\s*$", re.MULTILINE)
@@ -154,9 +153,6 @@ def build_cross_references(
             "grammarEdges": sum(len(grammar[name]) for name in names),
             "exampleEdges": sum(len(worked[name]) for name in names),
         },
-        # Curated, not generated: divergences between the pilot implementation we read the XMI from and
-        # the published specification. Deliberately empty until entries are researched and reviewed.
-        "pilotDivergences": [],
         "entries": entries,
     }
 

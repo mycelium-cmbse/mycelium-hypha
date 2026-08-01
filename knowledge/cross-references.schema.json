@@ -11,7 +11,6 @@
     "documents",
     "provenanceTiers",
     "counts",
-    "pilotDivergences",
     "entries"
   ],
   "properties": {
@@ -59,11 +58,6 @@
         "exampleEdges": { "type": "integer" }
       }
     },
-    "pilotDivergences": {
-      "description": "Curated PILOT-tier entries: points where the pilot implementation the XMI comes from diverges from the published specification. Not generated - added by hand after review.",
-      "type": "array",
-      "items": { "$ref": "#/$defs/pilotDivergence" }
-    },
     "entries": {
       "description": "Keyed by element simple name; every element in knowledge/metamodel/index.json appears, with empty edge arrays where nothing matched.",
       "type": "object",
@@ -72,8 +66,8 @@
   },
   "$defs": {
     "provenance": {
-      "description": "Which tier a fact belongs to. NORMATIVE = verbatim clause-anchored spec text; MODEL = read from the XMI; DERIVED = computed or asserted here; PILOT = a pilot-implementation divergence.",
-      "enum": ["NORMATIVE", "MODEL", "DERIVED", "PILOT"]
+      "description": "Which tier a fact belongs to. NORMATIVE = verbatim clause-anchored spec text; MODEL = read from the XMI; DERIVED = computed or asserted here.",
+      "enum": ["NORMATIVE", "MODEL", "DERIVED"]
     },
     "entry": {
       "type": "object",
@@ -124,17 +118,6 @@
         },
         "provenance": { "$ref": "#/$defs/provenance" },
         "method": { "type": "string" }
-      }
-    },
-    "pilotDivergence": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["element", "summary", "provenance"],
-      "properties": {
-        "element": { "type": "string" },
-        "summary": { "type": "string" },
-        "clause": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance" }
       }
     }
   }

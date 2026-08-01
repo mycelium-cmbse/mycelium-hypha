@@ -92,8 +92,7 @@ clause number for O(1) lookup – metadata only, no clause text). This tree is *
 Unlike the clause tree this file **is committed**, because it records clause *identifiers* and never
 clause text – nothing in it is OMG wording. That is what lets `spec-citation` name the governing
 clause when the PDFs are absent instead of refusing to answer. Every edge carries a `provenance` tier
-(`DERIVED` – these are name matches, not readings) and the `method` that produced it, and the file
-reserves a curated `pilotDivergences` array for `PILOT`-tier entries.
+(`DERIVED` – these are name matches, not readings) and the `method` that produced it.
 
 Regenerating it still needs the clause catalogs, hence the PDFs – so the test skips when
 `knowledge/spec/*/index.json` is absent, leaving the committed file untouched. Rebuild it when the

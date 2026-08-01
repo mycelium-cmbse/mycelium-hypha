@@ -98,11 +98,10 @@ the PDFs, so it is committed and only rebuilt when the specification version cha
 
 ### Provenance
 
-Facts carry one of four tiers, so a reader can tell what was read from what was inferred:
-`NORMATIVE` (verbatim clause-anchored spec text), `MODEL` (read from the metamodel XMI), `DERIVED`
-(computed here – closures, name-matched cross-references) and `PILOT` (the pilot implementation
-diverges from the published spec). The tier definitions travel with the data, in the
-`provenanceTiers` block of `cross-references.json`.
+Facts carry one of three tiers, so a reader can tell what was read from what was inferred:
+`NORMATIVE` (verbatim clause-anchored spec text), `MODEL` (read from the metamodel XMI) and
+`DERIVED` (computed here – closures, name-matched cross-references). The tier definitions travel
+with the data, in the `provenanceTiers` block of `cross-references.json`.
 
 ## Sources
 

@@ -14,8 +14,7 @@
   "provenanceTiers": {
     "NORMATIVE": "Verbatim specification text, clause-anchored. Lives only in the git-ignored knowledge/spec tree.",
     "MODEL": "Read directly from the metamodel XMI by tools/metamodel-gen.",
-    "DERIVED": "Computed or asserted by this repository: a closure, a name match, or a curated cross-reference.",
-    "PILOT": "A point where the SysML v2 pilot implementation diverges from the published specification."
+    "DERIVED": "Computed or asserted by this repository: a closure, a name match, or a curated cross-reference."
   },
   "counts": {
     "elements": 187,
@@ -27,7 +26,6 @@
     "grammarEdges": 146,
     "exampleEdges": 43
   },
-  "pilotDivergences": [],
   "entries": {
     "AcceptActionUsage": {
       "kind": "class",

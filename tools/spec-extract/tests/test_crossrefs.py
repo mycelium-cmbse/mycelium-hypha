@@ -113,7 +113,6 @@ def test_build_counts_coverage_and_shapes_entries() -> None:
     }
     assert document["entries"]["PartUsage"]["element"] == "metamodel/elements/PartUsage.md"
     assert document["entries"]["VisibilityKind"]["kind"] == "enumeration"
-    assert document["pilotDivergences"] == []
 
 
 def test_build_orders_entries_by_name() -> None:
