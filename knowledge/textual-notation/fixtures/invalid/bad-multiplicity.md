@@ -29,3 +29,7 @@ part def Vehicle {
 **Reference:** [MultiplicityRange](../../../metamodel/elements/MultiplicityRange.md) – its `lowerBound` /
 `upperBound` features; a range with `lowerBound > upperBound` is empty/ill-formed. (The metamodel has no
 dedicated `validate…` constraint for this; it is inherent range semantics.)
+
+**How it is decided:** a bounds comparison, not a judgement – `lower` and `upper` are typed integers in
+`knowledge/metamodel/metamodel.json` (`-1` denotes unbounded), so the same rule applies to bounds written
+in notation. The governing clause is in `knowledge/cross-references.json` under `MultiplicityRange`.

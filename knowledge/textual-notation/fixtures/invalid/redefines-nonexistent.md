@@ -31,3 +31,8 @@ part def Vehicle {
 (the redefinition must resolve to an actual Feature), and `validateRedefinitionFeaturingTypes` requires
 the redefining feature to sit on a featuringType the redefined one does not (i.e. there must be a
 supertype to redefine through).
+
+**How it is decided:** reachability, resolved against `knowledge/metamodel/metamodel.json` – a feature is
+redefinable from a type when it appears in that type's `ownedAttributes` or `inheritedAttributes`, and
+`inheritedFrom` names the declaring supertype to cite. Here the declared `Vehicle` specializes nothing, so
+the reachable set is empty whatever the metamodel says about `PartDefinition`.

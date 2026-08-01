@@ -26,9 +26,11 @@ mycelium-hypha/
 ├── agents/                 Subagents (metamodel-navigator, spec-citation, sysml-validator)
 │
 ├── knowledge/              Knowledge base the plugin reads
-│   ├── metamodel/          Combined KerML + SysML v2 metamodel: one file per element, + index.json   (committed)
+│   ├── metamodel/          Combined KerML + SysML v2 metamodel: one file per element, + index.json
+│   │                       and metamodel.json (the structural graph)       (committed)
 │   ├── spec/               Per-clause specification text                  (generated locally, git-ignored)
-│   └── textual-notation/   Grammar summary, worked examples, fixtures      (committed)
+│   ├── textual-notation/   Grammar summary, worked examples, fixtures      (committed)
+│   └── cross-references.json  Element → clause id, grammar production, example   (committed)
 │
 ├── sources/                Raw inputs (see sources/README.md)
 │   ├── xmi/                Metamodel XMI                      (EPL-2.0, committed)
@@ -49,6 +51,20 @@ In Claude Code, add the marketplace and install the plugin:
 /plugin install hypha@mycelium
 ```
 
+### Recommended: `jq`
+
+Install [`jq`](https://jqlang.github.io/jq/) – `brew install jq`, `sudo apt install jq`, or
+`winget install jqlang.jq`.
+
+The metamodel ships as a structural graph (`knowledge/metamodel/metamodel.json`, ~8 MB) with the
+inheritance closures precomputed. Set-shaped and cross-cutting questions – *"which metaclasses have a
+feature typed by `Expression`"*, *"every concrete subclass of `Usage`"* – are one query against it,
+and `jq` is how the skills run that query. It is a small standalone binary with no runtime behind it.
+
+Hypha still works without `jq`: the skills fall back to reading the per-element markdown, which is
+slower, pulls far more into context, and cannot distinguish a field match from a mention in prose. If
+you use metamodel lookup or validation regularly, install it.
+
 Then use the skills: ask a metamodel-lookup question, request a spec citation, or paste SysML v2
 textual notation to validate. Metamodel lookup and validation work out of the box; **spec citation
 needs the specification text generated locally first** (see below). For example:
@@ -66,12 +82,27 @@ needs the specification text generated locally first** (see below). For example:
 | `knowledge/metamodel/` | `sources/xmi/*.uml` | `tools/metamodel-gen` (C# / uml4net) | committed |
 | `knowledge/spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) | **git-ignored – regenerate locally** |
 | `knowledge/textual-notation/` | `sources/textual/` (grammar + examples) | hand-curated | committed |
+| `knowledge/cross-references.json` | the three trees above | `tools/spec-extract` (Python) | committed |
 
 `knowledge/metamodel/` and `knowledge/textual-notation/` are committed, so the plugin works without
 running any pipeline. `knowledge/spec/` holds **verbatim OMG specification text** and is deliberately
 **not committed** (the OMG license forbids redistributing it). To enable spec citation, obtain the
 three PDFs and regenerate it locally with `tools/spec-extract`; a SessionStart hook
 (`hooks/check-spec-pdfs.py`) reminds you when the PDFs are missing.
+
+`cross-references.json` links each metamodel element to the clauses that treat it, its grammar
+production and any worked example. It records clause **identifiers only, never clause text**, so it
+ships even though `knowledge/spec/` cannot – which is what lets spec citation still name the
+governing clause when the PDFs are absent, instead of refusing outright. Regenerating it does need
+the PDFs, so it is committed and only rebuilt when the specification version changes.
+
+### Provenance
+
+Facts carry one of four tiers, so a reader can tell what was read from what was inferred:
+`NORMATIVE` (verbatim clause-anchored spec text), `MODEL` (read from the metamodel XMI), `DERIVED`
+(computed here – closures, name-matched cross-references) and `PILOT` (the pilot implementation
+diverges from the published spec). The tier definitions travel with the data, in the
+`provenanceTiers` block of `cross-references.json`.
 
 ## Sources
 

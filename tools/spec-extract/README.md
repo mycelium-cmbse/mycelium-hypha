@@ -69,6 +69,7 @@ The extractor is a small chain of pure, independently-testable layers (`spec_ext
 | `normative` | Split a clause into normative prose vs informative `NOTE`/`EXAMPLE` blocks; flag clauses containing `shall`/`must`. Lossless. |
 | `markdown` | Render a clause to deterministic markdown (front matter + body), e.g. `07.04.02-concrete-syntax.md`. |
 | `pipeline` | `extract_document(pdf, DocMeta)` → clauses; `write_clauses(clauses, out_dir)` → files. |
+| `crossrefs` | Join the three knowledge trees into `knowledge/cross-references.json` – clause identifiers only, never clause text. |
 
 ### Output
 
@@ -80,12 +81,31 @@ pages → file, in document order) and a machine-readable `index.json` catalog (
 clause number for O(1) lookup – metadata only, no clause text). This tree is **git-ignored** (see
 *Licensing & OMG terms*).
 
+### Cross-references (committed)
+
+`crossrefs` emits `knowledge/cross-references.json`, which links every metamodel element to:
+
+- the **spec clauses** that treat it – matched on exact clause title, all matches kept;
+- its **BNF grammar production** in `sources/textual/bnf/` – matched on exact production name;
+- any **worked example** that declares it in the `elements:` front matter.
+
+Unlike the clause tree this file **is committed**, because it records clause *identifiers* and never
+clause text – nothing in it is OMG wording. That is what lets `spec-citation` name the governing
+clause when the PDFs are absent instead of refusing to answer. Every edge carries a `provenance` tier
+(`DERIVED` – these are name matches, not readings) and the `method` that produced it, and the file
+reserves a curated `pilotDivergences` array for `PILOT`-tier entries.
+
+Regenerating it still needs the clause catalogs, hence the PDFs – so the test skips when
+`knowledge/spec/*/index.json` is absent, leaving the committed file untouched. Rebuild it when the
+specification version changes.
+
 ### Regenerating
 
 Running `pytest` with the PDFs present in `sources/specs/` runs `test_generate.py`, which writes the
-(git-ignored) `knowledge/spec/` tree from the real specs – the same "tests write the knowledge base"
-convention `metamodel-gen` uses. Without the PDFs that test (and the real-PDF smoke test) **skip**;
-the assertion-based unit tests always run.
+(git-ignored) `knowledge/spec/` tree from the real specs and the (committed)
+`knowledge/cross-references.json` – the same "tests write the knowledge base" convention
+`metamodel-gen` uses. Without the PDFs those tests (and the real-PDF smoke test) **skip**; the
+assertion-based unit tests always run.
 
 ## Status
 

@@ -71,10 +71,13 @@ jq -r '.classes[] | select(.ownedAttributes[]? | .isComposite and .type=="Expres
 jq '.entries["PartUsage"]' knowledge/metamodel/index.json
 ```
 
-**Requirement:** `jq` is a small standalone binary (not Python/Node) — install via `brew install jq`,
-`sudo apt install jq`, or `winget install jqlang.jq`. It is an *accelerator*, not a hard requirement:
-when `jq` is unavailable, read `metamodel.json` / `index.json` (or the markdown) directly. The future
-MCP server will load the same JSON in memory and need neither `jq` nor a shell.
+**Recommended:** `jq` is a small standalone binary (not Python/Node) — install via `brew install jq`,
+`sudo apt install jq`, or `winget install jqlang.jq`. It is not a hard requirement, but at ~8 MB
+`metamodel.json` is too large to read whole, so without `jq` the skills fall back to the per-element
+markdown — slower, far heavier on context, and unable to distinguish a field match from a mention in
+prose. The plugin-facing note lives in the [root README](../../README.md#recommended-jq); this file
+is not shipped with the plugin. A future MCP server would load the same JSON in memory and need
+neither `jq` nor a shell.
 
 ## Status
 
