@@ -21,9 +21,25 @@ metadata only, never clause text. Clause files are named by zero-padded clause n
 `07.04.02-concrete-syntax.md`, so a clause number sorts and greps directly.
 
 > `knowledge/spec/` is **generated locally** by `tools/spec-extract` from your own copies of the OMG
-> PDFs and is **not shipped** with the plugin (OMG licensing forbids redistributing the spec text). If
-> the tree is empty, tell the user to regenerate it (see `tools/spec-extract`) rather than guessing a
-> citation.
+> PDFs and is **not shipped** with the plugin (OMG licensing forbids redistributing the spec text).
+
+- `knowledge/cross-references.json` — **committed**, and available even when the clause text is not.
+  It maps each metamodel element to the clause identifiers that treat it. It holds clause *numbers*
+  only, never wording, which is exactly why it can ship.
+
+## When the clause text is missing
+
+Do not simply refuse. Degrade in this order:
+
+1. Look the element up in `knowledge/cross-references.json` and **name the governing clause**:
+   `jq '.entries["PartUsage"].clauses' knowledge/cross-references.json`.
+2. Say plainly that you are giving a clause *reference*, not a quotation, and that the reference is
+   `DERIVED` (matched by name) rather than read from the specification.
+3. Tell the user how to unlock verbatim text — obtain the PDFs and regenerate with
+   `tools/spec-extract`.
+
+Never invent or paraphrase the wording of a clause you cannot read. A pointer to the right clause is
+useful; a fabricated quotation is not.
 
 ## Clause file structure
 
@@ -61,10 +77,13 @@ change the words.
 
 ## Procedure
 
-1. Find the clause: look it up in `index.json` / `index.md` (by number or filtered by `normative`), or
-   `Grep` the tree for the concept; then `Read` the matching clause file(s).
+1. Find the clause: when the question names a metamodel element, `knowledge/cross-references.json`
+   resolves it to clause numbers directly. Otherwise look it up in `index.json` / `index.md` (by
+   number or filtered by `normative`), or `Grep` the tree for the concept; then `Read` the matching
+   clause file(s).
 2. Quote verbatim, attributed in the format above.
 3. Flag whether each quote is normative or informative.
-4. If the spec text doesn't cover it (or the tree isn't generated), say so — do not fabricate.
+4. If the spec text doesn't cover it, say so — do not fabricate. If the tree isn't generated, follow
+   [When the clause text is missing](#when-the-clause-text-is-missing) instead of stopping.
 
 For multi-clause gathering or cross-referencing, delegate to the `spec-citation` subagent.

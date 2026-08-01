@@ -15,10 +15,13 @@ findings with locations and corrections.
 - `knowledge/textual-notation/examples/` – worked valid examples (each links the metamodel elements it
   uses); `knowledge/textual-notation/fixtures/` – the valid/invalid regression suite.
 - `knowledge/metamodel/` – the combined KerML + SysML v2 metamodel: `elements/<Metaclass>.md` for
-  structural constraints, `index.json` (or `index.md`) for fast name → element lookup.
+  structural constraints, `index.json` (or `index.md`) for fast name → element lookup, and
+  `metamodel.json` for the structural checks below.
+- `knowledge/cross-references.json` – element → clause identifiers, BNF production and worked
+  example. Committed, so it works without the PDFs.
 - `knowledge/spec/` – normative clauses to cite. **Git-ignored / generated locally** (see
-  `tools/spec-extract`); if it is empty, cite the metamodel/grammar instead and note the spec text is
-  unavailable rather than inventing a clause.
+  `tools/spec-extract`); if it is empty, cite the metamodel/grammar and name the governing clause
+  from `cross-references.json` rather than inventing one.
 
 ## What to check
 
@@ -35,10 +38,44 @@ findings with locations and corrections.
   specialized type; multiplicity bounds satisfy `lower <= upper`.
 - Member names are unique within their namespace; required features/parameters are present.
 
+### Grounding the structural checks in the graph
+
+Two of these are graph traversals, not pattern matches – decide them against `metamodel.json`
+instead of reasoning from prose. `jq` is recommended; without it, read the element file's
+**## Inherited features** table, which carries the same effective set.
+
+**Reachability** – is a `redefines` / `subsets` target actually inherited? A feature is reachable
+from a metaclass when it appears in that metaclass's `inheritedAttributes` (or its own
+`ownedAttributes`); `inheritedFrom` names the declaring type, which is what you cite:
+
+```sh
+jq -r '.classes[] | select(.name=="PartUsage")
+       | (.ownedAttributes[], .inheritedAttributes[]) | select(.name=="mass") | .name' \
+  knowledge/metamodel/metamodel.json
+```
+
+No output means the feature is not on that type at all – the redefinition cannot resolve. Note the
+distinction the fixtures exercise: in user notation the *declared* type may specialize nothing, in
+which case there is no inherited feature to redefine regardless of what the metamodel says.
+
+**Multiplicity bounds** – `lower` and `upper` are typed integers in the graph (`-1` means unbounded),
+so `lower > upper` is a comparison rather than a judgement. Apply the same rule to bounds written in
+the notation under review: `[2..1]` is ill-formed, `[0..*]` is not.
+
+For either finding, `cross-references.json` gives the clause to point at:
+
+```sh
+jq -r '.entries["MultiplicityRange"].clauses[] | "\(.document) \(.clause)"' knowledge/cross-references.json
+```
+
+Cite that clause as a *reference* (`DERIVED` – matched by name), and quote it only if
+`knowledge/spec/` is present.
+
 ## Procedure
 
 1. Parse structurally: declarations, memberships, relationships, keywords (per the grammar summary).
-2. Run the syntax checks, then the structural checks against `knowledge/metamodel/elements/`.
+2. Run the syntax checks, then the structural checks – reachability and multiplicity bounds against
+   `metamodel.json` as above, the rest against `knowledge/metamodel/elements/`.
 3. For each issue report **location**, the **violated rule**, **why** it is wrong, and a **corrected
    snippet**; add a knowledge-base **reference** (metamodel element or spec clause) for non-obvious rulings.
 4. If nothing is wrong, state that the notation is valid.

@@ -12,10 +12,17 @@ the calling agent never has to load all those files into its own context.
 
 KerML and SysML v2 are **combined** under one tree:
 
+- `knowledge/metamodel/metamodel.json` — **the graph, and your default tool.** Every element as a
+  node with its closures already computed: `allAncestors`, `allDescendants`, `directSubclasses`, and
+  `inheritedAttributes` carrying `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper`
+  (`-1` = unbounded), `isDerived`, `isComposite`, `isOrdered`, `redefines`, `subsets`; classes also
+  carry `ownedOperations` and `constraints` (with OCL).
 - `knowledge/metamodel/elements/<Name>.md` — one file per element: metaclasses, enumerations
-  (`kind: enumeration`) and primitive types (`kind: primitive`).
+  (`kind: enumeration`) and primitive types (`kind: primitive`). The citable surface.
 - `knowledge/metamodel/index.md` — manifest: metaclasses by package, plus `## Enumeration types` and
   `## Primitive types` sections, each entry linked.
+- `knowledge/cross-references.json` — element → spec clause identifiers, BNF production, worked
+  examples.
 
 Each element file carries: front matter (`name`, `package`, `fully qualified name`, `isAbstract`,
 `visibility`, `generalizes`, `specializedBy`); **## Generalizations** / **## Specializations**
@@ -26,17 +33,41 @@ inherited set with each feature's declaring `Owner` — read it directly, never 
 
 ## How to work
 
-1. **Cast the net with `Grep`/`Glob`**, not by reading files one by one. To find every metaclass
-   with a feature typed by `Expression`, grep `knowledge/metamodel/elements/` for `Expression`; to
-   compare metaclasses, read just the relevant files. Use the index to enumerate or group elements.
-2. `Read` only the files the question needs, and only the sections it needs (owned vs inherited table
-   vs constraints). Follow `[Type](Type.md)` links when a related element matters.
-3. Cross-reference across the set — e.g. collect every owner from the inherited tables, or every
-   subtype from `specializedBy` — and resolve the question over the whole set.
-4. If something is not in the knowledge base, say so explicitly — never invent metamodel structure.
+1. **Query `metamodel.json` first.** Nearly every breadth question is one pass over the graph, and
+   the closures mean you never walk the generalization chain by hand. The file is ~8 MB — never read
+   it whole; query it. `jq` is recommended:
+
+   ```sh
+   # Every metaclass with a feature typed by Expression — exact, no prose false positives
+   jq -r '.classes[] | select(.ownedAttributes[]? | .type=="Expression") | .name' \
+     knowledge/metamodel/metamodel.json
+
+   # Every concrete descendant of Usage
+   jq -r '.classes[] | select(.allAncestors | index("Usage")) | select(.isAbstract|not) | .name' \
+     knowledge/metamodel/metamodel.json
+
+   # Trace a redefinition: who redefines `name`, and from where
+   jq -r '.classes[] | . as $c | .ownedAttributes[]? | select(.redefines | index("name")) | $c.name' \
+     knowledge/metamodel/metamodel.json
+   ```
+
+   Matching a JSON field is exact; grepping markdown also hits documentation prose that merely
+   mentions the name. Prefer the field.
+2. **Without `jq`, fall back to `Grep`/`Glob`** over `knowledge/metamodel/elements/` — slower, and
+   you must filter prose matches yourself, but it always works. Say which route you used when the
+   distinction could affect completeness.
+3. `Read` element files only for what the graph does not carry — documentation wording, or when the
+   answer must be quoted. Read only the sections needed (owned vs inherited table vs constraints).
+4. Cross-reference across the set and resolve the question over the whole set. When a clause or a
+   worked example would help the caller, look the element up in `knowledge/cross-references.json`.
+5. If something is not in the knowledge base, say so explicitly — never invent metamodel structure.
 
 ## Output
 
 Return a compact, structured result — the elements and the specific facts asked for (names, types,
 multiplicities, modifiers, owners, constraints) — each traceable to the `knowledge/metamodel/elements/`
 file it came from. Minimal prose; this is consumed by the calling agent, not shown to a user.
+
+Mark anything computed rather than read as such: a metaclass's own features are `MODEL` (straight
+from the XMI), while inherited sets and closures are `DERIVED`. Clause references from
+`cross-references.json` are `DERIVED` too — they say where to look, they are not citations.

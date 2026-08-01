@@ -19,6 +19,11 @@ here too):
   and carries a one-line summary.
 - `knowledge/metamodel/elements/<Name>.md` — one file per element. This includes metaclasses,
   enumerations (`kind: enumeration`) and primitive types (`kind: primitive`).
+- `knowledge/metamodel/metamodel.json` — the same metamodel as a **structural graph**, with the
+  inheritance closures already computed. Use it for set-shaped and cross-cutting questions; see
+  [Querying the graph](#querying-the-graph) below.
+- `knowledge/cross-references.json` — links each element to the spec clauses that treat it, its BNF
+  grammar production, and any worked example. See [Cross-references](#cross-references).
 
 ## Element file anatomy
 
@@ -40,6 +45,66 @@ YAML front matter: `name`, `package`, `fully qualified name` (e.g.
 Enumeration files list their literals under `## Literals`; primitive-type files carry just their
 documentation.
 
+## Querying the graph
+
+`knowledge/metamodel/metamodel.json` holds every element as a node with its closures precomputed —
+`allAncestors`, `allDescendants`, `directSubclasses`, and `inheritedAttributes` carrying the
+declaring type in `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper` (`-1` is
+unbounded), `isDerived`, `isComposite`, `isOrdered`, `redefines` and `subsets`; classes also carry
+`ownedOperations` and `constraints` with their OCL.
+
+It is ~8 MB, so **never read it whole** — query it. `jq` is *recommended* for this; when it is not
+installed, fall back to the markdown route described under [Procedure](#procedure), which is slower
+and reads more files but always works.
+
+```sh
+# Every concrete subclass of Usage, anywhere in the hierarchy
+jq -r '.classes[] | select(.allAncestors | index("Usage")) | select(.isAbstract|not) | .name' \
+  knowledge/metamodel/metamodel.json
+
+# Which metaclasses have a feature typed by Expression (exact, no prose false positives)
+jq -r '.classes[] | select(.ownedAttributes[]? | .type=="Expression") | .name' \
+  knowledge/metamodel/metamodel.json
+
+# Where does PartUsage's `name` come from?
+jq -r '.classes[] | select(.name=="PartUsage") | .inheritedAttributes[] | select(.name=="name") | .inheritedFrom' \
+  knowledge/metamodel/metamodel.json
+```
+
+Prefer the graph whenever the question is a *set* ("which metaclasses…", "every subclass of…"),
+a *closure* ("all ancestors", "the full feature set"), or a *comparison* across several elements.
+Prefer the markdown when the question is about **one** element and the answer should be quoted and
+cited.
+
+## Cross-references
+
+`knowledge/cross-references.json` maps each element name to `clauses` (specification clause
+identifiers), `grammar` (BNF production) and `examples` (worked notation), plus the `element`
+markdown path. It records clause **numbers only, never clause text**, which is why it can be
+committed while `knowledge/spec/` cannot.
+
+```sh
+# Which clauses treat PartUsage, and is there a worked example?
+jq '.entries["PartUsage"] | {clauses: [.clauses[] | "\(.document) \(.clause)"], examples: [.examples[].file]}' \
+  knowledge/cross-references.json
+```
+
+Use it to point at the governing clause or a worked example after answering a structural question.
+
+## Provenance
+
+Every fact you report belongs to one of three tiers — say which when it matters, and never blur them:
+
+| Tier | Means | Where it comes from |
+| --- | --- | --- |
+| `NORMATIVE` | verbatim spec text, clause-anchored | `knowledge/spec/` (git-ignored; may be absent) |
+| `MODEL` | read directly from the XMI | element files, and `metamodel.json` fields other than the closures |
+| `DERIVED` | computed or asserted here | `allAncestors` / `allDescendants` / `inheritedAttributes`, and every edge in `cross-references.json` |
+
+The distinction that matters most in practice: a metaclass's own features are `MODEL`, its inherited
+set is `DERIVED`, and a clause reference obtained by name matching is `DERIVED` — it tells you where
+to look, it is not itself a citation. Quoting normative wording requires `spec-citation`.
+
 ## Procedure
 
 1. Resolve the element name in `knowledge/metamodel/index.md` (or `Grep` `knowledge/metamodel/elements/`).
@@ -52,7 +117,7 @@ documentation.
 4. If the element isn't in the knowledge base, say so — never invent structure.
 
 Answer single-element lookups inline (one index read + one element file — the inherited table
-already gives the full feature set). Delegate to the `metamodel-navigator` subagent only for
-**cross-cutting / fan-out** questions that must scan many element files — e.g. "which metaclasses
-have a feature typed by `Expression`", comparing several metaclasses, or tracing a redefinition
-across the hierarchy — so the bulk file reading stays out of this context.
+already gives the full feature set). For a **set or closure** question, query `metamodel.json` as
+above instead of reading files. Delegate to the `metamodel-navigator` subagent only when the answer
+still needs many element files read — e.g. comparing the documentation of several metaclasses — so
+the bulk reading stays out of this context.
