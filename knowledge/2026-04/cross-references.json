@@ -21,12 +21,12 @@
     "withClauses": 186,
     "withoutClauses": 1,
     "withGrammar": 176,
-    "withFeatures": 125,
+    "withFeatures": 120,
     "withExamples": 53,
     "clauseEdges": 546,
     "statedClauseEdges": 351,
     "grammarEdges": 588,
-    "featureEdges": 361,
+    "featureEdges": 301,
     "exampleEdges": 1291
   },
   "entries": {
@@ -475,6 +475,19 @@
         }
       ],
       "features": [
+        {
+          "grammar": "sysml",
+          "feature": "isComposite",
+          "operator": "?=",
+          "productions": [
+            "DecisionNode",
+            "ForkNode",
+            "JoinNode",
+            "MergeNode"
+          ],
+          "provenance": "MODEL",
+          "method": "grammar-assignment"
+        },
         {
           "grammar": "sysml",
           "feature": "ownedRelationship",
@@ -1162,7 +1175,6 @@
           "feature": "body",
           "operator": "=",
           "productions": [
-            "Comment",
             "Documentation",
             "TextualRepresentation"
           ],
@@ -1184,19 +1196,7 @@
           "feature": "locale",
           "operator": "=",
           "productions": [
-            "Comment",
             "Documentation"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "Comment",
-            "MetadataFeature"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -2731,8 +2731,7 @@
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
-            "BindingConnectorDeclaration",
-            "FeaturePrefix"
+            "BindingConnectorDeclaration"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -2832,18 +2831,7 @@
           "method": "production-name"
         }
       ],
-      "features": [
-        {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FeaturePrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        }
-      ],
+      "features": [],
       "examples": []
     },
     "CalculationDefinition": {
@@ -3221,16 +3209,6 @@
       "features": [
         {
           "grammar": "kerml",
-          "feature": "annotatedElement",
-          "operator": "=",
-          "productions": [
-            "Annotation"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "body",
           "operator": "=",
           "productions": [
@@ -3255,16 +3233,6 @@
           "operator": "+=",
           "productions": [
             "Comment"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "annotatedElement",
-          "operator": "=",
-          "productions": [
-            "Annotation"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -3483,19 +3451,7 @@
           "feature": "originalPortDefinition",
           "operator": "=",
           "productions": [
-            "ConjugatedPortTyping",
-            "PortDefinition"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "ConjugatedPortDefinition",
-            "PortDefinition"
+            "ConjugatedPortTyping"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -3899,7 +3855,6 @@
           "operator": "+=",
           "productions": [
             "BinaryConnectorDeclaration",
-            "FeaturePrefix",
             "NaryConnectorDeclaration"
           ],
           "provenance": "MODEL",
@@ -4567,26 +4522,6 @@
       "features": [
         {
           "grammar": "sysml",
-          "feature": "isAbstract",
-          "operator": "?=",
-          "productions": [
-            "BasicDefinitionPrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isVariation",
-          "operator": "?=",
-          "productions": [
-            "BasicDefinitionPrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
@@ -4864,7 +4799,6 @@
           "feature": "body",
           "operator": "=",
           "productions": [
-            "Comment",
             "Documentation"
           ],
           "provenance": "MODEL",
@@ -4875,18 +4809,7 @@
           "feature": "locale",
           "operator": "=",
           "productions": [
-            "Comment",
             "Documentation"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "Comment"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -5000,16 +4923,6 @@
         },
         {
           "grammar": "kerml",
-          "feature": "conjugatedType",
-          "operator": "=",
-          "productions": [
-            "Conjugation"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "declaredName",
           "operator": "=",
           "productions": [
@@ -5030,56 +4943,6 @@
         },
         {
           "grammar": "kerml",
-          "feature": "disjoiningType",
-          "operator": "=",
-          "productions": [
-            "Disjoining"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "featureInverted",
-          "operator": "=",
-          "productions": [
-            "FeatureInverting"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "featureOfType",
-          "operator": "=",
-          "productions": [
-            "TypeFeaturing"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "featuringType",
-          "operator": "=",
-          "productions": [
-            "TypeFeaturing"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "invertingFeature",
-          "operator": "=",
-          "productions": [
-            "FeatureInverting"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "isStandard",
           "operator": "?=",
           "productions": [
@@ -5090,55 +4953,11 @@
         },
         {
           "grammar": "kerml",
-          "feature": "originalType",
-          "operator": "=",
-          "productions": [
-            "Conjugation"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "ownedRelatedElement",
-          "operator": "+=",
-          "productions": [
-            "Conjugation",
-            "Disjoining",
-            "FeatureInverting"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
             "Dependency",
-            "LibraryPackage",
-            "Namespace",
-            "Package"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "subclassifier",
-          "operator": "=",
-          "productions": [
-            "Subclassification"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "superclassifier",
-          "operator": "=",
-          "productions": [
-            "Subclassification"
+            "LibraryPackage"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -5154,21 +4973,11 @@
           "method": "grammar-assignment"
         },
         {
-          "grammar": "kerml",
-          "feature": "typeDisjoined",
-          "operator": "=",
+          "grammar": "sysml",
+          "feature": "client",
+          "operator": "+=",
           "productions": [
-            "Disjoining"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "typedFeature",
-          "operator": "=",
-          "productions": [
-            "FeatureTyping"
+            "DependencyDeclaration"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -5215,23 +5024,21 @@
         },
         {
           "grammar": "sysml",
-          "feature": "originalPortDefinition",
-          "operator": "=",
+          "feature": "ownedRelationship",
+          "operator": "+=",
           "productions": [
-            "PortDefinition"
+            "Dependency",
+            "LibraryPackage"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
         },
         {
           "grammar": "sysml",
-          "feature": "ownedRelationship",
+          "feature": "supplier",
           "operator": "+=",
           "productions": [
-            "Dependency",
-            "LibraryPackage",
-            "Package",
-            "PortDefinition"
+            "DependencyDeclaration"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -5301,26 +5108,6 @@
           "operator": "=",
           "productions": [
             "ElementFilterMember"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "importedMembership",
-          "operator": "=",
-          "productions": [
-            "MembershipImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "isRecursive",
-          "operator": "?=",
-          "productions": [
-            "MembershipImport"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -5459,16 +5246,6 @@
           "method": "grammar-assignment"
         },
         {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FlowEnd"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
           "grammar": "sysml",
           "feature": "ownedRelatedElement",
           "operator": "+=",
@@ -5478,16 +5255,6 @@
             "FlowEndMember",
             "InterfaceEndMember",
             "SourceEndMember"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FlowEnd"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -5891,11 +5658,8 @@
             "CollectExpression",
             "ConstructorExpression",
             "FeatureChainExpression",
-            "FeaturePrefix",
             "FunctionReference",
-            "IndexExpression",
-            "MetadataAccessExpression",
-            "SelectExpression"
+            "IndexExpression"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -6473,16 +6237,6 @@
         },
         {
           "grammar": "kerml",
-          "feature": "isDefault",
-          "operator": "?=",
-          "productions": [
-            "FeatureValue"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "isDerived",
           "operator": "?=",
           "productions": [
@@ -6497,16 +6251,6 @@
           "operator": "?=",
           "productions": [
             "EndFeaturePrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "isInitial",
-          "operator": "?=",
-          "productions": [
-            "FeatureValue"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -6584,16 +6328,6 @@
         },
         {
           "grammar": "kerml",
-          "feature": "ownedRelatedElement",
-          "operator": "+=",
-          "productions": [
-            "FeatureValue"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
@@ -6605,7 +6339,6 @@
             "Crosses",
             "Feature",
             "FeatureChain",
-            "FeaturePrefix",
             "FlowFeature",
             "FunctionReferenceArgument",
             "InvertingPart",
@@ -6645,36 +6378,6 @@
         },
         {
           "grammar": "sysml",
-          "feature": "isDefault",
-          "operator": "?=",
-          "productions": [
-            "FeatureValue"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isEnd",
-          "operator": "=",
-          "productions": [
-            "FeatureValue"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isInitial",
-          "operator": "?=",
-          "productions": [
-            "FeatureValue"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
           "feature": "isOrdered",
           "operator": "?=",
           "productions": [
@@ -6689,26 +6392,6 @@
           "operator": "=",
           "productions": [
             "MultiplicityPart"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "mayTimeVary",
-          "operator": "=",
-          "productions": [
-            "FeatureValue"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "ownedRelatedElement",
-          "operator": "+=",
-          "productions": [
-            "FeatureValue"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -7328,16 +7011,6 @@
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "TransitionUsage"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
         }
       ],
       "examples": []
@@ -7854,7 +7527,6 @@
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
-            "FeaturePrefix",
             "FlowDeclaration"
           ],
           "provenance": "MODEL",
@@ -8483,16 +8155,6 @@
       "features": [
         {
           "grammar": "kerml",
-          "feature": "importedMembership",
-          "operator": "=",
-          "productions": [
-            "MembershipImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "importedNamespace",
           "operator": "=",
           "productions": [
@@ -8516,7 +8178,6 @@
           "feature": "isRecursive",
           "operator": "?=",
           "productions": [
-            "MembershipImport",
             "NamespaceImport"
           ],
           "provenance": "MODEL",
@@ -8544,51 +8205,10 @@
         },
         {
           "grammar": "sysml",
-          "feature": "importedMembership",
-          "operator": "=",
-          "productions": [
-            "MembershipImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "importedNamespace",
-          "operator": "=",
-          "productions": [
-            "NamespaceImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
           "feature": "isImportAll",
           "operator": "?=",
           "productions": [
             "Import"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isRecursive",
-          "operator": "?=",
-          "productions": [
-            "MembershipImport",
-            "NamespaceImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "ownedRelatedElement",
-          "operator": "+=",
-          "productions": [
-            "NamespaceImport"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -9078,16 +8698,6 @@
           "operator": "?=",
           "productions": [
             "Invariant"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FeaturePrefix"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -10095,16 +9705,6 @@
       "features": [
         {
           "grammar": "kerml",
-          "feature": "isImportAll",
-          "operator": "?=",
-          "productions": [
-            "Import"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "memberElement",
           "operator": "=",
           "productions": [
@@ -10141,7 +9741,6 @@
           "feature": "visibility",
           "operator": "=",
           "productions": [
-            "Import",
             "MemberPrefix"
           ],
           "provenance": "MODEL",
@@ -10216,28 +9815,7 @@
           "method": "production-name"
         }
       ],
-      "features": [
-        {
-          "grammar": "sysml",
-          "feature": "importedMembership",
-          "operator": "=",
-          "productions": [
-            "MembershipImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isRecursive",
-          "operator": "?=",
-          "productions": [
-            "MembershipImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        }
-      ],
+      "features": [],
       "examples": []
     },
     "MembershipImport": {
@@ -10595,16 +10173,6 @@
       "features": [
         {
           "grammar": "kerml",
-          "feature": "annotatedElement",
-          "operator": "=",
-          "productions": [
-            "Annotation"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
@@ -10656,16 +10224,6 @@
         }
       ],
       "features": [
-        {
-          "grammar": "sysml",
-          "feature": "annotatedElement",
-          "operator": "=",
-          "productions": [
-            "Annotation"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
         {
           "grammar": "sysml",
           "feature": "ownedRelationship",
@@ -10971,31 +10529,11 @@
       "features": [
         {
           "grammar": "kerml",
-          "feature": "isImportAll",
-          "operator": "?=",
-          "productions": [
-            "Import"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
             "Namespace",
             "NamespaceBodyElement"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
-          "feature": "visibility",
-          "operator": "=",
-          "productions": [
-            "Import"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -11028,38 +10566,7 @@
           "method": "production-name"
         }
       ],
-      "features": [
-        {
-          "grammar": "sysml",
-          "feature": "importedNamespace",
-          "operator": "=",
-          "productions": [
-            "NamespaceImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isRecursive",
-          "operator": "?=",
-          "productions": [
-            "NamespaceImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "ownedRelatedElement",
-          "operator": "+=",
-          "productions": [
-            "NamespaceImport"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        }
-      ],
+      "features": [],
       "examples": []
     },
     "NamespaceImport": {
@@ -11270,31 +10777,11 @@
       "features": [
         {
           "grammar": "sysml",
-          "feature": "isAbstract",
-          "operator": "?=",
-          "productions": [
-            "BasicDefinitionPrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
           "feature": "isIndividual",
           "operator": "?=",
           "productions": [
             "IndividualDefinition",
             "OccurrenceDefinitionPrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isVariation",
-          "operator": "?=",
-          "productions": [
-            "BasicDefinitionPrefix"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -11968,16 +11455,6 @@
           "method": "grammar-assignment"
         },
         {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "SelectExpression"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
           "grammar": "sysml",
           "feature": "ownedRelatedElement",
           "operator": "+=",
@@ -12013,7 +11490,6 @@
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
-            "ConjugatedPortDefinition",
             "MultiplicityRange"
           ],
           "provenance": "MODEL",
@@ -12122,32 +11598,12 @@
         },
         {
           "grammar": "sysml",
-          "feature": "isImportAll",
-          "operator": "?=",
-          "productions": [
-            "Import"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
             "FilterPackage",
             "Package",
             "PackageBodyElement"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "visibility",
-          "operator": "=",
-          "productions": [
-            "Import"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -15123,16 +14579,6 @@
       "features": [
         {
           "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FlowEnd"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "redefinedFeature",
           "operator": "=",
           "productions": [
@@ -15148,16 +14594,6 @@
           "operator": "+=",
           "productions": [
             "OwnedRedefinition"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FlowEnd"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -16959,18 +16395,7 @@
           "method": "production-name"
         }
       ],
-      "features": [
-        {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FeaturePrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        }
-      ],
+      "features": [],
       "examples": []
     },
     "String": {
@@ -17284,7 +16709,6 @@
           "feature": "ownedRelationship",
           "operator": "+=",
           "productions": [
-            "FeaturePrefix",
             "SuccessionDeclaration"
           ],
           "provenance": "MODEL",
@@ -17399,18 +16823,7 @@
           "method": "production-name"
         }
       ],
-      "features": [
-        {
-          "grammar": "kerml",
-          "feature": "ownedRelationship",
-          "operator": "+=",
-          "productions": [
-            "FeaturePrefix"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        }
-      ],
+      "features": [],
       "examples": []
     },
     "SuccessionFlowUsage": {
@@ -18132,16 +17545,6 @@
         },
         {
           "grammar": "kerml",
-          "feature": "isImportAll",
-          "operator": "?=",
-          "productions": [
-            "Import"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "kerml",
           "feature": "isSufficient",
           "operator": "?=",
           "productions": [
@@ -18192,26 +17595,6 @@
           "method": "grammar-assignment"
         },
         {
-          "grammar": "kerml",
-          "feature": "visibility",
-          "operator": "=",
-          "productions": [
-            "Import"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "isImportAll",
-          "operator": "?=",
-          "productions": [
-            "Import"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
           "grammar": "sysml",
           "feature": "ownedRelationship",
           "operator": "+=",
@@ -18224,19 +17607,8 @@
             "DefinitionBodyItem",
             "InterfaceBodyItem",
             "MetadataBody",
-            "NonBehaviorBodyItem",
             "RequirementBodyItem",
             "StateBodyItem"
-          ],
-          "provenance": "MODEL",
-          "method": "grammar-assignment"
-        },
-        {
-          "grammar": "sysml",
-          "feature": "visibility",
-          "operator": "=",
-          "productions": [
-            "Import"
           ],
           "provenance": "MODEL",
           "method": "grammar-assignment"
@@ -18614,13 +17986,10 @@
           "operator": "+=",
           "productions": [
             "AssertConstraintUsage",
-            "BindingConnectorAsUsage",
             "EndUsagePrefix",
-            "EventOccurrenceUsage",
             "ExhibitStateUsage",
             "IncludeUseCaseUsage",
             "SatisfyRequirementUsage",
-            "SuccessionAsUsage",
             "UsageExtensionKeyword"
           ],
           "provenance": "MODEL",

@@ -70,6 +70,20 @@ inherited feature to redefine regardless of what the metamodel says.
 so `lower > upper` is a comparison rather than a judgement. Apply the same rule to bounds written in
 the notation under review: `[2..1]` is ill-formed, `[0..*]` is not.
 
+**What a construct actually populates.** `cross-references.json` carries a `features` array per
+element: the metamodel feature each piece of syntax fills, and how (`=` sets, `+=` adds, `?=` sets a
+boolean from a keyword's presence), with the productions responsible.
+
+```sh
+jq -r '.entries["Comment"].features[] | "\(.feature) \(.operator) via \(.productions|join(", "))"' \
+  knowledge/<tag>/cross-references.json
+```
+
+Use it to explain a finding in the model's terms rather than the notation's — "this sets
+`declaredName`, which is `[0..1]`" is a better explanation than "this looks wrong". An empty list
+means the element adds no syntax of its own and inherits its declaration; say so rather than
+treating it as unknown.
+
 For either finding, `cross-references.json` gives the clause to point at:
 
 ```sh

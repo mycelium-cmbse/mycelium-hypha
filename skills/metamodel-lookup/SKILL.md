@@ -111,6 +111,42 @@ jq '.entries["PartUsage"] | {clauses: [.clauses[] | "\(.document) \(.clause)"], 
 
 Use it to point at the governing clause or a worked example after answering a structural question.
 
+## Notation questions — how an element is written
+
+`cross-references.json` also carries `grammar` (the productions that build an element) and
+`features` (which metamodel feature a piece of syntax populates, and how). Together they answer
+questions the metamodel alone cannot:
+
+```sh
+# How is a PartUsage written? -> the productions that build it
+jq -r '.entries["PartUsage"].grammar[] | "\(.grammar) \(.production)"' knowledge/<tag>/cross-references.json
+
+# What does the syntax of a Comment fill in?
+jq -r '.entries["Comment"].features[] | "\(.grammar): \(.feature) \(.operator) via \(.productions|join(", "))"' \
+  knowledge/<tag>/cross-references.json
+
+# Which element's syntax sets `declaredName`, and through which production?
+jq -r '.entries | to_entries[] | . as $e | $e.value.features[]
+       | select(.feature=="declaredName") | "\($e.key): \(.productions|join(", "))"' \
+  knowledge/<tag>/cross-references.json
+```
+
+Read the operator literally: `=` sets a value, `+=` adds to a collection, and `?=` sets a boolean
+from the *presence of a keyword* — so `isStandard ?=` means the flag is true when the keyword is
+written at all, with no value to supply.
+
+The full production text, grouped by clause, is in
+`knowledge/<tag>/textual-notation/grammar-{kerml,sysml}.md`; the graphical notation is in
+`grammar-graphical.md`.
+
+**An empty `features` list is meaningful, not missing data.** It means the element adds no syntax of
+its own — `PartUsage` has none, because its declaration is inherited from `Usage`. Say that, rather
+than reporting that nothing is known.
+
+**The same feature often appears under both grammars.** The SysML grammar re-declares many KerML
+productions, so `Comment` lists `body =` once for `kerml` and once for `sysml`. That is one fact, not
+two: report it once and mention both grammars declare it only if the user asks.
+
 ## Provenance
 
 Every fact you report belongs to one of three tiers — say which when it matters, and never blur them:

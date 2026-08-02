@@ -93,6 +93,66 @@ OtherUsage : Feature =
     assert links["PartUsage"][0]["productions"] == ["PartUsageDeclaration"]
 
 
+def test_feature_links_follow_helpers_transitively() -> None:
+    from spec_extract.grammar import feature_links
+
+    grammar = """
+// Clause 1 Parts
+
+PartUsage =
+    PartUsageDeclaration
+
+PartUsageDeclaration =
+    'part' PartUsageName
+
+PartUsageName =
+    declaredName = NAME
+"""
+    links = feature_links(parse(grammar), {"PartUsage"})
+
+    # Two hops: PartUsage -> PartUsageDeclaration -> PartUsageName.
+    assert [entry["feature"] for entry in links["PartUsage"]] == ["declaredName"]
+    assert links["PartUsage"][0]["productions"] == ["PartUsageName"]
+
+
+def test_feature_links_do_not_follow_a_helper_shared_by_two_elements() -> None:
+    from spec_extract.grammar import feature_links
+
+    grammar = """
+// Clause 1 Parts
+
+PartUsage =
+    SharedDeclaration
+
+ItemUsage =
+    SharedDeclaration
+
+SharedDeclaration =
+    declaredName = NAME
+"""
+    links = feature_links(parse(grammar), {"PartUsage", "ItemUsage"})
+
+    # The helper is reachable from both, so attributing it to either would be a guess.
+    assert links == {}
+
+
+def test_feature_links_survive_a_self_referencing_grammar() -> None:
+    from spec_extract.grammar import feature_links
+
+    grammar = """
+// Clause 1 Parts
+
+PartUsage =
+    Nested
+
+Nested =
+    Nested | declaredName = NAME
+"""
+    links = feature_links(parse(grammar), {"PartUsage"})
+
+    assert [entry["feature"] for entry in links["PartUsage"]] == ["declaredName"]
+
+
 def test_feature_links_do_not_follow_a_typed_production() -> None:
     from spec_extract.grammar import feature_links
 
