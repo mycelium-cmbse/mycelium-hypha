@@ -34,18 +34,25 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public async Task Generates_per_primitive_type_element_files()
         {
-            var model = TestModel.LoadSysmlModel();
-            if (model is null)
+            if (TestModel.Model is null)
             {
-                Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
+                Assert.Ignore("No SysML *.uml model found under sources/<tag>/xmi/.");
             }
 
-            var outputDirectory = new DirectoryInfo(
-                Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "metamodel", "elements"));
+            DirectoryInfo? outputDirectory = null;
 
-            await this.generator.GenerateAsync(model!, outputDirectory);
+            foreach (var tag in TestModel.Tags)
+            {
+                var model = TestModel.ModelFor(tag);
+                Assert.That(model, Is.Not.Null, $"No model found for release {tag}.");
 
-            var stringType = Path.Combine(outputDirectory.FullName, "String.md");
+                outputDirectory = new DirectoryInfo(
+                    Path.Combine(KnowledgeVersions.MetamodelDirectory(tag).FullName, "elements"));
+
+                await this.generator.GenerateAsync(model!, outputDirectory);
+            }
+
+            var stringType = Path.Combine(outputDirectory!.FullName, "String.md");
             Assert.That(File.Exists(stringType), Is.True);
 
             var content = await File.ReadAllTextAsync(stringType);

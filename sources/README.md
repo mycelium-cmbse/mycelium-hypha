@@ -1,11 +1,12 @@
 # sources/
 
-Raw, unprocessed inputs to the generation pipelines.
+Raw, unprocessed inputs to the generation pipelines, **one folder per upstream release tag**.
 
-- **`xmi/` and `textual/` are committed** — the EPL-2.0 metamodel XMI and the textual-notation
-  grammar/example models are version-controlled so the pipelines are reproducible.
-- **`specs/` is git-ignored** (the OMG PDF specifications are copyrighted — see the repository
-  `.gitignore`) and must be obtained separately; only this README and a `.gitkeep` are tracked there.
+- **`<tag>/xmi/` and `<tag>/textual/` are committed** for the releases in the rolling window, so the
+  pipelines are reproducible.
+- **`<tag>/specs/` is git-ignored** (the OMG PDF specifications are copyrighted — see the repository
+  `.gitignore`, which also carries a global `*.pdf` backstop) and must be obtained separately.
+- **`PrimitiveTypes.xmi` is shared** across every release.
 
 > ⚠️ The OMG PDF specifications are copyrighted. Do **not** commit them to this repository.
 
@@ -13,65 +14,51 @@ Raw, unprocessed inputs to the generation pipelines.
 
 ```
 sources/
-├── xmi/        OMG / pilot XMI metamodel + normative model libraries
-├── specs/      OMG PDF specifications
-└── textual/    SysML v2 / KerML textual-notation source material
+├── PrimitiveTypes.xmi   OMG UML primitives library, shared by every release
+└── <tag>/               e.g. 2026-05
+    ├── xmi/             OMG / pilot XMI metamodel
+    ├── specs/           OMG PDF specifications          (git-ignored)
+    └── textual/         SysML v2 / KerML textual-notation source material
 ```
 
-## Where to get the inputs
+## The tag is the version
 
-Inputs come from the SysML v2 submission team's repositories — the metamodel XMI from
-[Systems-Modeling/SysML-v2-Pilot-Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation)
-and the PDF specifications, grammar and textual examples from
-[Systems-Modeling/SysML-v2-Release](https://github.com/Systems-Modeling/SysML-v2-Release).
-See **Provenance** below for exact commits.
+A hypha version is one **tag name that resolves in both upstreams**. The tag is the only identifier
+used: the model URI inside the XMI (`…/SysML/20250201`) is ignored, because it tracks neither the
+release nor the content — the 2026-05 metamodel still declares a 2025 URI. The same model may
+therefore appear under several tags, which is accepted.
 
-### `xmi/` — metamodel (→ `tools/metamodel-gen`) — committed
-- The SysML v2 metamodel (`SysML_only_xmi.uml`), the KerML metamodel it imports
-  (`KerML_only_xmi.uml`) and the referenced primitive types (`PrimitiveTypes.xmi`), committed so the
-  generator tests run reproducibly (incl. in CI).
-- These are EPL-2.0 artifacts from the release repo (see **Provenance** below); committing them is
-  permitted. The model version is `20250201` (per each file's `URI` attribute).
+The two repositories are not in lockstep, so the offerable versions are the **intersection** of their
+tags. Discovery and fetching live in `tools/spec-extract` (`spec_extract.versions`, `spec_extract.fetch`).
 
-### `specs/` — PDF specifications (→ `tools/spec-extract`)
-- KerML 1.0, SysML v2, and Systems Modeling API & Services 1.0, from `doc/` in the release repo.
-  Download these three files into this folder:
-  - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/1-Kernel_Modeling_Language.pdf
-  - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/2a-OMG_Systems_Modeling_Language.pdf
-  - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/3-Systems_Modeling_API_and_Services.pdf
-- Kept out of git for copyright reasons. A plugin **SessionStart** hook (`hooks/check-spec-pdfs.py`)
-  detects when any are missing and reminds you to download them.
+## Where the inputs come from
 
-### `textual/` — textual-notation material (→ `knowledge/textual-notation`) — committed
-- Grammar (`bnf/*.kebnf`, `*.kgbnf`) and example models (`kerml/`, `sysml/`) from the release repo,
-  committed (EPL-2.0) so the textual-notation knowledge base is reproducible.
+| Input | Upstream | Path at the tag | License |
+| --- | --- | --- | --- |
+| SysML v2 metamodel | Pilot-Implementation | `org.omg.sysml/model/SysML_only_xmi.uml` | EPL-2.0, committed |
+| KerML metamodel | Pilot-Implementation | `org.omg.sysml/model/KerML_only_xmi.uml` | EPL-2.0, committed |
+| Primitive types | — | shared `sources/PrimitiveTypes.xmi` | OMG UML library, committed |
+| Specification PDFs | Release | `doc/*.pdf` | OMG, **git-ignored** |
+| Textual grammar | Release | `bnf/*.kebnf`, `*.kgbnf` | EPL-2.0, committed |
+| Textual examples | Release | `kerml/`, `sysml/` | EPL-2.0, committed |
 
-## Provenance
+`PrimitiveTypes.xmi` is published by neither upstream: it is the OMG UML primitives library
+(`…/PrimitiveTypes/20161101`), referenced through a path map and identical for every release, so it
+is stored once rather than duplicated per tag.
 
-Each input is traceable to a specific upstream snapshot, so a regenerated `knowledge/` base maps to a
-specific specification version. There are two upstreams:
+## Installed releases
 
-> **XMI** — [`Systems-Modeling/SysML-v2-Pilot-Implementation`](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation)
-> @ commit `22dbbc30d13e5cde39a2d69cbd68cab895d6c9e1` (EPL-2.0)
->
-> **PDFs** — [`Systems-Modeling/SysML-v2-Release`](https://github.com/Systems-Modeling/SysML-v2-Release)
-> @ commit `cd99f7ca70b96abb38f09dfd25725e3cf259baa3` (OMG-copyrighted; not committed)
->
-> **Textual** — [`Systems-Modeling/SysML-v2-Release`](https://github.com/Systems-Modeling/SysML-v2-Release)
-> @ commit `9baca5908ca28b53da085de69336fde48420ea8f` (EPL-2.0)
+`knowledge/versions.json` is the authoritative record of which releases this checkout carries, which
+one is the default, and the upstream commit each tag resolved to (traceability only — the tag is the
+identifier). Fetching another release writes a new `sources/<tag>/` folder; only the window's tags are
+committed.
 
-| Input | File(s) | Version | OMG document | Upstream / License |
-| --- | --- | --- | --- | --- |
-| SysML v2 metamodel | `xmi/SysML_only_xmi.uml` | model URI `…/SysML/20250201` | — | Pilot-Implementation, EPL-2.0 |
-| KerML metamodel | `xmi/KerML_only_xmi.uml` | model URI `…/KerML/20250201` | — | Pilot-Implementation, EPL-2.0 |
-| Primitive types | `xmi/PrimitiveTypes.xmi` | (imported by the above) | — | Pilot-Implementation, EPL-2.0 |
-| KerML spec PDF | `specs/1-Kernel_Modeling_Language.pdf` | 1.0 | `formal/26-03-01` | Release, OMG (not committed) |
-| SysML spec PDF | `specs/2a-OMG_Systems_Modeling_Language.pdf` | 2.0 | `formal/26-03-02` | Release, OMG (not committed) |
-| API & Services PDF | `specs/3-Systems_Modeling_API_and_Services.pdf` | 1.0 | `formal/26-03-04` | Release, OMG (not committed) |
-| Textual grammar | `textual/bnf/*.kebnf`, `*.kgbnf` | — | — | Release, EPL-2.0 |
-| Textual examples | `textual/kerml/`, `textual/sysml/` | — | — | Release, EPL-2.0 |
+The OMG PDFs must be obtained per release. A plugin **SessionStart** hook
+(`hooks/check-spec-pdfs.py`) checks the default release and names the exact files and tagged URLs
+when any are missing.
+
+## Licensing
 
 The XMI and textual sources are EPL-2.0 and committed; the OMG PDFs are copyrighted and git-ignored
 (the OMG license forbids redistributing them — see the repository [NOTICE](../NOTICE) for the full
-attribution and license terms). When updating any input, bump the relevant upstream commit above and
-the affected version/document numbers.
+attribution and license terms).

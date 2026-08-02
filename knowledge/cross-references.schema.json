@@ -42,9 +42,12 @@
         "withClauses",
         "withoutClauses",
         "withGrammar",
+        "withFeatures",
         "withExamples",
         "clauseEdges",
+        "statedClauseEdges",
         "grammarEdges",
+        "featureEdges",
         "exampleEdges"
       ],
       "properties": {
@@ -52,9 +55,15 @@
         "withClauses": { "type": "integer" },
         "withoutClauses": { "type": "integer" },
         "withGrammar": { "type": "integer" },
+        "withFeatures": { "type": "integer" },
         "withExamples": { "type": "integer" },
         "clauseEdges": { "type": "integer" },
+        "statedClauseEdges": {
+          "description": "Clause edges the grammar states outright, rather than matched on a clause title.",
+          "type": "integer"
+        },
         "grammarEdges": { "type": "integer" },
+        "featureEdges": { "type": "integer" },
         "exampleEdges": { "type": "integer" }
       }
     },
@@ -72,15 +81,16 @@
     "entry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "element", "clauses", "grammar", "examples"],
+      "required": ["kind", "element", "clauses", "grammar", "features", "examples"],
       "properties": {
         "kind": { "enum": ["class", "enumeration", "primitiveType"] },
         "element": {
-          "description": "Path to the element markdown, relative to knowledge/.",
+          "description": "Path to the element markdown, relative to the release folder.",
           "type": "string"
         },
         "clauses": { "type": "array", "items": { "$ref": "#/$defs/clauseEdge" } },
         "grammar": { "type": "array", "items": { "$ref": "#/$defs/grammarEdge" } },
+        "features": { "type": "array", "items": { "$ref": "#/$defs/featureEdge" } },
         "examples": { "type": "array", "items": { "$ref": "#/$defs/exampleEdge" } }
       }
     },
@@ -103,6 +113,20 @@
       "properties": {
         "grammar": { "type": "string" },
         "production": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "method": { "type": "string" }
+      }
+    },
+    "featureEdge": {
+      "description": "A metamodel feature that this element's grammar productions populate, and how: '=' sets a value, '+=' adds to a collection, '?=' sets a boolean flag from a keyword's presence. Stated by the grammar, so MODEL rather than DERIVED.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grammar", "feature", "operator", "productions", "provenance", "method"],
+      "properties": {
+        "grammar": { "type": "string" },
+        "feature": { "type": "string" },
+        "operator": { "enum": ["=", "+=", "?="] },
+        "productions": { "type": "array", "items": { "type": "string" } },
         "provenance": { "$ref": "#/$defs/provenance" },
         "method": { "type": "string" }
       }

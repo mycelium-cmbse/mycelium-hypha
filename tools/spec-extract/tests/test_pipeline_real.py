@@ -11,12 +11,15 @@ from pathlib import Path
 
 import pytest
 
+from conftest import require_pdfs
 from spec_extract.model import Clause
 from spec_extract.pipeline import DocMeta, extract_document, write_clauses
 
 
 @pytest.fixture(scope="module")
-def kerml_clauses(kerml_pdf: Path) -> list[Clause]:
+def kerml_clauses(repo_root: Path, installed_tags: list[str]) -> list[Clause]:
+    """Clauses from the default (newest installed) release's KerML PDF."""
+    kerml_pdf, _ = require_pdfs(repo_root, installed_tags[0])
     return extract_document(kerml_pdf, DocMeta("KerML", "1.0", "kerml"))
 
 

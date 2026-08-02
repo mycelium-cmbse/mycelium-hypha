@@ -8,6 +8,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Version awareness (`fixes #67`, `fixes #74`).** The knowledge base is now generated per upstream
+  release tag (`YYYY-MM`) instead of from a single snapshot, with a committed rolling window of the
+  two most recent releases – currently `2026-05` (the default) and `2026-04`.
+  - `knowledge/versions.json` records the installed tags, the default, and the upstream commit each
+    tag resolved to (traceability only – **the tag is the identifier**).
+  - `spec_extract.versions` discovers offerable releases as the **intersection** of the two
+    upstreams' tags: they are not in lockstep (`2023-07.1` is Release-only; `2024-08`, `2023-01`,
+    `2026-05-pre` are Pilot-only). Tags are `YYYY-MM` with an optional point release; pre-releases,
+    internal drops and letter revisions are excluded. 56 releases are currently offerable.
+  - `spec_extract.fetch` downloads a release's inputs from both upstreams, retrying transient
+    connection resets with backoff and resuming a partial run.
+  - Skills and subagents resolve the release from the manifest, answer from the default unless a tag
+    is named, and **state which release an answer came from**.
+  - `hooks/check-spec-pdfs.py` checks the default release and gives tagged download URLs.
+
+### Fixed
+- The previous inputs were not a coherent version: the PDFs resolved to Release tag `2026-03`, the
+  textual sources to `2026-04`, and the metamodel XMI to an *untagged* `master` commit. Each release
+  now comes from a single upstream point.
+- `XmiModelReaderTests` was silently skipping on a stale `sources/xmi` path; it runs again.
+- `.gitignore` gained a global `*.pdf` backstop. Moving the specs rule to the per-tag form stopped it
+  matching a stale copy of the old layout, and three copyrighted OMG PDFs were very nearly committed.
+
+### Changed
+- `sources/` and `knowledge/` are laid out per tag: `sources/<tag>/{xmi,textual,specs}` and
+  `knowledge/<tag>/{metamodel,spec,cross-references.json}`. `knowledge/textual-notation/` stays
+  shared (hand-curated), and `sources/PrimitiveTypes.xmi` is shared – it is the OMG UML primitives
+  library, published by neither upstream and identical for every release.
+- The model URI inside the XMI (`…/SysML/20250201`) is no longer used anywhere as a version
+  identifier. It tracks neither release nor content: the 2026-05 metamodel still declares a 2025 URI.
+  The same model may appear under several tags, which is accepted rather than deduplicated.
+
+### Added
 - `knowledge/cross-references.json` (+ schema): edges from every metamodel element to the
   specification clauses that treat it, its BNF grammar production and any worked example. It records
   clause **identifiers only, never clause text**, so it ships even though `knowledge/spec/` cannot –

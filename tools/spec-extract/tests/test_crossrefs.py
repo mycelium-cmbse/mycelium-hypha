@@ -14,6 +14,7 @@ from spec_extract.crossrefs import (
     example_edges,
     grammar_edges,
     load_examples,
+    merge_clause_edges,
     render,
 )
 
@@ -64,16 +65,61 @@ def test_clause_edges_sort_documents_before_clause_numbers() -> None:
     assert [(edge["document"], edge["clause"]) for edge in edges] == [("kerml", "9.9"), ("sysml2", "1.1")]
 
 
-def test_grammar_edges_match_production_names() -> None:
-    productions = {"sysml": ["PartUsage", "PartDefinition"], "kerml": ["Feature"]}
+def test_grammar_edges_use_the_declared_production() -> None:
+    links = {
+        "sysml": {"PartUsage": ["PartUsage", "PartUsageDeclaration"]},
+        "kerml": {"Feature": ["Feature"]},
+    }
 
-    edges = grammar_edges(["PartUsage", "Feature", "VisibilityKind"], productions)
+    edges = grammar_edges(["PartUsage", "Feature", "VisibilityKind"], links)
 
-    assert edges["PartUsage"] == [
-        {"grammar": "sysml", "production": "PartUsage", "provenance": "DERIVED", "method": "exact-name-match"}
-    ]
+    assert [edge["production"] for edge in edges["PartUsage"]] == ["PartUsage", "PartUsageDeclaration"]
     assert edges["Feature"][0]["grammar"] == "kerml"
     assert edges["VisibilityKind"] == []
+
+
+def test_grammar_edges_distinguish_a_declared_production_from_a_name_match() -> None:
+    links = {"sysml": {"PartUsage": ["PartUsage", "PartUsageDeclaration"]}}
+
+    methods = {edge["production"]: edge["method"] for edge in grammar_edges(["PartUsage"], links)["PartUsage"]}
+
+    assert methods["PartUsage"] == "production-name"
+    assert methods["PartUsageDeclaration"] == "declared-production"
+
+
+def test_grammar_edges_are_model_provenance() -> None:
+    # The grammar states what a production builds; this is read, not inferred.
+    edges = grammar_edges(["Feature"], {"kerml": {"Feature": ["Feature"]}})
+
+    assert edges["Feature"][0]["provenance"] == "MODEL"
+
+
+def test_a_grammar_stated_clause_upgrades_a_title_match() -> None:
+    # The same clause found both ways must not stay labelled as inferred.
+    title_matched = {"Feature": [{"document": "kerml", "clause": "7.4.2", "provenance": "DERIVED",
+                                 "method": "exact-title-match"}]}
+
+    merged = merge_clause_edges(title_matched, {"kerml": {"Feature": ["7.4.2"]}}, {"kerml": "kerml"})
+
+    assert len(merged["Feature"]) == 1, "the same clause must not be listed twice"
+    assert merged["Feature"][0]["provenance"] == "MODEL"
+    assert merged["Feature"][0]["method"] == "grammar-clause"
+
+
+def test_a_grammar_stated_clause_is_added_when_the_title_never_matched() -> None:
+    merged = merge_clause_edges(
+        {"Feature": []}, {"kerml": {"Feature": ["8.3.1"]}}, {"kerml": "kerml"}
+    )
+
+    assert [edge["clause"] for edge in merged["Feature"]] == ["8.3.1"]
+
+
+def test_merged_clause_edges_stay_numerically_ordered() -> None:
+    merged = merge_clause_edges(
+        {"Feature": []}, {"kerml": {"Feature": ["8.3.10", "8.3.2"]}}, {"kerml": "kerml"}
+    )
+
+    assert [edge["clause"] for edge in merged["Feature"]] == ["8.3.2", "8.3.10"]
 
 
 def test_example_edges_invert_the_curated_front_matter() -> None:
@@ -96,7 +142,7 @@ def test_build_counts_coverage_and_shapes_entries() -> None:
         ELEMENTS,
         CLAUSE_TITLES,
         DOCUMENTS,
-        {"sysml": ["PartUsage"]},
+        {"sysml": {"PartUsage": ["PartUsage"]}},
         {"textual-notation/examples/part-definitions.md": ["PartUsage"]},
         "https://www.omg.org/spec/SysML/20250201",
     )
@@ -106,9 +152,12 @@ def test_build_counts_coverage_and_shapes_entries() -> None:
         "withClauses": 2,
         "withoutClauses": 1,
         "withGrammar": 1,
+        "withFeatures": 0,
         "withExamples": 1,
         "clauseEdges": 3,
+        "statedClauseEdges": 0,
         "grammarEdges": 1,
+        "featureEdges": 0,
         "exampleEdges": 1,
     }
     assert document["entries"]["PartUsage"]["element"] == "metamodel/elements/PartUsage.md"
@@ -156,7 +205,7 @@ def test_built_document_matches_the_committed_schema_shape(repo_root: Path) -> N
         ELEMENTS,
         CLAUSE_TITLES,
         DOCUMENTS,
-        {"sysml": ["PartUsage"]},
+        {"sysml": {"PartUsage": ["PartUsage"]}},
         {"textual-notation/examples/part-definitions.md": ["PartUsage"]},
         "uri",
     )

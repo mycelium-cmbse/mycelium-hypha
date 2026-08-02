@@ -133,7 +133,7 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public void Excludes_derived_features_from_the_real_model()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
                 Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
@@ -168,7 +168,7 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public void Draws_metaclass_typed_features_as_edges_and_primitives_as_attributes()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
                 Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
@@ -194,7 +194,7 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public void Pulls_out_of_package_supertypes_in_as_boundary_nodes()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
                 Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
@@ -223,7 +223,7 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public void Produces_a_payload_for_every_package_that_owns_metaclasses()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
                 Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
@@ -248,7 +248,7 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public void Merges_packages_that_share_a_name()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
                 Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
@@ -272,7 +272,7 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public async Task Generates_deterministic_diagrams_for_the_knowledge_base()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
                 Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
@@ -283,17 +283,21 @@ namespace Hypha.MetamodelGen.Tests
 
             Assert.That(this.generator.GenerateDiagram(payloads[0]), Is.EqualTo(first));
 
-            // Produce the committed knowledge base files.
-            var outputDirectory = new DirectoryInfo(
-                Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "metamodel"));
+            // Produce the committed knowledge base files, for every installed release.
+            foreach (var tag in TestModel.Tags)
+            {
+                var tagModel = TestModel.ModelFor(tag);
+                Assert.That(tagModel, Is.Not.Null, $"No model found for release {tag}.");
 
-            await this.generator.GenerateAsync(model!, outputDirectory);
+                var outputDirectory = KnowledgeVersions.MetamodelDirectory(tag);
+                await this.generator.GenerateAsync(tagModel!, outputDirectory);
 
-            var diagramDirectory = Path.Combine(
-                outputDirectory.FullName, PackageDiagramGenerator.DiagramDirectoryName);
+                var diagramDirectory = Path.Combine(
+                    outputDirectory.FullName, PackageDiagramGenerator.DiagramDirectoryName);
+                var expected = PackageDiagramGenerator.CreatePayloads(tagModel!)[0].Package;
 
-            Assert.That(
-                File.Exists(Path.Combine(diagramDirectory, $"{payloads[0].Package}.md")), Is.True);
+                Assert.That(File.Exists(Path.Combine(diagramDirectory, $"{expected}.md")), Is.True);
+            }
         }
 
         private static PackageDiagramPayload TypesPackage(IReadOnlyList<PackageDiagramPayload> payloads) =>

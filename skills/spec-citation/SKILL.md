@@ -8,10 +8,17 @@ description: Quote the normative OMG SysML v2 / KerML specification text with an
 Back claims with the literal text of the OMG KerML and SysML v2 specifications, always with a
 clause reference. Never paraphrase a normative ("shall"/"must") statement.
 
+## Releases
+
+Clause text is generated **per upstream release tag** (`YYYY-MM`). Read `knowledge/versions.json`
+for the installed tags and the `default` one, then substitute it for `<tag>` below. Quote from the
+default release unless the user names another, and **state which release the citation is from** —
+clause numbering shifts between releases, so a bare clause reference can be wrong for another one.
+
 ## Knowledge base
 
-- `knowledge/spec/kerml/` — KerML 1.0, one markdown file per clause.
-- `knowledge/spec/sysml2/` — SysML v2.0, one markdown file per clause.
+- `knowledge/<tag>/spec/kerml/` — KerML 1.0, one markdown file per clause.
+- `knowledge/<tag>/spec/sysml2/` — SysML v2.0, one markdown file per clause.
 
 Each tree has an `index.md` (a human-readable table of every clause → title → pages → file) and an
 `index.json` (the same catalog, machine-readable, with `entries` keyed by clause number →
@@ -20,10 +27,10 @@ lookup ("clause 7.4.2") or filtering (e.g. `normative` clauses) before reading a
 metadata only, never clause text. Clause files are named by zero-padded clause number + slug, e.g.
 `07.04.02-concrete-syntax.md`, so a clause number sorts and greps directly.
 
-> `knowledge/spec/` is **generated locally** by `tools/spec-extract` from your own copies of the OMG
+> `knowledge/<tag>/spec/` is **generated locally** by `tools/spec-extract` from your own copies of the OMG
 > PDFs and is **not shipped** with the plugin (OMG licensing forbids redistributing the spec text).
 
-- `knowledge/cross-references.json` — **committed**, and available even when the clause text is not.
+- `knowledge/<tag>/cross-references.json` — **committed**, and available even when the clause text is not.
   It maps each metamodel element to the clause identifiers that treat it. It holds clause *numbers*
   only, never wording, which is exactly why it can ship.
 
@@ -31,8 +38,8 @@ metadata only, never clause text. Clause files are named by zero-padded clause n
 
 Do not simply refuse. Degrade in this order:
 
-1. Look the element up in `knowledge/cross-references.json` and **name the governing clause**:
-   `jq '.entries["PartUsage"].clauses' knowledge/cross-references.json`.
+1. Look the element up in `knowledge/<tag>/cross-references.json` and **name the governing clause**:
+   `jq '.entries["PartUsage"].clauses' knowledge/<tag>/cross-references.json`.
 2. Say plainly that you are giving a clause *reference*, not a quotation, and that the reference is
    `DERIVED` (matched by name) rather than read from the specification.
 3. Tell the user how to unlock verbatim text — obtain the PDFs and regenerate with
@@ -77,7 +84,7 @@ change the words.
 
 ## Procedure
 
-1. Find the clause: when the question names a metamodel element, `knowledge/cross-references.json`
+1. Find the clause: when the question names a metamodel element, `knowledge/<tag>/cross-references.json`
    resolves it to clause numbers directly. Otherwise look it up in `index.json` / `index.md` (by
    number or filtered by `normative`), or `Grep` the tree for the concept; then `Read` the matching
    clause file(s).
