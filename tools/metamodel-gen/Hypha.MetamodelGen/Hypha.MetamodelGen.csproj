@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />
     <PackageReference Include="uml4net.Extensions" Version="8.2.1" />
-    <PackageReference Include="uml4net.xmi" Version="8.2.1" />
+    <PackageReference Include="uml4net.xmi" Version="8.3.0" />
   </ItemGroup>
 
   <ItemGroup>
