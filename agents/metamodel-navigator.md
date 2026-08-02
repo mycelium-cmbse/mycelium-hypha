@@ -28,8 +28,16 @@ KerML and SysML v2 are **combined** under one tree:
   (`kind: enumeration`) and primitive types (`kind: primitive`). The citable surface.
 - `knowledge/<tag>/metamodel/index.md` — manifest: metaclasses by package, plus `## Enumeration types` and
   `## Primitive types` sections, each entry linked.
-- `knowledge/<tag>/cross-references.json` — element → spec clause identifiers, BNF production, worked
-  examples.
+- `knowledge/<tag>/cross-references.json` — element → spec clause identifiers, BNF production, the
+  metamodel `features` each piece of syntax populates, and worked examples. For a fan-out question
+  about notation ("which elements' syntax sets `declaredName`", "what does `?=` set anywhere"),
+  query this rather than reading grammar files:
+
+  ```sh
+  jq -r '.entries | to_entries[] | . as $e | $e.value.features[]
+         | select(.operator=="?=") | "\($e.key): \(.feature)"' \
+    knowledge/<tag>/cross-references.json
+  ```
 
 Each element file carries: front matter (`name`, `package`, `fully qualified name`, `isAbstract`,
 `visibility`, `generalizes`, `specializedBy`); **## Generalizations** / **## Specializations**

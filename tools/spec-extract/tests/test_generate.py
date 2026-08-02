@@ -26,7 +26,7 @@ from spec_extract.crossrefs import (
     render,
     write_cross_references,
 )
-from spec_extract.grammar import clause_links, feature_links, metaclass_links
+from spec_extract.grammar import clause_links, feature_links, metaclass_links, parse_graphical, render_graphical
 from spec_extract.grammar import parse as parse_grammar
 from spec_extract.grammar import render as render_grammar
 from spec_extract.pipeline import DocMeta, extract_document, write_clauses, write_index, write_index_json
@@ -39,6 +39,7 @@ from spec_extract.textual import (
     reserved_keywords,
     surface_forms,
 )
+from spec_extract.versions import RELEASE_REPO
 
 
 def test_regenerates_spec_knowledge_base(repo_root: Path, installed_tags: list[str]) -> None:
@@ -111,6 +112,16 @@ def test_regenerates_textual_notation(repo_root: Path, installed_tags: list[str]
             assert all(production.clause for production in productions), (
                 f"every {grammar} production should be attributed to a clause"
             )
+
+        # The graphical notation is mostly pictures; the images are linked at this tag, not copied.
+        graphical = parse_graphical(
+            (textual_root / "bnf" / "SysML-graphical-bnf.kgbnf").read_text("utf-8")
+        )
+        (out_dir / "grammar-graphical.md").write_text(
+            render_graphical(tag, RELEASE_REPO, graphical), encoding="utf-8", newline="\n"
+        )
+        assert graphical, "no productions parsed from the graphical grammar"
+        assert any(production.images for production in graphical), "no notation images referenced"
 
         (out_dir / "index.md").write_text(
             render_index(tag, written, keywords), encoding="utf-8", newline="\n"
