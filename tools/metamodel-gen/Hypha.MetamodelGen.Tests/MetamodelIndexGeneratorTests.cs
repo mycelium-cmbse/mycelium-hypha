@@ -34,7 +34,7 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public async Task Generates_a_deterministic_metamodel_index()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
                 Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
@@ -71,13 +71,17 @@ namespace Hypha.MetamodelGen.Tests
             // Output must be deterministic for diff-friendly regeneration.
             Assert.That(this.generator.GenerateIndex(model!, "SysML v2"), Is.EqualTo(content));
 
-            // Produce the committed knowledge base file.
-            var outputDirectory = new DirectoryInfo(
-                Path.Combine(TestModel.FindRepoRoot()!.FullName, "knowledge", "metamodel"));
+            // Produce the committed knowledge base file, for every installed release.
+            foreach (var tag in TestModel.Tags)
+            {
+                var tagModel = TestModel.ModelFor(tag);
+                Assert.That(tagModel, Is.Not.Null, $"No model found for release {tag}.");
 
-            await this.generator.GenerateAsync(model!, outputDirectory, "SysML v2");
+                var outputDirectory = KnowledgeVersions.MetamodelDirectory(tag);
+                await this.generator.GenerateAsync(tagModel!, outputDirectory, "SysML v2");
 
-            Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "index.md")), Is.True);
+                Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "index.md")), Is.True);
+            }
         }
     }
 }

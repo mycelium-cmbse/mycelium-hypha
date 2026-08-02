@@ -25,22 +25,27 @@ mycelium-hypha/
 │
 ├── agents/                 Subagents (metamodel-navigator, spec-citation, sysml-validator)
 │
-├── knowledge/              Knowledge base the plugin reads
-│   ├── metamodel/          Combined KerML + SysML v2 metamodel: one file per element, + index.json,
-│   │                       metamodel.json (the structural graph) and
-│   │                       diagrams/ (a Mermaid class diagram per package)  (committed)
-│   ├── spec/               Per-clause specification text                  (generated locally, git-ignored)
-│   ├── textual-notation/   Grammar summary, worked examples, fixtures      (committed)
-│   └── cross-references.json  Element → clause id, grammar production, example   (committed)
+├── knowledge/              Knowledge base the plugin reads, one folder per release tag
+│   ├── versions.json       Installed release tags + which is the default   (committed)
+
+│   └── <tag>/              e.g. 2026-05
+│       ├── textual-notation/  Keyword reference + every model shipped at the tag, verbatim
+│       ├── metamodel/      Combined KerML + SysML v2 metamodel: one file per element, + index.json,
+│       │                   metamodel.json (the structural graph) and
+│       │                   diagrams/ (a Mermaid class diagram per package)  (committed)
+│       ├── spec/           Per-clause specification text          (generated locally, git-ignored)
+│       └── cross-references.json  Element → clause id, grammar production, example  (committed)
 │
-├── sources/                Raw inputs (see sources/README.md)
-│   ├── xmi/                Metamodel XMI                      (EPL-2.0, committed)
-│   ├── specs/              OMG PDF specifications             (copyrighted, git-ignored)
-│   └── textual/            Grammar + example models           (EPL-2.0, committed)
+├── sources/                Raw inputs, one folder per release tag (see sources/README.md)
+│   ├── PrimitiveTypes.xmi  OMG UML primitives library         (shared by every release, committed)
+│   └── <tag>/
+│       ├── xmi/            Metamodel XMI                      (EPL-2.0, committed)
+│       ├── specs/          OMG PDF specifications             (copyrighted, git-ignored)
+│       └── textual/        Grammar + example models           (EPL-2.0, committed)
 │
 └── tools/                  Generation pipelines (not part of the shipped plugin)
-    ├── metamodel-gen/      C# (uml4net): XMI → knowledge/metamodel/ (element files, index, JSON sidecar)
-    └── spec-extract/       Python:       PDFs → knowledge/spec/
+    ├── metamodel-gen/      C# (uml4net): XMI → knowledge/<tag>/metamodel/ (elements, index, JSON sidecar, diagrams)
+    └── spec-extract/       Python:       PDFs -> knowledge/<tag>/spec/; release discovery + fetching
 ```
 
 ## Install
@@ -57,7 +62,7 @@ In Claude Code, add the marketplace and install the plugin:
 Install [`jq`](https://jqlang.github.io/jq/) – `brew install jq`, `sudo apt install jq`, or
 `winget install jqlang.jq`.
 
-The metamodel ships as a structural graph (`knowledge/metamodel/metamodel.json`, ~8 MB) with the
+The metamodel ships as a structural graph (`knowledge/<tag>/metamodel/metamodel.json`, ~8 MB) with the
 inheritance closures precomputed. Set-shaped and cross-cutting questions – *"which metaclasses have a
 feature typed by `Expression`"*, *"every concrete subclass of `Usage`"* – are one query against it,
 and `jq` is how the skills run that query. It is a small standalone binary with no runtime behind it.
@@ -76,24 +81,42 @@ needs the specification text generated locally first** (see below). For example:
   for redefinition."
 - *Validation* – "Is this valid SysML v2? `part def Vehicle { attribute mass : Real[2..1]; }`"
 
+## Releases
+
+KerML and SysML v2 are released on a rolling tag cadence (`YYYY-MM`) across two upstream
+repositories, and hypha generates its knowledge base **per release tag**. A hypha version is one tag
+that exists in *both* upstreams — the metamodel XMI comes from the Pilot-Implementation repo, the
+specs, grammar and models from the Release repo.
+
+`knowledge/versions.json` records which releases this checkout carries and which one answers by
+default. The repository ships a **rolling window of the two most recent releases**; any other release
+can be generated locally (see [tools/spec-extract](tools/spec-extract/README.md)).
+
+The **tag is the version identifier.** The model URI inside the XMI (`…/SysML/20250201`) is
+deliberately ignored: it tracks neither the release nor the content — the 2026-05 metamodel still
+declares a 2025 URI. A consequence, and an accepted one, is that the same model may appear under
+several tags.
+
+The skills state which release an answer came from, and answer from the default unless you name one.
+
 ## The knowledge base
 
 | Tree | Built from | Pipeline | Shipped |
 | --- | --- | --- | --- |
-| `knowledge/metamodel/` | `sources/xmi/*.uml` | `tools/metamodel-gen` (C# / uml4net) | committed |
-| `knowledge/spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) | **git-ignored – regenerate locally** |
-| `knowledge/textual-notation/` | `sources/textual/` (grammar + examples) | hand-curated | committed |
-| `knowledge/cross-references.json` | the three trees above | `tools/spec-extract` (Python) | committed |
+| `knowledge/<tag>/metamodel/` | `sources/<tag>/xmi/*.uml` | `tools/metamodel-gen` (C# / uml4net) | committed |
+| `knowledge/<tag>/spec/` | `sources/<tag>/specs/*.pdf` | `tools/spec-extract` (Python) | **git-ignored – regenerate locally** |
+| `knowledge/<tag>/textual-notation/` | `sources/<tag>/textual/` (grammar + models) | `tools/spec-extract` (Python) | committed |
+| `knowledge/<tag>/cross-references.json` | the trees above | `tools/spec-extract` (Python) | committed |
 
-`knowledge/metamodel/` and `knowledge/textual-notation/` are committed, so the plugin works without
-running any pipeline. `knowledge/spec/` holds **verbatim OMG specification text** and is deliberately
+`knowledge/<tag>/metamodel/` and `knowledge/<tag>/textual-notation/` are committed, so the plugin works without
+running any pipeline. `knowledge/<tag>/spec/` holds **verbatim OMG specification text** and is deliberately
 **not committed** (the OMG license forbids redistributing it). To enable spec citation, obtain the
 three PDFs and regenerate it locally with `tools/spec-extract`; a SessionStart hook
 (`hooks/check-spec-pdfs.py`) reminds you when the PDFs are missing.
 
 `cross-references.json` links each metamodel element to the clauses that treat it, its grammar
 production and any worked example. It records clause **identifiers only, never clause text**, so it
-ships even though `knowledge/spec/` cannot – which is what lets spec citation still name the
+ships even though `knowledge/<tag>/spec/` cannot – which is what lets spec citation still name the
 governing clause when the PDFs are absent, instead of refusing outright. Regenerating it does need
 the PDFs, so it is committed and only rebuilt when the specification version changes.
 
@@ -106,7 +129,7 @@ with the data, in the `provenanceTiers` block of `cross-references.json`.
 
 ## Sources
 
-- [Systems-Modeling/SysML-v2-Pilot-Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) – the metamodel XMI (`sources/xmi/`, EPL-2.0).
+- [Systems-Modeling/SysML-v2-Pilot-Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) – the metamodel XMI (`sources/<tag>/xmi/`, EPL-2.0).
 - [Systems-Modeling/SysML-v2-Release](https://github.com/Systems-Modeling/SysML-v2-Release) – the specification PDFs (`doc/`) and the textual-notation grammar (`bnf/`) and example models.
 - [STARIONGROUP/uml4net](https://github.com/STARIONGROUP/uml4net) – C# library to read XMI models.
 - [STARIONGROUP/SysML2.NET](https://github.com/STARIONGROUP/SysML2.NET) – .NET implementation of the OMG SysML v2 specification, used as a reference for the generator.
@@ -122,18 +145,18 @@ This repository's own code and content are licensed under **Apache-2.0** – see
 
 The knowledge base is built from third-party, separately-licensed inputs:
 
-- The **committed** knowledge (`knowledge/metamodel/`, `knowledge/textual-notation/`) is a derivative
+- The **committed** knowledge (`knowledge/<tag>/metamodel/`, `knowledge/<tag>/textual-notation/`) is a derivative
   "special purpose specification … based upon" the OMG specifications, used for informational purposes
   as permitted by the OMG specification license; it ships under this repository's Apache-2.0 license.
   The upstream OMG attributions and the OMG license text are reproduced in [NOTICE](NOTICE).
 - **OMG specification PDFs are copyrighted and intentionally not committed** – the OMG license forbids
-  posting the specifications on a network, so they stay git-ignored (`sources/specs/`), and the
-  spec-derived `knowledge/spec/` is git-ignored too. Obtain the PDFs from OMG:
+  posting the specifications on a network, so they stay git-ignored (`sources/<tag>/specs/`), and the
+  spec-derived `knowledge/<tag>/spec/` is git-ignored too. Obtain the PDFs from OMG:
   [KerML 1.0](https://www.omg.org/spec/KerML/1.0) (`formal/26-03-01`),
   [SysML 2.0](https://www.omg.org/spec/SysML/2.0) (`formal/26-03-02`),
   [Systems Modeling API & Services 1.0](https://www.omg.org/spec/SystemsModelingAPI/1.0) (`formal/26-03-04`).
-- The **committed metamodel XMI** (`sources/xmi/`, model version `20250201`) and the **textual-notation
-  sources** (`sources/textual/`) come from the SysML v2 submission team's repositories under the
+- The **committed metamodel XMI** (`sources/<tag>/xmi/`) and the **textual-notation
+  sources** (`sources/<tag>/textual/`) come from the SysML v2 submission team's repositories under the
   **Eclipse Public License 2.0** (see [NOTICE](NOTICE) and [sources/README.md](sources/README.md)).
 
 ## Contributing

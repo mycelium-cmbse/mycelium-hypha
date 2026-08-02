@@ -27,13 +27,13 @@ namespace Hypha.MetamodelGen.Tests
         [Test]
         public async Task Generates_deterministic_sidecar_files()
         {
-            var model = TestModel.LoadSysmlModel();
+            var model = TestModel.Model;
             if (model is null)
             {
-                Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
+                Assert.Ignore("No SysML *.uml model found under sources/<tag>/xmi/.");
             }
 
-            var hash = JsonSidecarTestSupport.ComputeSourceHash();
+            var hash = JsonSidecarTestSupport.ComputeSourceHash(KnowledgeVersions.DefaultTag!);
 
             var document = MetamodelJsonGenerator.BuildDocument(model!, hash);
 
@@ -51,15 +51,22 @@ namespace Hypha.MetamodelGen.Tests
             var second = MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildDocument(model!, hash));
             Assert.That(second, Is.EqualTo(first));
 
-            // Produce the committed knowledge-base files.
-            var outputDirectory = JsonSidecarTestSupport.KnowledgeDirectory();
-            await MetamodelJsonGenerator.GenerateAsync(model!, outputDirectory, hash);
-
-            Assert.Multiple(() =>
+            // Produce the committed knowledge-base files, for every installed release.
+            foreach (var tag in TestModel.Tags)
             {
-                Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "metamodel.json")), Is.True);
-                Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "index.json")), Is.True);
-            });
+                var tagModel = TestModel.ModelFor(tag);
+                Assert.That(tagModel, Is.Not.Null, $"No model found for release {tag}.");
+
+                var outputDirectory = JsonSidecarTestSupport.KnowledgeDirectory(tag);
+                await MetamodelJsonGenerator.GenerateAsync(
+                    tagModel!, outputDirectory, JsonSidecarTestSupport.ComputeSourceHash(tag));
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "metamodel.json")), Is.True);
+                    Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "index.json")), Is.True);
+                });
+            }
         }
     }
 }

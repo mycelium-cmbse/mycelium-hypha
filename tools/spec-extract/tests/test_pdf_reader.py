@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from conftest import require_pdfs
 from spec_extract import pdf_reader
 
 
@@ -100,6 +101,13 @@ def test_extract_chars_maps_fields_and_page_index(monkeypatch: pytest.MonkeyPatc
 
 
 # --- Proof against the real PDF (skips when the git-ignored PDF is absent) ------------------------
+
+
+@pytest.fixture(scope="module")
+def kerml_pdf(repo_root: Path, installed_tags: list[str]) -> Path:
+    """The default (newest installed) release's KerML PDF."""
+    kerml, _ = require_pdfs(repo_root, installed_tags[0])
+    return kerml
 
 
 def test_page_count_is_positive(kerml_pdf: Path) -> None:

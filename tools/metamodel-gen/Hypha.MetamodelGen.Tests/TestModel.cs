@@ -10,6 +10,7 @@
 namespace Hypha.MetamodelGen.Tests
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -21,43 +22,40 @@ namespace Hypha.MetamodelGen.Tests
     using uml4net.xmi.Readers;
 
     /// <summary>
-    /// Helpers for locating the (committed) XMI inputs from the test output directory, loading the
-    /// model, and querying it via uml4net.
+    /// Helpers for locating the (committed) XMI inputs from the test output directory, loading a
+    /// release's model, and querying it via uml4net.
     /// </summary>
+    /// <remarks>
+    /// Inputs live under <c>sources/&lt;tag&gt;/xmi/</c>, one folder per release tag, with the model
+    /// loaded and cached per tag. <c>PrimitiveTypes.xmi</c> is shared at <c>sources/</c>: it is the
+    /// OMG UML primitives library, published by neither upstream and identical for every release.
+    /// </remarks>
     internal static class TestModel
     {
         // The pathmap URI the SysML metamodel uses to reference the UML primitive types library.
         private const string PrimitiveTypesPathMap = "pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml";
 
-        private static XmiReaderResult? cachedModel;
-        private static bool modelLoaded;
+        private static readonly ConcurrentDictionary<string, XmiReaderResult?> Cache = new(StringComparer.Ordinal);
+
+        /// <summary>Gets the installed release tags, newest first.</summary>
+        public static IReadOnlyList<string> Tags => KnowledgeVersions.Tags;
 
         /// <summary>
-        /// Gets the SysML model, loaded once per test run (or <c>null</c> if no model is present).
+        /// Gets the model for the default release tag, loaded once (or <c>null</c> when no model is
+        /// present). Tests that only exercise generator behaviour can use this and ignore versioning.
         /// </summary>
-        public static XmiReaderResult? Model
-        {
-            get
-            {
-                if (!modelLoaded)
-                {
-                    cachedModel = LoadSysmlModel();
-                    modelLoaded = true;
-                }
-
-                return cachedModel;
-            }
-        }
+        public static XmiReaderResult? Model =>
+            KnowledgeVersions.DefaultTag is { } tag ? ModelFor(tag) : null;
 
         /// <summary>
         /// Walks up from the test output directory to the repository root (the directory that
-        /// contains both <c>sources/xmi</c> and <c>knowledge</c>), or <c>null</c> if not found.
+        /// contains both <c>sources</c> and <c>knowledge</c>), or <c>null</c> if not found.
         /// </summary>
         public static DirectoryInfo? FindRepoRoot()
         {
             for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
             {
-                if (Directory.Exists(Path.Combine(dir.FullName, "sources", "xmi"))
+                if (Directory.Exists(Path.Combine(dir.FullName, "sources"))
                     && Directory.Exists(Path.Combine(dir.FullName, "knowledge")))
                 {
                     return dir;
@@ -67,14 +65,19 @@ namespace Hypha.MetamodelGen.Tests
             return null;
         }
 
+        /// <summary>Loads (and caches) the combined KerML + SysML model for one release tag.</summary>
+        public static XmiReaderResult? ModelFor(string tag) =>
+            Cache.GetOrAdd(tag, LoadSysmlModel);
+
         /// <summary>
-        /// Loads the full SysML v2 metamodel from <c>sources/xmi/SysML_only_xmi.uml</c>. The SysML
-        /// document references the KerML abstract syntax (<c>KerML_only_xmi.uml</c>, resolved as a
-        /// local file relative to the xmi directory) and the UML primitive types (resolved via a
-        /// path map), so reading SysML as the root yields the complete KerML + SysML model with
-        /// fully resolved generalization chains. Returns <c>null</c> if no model is present.
+        /// Loads the full SysML v2 metamodel for <paramref name="tag"/> from
+        /// <c>sources/&lt;tag&gt;/xmi/SysML_only_xmi.uml</c>. The SysML document references the KerML
+        /// abstract syntax (resolved as a local file in the same folder) and the UML primitive types
+        /// (resolved via a path map to the shared <c>sources/PrimitiveTypes.xmi</c>), so reading SysML
+        /// as the root yields the complete KerML + SysML model with fully resolved generalization
+        /// chains. Returns <c>null</c> if the inputs for that tag are not present.
         /// </summary>
-        public static XmiReaderResult? LoadSysmlModel()
+        public static XmiReaderResult? LoadSysmlModel(string tag)
         {
             var root = FindRepoRoot();
             if (root is null)
@@ -82,9 +85,7 @@ namespace Hypha.MetamodelGen.Tests
                 return null;
             }
 
-            var xmiDirectory = Path.Combine(root.FullName, "sources", "xmi");
-
-            // SysML is the root document; it pulls in KerML and the primitive types by reference.
+            var xmiDirectory = KnowledgeVersions.XmiDirectory(tag).FullName;
             var modelPath = Path.Combine(xmiDirectory, "SysML_only_xmi.uml");
 
             if (!File.Exists(modelPath))
@@ -94,7 +95,7 @@ namespace Hypha.MetamodelGen.Tests
 
             var pathMaps = new Dictionary<string, string>
             {
-                [PrimitiveTypesPathMap] = Path.Combine(xmiDirectory, "PrimitiveTypes.xmi"),
+                [PrimitiveTypesPathMap] = Path.Combine(root.FullName, "sources", "PrimitiveTypes.xmi"),
             };
 
             return XmiModelReader.Read(modelPath, pathMaps, xmiDirectory);

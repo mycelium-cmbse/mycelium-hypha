@@ -9,6 +9,7 @@
 
 namespace Hypha.MetamodelGen.Tests
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Text;
 
@@ -24,48 +25,60 @@ namespace Hypha.MetamodelGen.Tests
     [TestFixture]
     public class MetamodelJsonGoldenTests
     {
-        [Test]
-        public void Generated_metamodel_json_matches_committed()
+        /// <summary>The installed release tags; each is golden-tested in its own right.</summary>
+        private static IEnumerable<string> Tags() => TestModel.Tags;
+
+        [TestCaseSource(nameof(Tags))]
+        public void Generated_metamodel_json_matches_committed(string tag)
         {
-            AssertMatchesCommitted("metamodel.json", BuildMetamodelJson());
+            AssertMatchesCommitted(tag, "metamodel.json", BuildMetamodelJson(tag));
         }
 
-        [Test]
-        public void Generated_index_json_matches_committed()
+        [TestCaseSource(nameof(Tags))]
+        public void Generated_index_json_matches_committed(string tag)
         {
-            AssertMatchesCommitted("index.json", BuildIndexJson());
+            AssertMatchesCommitted(tag, "index.json", BuildIndexJson(tag));
         }
 
         [Test]
         [Explicit("Regenerates the committed knowledge-base JSON; run manually after an intended format change.")]
         public void Bless_committed_files()
         {
-            var directory = JsonSidecarTestSupport.KnowledgeDirectory().FullName;
-            File.WriteAllText(Path.Combine(directory, "metamodel.json"), BuildMetamodelJson(), new UTF8Encoding(false));
-            File.WriteAllText(Path.Combine(directory, "index.json"), BuildIndexJson(), new UTF8Encoding(false));
+            foreach (var tag in TestModel.Tags)
+            {
+                var directory = JsonSidecarTestSupport.KnowledgeDirectory(tag).FullName;
+                Directory.CreateDirectory(directory);
+
+                File.WriteAllText(
+                    Path.Combine(directory, "metamodel.json"), BuildMetamodelJson(tag), new UTF8Encoding(false));
+                File.WriteAllText(
+                    Path.Combine(directory, "index.json"), BuildIndexJson(tag), new UTF8Encoding(false));
+            }
         }
 
-        private static string BuildMetamodelJson()
+        private static string BuildMetamodelJson(string tag)
         {
-            var model = TestModel.Model;
-            Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
+            var model = TestModel.ModelFor(tag);
+            Assert.That(model, Is.Not.Null, $"No SysML model found under sources/{tag}/xmi/.");
 
-            var document = MetamodelJsonGenerator.BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
+            var document = MetamodelJsonGenerator.BuildDocument(
+                model!, JsonSidecarTestSupport.ComputeSourceHash(tag));
             return MetamodelJsonGenerator.Serialize(document);
         }
 
-        private static string BuildIndexJson()
+        private static string BuildIndexJson(string tag)
         {
-            var model = TestModel.Model;
-            Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
+            var model = TestModel.ModelFor(tag);
+            Assert.That(model, Is.Not.Null, $"No SysML model found under sources/{tag}/xmi/.");
 
-            var document = MetamodelJsonGenerator.BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
+            var document = MetamodelJsonGenerator.BuildDocument(
+                model!, JsonSidecarTestSupport.ComputeSourceHash(tag));
             return MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildIndex(document));
         }
 
-        private static void AssertMatchesCommitted(string fileName, string generated)
+        private static void AssertMatchesCommitted(string tag, string fileName, string generated)
         {
-            var committedPath = Path.Combine(JsonSidecarTestSupport.KnowledgeDirectory().FullName, fileName);
+            var committedPath = Path.Combine(JsonSidecarTestSupport.KnowledgeDirectory(tag).FullName, fileName);
             Assert.That(File.Exists(committedPath), Is.True, $"Missing committed file: {committedPath}");
 
             var committed = JsonSidecarTestSupport.Normalize(File.ReadAllText(committedPath));

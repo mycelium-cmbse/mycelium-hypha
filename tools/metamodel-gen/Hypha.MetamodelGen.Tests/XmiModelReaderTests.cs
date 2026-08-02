@@ -27,7 +27,8 @@ namespace Hypha.MetamodelGen.Tests
             var xmiPath = TryLocateXmiFile();
             if (xmiPath is null)
             {
-                Assert.Ignore("No XMI file found under sources/xmi/. Add the KerML/SysML v2 XMI there to enable this test.");
+                Assert.Ignore(
+                    "No XMI file found under sources/<tag>/xmi/. Fetch a release to enable this test.");
             }
 
             var result = XmiModelReader.Read(xmiPath!);
@@ -42,25 +43,27 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         /// <summary>
-        /// Walks up from the test output directory to the repository root and returns the metamodel
-        /// entry point under <c>sources/xmi/</c>: the <c>*.uml</c> model is preferred, falling back to
-        /// a <c>*.xmi</c> file (e.g. referenced primitive types). Returns <c>null</c> if none is found.
+        /// Returns the metamodel entry point for the default release, under
+        /// <c>sources/&lt;tag&gt;/xmi/</c>: the <c>*.uml</c> model is preferred, falling back to a
+        /// <c>*.xmi</c> file (e.g. the shared primitive types). Returns <c>null</c> if none is found.
         /// </summary>
         private static string? TryLocateXmiFile()
         {
-            for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+            if (KnowledgeVersions.DefaultTag is not { } tag)
             {
-                var xmiDir = Path.Combine(dir.FullName, "sources", "xmi");
-                if (Directory.Exists(xmiDir))
-                {
-                    var files = Directory.EnumerateFiles(xmiDir, "*.*", SearchOption.AllDirectories).ToList();
-
-                    return files.FirstOrDefault(f => f.EndsWith(".uml", StringComparison.OrdinalIgnoreCase))
-                        ?? files.FirstOrDefault(f => f.EndsWith(".xmi", StringComparison.OrdinalIgnoreCase));
-                }
+                return null;
             }
 
-            return null;
+            var xmiDir = KnowledgeVersions.XmiDirectory(tag);
+            if (!xmiDir.Exists)
+            {
+                return null;
+            }
+
+            var files = Directory.EnumerateFiles(xmiDir.FullName, "*.*", SearchOption.AllDirectories).ToList();
+
+            return files.FirstOrDefault(f => f.EndsWith(".uml", StringComparison.OrdinalIgnoreCase))
+                ?? files.FirstOrDefault(f => f.EndsWith(".xmi", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

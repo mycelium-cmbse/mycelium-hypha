@@ -1,6 +1,11 @@
 # Copyright 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
-"""Shared test fixtures: locate the repository's source PDFs (git-ignored, present locally)."""
+"""Shared test fixtures: locate the repository and the installed releases.
+
+Inputs are per release tag now: the (git-ignored) OMG PDFs live under ``sources/<tag>/specs/`` and
+the generated knowledge under ``knowledge/<tag>/``. Which tags are installed comes from the
+committed manifest, so tests follow the rolling window rather than a hard-coded version.
+"""
 
 from __future__ import annotations
 
@@ -8,40 +13,48 @@ from pathlib import Path
 
 import pytest
 
+from spec_extract.manifest import read as read_manifest
+from spec_extract.manifest import tags as manifest_tags
+
+KERML_PDF = "1-Kernel_Modeling_Language.pdf"
+SYSML_PDF = "2a-OMG_Systems_Modeling_Language.pdf"
+
 
 def _repo_root() -> Path:
-    """Walk up from this file until the directory that contains ``sources/specs``."""
+    """Walk up from this file until the directory that holds both ``sources`` and ``knowledge``."""
     for parent in Path(__file__).resolve().parents:
-        if (parent / "sources" / "specs").is_dir():
+        if (parent / "sources").is_dir() and (parent / "knowledge").is_dir():
             return parent
-    raise RuntimeError("Could not locate the repository root (no sources/specs directory found).")
-
-
-@pytest.fixture(scope="session")
-def specs_dir() -> Path:
-    """Path to ``sources/specs`` (the git-ignored OMG PDFs live here)."""
-    return _repo_root() / "sources" / "specs"
+    raise RuntimeError("Could not locate the repository root (no sources/ + knowledge/ found).")
 
 
 @pytest.fixture(scope="session")
 def repo_root() -> Path:
-    """Repository root (the directory containing ``sources/specs``)."""
+    """Repository root."""
     return _repo_root()
 
 
 @pytest.fixture(scope="session")
-def kerml_pdf(specs_dir: Path) -> Path:
-    """Path to the KerML 1.0 specification PDF; skips the test when it is not present."""
-    return _require_pdf(specs_dir / "1-Kernel_Modeling_Language.pdf")
+def installed_tags(repo_root: Path) -> list[str]:
+    """The release tags this checkout carries, newest first; skips when there is no manifest."""
+    manifest_path = repo_root / "knowledge" / "versions.json"
+    if not manifest_path.is_file():
+        pytest.skip(f"no version manifest at {manifest_path}")
+    return manifest_tags(read_manifest(manifest_path))
 
 
-@pytest.fixture(scope="session")
-def sysml_pdf(specs_dir: Path) -> Path:
-    """Path to the SysML v2 specification PDF; skips the test when it is not present."""
-    return _require_pdf(specs_dir / "2a-OMG_Systems_Modeling_Language.pdf")
+def specs_dir(repo_root: Path, tag: str) -> Path:
+    """Where one release's (git-ignored) OMG PDFs live."""
+    return repo_root / "sources" / tag / "specs"
 
 
-def _require_pdf(path: Path) -> Path:
-    if not path.is_file():
-        pytest.skip(f"OMG spec PDF not present (git-ignored): {path}")
-    return path
+def require_pdfs(repo_root: Path, tag: str) -> tuple[Path, Path]:
+    """The KerML and SysML PDFs for ``tag``; skips the test when either is absent."""
+    directory = specs_dir(repo_root, tag)
+    kerml, sysml = directory / KERML_PDF, directory / SYSML_PDF
+
+    missing = [path.name for path in (kerml, sysml) if not path.is_file()]
+    if missing:
+        pytest.skip(f"OMG spec PDF(s) not present for {tag} (git-ignored): {', '.join(missing)}")
+
+    return kerml, sysml

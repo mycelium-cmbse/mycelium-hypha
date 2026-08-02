@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "default": "2026-05",
+  "versions": [
+    {
+      "tag": "2026-05",
+      "release": {
+        "repo": "Systems-Modeling/SysML-v2-Release",
+        "commit": "de1070ae8e79c21532b8004fc663d47b35d0e9fa"
+      },
+      "pilot": {
+        "repo": "Systems-Modeling/SysML-v2-Pilot-Implementation",
+        "commit": "fa709f28dfd49dfdb7ee83e4e19da2f57e0eb3aa"
+      }
+    },
+    {
+      "tag": "2026-04",
+      "release": {
+        "repo": "Systems-Modeling/SysML-v2-Release",
+        "commit": "9baca5908ca28b53da085de69336fde48420ea8f"
+      },
+      "pilot": {
+        "repo": "Systems-Modeling/SysML-v2-Pilot-Implementation",
+        "commit": "20897e3122f2c2f8b29389745f0caaaeb7c6e21a"
+      }
+    }
+  ]
+}

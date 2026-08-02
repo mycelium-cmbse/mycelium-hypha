@@ -27,7 +27,7 @@ selected automatically. Three capabilities:
 ## Spec citation needs the OMG PDFs
 
 The specification text is **not shipped** (the OMG license forbids redistributing it). To enable spec
-citation, download these three PDFs into `sources/specs/`, then regenerate `knowledge/spec/` by running
+citation, download these three PDFs into `sources/specs/`, then regenerate `knowledge/<tag>/spec/` by running
 `tools/spec-extract` (see its README):
 
 - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/1-Kernel_Modeling_Language.pdf

@@ -1,20 +1,32 @@
 # ---------------------------------------------------------------------------
-# Raw source documents (see sources/README.md).
-# The XMI / UML metamodel files ARE committed (sources/xmi/) so the generator
-# tests are reproducible. OMG PDF specifications are copyrighted and MUST NOT
-# be committed.
+# Raw source documents, per release tag (see sources/README.md).
+# The XMI / UML metamodel and textual sources ARE committed for the tags in the
+# rolling window, so the generator tests are reproducible. OMG PDF
+# specifications are copyrighted and MUST NOT be committed, for any tag.
 # ---------------------------------------------------------------------------
-sources/specs/*
+sources/**/specs/*
 !sources/**/.gitkeep
 
+# Belt and braces: no OMG PDF may be committed from anywhere in the tree. The
+# per-tag rule above moved once already, and a stale copy of the previous layout
+# was very nearly committed as a result.
+*.pdf
+
+# Inputs for tags outside the committed rolling window are generated locally by
+# tools/spec-extract's fetcher; only the window's tags are tracked. Add an
+# exception here when the window moves (see knowledge/versions.json).
 # ---------------------------------------------------------------------------
 # Generated spec knowledge base (verbatim OMG spec text). Regenerated locally
 # from the PDFs by tools/spec-extract; NOT redistributed (OMG terms). The
 # directory placeholders are kept so the layout is tracked.
 # ---------------------------------------------------------------------------
-knowledge/spec/kerml/*
-knowledge/spec/sysml2/*
-!knowledge/spec/**/.gitkeep
+# Matched at ANY depth on purpose. These patterns were previously anchored to a
+# single layout; moving to the per-tag layout silently stopped them matching the
+# old paths, and 1552 files of verbatim OMG clause text were committed as a
+# result. Depth-independent patterns cannot be broken by moving the tree again.
+**/spec/kerml/*
+**/spec/sysml2/*
+!**/.gitkeep
 
 # ---------------------------------------------------------------------------
 # .NET (tools/metamodel-gen)

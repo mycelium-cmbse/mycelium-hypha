@@ -42,6 +42,42 @@ def clause_sort_key(clause: str) -> tuple[tuple[int, int, str], ...]:
     return tuple(parts)
 
 
+def merge_clause_edges(
+    title_edges: dict[str, list[dict]],
+    grammar_clauses: dict[str, dict[str, list[str]]],
+    grammar_documents: dict[str, str],
+) -> dict[str, list[dict]]:
+    """Fold the grammar's own clause attribution into the title-matched edges.
+
+    A title match is a guess (``DERIVED``); the grammar's ``// Clause`` comment is a statement by its
+    authors (``MODEL``). Where both point at the same clause the stronger one wins, so an edge is
+    never reported as inferred when it was in fact read.
+    """
+    merged = {name: list(edges) for name, edges in title_edges.items()}
+
+    for grammar, per_element in grammar_clauses.items():
+        document = grammar_documents[grammar]
+        for element, clauses in per_element.items():
+            if element not in merged:
+                continue
+            existing = {edge["clause"]: edge for edge in merged[element] if edge["document"] == document}
+            for clause in clauses:
+                stated = {
+                    "document": document,
+                    "clause": clause,
+                    "provenance": "MODEL",
+                    "method": "grammar-clause",
+                }
+                if clause in existing:
+                    existing[clause].update(stated)
+                else:
+                    merged[element].append(stated)
+
+    for element in merged:
+        merged[element].sort(key=lambda edge: (edge["document"], clause_sort_key(edge["clause"])))
+    return merged
+
+
 def clause_edges(element_names: list[str], clause_titles: dict[str, dict[str, str]]) -> dict[str, list[dict]]:
     """Match element names against clause titles, exactly.
 
@@ -67,24 +103,31 @@ def clause_edges(element_names: list[str], clause_titles: dict[str, dict[str, st
     return edges
 
 
-def grammar_edges(element_names: list[str], productions: dict[str, list[str]]) -> dict[str, list[dict]]:
-    """Match element names against BNF production names, exactly.
+def grammar_edges(element_names: list[str], links: dict[str, dict[str, list[str]]]) -> dict[str, list[dict]]:
+    """Link elements to the grammar productions that build them.
 
-    ``productions`` maps a grammar key (``kerml`` / ``sysml``) to its production names.
+    ``links`` maps a grammar key (``kerml`` / ``sysml``) to ``{metaclass: [production, …]}``, as
+    produced by :func:`spec_extract.grammar.metaclass_links`. The association is stated by the
+    grammar itself – ``PackageDeclaration : Package`` declares what it produces – rather than
+    inferred from a name, which is why these edges are tagged ``declared-production``.
     """
     wanted = set(element_names)
     edges: dict[str, list[dict]] = {name: [] for name in element_names}
-    for grammar in sorted(productions):
-        for production in productions[grammar]:
-            if production in wanted:
-                edges[production].append(
+
+    for grammar in sorted(links):
+        for metaclass, productions in links[grammar].items():
+            if metaclass not in wanted:
+                continue
+            for production in productions:
+                edges[metaclass].append(
                     {
                         "grammar": grammar,
                         "production": production,
-                        "provenance": "DERIVED",
-                        "method": "exact-name-match",
+                        "provenance": "MODEL",
+                        "method": "declared-production" if production != metaclass else "production-name",
                     }
                 )
+
     for name in edges:
         edges[name].sort(key=lambda edge: (edge["grammar"], edge["production"]))
     return edges
@@ -112,21 +155,60 @@ def example_edges(element_names: list[str], examples: dict[str, list[str]]) -> d
     return edges
 
 
+def _merge_features(
+    element_names: list[str], grammar_features: dict[str, dict[str, list[dict]]]
+) -> dict[str, list[dict]]:
+    """Fold each grammar's feature assignments into one list per element.
+
+    Each entry says which metamodel feature a piece of syntax populates and how: ``=`` sets a value,
+    ``+=`` adds to a collection, ``?=`` sets a boolean flag from a keyword's presence. This is the
+    only link in the knowledge base between notation and the features it fills.
+    """
+    merged: dict[str, list[dict]] = {name: [] for name in element_names}
+
+    for grammar in sorted(grammar_features):
+        for element, assignments in grammar_features[grammar].items():
+            if element not in merged:
+                continue
+            for assignment in assignments:
+                merged[element].append(
+                    {
+                        "grammar": grammar,
+                        "feature": assignment["feature"],
+                        "operator": assignment["operator"],
+                        "productions": assignment["productions"],
+                        "provenance": "MODEL",
+                        "method": "grammar-assignment",
+                    }
+                )
+
+    for element in merged:
+        merged[element].sort(key=lambda edge: (edge["grammar"], edge["feature"], edge["operator"]))
+    return merged
+
+
 def build_cross_references(
     elements: list[dict],
     clause_titles: dict[str, dict[str, str]],
     documents: dict[str, dict[str, str]],
-    productions: dict[str, list[str]],
+    productions: dict[str, dict[str, list[str]]],
     examples: dict[str, list[str]],
     model_version_uri: str,
+    grammar_clauses: dict[str, dict[str, list[str]]] | None = None,
+    grammar_documents: dict[str, str] | None = None,
+    grammar_features: dict[str, dict[str, list[dict]]] | None = None,
 ) -> dict:
     """Assemble the full cross-reference document. Pure: no disk access, no ordering surprises."""
     names = sorted(element["name"] for element in elements)
     by_name = {element["name"]: element for element in elements}
 
     clauses = clause_edges(names, clause_titles)
+    if grammar_clauses and grammar_documents:
+        clauses = merge_clause_edges(clauses, grammar_clauses, grammar_documents)
+
     grammar = grammar_edges(names, productions)
     worked = example_edges(names, examples)
+    features = _merge_features(names, grammar_features or {})
 
     entries = {}
     for name in names:
@@ -135,6 +217,7 @@ def build_cross_references(
             "element": "metamodel/" + by_name[name]["file"],
             "clauses": clauses[name],
             "grammar": grammar[name],
+            "features": features[name],
             "examples": worked[name],
         }
 
@@ -148,9 +231,14 @@ def build_cross_references(
             "withClauses": sum(1 for name in names if clauses[name]),
             "withoutClauses": sum(1 for name in names if not clauses[name]),
             "withGrammar": sum(1 for name in names if grammar[name]),
+            "withFeatures": sum(1 for name in names if features[name]),
             "withExamples": sum(1 for name in names if worked[name]),
             "clauseEdges": sum(len(clauses[name]) for name in names),
+            "statedClauseEdges": sum(
+                1 for name in names for edge in clauses[name] if edge["method"] == "grammar-clause"
+            ),
             "grammarEdges": sum(len(grammar[name]) for name in names),
+            "featureEdges": sum(len(features[name]) for name in names),
             "exampleEdges": sum(len(worked[name]) for name in names),
         },
         "entries": entries,
