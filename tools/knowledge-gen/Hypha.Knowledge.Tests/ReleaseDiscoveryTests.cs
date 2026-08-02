@@ -100,6 +100,31 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task Reads_from_the_default_host_when_none_is_given()
+        {
+            var handler = new StubHandler(_ => "[]");
+
+            using var client = new HttpClient(handler);
+            await new ReleaseDiscovery(client, "token").FetchTagsAsync("owner/repo");
+
+            Assert.That(handler.Requests[0], Does.StartWith(Upstream.DefaultApiBaseAddress.ToString()));
+        }
+
+        [Test]
+        public async Task Reads_from_an_overridden_host()
+        {
+            // The host is configurable so an enterprise instance - or a stub - can be pointed at.
+            var handler = new StubHandler(_ => "[]");
+
+            using var client = new HttpClient(handler);
+            await new ReleaseDiscovery(client, "token", null, new Uri("https://github.example.com/api/"))
+                .FetchTagsAsync("owner/repo");
+
+            Assert.That(handler.Requests[0], Is.EqualTo(
+                "https://github.example.com/api/repos/owner/repo/tags?per_page=100&page=1"));
+        }
+
+        [Test]
         public void Rejects_a_missing_repository()
         {
             using var client = new HttpClient(new StubHandler(_ => "[]"));

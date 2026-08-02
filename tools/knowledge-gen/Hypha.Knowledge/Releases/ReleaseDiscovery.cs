@@ -25,12 +25,14 @@ namespace Hypha.Knowledge.Releases
     /// </summary>
     public sealed class ReleaseDiscovery
     {
-        private const string TagsUrl = "https://api.github.com/repos/{0}/tags?per_page=100&page={1}";
+        /// <summary>Relative to the API base address, so the host stays configurable.</summary>
+        private const string TagsPath = "repos/{0}/tags?per_page=100&page={1}";
 
         /// <summary>Guards against an unbounded loop if the API ever stops returning an empty page.</summary>
         private const int MaxPages = 20;
 
         private readonly HttpClient client;
+        private readonly Uri apiBaseAddress;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReleaseDiscovery"/> class.
@@ -40,12 +42,19 @@ namespace Hypha.Knowledge.Releases
         /// <param name="readEnvironment">
         /// Environment lookup, injected so a test never depends on the ambient environment.
         /// </param>
+        /// <param name="apiBaseAddress">
+        /// The API host; defaults to <see cref="Upstream.DefaultApiBaseAddress"/>.
+        /// </param>
         public ReleaseDiscovery(
-            HttpClient client, string? token = null, Func<string, string?>? readEnvironment = null)
+            HttpClient client,
+            string? token = null,
+            Func<string, string?>? readEnvironment = null,
+            Uri? apiBaseAddress = null)
         {
             ArgumentNullException.ThrowIfNull(client);
 
             this.client = client;
+            this.apiBaseAddress = apiBaseAddress ?? client.BaseAddress ?? Upstream.DefaultApiBaseAddress;
 
             if (this.client.DefaultRequestHeaders.UserAgent.Count == 0)
             {
@@ -77,7 +86,8 @@ namespace Hypha.Knowledge.Releases
 
             for (var page = 1; page <= MaxPages; page++)
             {
-                var url = string.Format(CultureInfo.InvariantCulture, TagsUrl, repository, page);
+                var path = string.Format(CultureInfo.InvariantCulture, TagsPath, repository, page);
+                var url = new Uri(this.apiBaseAddress, path);
                 var payload = await this.client.GetStringAsync(url, cancellationToken);
 
                 using var document = JsonDocument.Parse(payload);

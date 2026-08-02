@@ -9,12 +9,16 @@
 
 namespace Hypha.Knowledge.Releases
 {
+    using System;
+
     /// <summary>
-    /// The two upstream repositories a hypha release is assembled from.
+    /// Where the upstream sources live: the two repositories a hypha release is assembled from, and
+    /// the API host they are read through.
     /// </summary>
     /// <remarks>
-    /// A hypha version is one <b>tag name that resolves in both</b>. The tag is the only version
-    /// identifier used: the model URI inside the XMI tracks neither the release nor the content.
+    /// A hypha version is one <b>tag name that resolves in both</b> repositories. The tag is the only
+    /// version identifier used: the model URI inside the XMI tracks neither the release nor the
+    /// content.
     /// </remarks>
     public static class Upstream
     {
@@ -23,5 +27,11 @@ namespace Hypha.Knowledge.Releases
 
         /// <summary>The metamodel UML models, in XMI form.</summary>
         public const string PilotRepository = "Systems-Modeling/SysML-v2-Pilot-Implementation";
+
+        /// <summary>
+        /// The default API host. Overridable per caller so a different host - an enterprise instance,
+        /// or a stub in a test - can be used without touching the code that builds the requests.
+        /// </summary>
+        public static Uri DefaultApiBaseAddress { get; } = new("https://api.github.com/", UriKind.Absolute);
     }
 }
