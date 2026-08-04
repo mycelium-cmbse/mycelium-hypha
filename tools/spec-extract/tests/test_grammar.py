@@ -1,10 +1,15 @@
 # Copyright 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
-"""Unit tests for the BNF parser, on grammar text in the shape the .kebnf files really use."""
+"""Unit tests for the BNF parser, on grammar text in the shape the .kebnf files really use.
+
+Rendering the grammar reference moved to ``Hypha.Knowledge.Grammar``; see ``GrammarReferenceTests``
+and ``GrammarParserTests`` on the .NET side. What is covered here is the join
+:mod:`spec_extract.crossrefs` still consumes.
+"""
 
 from __future__ import annotations
 
-from spec_extract.grammar import metaclass_links, parse, render
+from spec_extract.grammar import metaclass_links, parse
 
 GRAMMAR = """
 // Clause 8.2.2.4 Annotations
@@ -187,18 +192,7 @@ def test_metaclass_links_never_invent_an_element() -> None:
     assert set(links) == {"Package"}, "only metaclasses the metamodel actually has may appear"
 
 
-def test_render_groups_by_clause_and_links_the_element() -> None:
-    text = render("SysML", "2026-05", parse(GRAMMAR))
-
-    assert "## 8.2.2.5.1 Packages" in text
-    assert "produces [Package](../metamodel/elements/Package.md)" in text
-    assert "clause `8.2.2.5.1`" in text
-    assert "```kebnf" in text
-    assert "productions: 4" in text
-
-
 def test_parse_tolerates_a_grammar_with_no_clause_comments() -> None:
     productions = parse("Foo =\n    'foo'\n")
 
     assert productions[0].clause is None
-    assert render("KerML", "2026-05", productions).count("## Lexical") == 1

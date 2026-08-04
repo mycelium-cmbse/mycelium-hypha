@@ -42,6 +42,8 @@ There is no command-line entry point — **the unit tests are the generators**, 
 
 - `metamodel-gen` tests write `knowledge/metamodel/` from `sources/xmi/*.uml`. The **committed files are the
   golden**; after an intended format change, run the `[Explicit]` `Bless_*` tests to regenerate them.
+- `knowledge-gen`'s `GrammarReferenceGenerationTests` writes `knowledge/<tag>/textual-notation/grammar-*.md`
+  from `sources/<tag>/textual/bnf/*.kebnf` and `*.kgbnf`.
 - `spec-extract`'s `test_generate.py` writes `knowledge/spec/` from `sources/specs/*.pdf`.
 - Tests **skip** (never fail) when their inputs are absent (no XMI / no PDFs), so CI stays green without
   the copyrighted/optional inputs.
@@ -73,6 +75,9 @@ normalization. Golden tests compare against the committed files, so non-determin
   Constraints (OCL). `index.md` + `index.json` resolve a name → element.
 - `knowledge/spec/{kerml,sysml2}/<clause>.md` — verbatim clause text + front matter
   (`clause`, `title`, `document`, `version`, `pages`, `normative`), plus `index.md` / `index.json`.
+- `knowledge/<tag>/textual-notation/grammar-{kerml,sysml,graphical}.md` — every production grouped by
+  specification clause, with the metaclass it builds, the clause it is defined in and the metamodel
+  features it populates. All three are **stated by the grammar**, not matched on a name.
 - `knowledge/textual-notation/` — grammar summary + keyword reference (`index.md`), worked `examples/`
   (each ` ```sysml ` block is a **byte-exact copy** of a `sources/textual/` model), and validator
   `fixtures/` (valid by reference + synthetic invalid snippets with expected findings).
