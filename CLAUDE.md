@@ -13,13 +13,17 @@ Two things in one repository, scoped to the **OMG SysML v2 / KerML** standards (
 
 ## Build & test
 
-**.NET** (`tools/metamodel-gen`, `net10.0`, NUnit), from repo root:
+**.NET** (`tools/metamodel-gen` and `tools/knowledge-gen`, `net10.0`, NUnit), from repo root:
 
 ```sh
 dotnet build mycelium-hypha.sln
 dotnet test mycelium-hypha.sln
 dotnet test mycelium-hypha.sln --filter "FullyQualifiedName~MetamodelClosureTests"   # one fixture/test
+dotnet test mycelium-hypha.sln --filter "TestCategory=Live"   # [Explicit]: really fetches from GitHub
 ```
+
+Nothing reaches the network in a normal run. The `Live` category is `[Explicit]`, so it is opt-in and
+never in CI; set `GITHUB_TOKEN` before running it (the anonymous API allows 60 requests an hour).
 
 **Python** (`tools/spec-extract`, Python ≥ 3.12), from `tools/spec-extract/`:
 
@@ -88,6 +92,10 @@ running header/footer stripping) → `clauses` (heading detection via a successo
 - **C#:** block-scoped namespaces with `using`s *inside* the namespace, one public type per file, NUnit,
   the classic `mycelium-hypha.sln`. Every source file opens with the Apache-2.0 `<copyright>` header
   (Starion Group S.A.).
+- **C# dependencies and DI:** well-established NuGet packages are welcome – prefer a maintained
+  library over hand-rolling infrastructure. Services are registered through
+  `Microsoft.Extensions.DependencyInjection` and resolved rather than constructed, so the CLI
+  (see #81) composes them in one place. Keep constructors injectable and free of hidden statics.
 - **Python:** ruff-clean, standard-library-friendly; each file carries the
   `# Copyright … / # SPDX-License-Identifier: Apache-2.0` header.
 - **Prose/docs** use a spaced en dash (` – `), not an em dash.
