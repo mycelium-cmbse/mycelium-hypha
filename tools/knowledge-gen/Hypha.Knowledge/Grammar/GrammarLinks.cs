@@ -201,18 +201,19 @@ namespace Hypha.Knowledge.Grammar
             {
                 var following = new List<Production>();
 
-                foreach (var current in frontier)
+                var unvisited = frontier
+                    .SelectMany(current => References(current.Body))
+                    .Where(referenced => exclusive.Contains(referenced) && !seen.Contains(referenced))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+
+                foreach (var referenced in unvisited)
                 {
-                    foreach (var referenced in References(current.Body).Where(exclusive.Contains))
-                    {
-                        // Add() reports whether this is the first visit, which is also the loop guard.
-                        if (seen.Add(referenced))
-                        {
-                            var helper = byName[referenced];
-                            contributors.Add(helper);
-                            following.Add(helper);
-                        }
-                    }
+                    seen.Add(referenced);
+
+                    var helper = byName[referenced];
+                    contributors.Add(helper);
+                    following.Add(helper);
                 }
 
                 if (following.Count == 0)
