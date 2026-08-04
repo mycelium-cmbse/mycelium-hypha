@@ -12,6 +12,7 @@ namespace Hypha.Knowledge.Grammar
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
 
     /// <summary>
     /// Orders dotted clause numbers numerically, so <c>8.3.10</c> follows <c>8.3.2</c> instead of
@@ -25,9 +26,14 @@ namespace Hypha.Knowledge.Grammar
         /// <inheritdoc/>
         public int Compare(string? x, string? y)
         {
-            if (x is null || y is null)
+            if (x is null)
             {
-                return x is null ? (y is null ? 0 : -1) : 1;
+                return y is null ? 0 : -1;
+            }
+
+            if (y is null)
+            {
+                return 1;
             }
 
             var left = x.Split('.');
@@ -70,17 +76,9 @@ namespace Hypha.Knowledge.Grammar
 
         private static int? AsNumber(string part)
         {
-            if (part.Length == 0)
+            if (part.Length == 0 || part.Any(character => character is < '0' or > '9'))
             {
                 return null;
-            }
-
-            foreach (var character in part)
-            {
-                if (character is < '0' or > '9')
-                {
-                    return null;
-                }
             }
 
             return int.Parse(part, CultureInfo.InvariantCulture);

@@ -78,11 +78,11 @@ namespace Hypha.Knowledge
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
                 baseAddress));
 
-            // The grammar services are pure functions of the grammar text and hold no state, so one
-            // instance serves every caller.
-            services.AddSingleton<GrammarParser>();
-            services.AddSingleton<GrammarLinks>();
-            services.AddSingleton<GrammarReference>();
+            // The grammar services are pure functions of the grammar text, so one instance serves
+            // every caller.
+            services.AddSingleton<IGrammarParser, GrammarParser>();
+            services.AddSingleton<IGrammarLinks, GrammarLinks>();
+            services.AddSingleton<IGrammarReference>(_ => new GrammarReference());
 
             return services;
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // <copyright file="GrammarLinksTests.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
@@ -20,8 +20,8 @@ namespace Hypha.Knowledge.Tests
     [TestFixture]
     public class GrammarLinksTests
     {
-        private GrammarParser parser = null!;
-        private GrammarLinks links = null!;
+        private IGrammarParser parser = null!;
+        private IGrammarLinks links = null!;
 
         [SetUp]
         public void SetUp()

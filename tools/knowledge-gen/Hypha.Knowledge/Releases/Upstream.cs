@@ -33,5 +33,11 @@ namespace Hypha.Knowledge.Releases
         /// or a stub in a test - can be used without touching the code that builds the requests.
         /// </summary>
         public static Uri DefaultApiBaseAddress { get; } = new("https://api.github.com/", UriKind.Absolute);
+
+        /// <summary>
+        /// Where a file at a tag is served from. Overridable for the same reason as the API host.
+        /// </summary>
+        public static Uri DefaultRawContentBaseAddress { get; } =
+            new("https://raw.githubusercontent.com/", UriKind.Absolute);
     }
 }

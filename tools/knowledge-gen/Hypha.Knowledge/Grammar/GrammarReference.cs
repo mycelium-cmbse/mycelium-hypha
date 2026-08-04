@@ -14,15 +14,27 @@ namespace Hypha.Knowledge.Grammar
     using System.Globalization;
     using System.Linq;
 
+    using Hypha.Knowledge.Releases;
+
     /// <summary>
     /// Renders the per-release grammar references under <c>knowledge/&lt;tag&gt;/textual-notation/</c>.
     /// </summary>
-    public sealed class GrammarReference
+    public sealed class GrammarReference : IGrammarReference
     {
-        /// <summary>Upstream location of a graphical-notation image, at the release tag it belongs to.</summary>
-        public const string ImageUrl = "https://raw.githubusercontent.com/{0}/{1}/bnf/{2}";
+        private readonly string rawContentBase;
 
-        /// <summary>Renders the textual grammar reference for one document, grouped by clause.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GrammarReference"/> class.
+        /// </summary>
+        /// <param name="rawContentBaseAddress">
+        /// Where a file at a tag is served from; defaults to <see cref="Upstream.DefaultRawContentBaseAddress"/>.
+        /// Injectable for the same reason as the API host - an enterprise instance serves its raw
+        /// content from somewhere else.
+        /// </param>
+        public GrammarReference(Uri? rawContentBaseAddress = null) =>
+            this.rawContentBase = (rawContentBaseAddress ?? Upstream.DefaultRawContentBaseAddress).ToString();
+
+        /// <inheritdoc/>
         /// <param name="grammar">The grammar's name, <c>KerML</c> or <c>SysML</c>.</param>
         /// <param name="tag">The release the grammar was read at.</param>
         /// <param name="productions">The parsed productions, in document order.</param>
@@ -102,7 +114,7 @@ namespace Hypha.Knowledge.Grammar
             return string.Join("\n", lines);
         }
 
-        /// <summary>Renders the graphical-notation reference for one release, grouped by clause.</summary>
+        /// <inheritdoc/>
         /// <remarks>
         /// The notation itself is a set of SVGs published alongside the grammar. They are linked at the
         /// release tag rather than copied in: 284 images per release is 1.5 MB of binaries nothing in
@@ -162,8 +174,7 @@ namespace Hypha.Knowledge.Grammar
 
                 foreach (var path in production.Images)
                 {
-                    var url = string.Format(CultureInfo.InvariantCulture, ImageUrl, repository, tag, path);
-                    lines.Add($"![{production.Name}]({url})");
+                    lines.Add($"![{production.Name}]({this.rawContentBase}{repository}/{tag}/bnf/{path})");
                     lines.Add(string.Empty);
                 }
 

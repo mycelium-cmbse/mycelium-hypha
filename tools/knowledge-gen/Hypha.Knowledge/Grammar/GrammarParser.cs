@@ -28,7 +28,7 @@ namespace Hypha.Knowledge.Grammar
     /// so porting them literally would silently widen what counts as an identifier or a digit.
     /// </para>
     /// </remarks>
-    public sealed partial class GrammarParser
+    public sealed partial class GrammarParser : IGrammarParser
     {
         // A production starts at column 0: "Name =" or "Name : Metaclass =". Bodies are indented.
         [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z0-9_]*)[ \t]*(?::[ \t]*(?<produces>[A-Za-z][A-Za-z0-9_]*)[ \t]*)?=")]
@@ -53,7 +53,7 @@ namespace Hypha.Knowledge.Grammar
         [GeneratedRegex(@"<img\s+src=""(?<path>[^""]+)""")]
         private static partial Regex ImageReference();
 
-        /// <summary>Parses a <c>.kebnf</c> grammar into productions, in document order.</summary>
+        /// <inheritdoc/>
         public IReadOnlyList<Production> Parse(string text)
         {
             ArgumentNullException.ThrowIfNull(text);
@@ -61,7 +61,7 @@ namespace Hypha.Knowledge.Grammar
             return Scan(text, ProductionHeader(), skipComments: false, BuildTextual);
         }
 
-        /// <summary>Parses a <c>.kgbnf</c> graphical grammar into productions, in document order.</summary>
+        /// <inheritdoc/>
         /// <remarks>
         /// Same clause attribution as the textual grammar, but the productions are kebab-case and most
         /// of them render as an image rather than a token sequence, so the image references are
@@ -159,7 +159,7 @@ namespace Hypha.Knowledge.Grammar
                 .Select(match => new FeatureAssignment(
                     match.Groups["feature"].Value, match.Groups["operator"].Value))
                 .Distinct()
-                .Order()
+                .Order(FeatureAssignment.Order)
                 .ToList();
 
             return new Production

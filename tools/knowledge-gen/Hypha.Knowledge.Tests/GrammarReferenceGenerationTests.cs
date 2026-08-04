@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // <copyright file="GrammarReferenceGenerationTests.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
@@ -32,8 +32,8 @@ namespace Hypha.Knowledge.Tests
         /// <summary>UTF-8 without a BOM; the knowledge base is pinned to LF by <c>.gitattributes</c>.</summary>
         private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
 
-        private GrammarParser parser = null!;
-        private GrammarReference reference = null!;
+        private IGrammarParser parser = null!;
+        private IGrammarReference reference = null!;
 
         [SetUp]
         public void SetUp()

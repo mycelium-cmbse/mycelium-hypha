@@ -23,7 +23,7 @@ namespace Hypha.Knowledge.Grammar
     /// comment, an assignment operator - rather than something matched on a name, so a consumer can
     /// cite it as read.
     /// </remarks>
-    public sealed partial class GrammarLinks
+    public sealed partial class GrammarLinks : IGrammarLinks
     {
         /// <summary>How far helper delegation is followed. Deep enough for the real grammars.</summary>
         private const int MaxDepth = 4;
@@ -148,7 +148,7 @@ namespace Hypha.Knowledge.Grammar
             foreach (var (element, assignments) in links.Where(entry => entry.Value.Count > 0))
             {
                 result[element] = assignments.Keys
-                    .Order()
+                    .Order(FeatureAssignment.Order)
                     .Select(assignment => new FeatureLink(
                         assignment.Feature, assignment.Operator, [.. assignments[assignment]]))
                     .ToList();
@@ -158,18 +158,9 @@ namespace Hypha.Knowledge.Grammar
         }
 
         /// <summary>The metaclass a production builds: its declared type, else its own name, else nothing.</summary>
-        private static string? BuiltElement(Production production, ISet<string> metaclasses)
-        {
-            foreach (var candidate in new[] { production.Produces, production.Name })
-            {
-                if (!string.IsNullOrEmpty(candidate) && metaclasses.Contains(candidate))
-                {
-                    return candidate;
-                }
-            }
-
-            return null;
-        }
+        private static string? BuiltElement(Production production, ISet<string> metaclasses) =>
+            new[] { production.Produces, production.Name }
+                .FirstOrDefault(candidate => !string.IsNullOrEmpty(candidate) && metaclasses.Contains(candidate));
 
         /// <summary>The production names a body refers to: capitalised identifiers outside quoted literals.</summary>
         private static IEnumerable<string> References(string body)
@@ -212,9 +203,10 @@ namespace Hypha.Knowledge.Grammar
 
                 foreach (var current in frontier)
                 {
-                    foreach (var referenced in References(current.Body))
+                    foreach (var referenced in References(current.Body).Where(exclusive.Contains))
                     {
-                        if (exclusive.Contains(referenced) && seen.Add(referenced))
+                        // Add() reports whether this is the first visit, which is also the loop guard.
+                        if (seen.Add(referenced))
                         {
                             var helper = byName[referenced];
                             contributors.Add(helper);
@@ -251,14 +243,12 @@ namespace Hypha.Knowledge.Grammar
 
             foreach (var production in productions)
             {
-                foreach (var referenced in References(production.Body))
-                {
-                    if (!untyped.Contains(referenced) ||
-                        string.Equals(referenced, production.Name, StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
+                var helpers = References(production.Body)
+                    .Where(referenced => untyped.Contains(referenced)
+                        && !string.Equals(referenced, production.Name, StringComparison.Ordinal));
 
+                foreach (var referenced in helpers)
+                {
                     if (!referrers.TryGetValue(referenced, out var callers))
                     {
                         callers = new HashSet<string>(StringComparer.Ordinal);
@@ -287,7 +277,7 @@ namespace Hypha.Knowledge.Grammar
             return bucket;
         }
 
-        private static IReadOnlyDictionary<string, IReadOnlyList<string>> Freeze(
+        private static SortedDictionary<string, IReadOnlyList<string>> Freeze(
             Dictionary<string, SortedSet<string>> links, IComparer<string> order)
         {
             var frozen = new SortedDictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);

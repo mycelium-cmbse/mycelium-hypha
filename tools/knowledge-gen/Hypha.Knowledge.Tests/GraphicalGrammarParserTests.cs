@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // <copyright file="GraphicalGrammarParserTests.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
@@ -46,7 +46,7 @@ namespace Hypha.Knowledge.Tests
                   <img src="images/binary-dependency.svg" width="200.0">
             """;
 
-        private GrammarParser parser = null!;
+        private IGrammarParser parser = null!;
 
         [SetUp]
         public void SetUp() => this.parser = new GrammarParser();
