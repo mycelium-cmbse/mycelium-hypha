@@ -32,7 +32,7 @@ namespace Hypha.MetamodelGen.Tests
         private static readonly Lazy<VersionManifest?> Manifest = new(Load);
 
         /// <summary>Gets the installed release tags, newest first. Empty when there is no manifest.</summary>
-        public static IReadOnlyList<string> Tags => Manifest.Value?.Tags ?? [];
+        public static IReadOnlyList<string> Tags => Manifest.Value?.GetTags() ?? [];
 
         /// <summary>Gets the tag answered from by default, or <c>null</c> when there is no manifest.</summary>
         public static string? DefaultTag => Manifest.Value?.Default;

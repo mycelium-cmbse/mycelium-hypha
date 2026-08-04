@@ -33,7 +33,7 @@ namespace Hypha.Knowledge.Tests
         {
             var manifest = VersionManifest.Build("2026-05", TwoVersions());
 
-            Assert.That(manifest.Tags, Is.EqualTo(new[] { "2026-05", "2026-04" }));
+            Assert.That(manifest.GetTags(), Is.EqualTo(new[] { "2026-05", "2026-04" }));
         }
 
         [Test]
@@ -110,7 +110,7 @@ namespace Hypha.Knowledge.Tests
             {
                 VersionManifestFile.Write(VersionManifest.Build("2026-05", TwoVersions()), path);
 
-                Assert.That(VersionManifestFile.Read(path).Tags, Is.EqualTo(new[] { "2026-05", "2026-04" }));
+                Assert.That(VersionManifestFile.Read(path).GetTags(), Is.EqualTo(new[] { "2026-05", "2026-04" }));
             }
             finally
             {
@@ -161,8 +161,8 @@ namespace Hypha.Knowledge.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(manifest.Tags, Is.Not.Empty);
-                Assert.That(manifest.Tags, Does.Contain(manifest.Default));
+                Assert.That(manifest.GetTags(), Is.Not.Empty);
+                Assert.That(manifest.GetTags(), Does.Contain(manifest.Default));
                 Assert.That(manifest.Versions[0].Release.Commit, Is.Not.Empty);
             });
         }

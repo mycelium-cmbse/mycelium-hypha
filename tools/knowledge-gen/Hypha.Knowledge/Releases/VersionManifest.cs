@@ -42,9 +42,16 @@ namespace Hypha.Knowledge.Releases
         [JsonPropertyName("versions")]
         public required IReadOnlyList<InstalledVersion> Versions { get; init; }
 
-        /// <summary>Gets the installed tags, newest first.</summary>
-        [JsonIgnore]
-        public IReadOnlyList<string> Tags => this.Versions.Select(version => version.Tag).ToList();
+        /// <summary>
+        /// The installed tags, newest first.
+        /// </summary>
+        /// <remarks>
+        /// A method rather than a property: it projects a new list on each call, and callers iterate
+        /// the releases in loops. Caching it on the record would go stale the moment a <c>with</c>
+        /// expression replaced <see cref="Versions"/>.
+        /// </remarks>
+        public IReadOnlyList<string> GetTags() =>
+            this.Versions.Select(version => version.Tag).ToList();
 
         /// <summary>
         /// Assembles a manifest, ordering the releases newest first regardless of input order.
