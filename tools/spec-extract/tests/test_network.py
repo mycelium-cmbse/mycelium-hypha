@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from spec_extract import fetch, manifest, versions
+from spec_extract import fetch, versions
 
 
 class _FakeResponse:
@@ -169,7 +169,5 @@ def test_fetch_specs_writes_into_the_git_ignored_folder(captured: list, tmp_path
     assert all(path.parent == tmp_path / "2026-05" / "specs" for path in written)
 
 
-def test_resolve_commit_returns_the_sha(captured: list) -> None:
-    sha = manifest.resolve_commit(manifest.RELEASE_REPO, "2026-05")
-
-    assert sha == "de1070ae8e79c21532b8004fc663d47b35d0e9fa"
+# Commit resolution moved to Hypha.Knowledge (CommitResolver); see CommitResolverTests on the .NET
+# side. The routes() stub still answers /commits/ so the fetch tests share one transport double.

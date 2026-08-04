@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hypha.MetamodelGen\Hypha.MetamodelGen.csproj" />
+    <ProjectReference Include="..\..\knowledge-gen\Hypha.Knowledge\Hypha.Knowledge.csproj" />
   </ItemGroup>
 
   <ItemGroup>
