@@ -39,7 +39,7 @@ from spec_extract.textual import (
     reserved_keywords,
     surface_forms,
 )
-from spec_extract.versions import RELEASE_REPO
+from spec_extract.upstream import RELEASE_REPO
 
 
 def test_regenerates_spec_knowledge_base(repo_root: Path, installed_tags: list[str]) -> None:

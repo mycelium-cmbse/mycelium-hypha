@@ -7,18 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Release handling moved from Python to .NET** (`fixes #83`, `fixes #84`, `fixes #85`), into the new
+  `tools/knowledge-gen/Hypha.Knowledge` library. `spec_extract.versions` and `spec_extract.fetch` are
+  gone; `spec-extract` now does what it is best at – PDF extraction – and nothing else.
+  - `ReleaseTag`, `ReleaseCatalog`, `GitHubToken` and `ReleaseDiscovery` offer the same 56 releases in
+    the same order as the Python they replace; `VersionManifest` rewrites the committed
+    `knowledge/versions.json` byte for byte.
+  - `ReleaseInputs` decides *what* a release consists of as a pure function of a repository listing,
+    so the selection rules are testable without the network; `ReleaseFetcher` downloads it.
+  - Fetching is concurrent (6 at a time) over a pooled `HttpClient`. The Python fetcher opened a
+    connection per file and was reset by the host after roughly 190 of a release's 314 files; a
+    release now fetches whole in about 15 seconds.
+- Well-established NuGet packages are now welcome rather than avoided, and services are composed
+  through `Microsoft.Extensions.DependencyInjection`. `AddHyphaKnowledge()` registers one resilient
+  named client – `Microsoft.Extensions.Http.Resilience`, so retries are **jittered**, which matters
+  once downloads run concurrently – and the services that share it. This is groundwork for the CLI
+  (#81).
+
 ### Added
 - **Version awareness (`fixes #67`, `fixes #74`).** The knowledge base is now generated per upstream
   release tag (`YYYY-MM`) instead of from a single snapshot, with a committed rolling window of the
   two most recent releases – currently `2026-05` (the default) and `2026-04`.
   - `knowledge/versions.json` records the installed tags, the default, and the upstream commit each
     tag resolved to (traceability only – **the tag is the identifier**).
-  - `spec_extract.versions` discovers offerable releases as the **intersection** of the two
-    upstreams' tags: they are not in lockstep (`2023-07.1` is Release-only; `2024-08`, `2023-01`,
-    `2026-05-pre` are Pilot-only). Tags are `YYYY-MM` with an optional point release; pre-releases,
-    internal drops and letter revisions are excluded. 56 releases are currently offerable.
-  - `spec_extract.fetch` downloads a release's inputs from both upstreams, retrying transient
-    connection resets with backoff and resuming a partial run.
+  - Release discovery offers a version only when the tag resolves in **both** upstreams: they are not
+    in lockstep (`2023-07.1` is Release-only; `2024-08`, `2023-01`, `2026-05-pre` are Pilot-only).
+    Tags are `YYYY-MM` with an optional point release; pre-releases, internal drops and letter
+    revisions are excluded. 56 releases are currently offerable.
+  - Fetching pulls a release's inputs from both upstreams, retrying transient connection resets with
+    backoff and resuming a partial run.
   - Skills and subagents resolve the release from the manifest, answer from the default unless a tag
     is named, and **state which release an answer came from**.
   - `hooks/check-spec-pdfs.py` checks the default release and gives tagged download URLs.

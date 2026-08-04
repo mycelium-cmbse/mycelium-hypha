@@ -29,7 +29,8 @@ release nor the content — the 2026-05 metamodel still declares a 2025 URI. The
 therefore appear under several tags, which is accepted.
 
 The two repositories are not in lockstep, so the offerable versions are the **intersection** of their
-tags. Discovery and fetching live in `tools/spec-extract` (`spec_extract.versions`, `spec_extract.fetch`).
+tags. Discovery, commit resolution and fetching live in `tools/knowledge-gen` (`Hypha.Knowledge`,
+namespace `Hypha.Knowledge.Releases`); which files make up a release is stated in `ReleaseInputs`.
 
 ## Where the inputs come from
 
