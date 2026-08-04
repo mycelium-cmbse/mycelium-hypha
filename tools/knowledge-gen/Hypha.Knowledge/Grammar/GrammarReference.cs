@@ -198,7 +198,7 @@ namespace Hypha.Knowledge.Grammar
         }
 
         /// <summary>A graphical production's clause, then the notation images it renders as.</summary>
-        private IReadOnlyList<string> GraphicalFacts(Production production, string tag, string repository)
+        private List<string> GraphicalFacts(Production production, string tag, string repository)
         {
             var lines = new List<string>();
 
