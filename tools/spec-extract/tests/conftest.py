@@ -9,12 +9,10 @@ committed manifest, so tests follow the rolling window rather than a hard-coded 
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
-
-from spec_extract.manifest import read as read_manifest
-from spec_extract.manifest import tags as manifest_tags
 
 KERML_PDF = "1-Kernel_Modeling_Language.pdf"
 SYSML_PDF = "2a-OMG_Systems_Modeling_Language.pdf"
@@ -36,11 +34,18 @@ def repo_root() -> Path:
 
 @pytest.fixture(scope="session")
 def installed_tags(repo_root: Path) -> list[str]:
-    """The release tags this checkout carries, newest first; skips when there is no manifest."""
+    """The release tags this checkout carries, newest first; skips when there is no manifest.
+
+    The manifest is written by ``Hypha.Knowledge`` on the .NET side; the PDF chain only needs to know
+    which releases exist, so it reads the file directly rather than owning a model for it.
+    """
     manifest_path = repo_root / "knowledge" / "versions.json"
     if not manifest_path.is_file():
         pytest.skip(f"no version manifest at {manifest_path}")
-    return manifest_tags(read_manifest(manifest_path))
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    return [version["tag"] for version in manifest["versions"]]
 
 
 def specs_dir(repo_root: Path, tag: str) -> Path:
