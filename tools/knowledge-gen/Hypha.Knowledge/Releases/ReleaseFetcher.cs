@@ -186,7 +186,7 @@ namespace Hypha.Knowledge.Releases
         private async Task<IReadOnlyList<FileInfo>> DownloadManyAsync(
             string repository,
             string tag,
-            IReadOnlyList<(string Path, FileInfo Destination)> targets,
+            List<(string Path, FileInfo Destination)> targets,
             bool skipExisting,
             CancellationToken cancellationToken)
         {
