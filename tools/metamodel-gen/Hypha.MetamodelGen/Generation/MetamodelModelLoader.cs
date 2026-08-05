@@ -12,6 +12,7 @@ namespace Hypha.MetamodelGen.Generation
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
 
     using Hypha.Knowledge.Layout;
@@ -32,7 +33,18 @@ namespace Hypha.MetamodelGen.Generation
     /// </remarks>
     public sealed class MetamodelModelLoader : IMetamodelModelLoader
     {
-        /// <summary>The path map the SysML metamodel uses to reference the UML primitive types.</summary>
+        /// <summary>
+        /// The path map the SysML metamodel uses to reference the UML primitive types.
+        /// </summary>
+        /// <remarks>
+        /// Not a location we choose. It is the literal string the OMG XMI contains, and it is the key
+        /// we have to answer to for resolution to succeed - the value it maps <i>to</i> is what varies,
+        /// and that comes from the layout.
+        /// </remarks>
+        [SuppressMessage(
+            "Major Code Smell",
+            "S1075:URIs should not be hardcoded",
+            Justification = "Fixed identifier appearing in the upstream XMI, not a configurable path.")]
         private const string PrimitiveTypesPathMap =
             "pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml";
 
