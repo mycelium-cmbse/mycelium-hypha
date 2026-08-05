@@ -283,12 +283,19 @@ namespace Hypha.Knowledge.CrossReferences
                 name => (IReadOnlyList<TEdge>)[.. order(edges[name])],
                 StringComparer.Ordinal);
 
+        /// <summary>
+        /// Coverage, carried in the file so a drop shows up in a diff.
+        /// </summary>
+        /// <remarks>
+        /// Takes the concrete collections its only caller already holds; the interfaces would add a
+        /// lookup indirection per element for nothing.
+        /// </remarks>
         private static CrossReferenceCounts Count(
-            IReadOnlyList<string> names,
-            IReadOnlyDictionary<string, IReadOnlyList<ClauseEdge>> clauses,
-            IReadOnlyDictionary<string, IReadOnlyList<GrammarEdge>> grammar,
-            IReadOnlyDictionary<string, IReadOnlyList<FeatureEdge>> features,
-            IReadOnlyDictionary<string, IReadOnlyList<ExampleEdge>> examples) =>
+            List<string> names,
+            Dictionary<string, IReadOnlyList<ClauseEdge>> clauses,
+            Dictionary<string, IReadOnlyList<GrammarEdge>> grammar,
+            Dictionary<string, IReadOnlyList<FeatureEdge>> features,
+            Dictionary<string, IReadOnlyList<ExampleEdge>> examples) =>
             new(
                 names.Count,
                 names.Count(name => clauses[name].Count > 0),
