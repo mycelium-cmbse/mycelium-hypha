@@ -45,7 +45,11 @@ There is no command-line entry point — **the unit tests are the generators**, 
 - `knowledge-gen`'s `GrammarReferenceGenerationTests` writes `knowledge/<tag>/textual-notation/grammar-*.md`
   from `sources/<tag>/textual/bnf/*.kebnf` and `*.kgbnf`; `TextualNotationGenerationTests` writes the
   rest of `knowledge/<tag>/textual-notation/` (309 example pages + `index.md`) from that tag's models.
-- `spec-extract`'s `test_generate.py` writes `knowledge/spec/` from `sources/specs/*.pdf`.
+- `knowledge-gen`'s `CrossReferenceGenerationTests` writes `knowledge/<tag>/cross-references.json`.
+  It needs **no PDFs**: the grammar states most clause attribution itself, and the title-matched
+  remainder is carried forward from the committed document.
+- `spec-extract`'s `test_generate.py` writes `knowledge/<tag>/spec/` from `sources/<tag>/specs/*.pdf`.
+  That is now all Python does here.
 - Tests **skip** (never fail) when their inputs are absent (no XMI / no PDFs), so CI stays green without
   the copyrighted/optional inputs.
 - "Interesting" metaclasses are discovered via `ModelInspector`, never hardcoded.
@@ -83,6 +87,11 @@ normalization. Golden tests compare against the committed files, so non-determin
   BNF) and a link to every example — and `examples/` — one page per model the release ships (309),
   each ` ```sysml ` / ` ```kerml ` block a **byte-exact copy** of a `sources/<tag>/textual/` model,
   with front matter naming its upstream path and the metaclasses it declares.
+
+- `knowledge/<tag>/cross-references.json` (+ `knowledge/cross-references.schema.json`) — element →
+  clause **identifier**, grammar production, the metamodel features its syntax populates, and worked
+  examples. Every edge carries its provenance tier and the method that produced it. **Never contains
+  clause text** — that is what lets it be committed while `knowledge/<tag>/spec/` cannot be.
 
 ## spec-extract pipeline (layered, char-based)
 

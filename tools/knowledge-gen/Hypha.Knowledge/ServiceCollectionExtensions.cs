@@ -12,6 +12,7 @@ namespace Hypha.Knowledge
     using System;
     using System.Net.Http.Headers;
 
+    using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
@@ -88,6 +89,9 @@ namespace Hypha.Knowledge
             services.AddSingleton<ISurfaceForms, SurfaceForms>();
             services.AddSingleton<INotationRenderer, NotationRenderer>();
             services.AddSingleton<IModelCatalog, ModelCatalog>();
+
+            services.AddSingleton<ICrossReferenceBuilder, CrossReferenceBuilder>();
+            services.AddSingleton<IKnowledgeReader, KnowledgeReader>();
 
             return services;
         }

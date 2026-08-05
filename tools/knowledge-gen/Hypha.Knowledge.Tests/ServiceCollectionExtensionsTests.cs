@@ -14,6 +14,7 @@ namespace Hypha.Knowledge.Tests
     using System.Net.Http;
 
     using Hypha.Knowledge;
+    using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
@@ -66,6 +67,18 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(provider.GetService<ISurfaceForms>(), Is.Not.Null);
                 Assert.That(provider.GetService<INotationRenderer>(), Is.Not.Null);
                 Assert.That(provider.GetService<IModelCatalog>(), Is.Not.Null);
+            });
+        }
+
+        [Test]
+        public void Resolves_the_cross_reference_services_by_their_interfaces()
+        {
+            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(provider.GetService<ICrossReferenceBuilder>(), Is.Not.Null);
+                Assert.That(provider.GetService<IKnowledgeReader>(), Is.Not.Null);
             });
         }
 

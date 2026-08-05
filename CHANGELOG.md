@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **The cross-references moved to .NET, and no longer need the OMG PDFs** (`fixes #88`).
+  `Hypha.Knowledge.CrossReferences` writes `knowledge/<tag>/cross-references.json` byte-identically to
+  the Python it replaces, and this **completes the port** (`fixes #82`): .NET now produces every
+  committed artifact.
+  - **`cross-references.json` can be rebuilt from committed sources alone.** 351 of its 546 clause
+    edges are stated outright by the grammar's own `// Clause` comments in the committed `.kebnf`;
+    the remaining title-matched ones are carried forward from the committed document, which already
+    holds them. A contributor without the specifications regenerates the file and gets the same
+    bytes back – previously they could not regenerate it at all.
+  - The licensing guarantee is unchanged and still tested: edges record clause **identifiers**,
+    never clause text, which is what lets this file be committed while `knowledge/<tag>/spec/`
+    cannot be.
+  - `tools/spec-extract` is now the PDF chain and nothing else, and its README says so.
 - **The textual-notation knowledge base moved to .NET** (`fixes #87`).
   `Hypha.Knowledge.TextualNotation` now writes `knowledge/<tag>/textual-notation/` – 309 example
   pages per release plus the index. All 618 committed example pages come out **byte-identical**; the
