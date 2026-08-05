@@ -51,6 +51,18 @@ namespace Hypha.Knowledge.CrossReferences
         public IReadOnlyDictionary<string, IReadOnlyList<ClauseEdge>> CarriedClauseEdges { get; init; } =
             new Dictionary<string, IReadOnlyList<ClauseEdge>>();
 
+        /// <summary>
+        /// Permits a document built from the grammar alone, with no title-matched clause edges at all.
+        /// </summary>
+        /// <remarks>
+        /// Off by default, because the combination that reaches it is almost always an accident: a new
+        /// release tag on a machine without the specification PDFs has neither a clause catalog to
+        /// match against nor a previous document to carry from, and would otherwise be written with
+        /// roughly a third of its clause edges missing and nothing failing. Setting this says the
+        /// grammar-only document is what was wanted.
+        /// </remarks>
+        public bool AllowGrammarOnly { get; init; }
+
         /// <summary>Which productions build each metaclass, per grammar.</summary>
         public IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlyList<string>>> Productions
         {

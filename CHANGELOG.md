@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The cross-references no longer degrade silently on a new release tag** (`fixes #96`). The PDF-free
+  rebuild added in #88 carries title-matched clause edges forward from the committed document, which
+  is lossless – except for a tag that has neither a clause catalog nor a previous document, where it
+  wrote a file with roughly a third of its clause edges missing and nothing failing. `Build` now
+  refuses that combination and names both ways out; `AllowGrammarOnly` states that a grammar-only
+  document is intended.
+
 ### Changed
 - **The cross-references moved to .NET, and no longer need the OMG PDFs** (`fixes #88`).
   `Hypha.Knowledge.CrossReferences` writes `knowledge/<tag>/cross-references.json` byte-identically to
