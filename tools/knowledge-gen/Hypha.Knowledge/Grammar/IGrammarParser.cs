@@ -21,5 +21,10 @@ namespace Hypha.Knowledge.Grammar
 
         /// <summary>Parses a <c>.kgbnf</c> graphical grammar into productions, in document order.</summary>
         IReadOnlyList<Production> ParseGraphical(string text);
+
+        /// <summary>
+        /// The reserved keywords a grammar declares, ordered. Empty when it declares none.
+        /// </summary>
+        IReadOnlyList<string> ReservedKeywords(string text);
     }
 }

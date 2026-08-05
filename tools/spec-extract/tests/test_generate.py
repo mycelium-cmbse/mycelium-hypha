@@ -29,15 +29,6 @@ from spec_extract.crossrefs import (
 from spec_extract.grammar import clause_links, feature_links, metaclass_links
 from spec_extract.grammar import parse as parse_grammar
 from spec_extract.pipeline import DocMeta, extract_document, write_clauses, write_index, write_index_json
-from spec_extract.textual import (
-    elements_in,
-    example_filename,
-    iter_models,
-    render_example,
-    render_index,
-    reserved_keywords,
-    surface_forms,
-)
 
 
 def test_regenerates_spec_knowledge_base(repo_root: Path, installed_tags: list[str]) -> None:
@@ -62,54 +53,6 @@ def test_regenerates_spec_knowledge_base(repo_root: Path, installed_tags: list[s
             catalog = json.loads(index_json_path.read_text(encoding="utf-8"))
             assert catalog["clauses"] == len(clauses)
             assert len(catalog["entries"]) == len(clauses)
-
-
-def test_regenerates_textual_notation(repo_root: Path, installed_tags: list[str]) -> None:
-    """Write ``knowledge/<tag>/textual-notation/`` from that release's own models and grammar.
-
-    Nothing here is hand-written: every model shipped at the tag becomes an example page, the
-    keywords come from that tag's BNF, and the element links are derived from the metamodel naming
-    convention.
-    """
-    for tag in installed_tags:
-        textual_root = repo_root / "sources" / tag / "textual"
-        if not textual_root.is_dir():
-            pytest.skip(f"no textual sources fetched for {tag}")
-
-        index = json.loads((repo_root / "knowledge" / tag / "metamodel" / "index.json").read_text("utf-8"))
-        forms = surface_forms(list(index["entries"]))
-
-        out_dir = repo_root / "knowledge" / tag / "textual-notation"
-        examples_dir = out_dir / "examples"
-        examples_dir.mkdir(parents=True, exist_ok=True)
-        for stale in examples_dir.glob("*.md"):
-            stale.unlink()
-
-        written: list[tuple[str, Path]] = []
-        for relative in iter_models(textual_root):
-            text = (textual_root / relative).read_text(encoding="utf-8", errors="replace")
-            language = "KerML" if relative.suffix == ".kerml" else "SysML"
-            page = render_example(relative, text, elements_in(text, forms), language)
-
-            file_name = example_filename(relative)
-            (examples_dir / file_name).write_text(page, encoding="utf-8", newline="\n")
-            written.append((file_name, relative))
-
-        # The grammar references (grammar-kerml.md, grammar-sysml.md, grammar-graphical.md) are
-        # written by Hypha.Knowledge.Grammar; see GrammarReferenceGenerationTests. Only the keywords
-        # are read from the BNF here.
-        keywords = {}
-        for grammar in ("KerML", "SysML"):
-            text = (textual_root / "bnf" / f"{grammar}-textual-bnf.kebnf").read_text("utf-8")
-            keywords[grammar] = reserved_keywords(text)
-
-        (out_dir / "index.md").write_text(
-            render_index(tag, written, keywords), encoding="utf-8", newline="\n"
-        )
-
-        assert len(written) > 100, f"expected every model at {tag} to be written"
-        assert len({name for name, _ in written}) == len(written), "example file names must be unique"
-        assert keywords["SysML"], "no reserved keywords read from the SysML grammar"
 
 
 def test_regenerates_cross_references(repo_root: Path, installed_tags: list[str]) -> None:

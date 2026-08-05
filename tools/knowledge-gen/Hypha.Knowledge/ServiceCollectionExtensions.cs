@@ -14,6 +14,7 @@ namespace Hypha.Knowledge
 
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Releases;
+    using Hypha.Knowledge.TextualNotation;
 
     using Microsoft.Extensions.DependencyInjection;
 
@@ -83,6 +84,10 @@ namespace Hypha.Knowledge
             services.AddSingleton<IGrammarParser, GrammarParser>();
             services.AddSingleton<IGrammarLinks, GrammarLinks>();
             services.AddSingleton<IGrammarReference>(_ => new GrammarReference());
+
+            services.AddSingleton<ISurfaceForms, SurfaceForms>();
+            services.AddSingleton<INotationRenderer, NotationRenderer>();
+            services.AddSingleton<IModelCatalog, ModelCatalog>();
 
             return services;
         }

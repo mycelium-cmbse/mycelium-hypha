@@ -53,6 +53,17 @@ namespace Hypha.Knowledge.Grammar
         [GeneratedRegex(@"<img\s+src=""(?<path>[^""]+)""")]
         private static partial Regex ImageReference();
 
+        [GeneratedRegex(@"^RESERVED_KEYWORD[ \t]*=")]
+        private static partial Regex ReservedKeywordProduction();
+
+        // Deliberately more permissive than ProductionHeader(): this only has to recognise that the
+        // keyword block has ended, so it accepts a leading underscore too.
+        [GeneratedRegex(@"^[A-Za-z_][A-Za-z0-9_]*[ \t]*(?::[ \t]*[A-Za-z0-9_]+[ \t]*)?=")]
+        private static partial Regex AnyProductionHeader();
+
+        [GeneratedRegex(@"'([^']+)'")]
+        private static partial Regex QuotedLiteral();
+
         /// <inheritdoc/>
         public IReadOnlyList<Production> Parse(string text)
         {
@@ -72,6 +83,52 @@ namespace Hypha.Knowledge.Grammar
             ArgumentNullException.ThrowIfNull(text);
 
             return Scan(text, GraphicalProductionHeader(), skipComments: true, BuildGraphical);
+        }
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Scanned line by line rather than with one multi-line regex. The block runs from the
+        /// <c>RESERVED_KEYWORD</c> production until the next production or a blank line, which is far
+        /// clearer to reason about than a reluctant match against a lookahead - and the regex version
+        /// was flagged by SonarCloud for being able to match zero repetitions.
+        /// </remarks>
+        public IReadOnlyList<string> ReservedKeywords(string text)
+        {
+            ArgumentNullException.ThrowIfNull(text);
+
+            var collected = new SortedSet<string>(StringComparer.Ordinal);
+            var inside = false;
+
+            foreach (var line in text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+            {
+                if (!inside)
+                {
+                    if (ReservedKeywordProduction().IsMatch(line))
+                    {
+                        inside = true;
+                        Collect(collected, line);
+                    }
+
+                    continue;
+                }
+
+                if (line.Trim().Length == 0 || AnyProductionHeader().IsMatch(line))
+                {
+                    break;
+                }
+
+                Collect(collected, line);
+            }
+
+            return [.. collected];
+        }
+
+        private static void Collect(SortedSet<string> collected, string line)
+        {
+            foreach (Match match in QuotedLiteral().Matches(line))
+            {
+                collected.Add(match.Groups[1].Value);
+            }
         }
 
         /// <summary>
