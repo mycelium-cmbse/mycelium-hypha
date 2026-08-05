@@ -289,7 +289,7 @@ namespace Hypha.MetamodelGen.Tests
                 var tagModel = TestModel.ModelFor(tag);
                 Assert.That(tagModel, Is.Not.Null, $"No model found for release {tag}.");
 
-                var outputDirectory = Repository.Layout!.Metamodel(tag);
+                var outputDirectory = TestOutput.Directory(tag);
                 await this.generator.GenerateAsync(tagModel!, outputDirectory);
 
                 var diagramDirectory = Path.Combine(

@@ -14,6 +14,7 @@ namespace Hypha.Knowledge
     using System.Net.Http.Headers;
 
     using Hypha.Knowledge.CrossReferences;
+    using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
@@ -102,6 +103,12 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<ICrossReferenceBuilder, CrossReferenceBuilder>();
             services.AddSingleton<IKnowledgeReader, KnowledgeReader>();
+
+            // Registered as a collection: a full run is a loop over Order, not a list of calls each
+            // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
+            services.AddSingleton<IKnowledgeGenerator, GrammarReferenceGenerator>();
+            services.AddSingleton<IKnowledgeGenerator, TextualNotationGenerator>();
+            services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
 
             services.AddSingleton<IKnowledgeLayout>(_ =>
                 repositoryRoot is not null

@@ -8,8 +8,15 @@
 
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
     <PackageReference Include="uml4net.Extensions" Version="8.2.1" />
     <PackageReference Include="uml4net.xmi" Version="8.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- For IKnowledgeGenerator and IKnowledgeLayout. The dependency runs this way only: the
+         knowledge library knows nothing about uml4net or Handlebars. -->
+    <ProjectReference Include="..\..\knowledge-gen\Hypha.Knowledge\Hypha.Knowledge.csproj" />
   </ItemGroup>
 
   <ItemGroup>
