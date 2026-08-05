@@ -77,7 +77,7 @@ namespace Hypha.MetamodelGen.Tests
                 var tagModel = TestModel.ModelFor(tag);
                 Assert.That(tagModel, Is.Not.Null, $"No model found for release {tag}.");
 
-                var outputDirectory = KnowledgeVersions.MetamodelDirectory(tag);
+                var outputDirectory = Repository.Layout!.Metamodel(tag);
                 await this.generator.GenerateAsync(tagModel!, outputDirectory, "SysML v2");
 
                 Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "index.md")), Is.True);

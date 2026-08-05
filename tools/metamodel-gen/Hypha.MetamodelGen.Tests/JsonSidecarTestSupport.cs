@@ -22,7 +22,7 @@ namespace Hypha.MetamodelGen.Tests
     {
         /// <summary>The committed knowledge directory one release's sidecar files live in.</summary>
         public static DirectoryInfo KnowledgeDirectory(string tag) =>
-            KnowledgeVersions.MetamodelDirectory(tag);
+            Repository.Layout!.Metamodel(tag);
 
         /// <summary>
         /// The input XMI files one release's provenance digest is computed over. The primitive types
@@ -31,8 +31,8 @@ namespace Hypha.MetamodelGen.Tests
         /// </summary>
         public static IReadOnlyList<string> SourceXmiPaths(string tag)
         {
-            var xmiDirectory = KnowledgeVersions.XmiDirectory(tag).FullName;
-            var sourcesRoot = Path.Combine(TestModel.FindRepoRoot()!.FullName, "sources");
+            var xmiDirectory = Repository.Layout!.Xmi(tag).FullName;
+            var sourcesRoot = Path.Combine(Repository.Layout!.Root.FullName, "sources");
 
             return new[]
             {

@@ -34,10 +34,9 @@ namespace Hypha.Knowledge.Tests
         [SetUp]
         public void SetUp()
         {
-            var path = Path.Combine(
-                RepositoryLayout.RepositoryRoot!.FullName, "knowledge", "cross-references.schema.json");
+            var schemaFile = Repository.Layout!.CrossReferenceSchema;
 
-            this.schema = JsonDocument.Parse(File.ReadAllText(path, Encoding.UTF8));
+            this.schema = JsonDocument.Parse(File.ReadAllText(schemaFile.FullName, Encoding.UTF8));
 
             var document = new CrossReferenceBuilder().Build(
                 CrossReferenceBuilderTests.Inputs(

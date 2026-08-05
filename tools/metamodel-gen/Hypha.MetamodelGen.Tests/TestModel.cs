@@ -38,32 +38,14 @@ namespace Hypha.MetamodelGen.Tests
         private static readonly ConcurrentDictionary<string, XmiReaderResult?> Cache = new(StringComparer.Ordinal);
 
         /// <summary>Gets the installed release tags, newest first.</summary>
-        public static IReadOnlyList<string> Tags => KnowledgeVersions.Tags;
+        public static IReadOnlyList<string> Tags => Repository.Layout?.InstalledTags ?? [];
 
         /// <summary>
         /// Gets the model for the default release tag, loaded once (or <c>null</c> when no model is
         /// present). Tests that only exercise generator behaviour can use this and ignore versioning.
         /// </summary>
         public static XmiReaderResult? Model =>
-            KnowledgeVersions.DefaultTag is { } tag ? ModelFor(tag) : null;
-
-        /// <summary>
-        /// Walks up from the test output directory to the repository root (the directory that
-        /// contains both <c>sources</c> and <c>knowledge</c>), or <c>null</c> if not found.
-        /// </summary>
-        public static DirectoryInfo? FindRepoRoot()
-        {
-            for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-            {
-                if (Directory.Exists(Path.Combine(dir.FullName, "sources"))
-                    && Directory.Exists(Path.Combine(dir.FullName, "knowledge")))
-                {
-                    return dir;
-                }
-            }
-
-            return null;
-        }
+            Repository.Layout?.DefaultTag is { } tag ? ModelFor(tag) : null;
 
         /// <summary>Loads (and caches) the combined KerML + SysML model for one release tag.</summary>
         public static XmiReaderResult? ModelFor(string tag) =>
@@ -79,13 +61,12 @@ namespace Hypha.MetamodelGen.Tests
         /// </summary>
         public static XmiReaderResult? LoadSysmlModel(string tag)
         {
-            var root = FindRepoRoot();
-            if (root is null)
+            if (Repository.Layout is not { } layout)
             {
                 return null;
             }
 
-            var xmiDirectory = KnowledgeVersions.XmiDirectory(tag).FullName;
+            var xmiDirectory = layout.Xmi(tag).FullName;
             var modelPath = Path.Combine(xmiDirectory, "SysML_only_xmi.uml");
 
             if (!File.Exists(modelPath))
@@ -95,7 +76,7 @@ namespace Hypha.MetamodelGen.Tests
 
             var pathMaps = new Dictionary<string, string>
             {
-                [PrimitiveTypesPathMap] = Path.Combine(root.FullName, "sources", "PrimitiveTypes.xmi"),
+                [PrimitiveTypesPathMap] = layout.SharedPrimitiveTypes.FullName,
             };
 
             return XmiModelReader.Read(modelPath, pathMaps, xmiDirectory);

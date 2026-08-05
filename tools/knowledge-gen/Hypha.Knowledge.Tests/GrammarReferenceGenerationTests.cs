@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // <copyright file="GrammarReferenceGenerationTests.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
@@ -49,13 +49,13 @@ namespace Hypha.Knowledge.Tests
 
             foreach (var tag in InstalledTags())
             {
-                var bnf = RepositoryLayout.BnfDirectory(tag);
+                var bnf = Repository.Layout!.Bnf(tag);
                 if (!bnf.Exists)
                 {
                     continue;
                 }
 
-                var outputDirectory = RepositoryLayout.TextualNotationDirectory(tag);
+                var outputDirectory = Repository.Layout!.TextualNotation(tag);
                 outputDirectory.Create();
 
                 foreach (var grammar in new[] { "KerML", "SysML" })
@@ -100,14 +100,14 @@ namespace Hypha.Knowledge.Tests
             foreach (var tag in InstalledTags())
             {
                 var input = new FileInfo(
-                    Path.Combine(RepositoryLayout.BnfDirectory(tag).FullName, "SysML-graphical-bnf.kgbnf"));
+                    Path.Combine(Repository.Layout!.Bnf(tag).FullName, "SysML-graphical-bnf.kgbnf"));
 
                 if (!input.Exists)
                 {
                     continue;
                 }
 
-                var outputDirectory = RepositoryLayout.TextualNotationDirectory(tag);
+                var outputDirectory = Repository.Layout!.TextualNotation(tag);
                 outputDirectory.Create();
 
                 var productions = this.parser.ParseGraphical(
@@ -143,7 +143,7 @@ namespace Hypha.Knowledge.Tests
             var input = tag is null
                 ? null
                 : new FileInfo(
-                    Path.Combine(RepositoryLayout.BnfDirectory(tag).FullName, "KerML-textual-bnf.kebnf"));
+                    Path.Combine(Repository.Layout!.Bnf(tag).FullName, "KerML-textual-bnf.kebnf"));
 
             if (input is null || !input.Exists)
             {
@@ -159,7 +159,7 @@ namespace Hypha.Knowledge.Tests
         }
 
         private static IReadOnlyList<string> InstalledTags() =>
-            RepositoryLayout.RepositoryRoot is null ? [] : RepositoryLayout.InstalledTags;
+            Repository.Layout?.InstalledTags ?? [];
 
         private static void AssertGenerated(int generated)
         {

@@ -48,7 +48,7 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.That(model, Is.Not.Null, $"No model found for release {tag}.");
 
                 outputDirectory = new DirectoryInfo(
-                    Path.Combine(KnowledgeVersions.MetamodelDirectory(tag).FullName, "elements"));
+                    Path.Combine(Repository.Layout!.Metamodel(tag).FullName, "elements"));
 
                 await this.generator.GenerateAsync(model!, outputDirectory);
             }

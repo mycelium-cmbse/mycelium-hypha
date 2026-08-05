@@ -104,7 +104,7 @@ namespace Hypha.MetamodelGen.Tests
 
         private static string DiagramDirectory(string tag) =>
             Path.Combine(
-                KnowledgeVersions.MetamodelDirectory(tag).FullName,
+                Repository.Layout!.Metamodel(tag).FullName,
                 PackageDiagramGenerator.DiagramDirectoryName);
 
         private static string Normalize(string text) => text.Replace("\r\n", "\n").TrimEnd('\n');

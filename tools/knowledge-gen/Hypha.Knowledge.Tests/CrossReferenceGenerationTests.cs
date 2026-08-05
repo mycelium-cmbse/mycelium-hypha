@@ -56,13 +56,13 @@ namespace Hypha.Knowledge.Tests
         {
             var generated = 0;
 
-            foreach (var tag in RepositoryLayout.RepositoryRoot is null ? [] : RepositoryLayout.InstalledTags)
+            foreach (var tag in Repository.Layout?.InstalledTags ?? [])
             {
-                var knowledge = RepositoryLayout.KnowledgeDirectory(tag);
+                var knowledge = Repository.Layout!.Knowledge(tag);
                 var metamodelIndex = new FileInfo(
                     Path.Combine(knowledge.FullName, "metamodel", "index.json"));
 
-                if (!metamodelIndex.Exists || !RepositoryLayout.BnfDirectory(tag).Exists)
+                if (!metamodelIndex.Exists || !Repository.Layout!.Bnf(tag).Exists)
                 {
                     continue;
                 }
@@ -106,10 +106,10 @@ namespace Hypha.Knowledge.Tests
             // catalog, then rebuilding with no catalog but the previous output's title matches, must
             // give the same bytes - otherwise a contributor without the PDFs would silently drop
             // edges the moment they regenerate.
-            var tag = RepositoryLayout.RepositoryRoot is null
+            var tag = Repository.Layout is null
                 ? null
-                : RepositoryLayout.InstalledTags.FirstOrDefault(candidate =>
-                    SpecificationIndexes(RepositoryLayout.KnowledgeDirectory(candidate))
+                : Repository.Layout!.InstalledTags.FirstOrDefault(candidate =>
+                    SpecificationIndexes(Repository.Layout!.Knowledge(candidate))
                         .All(index => index.Value.Exists));
 
             if (tag is null)
@@ -118,7 +118,7 @@ namespace Hypha.Knowledge.Tests
                 return;
             }
 
-            var knowledge = RepositoryLayout.KnowledgeDirectory(tag);
+            var knowledge = Repository.Layout!.Knowledge(tag);
             var metamodelIndex = new FileInfo(Path.Combine(knowledge.FullName, "metamodel", "index.json"));
 
             var withCatalog = this.builder.Build(this.Inputs(tag, knowledge, metamodelIndex));
@@ -150,7 +150,7 @@ namespace Hypha.Knowledge.Tests
             foreach (var (file, key, _) in Grammars)
             {
                 var path = Path.Combine(
-                    RepositoryLayout.BnfDirectory(tag).FullName, $"{file}-textual-bnf.kebnf");
+                    Repository.Layout!.Bnf(tag).FullName, $"{file}-textual-bnf.kebnf");
 
                 parsed[key] = this.parser.Parse(File.ReadAllText(path, Encoding.UTF8));
             }

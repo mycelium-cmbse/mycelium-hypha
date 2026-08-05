@@ -151,7 +151,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void Reads_the_manifest_this_repository_actually_ships()
         {
-            var committed = RepositoryLayout.VersionManifestPath();
+            var committed = CommittedManifest();
             if (committed is null)
             {
                 Assert.Ignore("no committed knowledge/versions.json found");
@@ -172,7 +172,7 @@ namespace Hypha.Knowledge.Tests
         {
             // Proves the .NET writer is compatible with the file the Python side produced, without
             // needing the network to re-resolve commits.
-            var committed = RepositoryLayout.VersionManifestPath();
+            var committed = CommittedManifest();
             if (committed is null)
             {
                 Assert.Ignore("no committed knowledge/versions.json found");
@@ -190,21 +190,12 @@ namespace Hypha.Knowledge.Tests
                 new UpstreamReference(Upstream.ReleaseRepository, release),
                 new UpstreamReference(Upstream.PilotRepository, pilot));
 
-        private static class RepositoryLayout
+        /// <summary>The committed manifest, or <c>null</c> when running outside the repository.</summary>
+        private static string? CommittedManifest()
         {
-            public static string? VersionManifestPath()
-            {
-                for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-                {
-                    var candidate = Path.Combine(dir.FullName, "knowledge", VersionManifest.FileName);
-                    if (File.Exists(candidate))
-                    {
-                        return candidate;
-                    }
-                }
+            var manifest = Repository.Layout?.VersionManifest;
 
-                return null;
-            }
+            return manifest is not null && manifest.Exists ? manifest.FullName : null;
         }
     }
 }

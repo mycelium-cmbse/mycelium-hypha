@@ -88,7 +88,7 @@ namespace Hypha.MetamodelGen.Tests
             Assert.That(model, Is.Not.Null);
 
             var expectedDirectory = Path.Combine(
-                TestModel.FindRepoRoot()!.FullName,
+                Repository.Layout!.Root.FullName,
                 "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "metamodel", "elements");
 
             Directory.CreateDirectory(expectedDirectory);

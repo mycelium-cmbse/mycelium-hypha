@@ -54,9 +54,9 @@ namespace Hypha.Knowledge.Tests
         {
             var generated = 0;
 
-            foreach (var tag in RepositoryLayout.RepositoryRoot is null ? [] : RepositoryLayout.InstalledTags)
+            foreach (var tag in Repository.Layout?.InstalledTags ?? [])
             {
-                var textualRoot = RepositoryLayout.TextualSourcesDirectory(tag);
+                var textualRoot = Repository.Layout!.TextualSources(tag);
                 var models = this.catalog.Discover(textualRoot);
 
                 if (models.Count == 0)
@@ -91,7 +91,7 @@ namespace Hypha.Knowledge.Tests
         {
             var index = this.forms.Index(MetaclassNames(tag));
 
-            var outputDirectory = RepositoryLayout.TextualNotationDirectory(tag);
+            var outputDirectory = Repository.Layout!.TextualNotation(tag);
             var examplesDirectory = new DirectoryInfo(Path.Combine(outputDirectory.FullName, "examples"));
             examplesDirectory.Create();
 
@@ -159,7 +159,7 @@ namespace Hypha.Knowledge.Tests
         private static IReadOnlyList<string> MetaclassNames(string tag)
         {
             var path = Path.Combine(
-                RepositoryLayout.KnowledgeDirectory(tag).FullName, "metamodel", "index.json");
+                Repository.Layout!.Knowledge(tag).FullName, "metamodel", "index.json");
 
             // Unlike the cross-references (#96) there is no way to degrade quietly here - without the
             // index there are no surface forms and every page would come out with an empty elements
