@@ -24,6 +24,17 @@ namespace Hypha.Knowledge.TextualNotation
     /// </remarks>
     public sealed class SurfaceFormIndex
     {
+        /// <summary>
+        /// A ceiling on a single match, not a tuning knob.
+        /// </summary>
+        /// <remarks>
+        /// These patterns are built at run time from metaclass names, so they are the one place here
+        /// that is not a fixed literal. The generated pattern has no quantifier and cannot backtrack
+        /// catastrophically, but a match against a model measured in kilobytes should never take
+        /// anywhere near this long - so if it does, something is wrong and failing beats hanging.
+        /// </remarks>
+        private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(5);
+
         private readonly IReadOnlyList<(string Metaclass, Regex Declaration)> declarations;
 
         /// <summary>
@@ -64,6 +75,6 @@ namespace Hypha.Knowledge.TextualNotation
         /// model text is user-written and may well contain non-ASCII identifiers.
         /// </remarks>
         private static Regex DeclarationPattern(string form) =>
-            new($@"(?<![\w']){Regex.Escape(form)}(?![\w'])", RegexOptions.None);
+            new($@"(?<![\w']){Regex.Escape(form)}(?![\w'])", RegexOptions.None, MatchTimeout);
     }
 }
