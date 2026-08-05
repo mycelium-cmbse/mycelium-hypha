@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **The textual-notation knowledge base moved to .NET** (`fixes #87`).
+  `Hypha.Knowledge.TextualNotation` now writes `knowledge/<tag>/textual-notation/` – 309 example
+  pages per release plus the index. All 618 committed example pages come out **byte-identical**; the
+  only change is the line naming the generator in `index.md`.
+  - Surface forms are still derived from the metamodel's own naming convention rather than curated
+    (`PartDefinition` → `part def`, `PartUsage` → `part`), and still bounded by that release's
+    metamodel index, so the mapping cannot invent an element.
+  - The declaration match still refuses to fire inside an identifier or a quoted name –
+    `counterpart` is not a `part`. Unlike the grammar patterns this one is deliberately left
+    Unicode-aware, matching the Python it replaces: model text is user-written.
+  - Example pages are ordered segment by segment and case-insensitively, which is what the committed
+    index was generated with; an ordinal sort of the whole path would interleave folders with files.
 - **BNF parsing and the grammar references moved to .NET** (`fixes #86`). `Hypha.Knowledge.Grammar`
   now parses both the textual `.kebnf` and the graphical `.kgbnf` and writes
   `knowledge/<tag>/textual-notation/grammar-{kerml,sysml,graphical}.md`. The generated files are

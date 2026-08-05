@@ -49,13 +49,21 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
+        /// <summary>The textual sources for one tag: <c>sources/&lt;tag&gt;/textual</c>.</summary>
+        public static DirectoryInfo TextualSourcesDirectory(string tag) =>
+            new(Path.Combine(Require().FullName, "sources", tag, "textual"));
+
         /// <summary>The grammar inputs for one tag: <c>sources/&lt;tag&gt;/textual/bnf</c>.</summary>
         public static DirectoryInfo BnfDirectory(string tag) =>
-            new(Path.Combine(Require().FullName, "sources", tag, "textual", "bnf"));
+            new(Path.Combine(TextualSourcesDirectory(tag).FullName, "bnf"));
+
+        /// <summary>The generated knowledge for one tag: <c>knowledge/&lt;tag&gt;</c>.</summary>
+        public static DirectoryInfo KnowledgeDirectory(string tag) =>
+            new(Path.Combine(Require().FullName, "knowledge", tag));
 
         /// <summary>The generated notation for one tag: <c>knowledge/&lt;tag&gt;/textual-notation</c>.</summary>
         public static DirectoryInfo TextualNotationDirectory(string tag) =>
-            new(Path.Combine(Require().FullName, "knowledge", tag, "textual-notation"));
+            new(Path.Combine(KnowledgeDirectory(tag).FullName, "textual-notation"));
 
         private static DirectoryInfo Require() =>
             Root.Value ?? throw new InvalidOperationException("not running inside the repository");

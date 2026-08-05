@@ -16,6 +16,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Releases;
+    using Hypha.Knowledge.TextualNotation;
 
     using Microsoft.Extensions.DependencyInjection;
 
@@ -52,6 +53,19 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(provider.GetService<IGrammarParser>(), Is.Not.Null);
                 Assert.That(provider.GetService<IGrammarLinks>(), Is.Not.Null);
                 Assert.That(provider.GetService<IGrammarReference>(), Is.Not.Null);
+            });
+        }
+
+        [Test]
+        public void Resolves_the_textual_notation_services_by_their_interfaces()
+        {
+            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(provider.GetService<ISurfaceForms>(), Is.Not.Null);
+                Assert.That(provider.GetService<INotationRenderer>(), Is.Not.Null);
+                Assert.That(provider.GetService<IModelCatalog>(), Is.Not.Null);
             });
         }
 
