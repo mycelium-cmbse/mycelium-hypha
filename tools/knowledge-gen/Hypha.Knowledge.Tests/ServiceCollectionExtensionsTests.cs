@@ -14,6 +14,7 @@ namespace Hypha.Knowledge.Tests
     using System.Net.Http;
 
     using Hypha.Knowledge;
+    using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,22 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(provider.GetService<ReleaseDiscovery>(), Is.Not.Null);
                 Assert.That(provider.GetService<CommitResolver>(), Is.Not.Null);
                 Assert.That(provider.GetService<ReleaseFetcher>(), Is.Not.Null);
+            });
+        }
+
+        [Test]
+        public void Resolves_the_grammar_services_by_their_interfaces()
+        {
+            // They are resolved rather than constructed so the CLI (#81) composes them once, and so a
+            // caller can substitute one - which is also why they are not static despite holding no
+            // per-call state.
+            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(provider.GetService<IGrammarParser>(), Is.Not.Null);
+                Assert.That(provider.GetService<IGrammarLinks>(), Is.Not.Null);
+                Assert.That(provider.GetService<IGrammarReference>(), Is.Not.Null);
             });
         }
 

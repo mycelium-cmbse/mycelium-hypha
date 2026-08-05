@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **BNF parsing and the grammar references moved to .NET** (`fixes #86`). `Hypha.Knowledge.Grammar`
+  now parses both the textual `.kebnf` and the graphical `.kgbnf` and writes
+  `knowledge/<tag>/textual-notation/grammar-{kerml,sysml,graphical}.md`. The generated files are
+  **byte-identical** to what the Python emitted, apart from the line naming the generator.
+  - The porting hazards are guarded by tests rather than left to be rediscovered: `\d` and `\w` are
+    written out as explicit ASCII classes, because Python compiled these patterns with `re.ASCII`
+    while .NET's shorthands are Unicode-aware; and the possessive quantifier on the clause number
+    becomes an atomic group, which .NET does have.
+  - The exclusivity guard is unchanged and still the point: a helper production shared by two
+    elements contributes to neither. 96 of the 190 referenced helpers are shared, so relaxing it
+    would report more feature assignments and mean less.
 - **Release handling moved from Python to .NET** (`fixes #83`, `fixes #84`, `fixes #85`), into the new
   `tools/knowledge-gen/Hypha.Knowledge` library. `spec_extract.versions` and `spec_extract.fetch` are
   gone; `spec-extract` now does what it is best at – PDF extraction – and nothing else.

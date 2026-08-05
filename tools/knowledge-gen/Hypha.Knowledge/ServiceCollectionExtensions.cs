@@ -12,6 +12,7 @@ namespace Hypha.Knowledge
     using System;
     using System.Net.Http.Headers;
 
+    using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.DependencyInjection;
@@ -76,6 +77,12 @@ namespace Hypha.Knowledge
             services.AddSingleton(provider => new ReleaseFetcher(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
                 baseAddress));
+
+            // The grammar services are pure functions of the grammar text, so one instance serves
+            // every caller.
+            services.AddSingleton<IGrammarParser, GrammarParser>();
+            services.AddSingleton<IGrammarLinks, GrammarLinks>();
+            services.AddSingleton<IGrammarReference>(_ => new GrammarReference());
 
             return services;
         }
