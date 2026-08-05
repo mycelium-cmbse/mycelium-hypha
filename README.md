@@ -44,9 +44,9 @@ mycelium-hypha/
 │       └── textual/        Grammar + example models           (EPL-2.0, committed)
 │
 └── tools/                  Generation pipelines (not part of the shipped plugin)
-    ├── knowledge-gen/      C#:           releases (discovery, fetching, versions.json); BNF + models -> knowledge/<tag>/textual-notation/
+    ├── knowledge-gen/      C#:           releases (discovery, fetching, versions.json); BNF + models -> textual-notation/; cross-references.json
     ├── metamodel-gen/      C# (uml4net): XMI → knowledge/<tag>/metamodel/ (elements, index, JSON sidecar, diagrams)
-    └── spec-extract/       Python:       PDFs -> knowledge/<tag>/spec/
+    └── spec-extract/       Python:       PDFs -> knowledge/<tag>/spec/ (git-ignored) — the only Python left
 ```
 
 ## Install
