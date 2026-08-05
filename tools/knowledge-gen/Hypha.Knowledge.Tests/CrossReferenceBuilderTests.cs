@@ -129,6 +129,7 @@ namespace Hypha.Knowledge.Tests
             {
                 GrammarClauses = PerGrammar("kerml", "Feature", "8.3.6.10", "8.3.6.3", "8.3.6.2"),
                 GrammarDocuments = new Dictionary<string, string>(StringComparer.Ordinal) { ["kerml"] = "kerml" },
+                AllowGrammarOnly = true,
             };
 
             Assert.That(
@@ -348,6 +349,56 @@ namespace Hypha.Knowledge.Tests
                 });
 
             Assert.That(document.Entries.Keys, Does.Not.Contain("Removed"));
+        }
+
+        [Test]
+        public void A_cold_start_refuses_to_build_rather_than_dropping_a_third_of_the_clause_edges()
+        {
+            // A new release tag on a machine without the PDFs: no catalog to match titles against, and
+            // no previous document to carry them from. Writing anyway would produce a file that looks
+            // complete and is not.
+            var inputs = Inputs(clauseTitles: new Dictionary<string, IReadOnlyDictionary<string, string>>());
+
+            var exception = Assert.Throws<InvalidOperationException>(() => this.builder.Build(inputs));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception!.Message, Does.Contain("clause catalog"));
+                Assert.That(exception.Message, Does.Contain("carry the matches forward"));
+                Assert.That(
+                    exception.Message, Does.Contain(nameof(CrossReferenceInputs.AllowGrammarOnly)),
+                    "the message must name the way out, not just the problem");
+            });
+        }
+
+        [Test]
+        public void A_grammar_only_document_is_allowed_when_it_is_asked_for()
+        {
+            var inputs = Inputs(clauseTitles: new Dictionary<string, IReadOnlyDictionary<string, string>>()) with
+            {
+                AllowGrammarOnly = true,
+            };
+
+            Assert.That(this.builder.Build(inputs).Counts.ClauseEdges, Is.Zero);
+        }
+
+        [Test]
+        public void A_catalog_alone_is_enough_to_build()
+        {
+            // The two supported paths must stay open: catalog present, and catalog absent but a
+            // previous document to carry from.
+            Assert.Multiple(() =>
+            {
+                Assert.That(() => this.builder.Build(Inputs()), Throws.Nothing);
+                Assert.That(
+                    () => this.builder.Build(
+                        Inputs(clauseTitles: new Dictionary<string, IReadOnlyDictionary<string, string>>()) with
+                        {
+                            CarriedClauseEdges = CrossReferenceFile.TitleMatchedEdges(
+                                this.builder.Build(Inputs())),
+                        }),
+                    Throws.Nothing);
+            });
         }
 
         private static Dictionary<string, IReadOnlyList<FeatureLink>> Assignments(

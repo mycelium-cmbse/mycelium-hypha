@@ -161,6 +161,13 @@ namespace Hypha.Knowledge.Tests
             var path = Path.Combine(
                 RepositoryLayout.KnowledgeDirectory(tag).FullName, "metamodel", "index.json");
 
+            // Unlike the cross-references (#96) there is no way to degrade quietly here - without the
+            // index there are no surface forms and every page would come out with an empty elements
+            // list. Say so, rather than letting a bare FileNotFoundException explain it.
+            Assert.That(
+                File.Exists(path), Is.True,
+                $"the metamodel index for {tag} has not been generated yet; run metamodel-gen first");
+
             using var document = JsonDocument.Parse(File.ReadAllText(path, Encoding.UTF8));
 
             return document.RootElement

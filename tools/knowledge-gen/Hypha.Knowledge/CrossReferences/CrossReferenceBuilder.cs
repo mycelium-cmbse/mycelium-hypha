@@ -31,9 +31,15 @@ namespace Hypha.Knowledge.CrossReferences
         public const string GrammarClause = "grammar-clause";
 
         /// <inheritdoc/>
+        /// <exception cref="InvalidOperationException">
+        /// There is neither a clause catalog to match titles against nor a previous document to carry
+        /// them from, and <see cref="CrossReferenceInputs.AllowGrammarOnly"/> was not set.
+        /// </exception>
         public CrossReferenceDocument Build(CrossReferenceInputs inputs)
         {
             ArgumentNullException.ThrowIfNull(inputs);
+
+            RefuseToDegrade(inputs);
 
             var names = inputs.Elements
                 .Select(element => element.Name)
@@ -70,6 +76,32 @@ namespace Hypha.Knowledge.CrossReferences
                 Provenance.Tiers,
                 Count(names, clauses, grammar, features, examples),
                 entries);
+        }
+
+        /// <summary>
+        /// Refuses to build a document that would silently be missing its title-matched clause edges.
+        /// </summary>
+        /// <remarks>
+        /// Roughly a third of the clause edges in a real release are title-matched, and a partial
+        /// document that looks complete is worse than none: the next person to regenerate <i>with</i>
+        /// the specifications sees a large diff and cannot tell an upstream change from a repair. The
+        /// counts carried in the file would show the drop, but noticing a number move in a diff is not
+        /// the standard committed content is held to here.
+        /// </remarks>
+        private static void RefuseToDegrade(CrossReferenceInputs inputs)
+        {
+            if (inputs.AllowGrammarOnly
+                || inputs.ClauseTitles.Count > 0
+                || inputs.CarriedClauseEdges.Count > 0)
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "cannot build the cross-references: there is no specification clause catalog to match "
+                + "titles against, and no previously generated document to carry the matches forward "
+                + "from. Extract the specifications for this release, or set AllowGrammarOnly to state "
+                + "that a grammar-only document is intended.");
         }
 
         /// <summary>
