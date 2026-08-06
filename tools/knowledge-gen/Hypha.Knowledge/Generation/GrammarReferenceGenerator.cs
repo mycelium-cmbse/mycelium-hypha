@@ -20,6 +20,8 @@ namespace Hypha.Knowledge.Generation
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
 
+    using Microsoft.Extensions.Logging;
+
     /// <summary>
     /// Writes <c>knowledge/&lt;tag&gt;/textual-notation/grammar-{kerml,sysml,graphical}.md</c>.
     /// </summary>
@@ -33,16 +35,21 @@ namespace Hypha.Knowledge.Generation
         private readonly IKnowledgeLayout layout;
         private readonly IGrammarParser parser;
         private readonly IGrammarReference reference;
+        private readonly ILogger<GrammarReferenceGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GrammarReferenceGenerator"/> class.
         /// </summary>
         public GrammarReferenceGenerator(
-            IKnowledgeLayout layout, IGrammarParser parser, IGrammarReference reference)
+            IKnowledgeLayout layout,
+            IGrammarParser parser,
+            IGrammarReference reference,
+            ILogger<GrammarReferenceGenerator> logger)
         {
             this.layout = layout;
             this.parser = parser;
             this.reference = reference;
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
@@ -57,9 +64,12 @@ namespace Hypha.Knowledge.Generation
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
+            GenerationLog.Started(this.logger, this.Artifact, tag);
+
             if (!this.layout.Bnf(tag).Exists)
             {
-                return GenerationResult.Skipped($"no grammar fetched for {tag}");
+                return GenerationResult.Skipped($"no grammar fetched for {tag}")
+                    .Report(this.logger, this.Artifact, tag);
             }
 
             var outputDirectory = this.layout.TextualNotation(tag);
@@ -105,9 +115,9 @@ namespace Hypha.Knowledge.Generation
                     cancellationToken));
             }
 
-            return written.Count == 0
+            return (written.Count == 0
                 ? GenerationResult.Skipped($"no grammar files found under {this.layout.Bnf(tag).FullName}")
-                : GenerationResult.Generated(written);
+                : GenerationResult.Generated(written)).Report(this.logger, this.Artifact, tag);
         }
     }
 }

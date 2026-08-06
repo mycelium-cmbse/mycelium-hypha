@@ -23,7 +23,7 @@ namespace Hypha.Knowledge.Releases
     /// every selection rule lives in <see cref="ReleaseTag"/> and <see cref="ReleaseCatalog"/> so it
     /// can be tested without GitHub.
     /// </summary>
-    public sealed class ReleaseDiscovery
+    public sealed class ReleaseDiscovery : IReleaseDiscovery
     {
         /// <summary>Relative to the API base address, so the host stays configurable.</summary>
         private const string TagsPath = "repos/{0}/tags?per_page=100&page={1}";

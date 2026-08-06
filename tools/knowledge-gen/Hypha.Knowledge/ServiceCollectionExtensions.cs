@@ -32,29 +32,33 @@ namespace Hypha.Knowledge
         public const string UpstreamClientName = "hypha-upstream";
 
         /// <summary>
-        /// Adds release discovery, commit resolution and fetching, over a single resilient client.
+        /// Adds everything needed to fetch a release and generate the knowledge base from it, over a
+        /// single resilient client.
         /// </summary>
         /// <param name="services">The collection to add to.</param>
-        /// <param name="token">
-        /// An optional GitHub token; falls back to <c>GITHUB_TOKEN</c> / <c>GH_TOKEN</c>. The
-        /// anonymous API allows 60 requests an hour, which discovery alone can exhaust.
-        /// </param>
-        /// <param name="apiBaseAddress">The API host; defaults to the public GitHub API.</param>
-        /// <param name="repositoryRoot">
-        /// The folder holding <c>sources/</c> and <c>knowledge/</c>; discovered from the running
-        /// assembly when omitted. Resolving <see cref="IKnowledgeLayout"/> throws when neither is
-        /// available, which is a clearer failure than every path silently pointing at the wrong place.
+        /// <param name="configure">
+        /// Adjusts <see cref="HyphaKnowledgeOptions"/>. Every setting has a working default, so a
+        /// caller inside the repository can omit this entirely.
         /// </param>
         public static IServiceCollection AddHyphaKnowledge(
-            this IServiceCollection services,
-            string? token = null,
-            Uri? apiBaseAddress = null,
-            DirectoryInfo? repositoryRoot = null)
+            this IServiceCollection services, Action<HyphaKnowledgeOptions>? configure = null)
         {
             ArgumentNullException.ThrowIfNull(services);
 
-            var baseAddress = apiBaseAddress ?? Upstream.DefaultApiBaseAddress;
-            var credential = string.IsNullOrWhiteSpace(token) ? GitHubToken.FromEnvironment() : token;
+            var options = new HyphaKnowledgeOptions();
+            configure?.Invoke(options);
+            options.Validate();
+
+            services.AddSingleton(options);
+
+            // No providers, so nothing is written unless the host adds one. It is the seam #77 needs
+            // to show install-time progress, and it keeps ILogger<T> resolvable everywhere else.
+            services.AddLogging();
+
+            var baseAddress = options.ApiBaseAddress;
+            var credential = string.IsNullOrWhiteSpace(options.Token)
+                ? GitHubToken.FromEnvironment()
+                : options.Token;
 
             services
                 .AddHttpClient(UpstreamClientName, client =>
@@ -77,25 +81,26 @@ namespace Hypha.Knowledge
                 // place. The circuit breaker stops us grinding through 300 files once it is refusing.
                 .AddStandardResilienceHandler();
 
-            services.AddSingleton(provider => new ReleaseDiscovery(
+            services.AddSingleton<IReleaseDiscovery>(provider => new ReleaseDiscovery(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                token,
+                options.Token,
                 null,
                 baseAddress));
 
-            services.AddSingleton(provider => new CommitResolver(
+            services.AddSingleton<ICommitResolver>(provider => new CommitResolver(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
                 baseAddress));
 
-            services.AddSingleton(provider => new ReleaseFetcher(
+            services.AddSingleton<IReleaseFetcher>(provider => new ReleaseFetcher(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                baseAddress));
+                baseAddress,
+                options.MaxDownloadConcurrency));
 
             // The grammar services are pure functions of the grammar text, so one instance serves
             // every caller.
             services.AddSingleton<IGrammarParser, GrammarParser>();
             services.AddSingleton<IGrammarLinks, GrammarLinks>();
-            services.AddSingleton<IGrammarReference>(_ => new GrammarReference());
+            services.AddSingleton<IGrammarReference>(_ => new GrammarReference(options.RawContentBaseAddress));
 
             services.AddSingleton<ISurfaceForms, SurfaceForms>();
             services.AddSingleton<INotationRenderer, NotationRenderer>();
@@ -111,12 +116,12 @@ namespace Hypha.Knowledge
             services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
 
             services.AddSingleton<IKnowledgeLayout>(_ =>
-                repositoryRoot is not null
-                    ? new KnowledgeLayout(repositoryRoot)
+                options.RepositoryRoot is not null
+                    ? new KnowledgeLayout(options.RepositoryRoot)
                     : KnowledgeLayout.Discover()
                       ?? throw new InvalidOperationException(
-                          "no repository root was given and none could be discovered above "
-                          + $"{AppContext.BaseDirectory}; pass one to AddHyphaKnowledge"));
+                          "no repository root was configured and none could be discovered above "
+                          + $"{AppContext.BaseDirectory}; set RepositoryRoot on HyphaKnowledgeOptions"));
 
             return services;
         }
