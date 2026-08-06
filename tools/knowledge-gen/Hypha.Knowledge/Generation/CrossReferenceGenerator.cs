@@ -20,6 +20,8 @@ namespace Hypha.Knowledge.Generation
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Layout;
 
+    using Microsoft.Extensions.Logging;
+
     /// <summary>
     /// Writes <c>knowledge/&lt;tag&gt;/cross-references.json</c>.
     /// </summary>
@@ -45,6 +47,7 @@ namespace Hypha.Knowledge.Generation
         private readonly IGrammarLinks links;
         private readonly IKnowledgeReader reader;
         private readonly ICrossReferenceBuilder builder;
+        private readonly ILogger<CrossReferenceGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CrossReferenceGenerator"/> class.
@@ -54,13 +57,15 @@ namespace Hypha.Knowledge.Generation
             IGrammarParser parser,
             IGrammarLinks links,
             IKnowledgeReader reader,
-            ICrossReferenceBuilder builder)
+            ICrossReferenceBuilder builder,
+            ILogger<CrossReferenceGenerator> logger)
         {
             this.layout = layout;
             this.parser = parser;
             this.links = links;
             this.reader = reader;
             this.builder = builder;
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
@@ -75,14 +80,18 @@ namespace Hypha.Knowledge.Generation
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
+            GenerationLog.Started(this.logger, this.Artifact, tag);
+
             if (!this.layout.MetamodelIndex(tag).Exists)
             {
-                return GenerationResult.Skipped($"no metamodel index generated for {tag}");
+                return GenerationResult.Skipped($"no metamodel index generated for {tag}")
+                    .Report(this.logger, this.Artifact, tag);
             }
 
             if (!this.layout.Bnf(tag).Exists)
             {
-                return GenerationResult.Skipped($"no grammar fetched for {tag}");
+                return GenerationResult.Skipped($"no grammar fetched for {tag}")
+                    .Report(this.logger, this.Artifact, tag);
             }
 
             var document = this.builder.Build(await this.InputsAsync(tag, cancellationToken));
@@ -100,7 +109,7 @@ namespace Hypha.Knowledge.Generation
             var path = this.layout.CrossReferences(tag);
             var written = await KnowledgeFile.WriteAsync(path.FullName, rendered, cancellationToken);
 
-            return GenerationResult.Generated([written]);
+            return GenerationResult.Generated([written]).Report(this.logger, this.Artifact, tag);
         }
 
         private async Task<CrossReferenceInputs> InputsAsync(string tag, CancellationToken cancellationToken)

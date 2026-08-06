@@ -19,6 +19,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Layout;
 
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// The claim from #88, checked on the real knowledge base rather than on synthetic data: the
@@ -59,7 +60,8 @@ namespace Hypha.Knowledge.Tests
                 provider.GetRequiredService<Grammar.IGrammarParser>(),
                 provider.GetRequiredService<Grammar.IGrammarLinks>(),
                 provider.GetRequiredService<IKnowledgeReader>(),
-                provider.GetRequiredService<ICrossReferenceBuilder>());
+                provider.GetRequiredService<ICrossReferenceBuilder>(),
+                provider.GetRequiredService<ILogger<CrossReferenceGenerator>>());
 
             var result = await generator.GenerateAsync(tag);
 

@@ -19,7 +19,7 @@ namespace Hypha.Knowledge.Releases
     /// <summary>
     /// Resolves a tag to the commit it points at, for the manifest's provenance record.
     /// </summary>
-    public sealed class CommitResolver
+    public sealed class CommitResolver : ICommitResolver
     {
         /// <summary>Relative to the API base address, so the host stays configurable.</summary>
         private const string CommitPath = "repos/{0}/commits/{1}";

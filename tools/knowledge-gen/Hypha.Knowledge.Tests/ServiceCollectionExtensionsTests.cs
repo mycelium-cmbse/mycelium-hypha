@@ -37,9 +37,9 @@ namespace Hypha.Knowledge.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(provider.GetService<ReleaseDiscovery>(), Is.Not.Null);
-                Assert.That(provider.GetService<CommitResolver>(), Is.Not.Null);
-                Assert.That(provider.GetService<ReleaseFetcher>(), Is.Not.Null);
+                Assert.That(provider.GetService<IReleaseDiscovery>(), Is.Not.Null);
+                Assert.That(provider.GetService<ICommitResolver>(), Is.Not.Null);
+                Assert.That(provider.GetService<IReleaseFetcher>(), Is.Not.Null);
             });
         }
 
@@ -90,7 +90,7 @@ namespace Hypha.Knowledge.Tests
             var root = new DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
 
             using var provider = new ServiceCollection()
-                .AddHyphaKnowledge(repositoryRoot: root)
+                .AddHyphaKnowledge(options => options.RepositoryRoot = root)
                 .BuildServiceProvider();
 
             Assert.That(
@@ -130,7 +130,7 @@ namespace Hypha.Knowledge.Tests
         public void An_explicit_token_authenticates_the_client()
         {
             using var provider = new ServiceCollection()
-                .AddHyphaKnowledge("explicit")
+                .AddHyphaKnowledge(options => options.Token = "explicit")
                 .BuildServiceProvider();
 
             var client = provider.GetRequiredService<IHttpClientFactory>()
@@ -150,7 +150,7 @@ namespace Hypha.Knowledge.Tests
             var host = new Uri("https://ghe.example.invalid/api/v3/");
 
             using var provider = new ServiceCollection()
-                .AddHyphaKnowledge(apiBaseAddress: host)
+                .AddHyphaKnowledge(options => options.ApiBaseAddress = host)
                 .BuildServiceProvider();
 
             var client = provider.GetRequiredService<IHttpClientFactory>()
@@ -167,8 +167,8 @@ namespace Hypha.Knowledge.Tests
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
             Assert.That(
-                provider.GetRequiredService<ReleaseFetcher>(),
-                Is.SameAs(provider.GetRequiredService<ReleaseFetcher>()));
+                provider.GetRequiredService<IReleaseFetcher>(),
+                Is.SameAs(provider.GetRequiredService<IReleaseFetcher>()));
         }
     }
 }

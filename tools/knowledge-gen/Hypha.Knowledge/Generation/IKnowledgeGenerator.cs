@@ -9,8 +9,11 @@
 
 namespace Hypha.Knowledge.Generation
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
+
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Produces one artifact of the knowledge base for one release.

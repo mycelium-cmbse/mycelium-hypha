@@ -33,7 +33,7 @@ namespace Hypha.Knowledge.Releases
     /// saturate the host that was throttling us in the first place.
     /// </para>
     /// </remarks>
-    public sealed class ReleaseFetcher
+    public sealed class ReleaseFetcher : IReleaseFetcher
     {
         /// <summary>Relative to the API base address, so the host stays configurable.</summary>
         private const string TreePath = "repos/{0}/git/trees/{1}?recursive=1";

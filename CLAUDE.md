@@ -118,6 +118,8 @@ running header/footer stripping) → `clauses` (heading detection via a successo
   library over hand-rolling infrastructure. Services are registered through
   `Microsoft.Extensions.DependencyInjection` and resolved rather than constructed, so the CLI
   (see #81) composes them in one place. Keep constructors injectable and free of hidden statics.
+  Anything a caller can vary belongs on `HyphaKnowledgeOptions`, not as another optional parameter on
+  `AddHyphaKnowledge`; anything a caller might want to watch goes through `ILogger`, not `Console`.
 - **Python:** ruff-clean, standard-library-friendly; each file carries the
   `# Copyright … / # SPDX-License-Identifier: Apache-2.0` header.
 - **Prose/docs** use a spaced en dash (` – `), not an em dash.

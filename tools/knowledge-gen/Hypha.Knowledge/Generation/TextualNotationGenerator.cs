@@ -21,6 +21,8 @@ namespace Hypha.Knowledge.Generation
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.TextualNotation;
 
+    using Microsoft.Extensions.Logging;
+
     /// <summary>
     /// Writes <c>knowledge/&lt;tag&gt;/textual-notation/</c>: one page per model the release ships,
     /// plus the index and its keyword reference.
@@ -35,6 +37,7 @@ namespace Hypha.Knowledge.Generation
         private readonly INotationRenderer renderer;
         private readonly IGrammarParser parser;
         private readonly IKnowledgeReader reader;
+        private readonly ILogger<TextualNotationGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextualNotationGenerator"/> class.
@@ -45,7 +48,8 @@ namespace Hypha.Knowledge.Generation
             ISurfaceForms forms,
             INotationRenderer renderer,
             IGrammarParser parser,
-            IKnowledgeReader reader)
+            IKnowledgeReader reader,
+            ILogger<TextualNotationGenerator> logger)
         {
             this.layout = layout;
             this.catalog = catalog;
@@ -53,6 +57,7 @@ namespace Hypha.Knowledge.Generation
             this.renderer = renderer;
             this.parser = parser;
             this.reader = reader;
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
@@ -72,12 +77,15 @@ namespace Hypha.Knowledge.Generation
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
+            GenerationLog.Started(this.logger, this.Artifact, tag);
+
             var textualRoot = this.layout.TextualSources(tag);
             var models = this.catalog.Discover(textualRoot);
 
             if (models.Count == 0)
             {
-                return GenerationResult.Skipped($"no models fetched for {tag}");
+                return GenerationResult.Skipped($"no models fetched for {tag}")
+                    .Report(this.logger, this.Artifact, tag);
             }
 
             var index = this.layout.MetamodelIndex(tag);
@@ -136,7 +144,7 @@ namespace Hypha.Knowledge.Generation
                 this.renderer.RenderIndex(tag, entries, await this.KeywordsAsync(tag, cancellationToken)),
                 cancellationToken));
 
-            return GenerationResult.Generated(written);
+            return GenerationResult.Generated(written).Report(this.logger, this.Artifact, tag);
         }
 
         /// <summary>The reserved keywords of each grammar the release ships.</summary>

@@ -20,6 +20,8 @@ namespace Hypha.MetamodelGen.Generation
     using Hypha.Knowledge.Layout;
     using Hypha.MetamodelGen.Generators;
 
+    using Microsoft.Extensions.Logging;
+
     /// <summary>
     /// Writes <c>knowledge/&lt;tag&gt;/metamodel/</c>: one page per element, the index, the JSON
     /// sidecars and the package diagrams.
@@ -38,14 +40,17 @@ namespace Hypha.MetamodelGen.Generation
 
         private readonly IKnowledgeLayout layout;
         private readonly IMetamodelModelLoader loader;
+        private readonly ILogger<MetamodelGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MetamodelGenerator"/> class.
         /// </summary>
-        public MetamodelGenerator(IKnowledgeLayout layout, IMetamodelModelLoader loader)
+        public MetamodelGenerator(
+            IKnowledgeLayout layout, IMetamodelModelLoader loader, ILogger<MetamodelGenerator> logger)
         {
             this.layout = layout;
             this.loader = loader;
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
@@ -60,9 +65,12 @@ namespace Hypha.MetamodelGen.Generation
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
+            GenerationLog.Started(this.logger, this.Artifact, tag);
+
             if (this.loader.Load(tag) is not { } model)
             {
-                return GenerationResult.Skipped($"no metamodel XMI fetched for {tag}");
+                return GenerationResult.Skipped($"no metamodel XMI fetched for {tag}")
+                    .Report(this.logger, this.Artifact, tag);
             }
 
             var metamodel = this.layout.Metamodel(tag);
@@ -81,7 +89,8 @@ namespace Hypha.MetamodelGen.Generation
             metamodel.Refresh();
 
             return GenerationResult.Generated(
-                [.. metamodel.EnumerateFiles("*", SearchOption.AllDirectories)]);
+                [.. metamodel.EnumerateFiles("*", SearchOption.AllDirectories)])
+                .Report(this.logger, this.Artifact, tag);
         }
 
         /// <summary>
