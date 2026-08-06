@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Three invariants moved from assertions in tests into the generators, where they hold for every
     caller: a clause title must never reach the cross-references, two models must never slugify to the
     same example page, and the textual notation refuses to run before the metamodel index exists.
+  - `HyphaKnowledgeOptions` replaces the optional parameters that were accumulating on
+    `AddHyphaKnowledge` – token, API host, raw-content host, repository root, download concurrency –
+    and is validated at registration rather than at first use. It is where the CLI's flags will land.
+  - Every generator takes an `ILogger` and reports the same three messages, so a host can show
+    progress without knowing which generator it is watching. That is the seam #77 needs.
+  - `ReleaseDiscovery`, `CommitResolver` and `ReleaseFetcher` are resolved by interface like
+    everything else.
 
 ### Fixed
 - **The cross-references no longer degrade silently on a new release tag** (`fixes #96`). The PDF-free
