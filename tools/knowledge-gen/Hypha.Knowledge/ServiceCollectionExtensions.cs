@@ -10,10 +10,13 @@
 namespace Hypha.Knowledge
 {
     using System;
+    using System.IO;
     using System.Net.Http.Headers;
 
     using Hypha.Knowledge.CrossReferences;
+    using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
+    using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
 
@@ -37,8 +40,16 @@ namespace Hypha.Knowledge
         /// anonymous API allows 60 requests an hour, which discovery alone can exhaust.
         /// </param>
         /// <param name="apiBaseAddress">The API host; defaults to the public GitHub API.</param>
+        /// <param name="repositoryRoot">
+        /// The folder holding <c>sources/</c> and <c>knowledge/</c>; discovered from the running
+        /// assembly when omitted. Resolving <see cref="IKnowledgeLayout"/> throws when neither is
+        /// available, which is a clearer failure than every path silently pointing at the wrong place.
+        /// </param>
         public static IServiceCollection AddHyphaKnowledge(
-            this IServiceCollection services, string? token = null, Uri? apiBaseAddress = null)
+            this IServiceCollection services,
+            string? token = null,
+            Uri? apiBaseAddress = null,
+            DirectoryInfo? repositoryRoot = null)
         {
             ArgumentNullException.ThrowIfNull(services);
 
@@ -92,6 +103,20 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<ICrossReferenceBuilder, CrossReferenceBuilder>();
             services.AddSingleton<IKnowledgeReader, KnowledgeReader>();
+
+            // Registered as a collection: a full run is a loop over Order, not a list of calls each
+            // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
+            services.AddSingleton<IKnowledgeGenerator, GrammarReferenceGenerator>();
+            services.AddSingleton<IKnowledgeGenerator, TextualNotationGenerator>();
+            services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
+
+            services.AddSingleton<IKnowledgeLayout>(_ =>
+                repositoryRoot is not null
+                    ? new KnowledgeLayout(repositoryRoot)
+                    : KnowledgeLayout.Discover()
+                      ?? throw new InvalidOperationException(
+                          "no repository root was given and none could be discovered above "
+                          + $"{AppContext.BaseDirectory}; pass one to AddHyphaKnowledge"));
 
             return services;
         }

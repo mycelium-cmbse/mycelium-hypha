@@ -49,12 +49,12 @@ namespace Hypha.MetamodelGen.Tests
         /// </summary>
         private static string? TryLocateXmiFile()
         {
-            if (KnowledgeVersions.DefaultTag is not { } tag)
+            if (Repository.Layout?.DefaultTag is not { } tag)
             {
                 return null;
             }
 
-            var xmiDir = KnowledgeVersions.XmiDirectory(tag);
+            var xmiDir = Repository.Layout!.Xmi(tag);
             if (!xmiDir.Exists)
             {
                 return null;

@@ -33,7 +33,7 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.Ignore("No SysML *.uml model found under sources/<tag>/xmi/.");
             }
 
-            var hash = JsonSidecarTestSupport.ComputeSourceHash(KnowledgeVersions.DefaultTag!);
+            var hash = JsonSidecarTestSupport.ComputeSourceHash(Repository.Layout?.DefaultTag!);
 
             var document = MetamodelJsonGenerator.BuildDocument(model!, hash);
 
@@ -57,7 +57,7 @@ namespace Hypha.MetamodelGen.Tests
                 var tagModel = TestModel.ModelFor(tag);
                 Assert.That(tagModel, Is.Not.Null, $"No model found for release {tag}.");
 
-                var outputDirectory = JsonSidecarTestSupport.KnowledgeDirectory(tag);
+                var outputDirectory = TestOutput.Directory(tag);
                 await MetamodelJsonGenerator.GenerateAsync(
                     tagModel!, outputDirectory, JsonSidecarTestSupport.ComputeSourceHash(tag));
 

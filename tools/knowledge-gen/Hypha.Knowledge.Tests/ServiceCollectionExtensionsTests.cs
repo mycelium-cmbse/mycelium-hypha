@@ -10,12 +10,14 @@
 namespace Hypha.Knowledge.Tests
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
 
     using Hypha.Knowledge;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
+    using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
 
@@ -80,6 +82,30 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(provider.GetService<ICrossReferenceBuilder>(), Is.Not.Null);
                 Assert.That(provider.GetService<IKnowledgeReader>(), Is.Not.Null);
             });
+        }
+
+        [Test]
+        public void Resolves_the_layout_at_the_root_it_is_given()
+        {
+            var root = new DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(repositoryRoot: root)
+                .BuildServiceProvider();
+
+            Assert.That(
+                provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
+        }
+
+        [Test]
+        public void The_layout_falls_back_to_discovery()
+        {
+            // The tests run inside the repository, so the discovered root is the checkout.
+            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+
+            Assert.That(
+                provider.GetRequiredService<IKnowledgeLayout>().Root.FullName,
+                Is.EqualTo(Repository.Layout!.Root.FullName));
         }
 
         [Test]

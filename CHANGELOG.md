@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Generation orchestration moved out of the test fixtures and into the library** (`refs #92`). Each
+  artifact is now an `IKnowledgeGenerator` – `Artifact`, `Order`, `GenerateAsync(tag)` – registered as
+  a collection, so regenerating a release is a loop over `Order` rather than a list of calls each
+  caller had to keep in step. The knowledge base comes out byte-identical.
+  - `KnowledgeLayout` replaced three separate copies of the repository layout that had grown up in the
+    test projects, one per project plus a private one inside a fixture.
+  - Two fixtures now write the committed knowledge base instead of seven; the rest assert on scratch
+    output, so changing one of them can no longer rewrite what ships.
+  - Three invariants moved from assertions in tests into the generators, where they hold for every
+    caller: a clause title must never reach the cross-references, two models must never slugify to the
+    same example page, and the textual notation refuses to run before the metamodel index exists.
+
 ### Fixed
 - **The cross-references no longer degrade silently on a new release tag** (`fixes #96`). The PDF-free
   rebuild added in #88 carries title-matched clause edges forward from the committed document, which

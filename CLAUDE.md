@@ -40,18 +40,24 @@ pytest tests/test_clauses.py::test_detects_clauses_and_groups_body   # one test 
 There is no command-line entry point — **the unit tests are the generators**, and running them
 (re)writes the knowledge base:
 
-- `metamodel-gen` tests write `knowledge/metamodel/` from `sources/xmi/*.uml`. The **committed files are the
-  golden**; after an intended format change, run the `[Explicit]` `Bless_*` tests to regenerate them.
-- `knowledge-gen`'s `GrammarReferenceGenerationTests` writes `knowledge/<tag>/textual-notation/grammar-*.md`
-  from `sources/<tag>/textual/bnf/*.kebnf` and `*.kgbnf`; `TextualNotationGenerationTests` writes the
-  rest of `knowledge/<tag>/textual-notation/` (309 example pages + `index.md`) from that tag's models.
-- `knowledge-gen`'s `CrossReferenceGenerationTests` writes `knowledge/<tag>/cross-references.json`.
-  It needs **no PDFs**: the grammar states most clause attribution itself, and the title-matched
-  remainder is carried forward from the committed document.
+**The orchestration lives in the library, not in the fixtures.** Each artifact is an
+`IKnowledgeGenerator` (`Artifact`, `Order`, `GenerateAsync(tag)`), registered as a collection, so a
+full run is a loop over `Order`. Exactly two fixtures write the committed knowledge base:
+
+- `MetamodelGenerationTests` (metamodel-gen) runs `MetamodelGenerator` — order 10 — writing
+  `knowledge/<tag>/metamodel/` from `sources/<tag>/xmi/*.uml`. Everything downstream reads its index.
+- `KnowledgeGenerationTests` (knowledge-gen) runs the other three — grammar references (20), textual
+  notation (30), cross-references (40, last, because it reads the index and the generated examples).
+
+Every other fixture asserts on scratch output or on the committed files, so it cannot rewrite what
+ships. The **committed files are the golden**; after an intended format change, run the `[Explicit]`
+`Bless_*` tests to regenerate the metamodel expectations.
+
 - `spec-extract`'s `test_generate.py` writes `knowledge/<tag>/spec/` from `sources/<tag>/specs/*.pdf`.
   That is now all Python does here.
-- Tests **skip** (never fail) when their inputs are absent (no XMI / no PDFs), so CI stays green without
-  the copyrighted/optional inputs.
+- A generator whose inputs are absent returns `Skipped` with a reason, so CI stays green without the
+  copyrighted/optional inputs. Inputs that are present but would yield **wrong** output throw instead
+  — a missing metamodel index, a clause title reaching the cross-references, a slug collision.
 - "Interesting" metaclasses are discovered via `ModelInspector`, never hardcoded.
 
 ## Committed vs git-ignored (and why)

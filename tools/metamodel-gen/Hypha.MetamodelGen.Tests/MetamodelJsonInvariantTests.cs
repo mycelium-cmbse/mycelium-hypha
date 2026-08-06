@@ -113,7 +113,7 @@ namespace Hypha.MetamodelGen.Tests
             // The invariants hold for every release; the default one stands in for all of them here,
             // and the golden tests cover each installed tag byte-for-byte.
             var path = Path.Combine(
-                JsonSidecarTestSupport.KnowledgeDirectory(KnowledgeVersions.DefaultTag!).FullName, fileName);
+                JsonSidecarTestSupport.KnowledgeDirectory(Repository.Layout?.DefaultTag!).FullName, fileName);
             Assert.That(File.Exists(path), Is.True, $"Missing committed file: {path}");
 
             return JsonSerializer.Deserialize<T>(File.ReadAllText(path), Options)!;
