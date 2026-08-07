@@ -145,8 +145,11 @@ namespace Hypha.Knowledge.Generation
             }
 
             // Without the specifications, the title-matched edges - and the document names they refer
-            // to - come from the document a previous run committed. See #88.
-            var previous = CrossReferenceFile.ReadIfPresent(this.layout.CrossReferences(tag).FullName);
+            // to - come from the document a previous run committed. See #88. Deliberately the
+            // committed path rather than the output one: generating elsewhere must still carry
+            // forward from the repository, or a redirected run would silently drop these edges.
+            var previous = CrossReferenceFile.ReadIfPresent(
+                this.layout.CommittedCrossReferences(tag).FullName);
             var carried = clauseTitles.Count == 0
                 ? CrossReferenceFile.TitleMatchedEdges(previous)
                 : new Dictionary<string, IReadOnlyList<ClauseEdge>>();

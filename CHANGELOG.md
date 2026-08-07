@@ -7,7 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`hypha`, a distributable command-line tool, is now what generates the knowledge base**
+  (`fixes #81`). It ships as a `dotnet tool` for anyone with the .NET 10 SDK and as a
+  **self-contained** executable per platform (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`) for
+  anyone with no toolchain at all – which is the answer #77 needed to the question of what happens
+  when the toolchains are absent. NativeAOT is deliberately out of scope: Handlebars.Net compiles
+  templates at runtime through expression trees, and uml4net is reflection-heavy over XMI.
+  - Four verbs: `discover` (what the upstreams offer), `fetch` (download a release into `sources/`
+    and record it), `generate` (the knowledge base) and `list` (what this checkout carries).
+  - `generate` takes an optional artifact name, and the names are not a list it holds: they are the
+    `Artifact` of whatever `IKnowledgeGenerator` implementations are registered, so adding a
+    generator adds its verb and `generate nonsense` reports the ones that exist.
+  - `ReleaseInstaller` gives fetching the orchestration generation already had: it downloads a
+    release's inputs, resolves both upstream commits and merges the result into `versions.json`. The
+    manifest is written only once the downloads finish, so an interrupted fetch leaves a release
+    unrecorded rather than recorded and half-present.
+  - A **Release** workflow packs the tool, publishes the four self-contained builds, generates
+    `THIRD-PARTY-NOTICES.txt` for the bundled closure and drafts a `tools-vX.Y.Z` release. The tool
+    and the plugin version independently.
+
 ### Changed
+- **The tests no longer write the knowledge base; they verify it** (`fixes #81`). Running
+  `dotnet test` used to rewrite `knowledge/`, which made every test run a write to the repository and
+  made "is the working tree clean afterwards?" a check you had to remember to perform. Generation is
+  `hypha generate`'s job now, and a test run leaves the working tree clean.
+  - `KnowledgeRegenerationTests` regenerates the whole knowledge base into a scratch folder and
+    compares it **byte for byte** against the committed files – the same determinism proof, without
+    touching a tracked file. All 1,090 files match.
+  - The seam is `HyphaKnowledgeOptions.OutputRoot` (the CLI's `--output`): inputs are still read from
+    the repository, only the output moves. `knowledge/<tag>/spec/` stays on the input side, because
+    the Python PDF chain writes it and the cross-references read it.
+  - `Hypha.Knowledge.Tests` went from 30s to 3s, having stopped doing the generation work twice.
 - **Generation orchestration moved out of the test fixtures and into the library** (`refs #92`). Each
   artifact is now an `IKnowledgeGenerator` – `Artifact`, `Order`, `GenerateAsync(tag)` – registered as
   a collection, so regenerating a release is a loop over `Order` rather than a list of calls each

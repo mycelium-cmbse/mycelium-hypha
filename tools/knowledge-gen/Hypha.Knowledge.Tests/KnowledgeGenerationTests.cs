@@ -21,13 +21,14 @@ namespace Hypha.Knowledge.Tests
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
-    /// Writes the knowledge base this library owns, for every installed release.
+    /// Asserts on how the generators this library owns are wired and what they do with a release they
+    /// cannot generate.
     /// </summary>
     /// <remarks>
-    /// Generation is test-driven in this repository: running the tests <b>is</b> running the
-    /// generators, and the committed files are the golden. The orchestration itself lives in the
-    /// library now, so this fixture only resolves, runs and asserts - and #81 can swap the driver
-    /// without touching any of it.
+    /// This fixture used to run the generators over the committed knowledge base, which meant running
+    /// the tests rewrote the repository. Generation is <c>hypha generate</c>'s job now; regenerating
+    /// and comparing against the committed files is <c>KnowledgeRegenerationTests</c>'s, in the CLI's
+    /// test project, where it can write to a scratch folder instead.
     /// </remarks>
     [TestFixture]
     public class KnowledgeGenerationTests
@@ -47,42 +48,6 @@ namespace Hypha.Knowledge.Tests
 
         [TearDown]
         public void TearDown() => this.provider?.Dispose();
-
-        [Test]
-        public async Task Regenerates_every_artifact_for_every_installed_release()
-        {
-            var generated = 0;
-
-            foreach (var tag in this.layout.InstalledTags)
-            {
-                foreach (var generator in this.generators)
-                {
-                    var result = await generator.GenerateAsync(tag);
-
-                    if (result.Outcome == GenerationOutcome.Skipped)
-                    {
-                        TestContext.Out.WriteLine($"{tag} {generator.Artifact}: skipped - {result.Reason}");
-                        continue;
-                    }
-
-                    Assert.That(
-                        result.Written, Is.Not.Empty,
-                        $"{generator.Artifact} reported success for {tag} but wrote nothing");
-                    Assert.That(
-                        result.Written, Has.All.Matches<FileInfo>(file => file.Exists && file.Length > 0));
-
-                    TestContext.Out.WriteLine(
-                        $"{tag} {generator.Artifact}: {result.Written.Count} files");
-
-                    generated++;
-                }
-            }
-
-            if (generated == 0)
-            {
-                Assert.Ignore("no release has its sources fetched");
-            }
-        }
 
         [Test]
         public void The_cross_references_run_last()
@@ -112,25 +77,37 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public async Task Regeneration_is_stable()
+        public void Generation_writes_where_the_caller_asked_rather_than_into_the_repository()
         {
-            // The committed knowledge base must not churn: running twice has to leave the same bytes,
-            // which is also what makes "is the working tree clean?" a meaningful check afterwards.
-            var tag = this.layout.DefaultTag;
-            if (tag is null || !this.layout.Bnf(tag).Exists)
+            // The seam that lets the CLI take --output and lets the golden tests regenerate without
+            // rewriting the committed files. Inputs stay where they are: only the output moves.
+            var elsewhere = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-elsewhere"));
+
+            using var redirected = new ServiceCollection()
+                .AddHyphaKnowledge(options =>
+                {
+                    options.RepositoryRoot = this.layout.Root;
+                    options.OutputRoot = elsewhere;
+                })
+                .BuildServiceProvider();
+
+            var redirectedLayout = redirected.GetRequiredService<IKnowledgeLayout>();
+
+            Assert.Multiple(() =>
             {
-                Assert.Ignore("no fetched release to regenerate");
-                return;
-            }
-
-            var grammar = this.generators.Single(g => g.Artifact == "grammar-references");
-
-            var first = await grammar.GenerateAsync(tag);
-            var before = await File.ReadAllTextAsync(first.Written[0].FullName);
-
-            await grammar.GenerateAsync(tag);
-
-            Assert.That(await File.ReadAllTextAsync(first.Written[0].FullName), Is.EqualTo(before));
+                Assert.That(
+                    redirectedLayout.TextualNotation("2026-05").FullName,
+                    Does.StartWith(elsewhere.FullName),
+                    "generated artifacts belong under the output root");
+                Assert.That(
+                    redirectedLayout.Bnf("2026-05").FullName,
+                    Does.StartWith(this.layout.Root.FullName),
+                    "inputs are still read from the repository");
+                Assert.That(
+                    redirectedLayout.SpecificationCatalog("2026-05", "kerml").FullName,
+                    Does.StartWith(this.layout.Root.FullName),
+                    "the spec catalog is written by the Python chain and read here, so it is an input");
+            });
         }
     }
 }

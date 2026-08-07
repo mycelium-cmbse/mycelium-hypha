@@ -3,15 +3,17 @@
 Reads the combined KerML / SysML v2 XMI metamodel and emits the per-element markdown knowledge base
 under `knowledge/metamodel/`, plus a structured **JSON sidecar** (see below) for programmatic queries.
 
-This tool is **never run as a CLI and is not distributed** — it is invoked exclusively from its
-unit tests, which both exercise the generators and write the generated knowledge base.
+This is a class library with no entry point of its own. It registers a `MetamodelGenerator` into the
+same `IKnowledgeGenerator` collection the other artifacts use, and
+[`hypha generate metamodel`](../hypha-cli/README.md) resolves and runs it. The tests exercise the
+generators and assert on scratch output; they no longer write the committed knowledge base.
 
 ## Projects
 
 | Project | Type | Purpose |
 | --- | --- | --- |
 | `Hypha.MetamodelGen` | class library | XMI reading + markdown / JSON generation |
-| `Hypha.MetamodelGen.Tests` | NUnit tests | drives the generators and asserts their output |
+| `Hypha.MetamodelGen.Tests` | NUnit tests | exercises the generators and asserts their output |
 
 Both target **net10.0** and are part of the root solution `mycelium-hypha.sln`.
 Package restore uses the repo-local `NuGet.config` (nuget.org only).
@@ -33,8 +35,10 @@ dotnet build mycelium-hypha.sln
 dotnet test  mycelium-hypha.sln
 ```
 
-The generators run as tests and write the committed knowledge base. After an intended format change,
-re-run the `[Explicit]` `Bless_*` tests to regenerate the golden/committed files.
+Tests never write the committed knowledge base — that is
+`dotnet run --project tools/hypha-cli/Hypha.Tools -- generate metamodel`. After an intended format
+change, regenerate, review the diff, then re-run the `[Explicit]` `Bless_*` tests to bring the golden
+expectations under `Expected/` in line.
 
 ## JSON sidecar
 
