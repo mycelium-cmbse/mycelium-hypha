@@ -17,14 +17,26 @@ namespace Hypha.Knowledge.Layout
     /// knowledge under <c>knowledge/</c>.
     /// </summary>
     /// <remarks>
-    /// One place that knows the layout, so a generator, a test and the CLI (#81) cannot disagree about
-    /// it. Every member is a path, not a promise that the path exists - ask the returned
+    /// One place that knows the layout, so a generator, a test and the CLI cannot disagree about it.
+    /// Every member is a path, not a promise that the path exists - ask the returned
     /// <see cref="FileSystemInfo"/>.
+    /// <para>
+    /// Members are split by direction: what generation <b>reads</b> resolves against <see cref="Root"/>,
+    /// what it <b>writes</b> against <see cref="OutputRoot"/>. They are the same folder in a normal run;
+    /// separating them is what lets the CLI write elsewhere and the golden tests regenerate into a
+    /// scratch folder instead of over the committed knowledge base.
+    /// </para>
     /// </remarks>
     public interface IKnowledgeLayout
     {
         /// <summary>The repository root, the folder holding <c>sources/</c> and <c>knowledge/</c>.</summary>
         DirectoryInfo Root { get; }
+
+        /// <summary>
+        /// Where generated artifacts are written. The same as <see cref="Root"/> unless a caller
+        /// redirected it.
+        /// </summary>
+        DirectoryInfo OutputRoot { get; }
 
         /// <summary>The installed release tags, newest first. Empty when there is no manifest.</summary>
         IReadOnlyList<string> InstalledTags { get; }
@@ -33,6 +45,11 @@ namespace Hypha.Knowledge.Layout
         string? DefaultTag { get; }
 
         /// <summary><c>knowledge/versions.json</c>.</summary>
+        /// <remarks>
+        /// Resolved against <see cref="Root"/>: it records which releases have been fetched into
+        /// <c>sources/</c>, so it belongs with them rather than with whatever a run happens to
+        /// generate. Redirecting the output therefore does not produce a manifest alongside it.
+        /// </remarks>
         FileInfo VersionManifest { get; }
 
         /// <summary>
@@ -43,6 +60,9 @@ namespace Hypha.Knowledge.Layout
 
         /// <summary><c>knowledge/cross-references.schema.json</c>, which is not per release.</summary>
         FileInfo CrossReferenceSchema { get; }
+
+        /// <summary><c>sources/</c> - the folder every release's inputs are fetched into.</summary>
+        DirectoryInfo Sources { get; }
 
         /// <summary><c>sources/&lt;tag&gt;/xmi</c> - the metamodel XMI.</summary>
         DirectoryInfo Xmi(string tag);
@@ -78,9 +98,25 @@ namespace Hypha.Knowledge.Layout
         /// <c>knowledge/&lt;tag&gt;/spec/&lt;document&gt;/index.json</c> - git-ignored, so it is
         /// routinely absent.
         /// </summary>
+        /// <remarks>
+        /// Resolved against <see cref="Root"/> even though it sits under <c>knowledge/</c>: the spec
+        /// catalog is written by the Python PDF chain and is an <b>input</b> to the cross-references,
+        /// not something this toolchain generates.
+        /// </remarks>
         FileInfo SpecificationCatalog(string tag, string document);
 
-        /// <summary><c>knowledge/&lt;tag&gt;/cross-references.json</c>.</summary>
+        /// <summary><c>knowledge/&lt;tag&gt;/cross-references.json</c> - where a run writes it.</summary>
         FileInfo CrossReferences(string tag);
+
+        /// <summary>
+        /// <c>knowledge/&lt;tag&gt;/cross-references.json</c> as a previous run committed it.
+        /// </summary>
+        /// <remarks>
+        /// The same file as <see cref="CrossReferences"/> in a normal run, and a different one as soon
+        /// as the output is redirected: this is the carry-forward source the cross-references read when
+        /// the specifications are absent, so it has to keep pointing at the committed document rather
+        /// than following the output to an empty folder.
+        /// </remarks>
+        FileInfo CommittedCrossReferences(string tag);
     }
 }

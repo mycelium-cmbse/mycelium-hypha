@@ -22,8 +22,8 @@ namespace Hypha.Knowledge.Layout
     /// <remarks>
     /// This replaces three separate copies of the same path knowledge that had grown up in the test
     /// projects - one per project, plus a private one inside a fixture - because neither project could
-    /// reach the other's. Path logic that lives in a test cannot be called by the CLI (#81), so it
-    /// gets written again; this is the one copy.
+    /// reach the other's. Path logic that lives in a test cannot be called by the CLI, so it gets
+    /// written again; this is the one copy.
     /// </remarks>
     public sealed class KnowledgeLayout : IKnowledgeLayout
     {
@@ -36,16 +36,25 @@ namespace Hypha.Knowledge.Layout
         /// <summary>
         /// Initializes a new instance of the <see cref="KnowledgeLayout"/> class.
         /// </summary>
-        /// <param name="root">The repository root.</param>
-        public KnowledgeLayout(DirectoryInfo root)
+        /// <param name="root">The repository root: where the inputs are read from.</param>
+        /// <param name="outputRoot">
+        /// Where generated artifacts are written. Defaults to <paramref name="root"/>, which is the
+        /// normal in-repository run; pass another folder to generate without touching the committed
+        /// knowledge base.
+        /// </param>
+        public KnowledgeLayout(DirectoryInfo root, DirectoryInfo? outputRoot = null)
         {
             ArgumentNullException.ThrowIfNull(root);
 
             this.Root = root;
+            this.OutputRoot = outputRoot ?? root;
         }
 
         /// <inheritdoc/>
         public DirectoryInfo Root { get; }
+
+        /// <inheritdoc/>
+        public DirectoryInfo OutputRoot { get; }
 
         /// <inheritdoc/>
         /// <remarks>
@@ -60,6 +69,9 @@ namespace Hypha.Knowledge.Layout
         /// <inheritdoc/>
         public FileInfo VersionManifest =>
             this.FileAt(KnowledgeFolder, Releases.VersionManifest.FileName);
+
+        /// <inheritdoc/>
+        public DirectoryInfo Sources => this.Folder(SourcesFolder);
 
         /// <inheritdoc/>
         public FileInfo SharedPrimitiveTypes => this.FileAt(SourcesFolder, ReleaseInputs.SharedXmi);
@@ -114,11 +126,11 @@ namespace Hypha.Knowledge.Layout
             this.Folder(SourcesFolder, Tag(tag), "specs");
 
         /// <inheritdoc/>
-        public DirectoryInfo Knowledge(string tag) => this.Folder(KnowledgeFolder, Tag(tag));
+        public DirectoryInfo Knowledge(string tag) => this.OutputFolder(KnowledgeFolder, Tag(tag));
 
         /// <inheritdoc/>
         public DirectoryInfo Metamodel(string tag) =>
-            this.Folder(KnowledgeFolder, Tag(tag), "metamodel");
+            this.OutputFolder(KnowledgeFolder, Tag(tag), "metamodel");
 
         /// <inheritdoc/>
         public FileInfo MetamodelIndex(string tag) =>
@@ -126,24 +138,31 @@ namespace Hypha.Knowledge.Layout
 
         /// <inheritdoc/>
         public DirectoryInfo TextualNotation(string tag) =>
-            this.Folder(KnowledgeFolder, Tag(tag), "textual-notation");
+            this.OutputFolder(KnowledgeFolder, Tag(tag), "textual-notation");
 
         /// <inheritdoc/>
         public DirectoryInfo Examples(string tag) =>
             new(Path.Combine(this.TextualNotation(tag).FullName, "examples"));
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// Built from <see cref="Root"/> rather than from <see cref="Knowledge"/>: the spec catalog is
+        /// produced by the Python PDF chain and read here, so redirecting the output must not move it.
+        /// </remarks>
         public FileInfo SpecificationCatalog(string tag, string document)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(document);
 
-            return new FileInfo(
-                Path.Combine(this.Knowledge(tag).FullName, "spec", document, "index.json"));
+            return this.FileAt(KnowledgeFolder, Tag(tag), "spec", document, "index.json");
         }
 
         /// <inheritdoc/>
         public FileInfo CrossReferences(string tag) =>
             new(Path.Combine(this.Knowledge(tag).FullName, CrossReferenceDocument.FileName));
+
+        /// <inheritdoc/>
+        public FileInfo CommittedCrossReferences(string tag) =>
+            this.FileAt(KnowledgeFolder, Tag(tag), CrossReferenceDocument.FileName);
 
         private static string Tag(string tag)
         {
@@ -162,5 +181,8 @@ namespace Hypha.Knowledge.Layout
 
         private FileInfo FileAt(params string[] segments) =>
             new(Path.Combine([this.Root.FullName, .. segments]));
+
+        private DirectoryInfo OutputFolder(params string[] segments) =>
+            new(Path.Combine([this.OutputRoot.FullName, .. segments]));
     }
 }

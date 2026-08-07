@@ -73,6 +73,10 @@ namespace Hypha.Knowledge.Tests
         {
             public DirectoryInfo Root => inner.Root;
 
+            public DirectoryInfo OutputRoot => inner.OutputRoot;
+
+            public DirectoryInfo Sources => inner.Sources;
+
             public IReadOnlyList<string> InstalledTags => inner.InstalledTags;
 
             public string? DefaultTag => inner.DefaultTag;
@@ -102,6 +106,8 @@ namespace Hypha.Knowledge.Tests
             public DirectoryInfo TextualNotation(string tag) => inner.TextualNotation(tag);
 
             public DirectoryInfo Examples(string tag) => inner.Examples(tag);
+
+            public FileInfo CommittedCrossReferences(string tag) => inner.CommittedCrossReferences(tag);
 
             public FileInfo CrossReferences(string tag) => inner.CrossReferences(tag);
 

@@ -65,7 +65,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public async Task Fetches_a_whole_release_without_being_throttled()
         {
-            var fetcher = this.provider.GetRequiredService<ReleaseFetcher>();
+            var fetcher = this.provider.GetRequiredService<IReleaseFetcher>();
 
             var metamodel = await fetcher.FetchMetamodelAsync(Tag, this.workspace);
             var textual = await fetcher.FetchTextualAsync(Tag, this.workspace);
@@ -87,7 +87,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public async Task A_rerun_with_skip_existing_downloads_nothing_twice()
         {
-            var fetcher = this.provider.GetRequiredService<ReleaseFetcher>();
+            var fetcher = this.provider.GetRequiredService<IReleaseFetcher>();
 
             var first = await fetcher.FetchMetamodelAsync(Tag, this.workspace);
             var stamps = Array.ConvertAll(first.ToArray(), file => file.LastWriteTimeUtc);

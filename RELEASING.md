@@ -1,4 +1,16 @@
-# Releasing the `hypha` plugin
+# Releasing
+
+Two things ship from this repository, on **independent version lines**:
+
+| What | Tag | Released by |
+| --- | --- | --- |
+| the `hypha` **plugin** (skills, agents, `knowledge/`) | `vX.Y.Z` | the steps below |
+| the `hypha` **tools** (the generator CLI) | `tools-vX.Y.Z` | [the Release workflow](#releasing-the-tools) |
+
+A plugin release does not require a tool release, or the other way round – the tool is developer
+tooling that is not part of the shipped plugin.
+
+## Releasing the plugin
 
 The plugin is published from this repository through `.claude-plugin/marketplace.json`. The plugin
 entry pins its **source to a git tag** (`source.ref`), so users install a known, reproducible commit
@@ -38,3 +50,24 @@ A release therefore means: **bump the version, point the source at a new tag, an
   (`version: "1.0.0"` ↔ tag `v1.0.0` ↔ `source.ref: "v1.0.0"`).
 - Use [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/).
 - Never point `source.ref` at a tag that does not yet exist on the remote.
+
+## Releasing the tools
+
+The generator CLI ships two ways from one codebase: a `dotnet tool` package for anyone with the .NET
+10 SDK, and a **self-contained** executable per platform for anyone without a toolchain.
+
+Run the **Release** workflow (`workflow_dispatch`) with a SemVer version. It builds and tests the
+solution, packs `Hypha.Tools`, publishes `win-x64` / `linux-x64` / `osx-x64` / `osx-arm64`
+self-contained single files, generates `THIRD-PARTY-NOTICES.txt` for the bundled dependency closure,
+tags `tools-vX.Y.Z` and opens a **draft** release with the archives attached. Review the draft and
+publish it.
+
+- The NuGet push is skipped with a notice when `NUGET_API_KEY` is not configured; the package is
+  still attached to the release either way.
+- Pre-releases (`1.2.3-beta.1`) are never pushed to NuGet.
+- The workflow runs the full test suite first. One of those tests regenerates the knowledge base and
+  compares it byte for byte against the committed files, so a build that can no longer reproduce what
+  ships cannot be released.
+- It then **runs the published binary** over the committed sources. A single-file bundle can fail in
+  ways the in-process tests cannot see – its assemblies have no location on disk – so the artifact
+  that ships has to prove it still generates.

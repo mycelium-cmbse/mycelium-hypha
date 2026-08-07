@@ -96,6 +96,8 @@ namespace Hypha.Knowledge
                 baseAddress,
                 options.MaxDownloadConcurrency));
 
+            services.AddSingleton<IReleaseInstaller, ReleaseInstaller>();
+
             // The grammar services are pure functions of the grammar text, so one instance serves
             // every caller.
             services.AddSingleton<IGrammarParser, GrammarParser>();
@@ -116,12 +118,15 @@ namespace Hypha.Knowledge
             services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
 
             services.AddSingleton<IKnowledgeLayout>(_ =>
-                options.RepositoryRoot is not null
-                    ? new KnowledgeLayout(options.RepositoryRoot)
-                    : KnowledgeLayout.Discover()
-                      ?? throw new InvalidOperationException(
-                          "no repository root was configured and none could be discovered above "
-                          + $"{AppContext.BaseDirectory}; set RepositoryRoot on HyphaKnowledgeOptions"));
+            {
+                var root = options.RepositoryRoot
+                           ?? KnowledgeLayout.Discover()?.Root
+                           ?? throw new InvalidOperationException(
+                               "no repository root was configured and none could be discovered above "
+                               + $"{AppContext.BaseDirectory}; set RepositoryRoot on HyphaKnowledgeOptions");
+
+                return new KnowledgeLayout(root, options.OutputRoot);
+            });
 
             return services;
         }

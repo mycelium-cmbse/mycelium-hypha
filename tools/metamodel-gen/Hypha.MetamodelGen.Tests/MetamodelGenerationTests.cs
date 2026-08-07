@@ -9,6 +9,7 @@
 
 namespace Hypha.MetamodelGen.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -20,12 +21,14 @@ namespace Hypha.MetamodelGen.Tests
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
-    /// Writes <c>knowledge/&lt;tag&gt;/metamodel/</c> for every installed release.
+    /// Asserts on how the metamodel generator is wired and what it does with a release it cannot
+    /// generate.
     /// </summary>
     /// <remarks>
-    /// The only fixture in this project that writes the committed knowledge base. The rest exercise a
-    /// generator and assert on scratch output, so a change to one of them cannot quietly rewrite what
-    /// ships.
+    /// No fixture in this project writes the committed knowledge base any more: they exercise a
+    /// generator and assert on scratch output. Producing <c>knowledge/&lt;tag&gt;/metamodel/</c> is
+    /// <c>hypha generate metamodel</c>'s job, and proving it reproduces the committed files is
+    /// <c>KnowledgeRegenerationTests</c>'s.
     /// </remarks>
     [TestFixture]
     public class MetamodelGenerationTests
@@ -51,42 +54,58 @@ namespace Hypha.MetamodelGen.Tests
         public void TearDown() => this.provider?.Dispose();
 
         [Test]
-        public async Task Regenerates_the_metamodel_for_every_installed_release()
+        public async Task The_metamodel_is_generated_into_the_folder_the_caller_asked_for()
         {
-            var generated = 0;
-
-            foreach (var tag in this.layout.InstalledTags)
+            // Everything this generator writes has to land under the output root, or the CLI's
+            // --output would silently write half its files into the repository.
+            var tag = this.layout.InstalledTags.FirstOrDefault();
+            if (tag is null || !this.layout.Xmi(tag).Exists)
             {
-                var result = await this.generator.GenerateAsync(tag);
+                Assert.Ignore("no release has its metamodel XMI fetched");
+                return;
+            }
 
-                if (result.Outcome == GenerationOutcome.Skipped)
-                {
-                    TestContext.Out.WriteLine($"{tag}: skipped - {result.Reason}");
-                    continue;
-                }
+            var scratch = Directory.CreateDirectory(
+                Path.Combine(Path.GetTempPath(), $"hypha-metamodel-{Guid.NewGuid():N}"));
 
-                var metamodel = this.layout.Metamodel(tag);
+            try
+            {
+                using var redirected = new ServiceCollection()
+                    .AddHyphaKnowledge(options =>
+                    {
+                        options.RepositoryRoot = this.layout.Root;
+                        options.OutputRoot = scratch;
+                    })
+                    .AddHyphaMetamodelGen()
+                    .BuildServiceProvider();
+
+                var result = await redirected.GetServices<IKnowledgeGenerator>()
+                    .Single(candidate => candidate.Artifact == "metamodel")
+                    .GenerateAsync(tag);
+
+                var metamodel = Path.Combine(scratch.FullName, "knowledge", tag, "metamodel");
 
                 Assert.Multiple(() =>
                 {
-                    Assert.That(
-                        File.Exists(Path.Combine(metamodel.FullName, "elements", "PartUsage.md")), Is.True);
-                    Assert.That(File.Exists(Path.Combine(metamodel.FullName, "index.md")), Is.True);
-                    Assert.That(File.Exists(this.layout.MetamodelIndex(tag).FullName), Is.True);
-                    Assert.That(File.Exists(Path.Combine(metamodel.FullName, "metamodel.json")), Is.True);
-                    Assert.That(
-                        Directory.Exists(Path.Combine(metamodel.FullName, "diagrams")), Is.True);
                     Assert.That(result.Written, Is.Not.Empty);
+                    Assert.That(
+                        result.Written,
+                        Has.All.Matches<FileInfo>(file => file.FullName.StartsWith(scratch.FullName, StringComparison.Ordinal)),
+                        "nothing may be written outside the requested output folder");
+                    Assert.That(File.Exists(Path.Combine(metamodel, "elements", "PartUsage.md")), Is.True);
+                    Assert.That(File.Exists(Path.Combine(metamodel, "index.md")), Is.True);
+                    Assert.That(File.Exists(Path.Combine(metamodel, "index.json")), Is.True);
+                    Assert.That(File.Exists(Path.Combine(metamodel, "metamodel.json")), Is.True);
+                    Assert.That(Directory.Exists(Path.Combine(metamodel, "diagrams")), Is.True);
                 });
-
-                TestContext.Out.WriteLine($"{tag}: {result.Written.Count} files");
-
-                generated++;
             }
-
-            if (generated == 0)
+            finally
             {
-                Assert.Ignore("no release has its metamodel XMI fetched");
+                scratch.Refresh();
+                if (scratch.Exists)
+                {
+                    scratch.Delete(recursive: true);
+                }
             }
         }
 

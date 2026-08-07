@@ -11,7 +11,6 @@ namespace Hypha.MetamodelGen.Generators
 {
     using System;
     using System.IO;
-    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -26,8 +25,10 @@ namespace Hypha.MetamodelGen.Generators
         /// </summary>
         protected Generator()
         {
-            var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-            this.TemplateFolderPath = Path.Combine(assemblyFolder, "Templates");
+            // AppContext.BaseDirectory rather than Assembly.Location: in a single-file publish - the
+            // no-SDK delivery of the CLI - the assembly has no location on disk, while the templates
+            // are still copied next to the executable.
+            this.TemplateFolderPath = Path.Combine(AppContext.BaseDirectory, "Templates");
         }
 
         /// <summary>

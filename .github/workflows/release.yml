@@ -1,0 +1,193 @@
+name: Release
+
+# Ships the generator two ways, from one codebase:
+#   * a `dotnet tool` package, for anyone who has the .NET 10 SDK
+#   * a self-contained executable per platform, for anyone who has no toolchain at all
+#
+# NativeAOT is deliberately not attempted: Handlebars.Net compiles its templates at runtime through
+# expression trees, and uml4net is reflection-heavy over XMI. Self-contained already solves the
+# problem the trimming would be an optimisation of.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'SemVer (e.g. 1.2.3 or 1.2.3-beta.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Pack, publish and draft the release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Validate the version
+        # The input arrives through the environment rather than through `${{ }}`: expanded inline it
+        # would be pasted into the script before the regex below ever sees it, so the validation
+        # would be running on the result of whatever it let in.
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${VERSION_INPUT}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Provided version '$VERSION' is not SemVer." >&2
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "PRERELEASE=true" >> "$GITHUB_ENV"
+          else
+            echo "PRERELEASE=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build and test
+        # The knowledge base is committed, and the tests prove the generators still reproduce it.
+        # Shipping a build that cannot is the one failure this release must not carry.
+        run: |
+          dotnet restore mycelium-hypha.sln
+          dotnet test mycelium-hypha.sln --no-restore
+
+      - name: Pack the dotnet tool
+        run: |
+          dotnet pack tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj \
+            -c Release -p:Version="${VERSION}" -o ReleaseBuilds
+
+      - name: Push to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NUGET_API_KEY}" ]; then
+            echo "::notice::NUGET_API_KEY is not configured; the tool package is attached to the "\
+                 "release but not published to NuGet."
+            exit 0
+          fi
+          dotnet nuget push ReleaseBuilds/*.nupkg \
+            -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Publish a self-contained executable per platform
+        run: |
+          set -euo pipefail
+          for RID in win-x64 linux-x64 osx-x64 osx-arm64; do
+            dotnet publish tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj \
+              -c Release -r "$RID" --self-contained true \
+              -p:PublishSingleFile=true -p:Version="${VERSION}" \
+              -o "publish/$RID"
+            echo "published $RID"
+          done
+
+      - name: Smoke-test the self-contained build
+        # The test suite exercises the generators in-process, where the assembly has a location on
+        # disk and the templates sit beside it. A single-file bundle has neither, so it can fail in
+        # ways nothing else here would notice - it did once, on Assembly.Location. Run the artifact
+        # that ships, over the committed sources, and let it prove it still generates.
+        run: |
+          set -euo pipefail
+          ./publish/linux-x64/hypha generate --no-logo --output "${RUNNER_TEMP}/smoke"
+
+          count=$(find "${RUNNER_TEMP}/smoke/knowledge" -type f | wc -l)
+          if [ "$count" -lt 100 ]; then
+            echo "::error::the self-contained build generated only ${count} files"
+            exit 1
+          fi
+          echo "the self-contained build generated ${count} files"
+
+      - name: Generate THIRD-PARTY-NOTICES.txt
+        run: |
+          set -euo pipefail
+
+          # A self-contained single file bundles every transitive dependency's bytes, so their
+          # attribution notices have to travel with it.
+          dotnet tool install --global nuget-license
+          export PATH="$PATH:$HOME/.dotnet/tools"
+
+          nuget-license \
+            --input tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj \
+            --include-transitive \
+            --output Markdown \
+            --file-output THIRD-PARTY-NOTICES.txt
+
+          # It also bundles the .NET runtime itself, which a PackageReference walk does not
+          # enumerate. Credit it explicitly.
+          printf '%s\n' \
+            '' \
+            '--------------------------------------------------------------------------------' \
+            '' \
+            '.NET Runtime' \
+            'Copyright (c) .NET Foundation and Contributors' \
+            'https://github.com/dotnet/runtime' \
+            'Licensed under the MIT License.' \
+            >> THIRD-PARTY-NOTICES.txt
+
+      - name: Archive the executables
+        run: |
+          set -euo pipefail
+          mkdir -p ReleaseBuilds
+          for RID in win-x64 linux-x64 osx-x64 osx-arm64; do
+            cp THIRD-PARTY-NOTICES.txt NOTICE LICENSE "publish/$RID/" 2>/dev/null || true
+            (cd "publish/$RID" && zip -r "../../ReleaseBuilds/hypha-${VERSION}-${RID}.zip" .)
+          done
+
+      - name: Record the checksums
+        run: |
+          set -euo pipefail
+          {
+            echo "\`hypha\` ${VERSION}"
+            echo
+            echo "Install as a dotnet tool:"
+            echo
+            echo '```sh'
+            echo "dotnet tool install --global Hypha.Tools --version ${VERSION}"
+            echo '```'
+            echo
+            echo "Or download the self-contained build for your platform below - it bundles the .NET"
+            echo "runtime, so nothing needs installing."
+            echo
+            echo "| asset | SHA256 |"
+            echo "| --- | --- |"
+          } > RELEASE_NOTES.md
+
+          for archive in ReleaseBuilds/*.zip; do
+            echo "| \`$(basename "$archive")\` | $(sha256sum "$archive" | awk '{print $1}') |" >> RELEASE_NOTES.md
+          done
+
+          cat RELEASE_NOTES.md
+
+      - name: Tag the release
+        # `tools-v*`, not `v*`: the bare `vX.Y.Z` tags are the plugin's, and marketplace.json pins
+        # its source.ref to them. The tool and the plugin version independently.
+        run: |
+          git tag -a "tools-v${VERSION}" -m "hypha tools ${VERSION}"
+          git push origin "refs/tags/tools-v${VERSION}"
+
+      - name: Draft the GitHub release
+        # Pinned to the commit rather than the tag: this is the one third-party action here, it runs
+        # with a token that can write releases, and a tag can be repointed by whoever owns it. The
+        # comment is the human-readable half - bump both together.
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228  # v3.0.2
+        with:
+          draft: true
+          prerelease: ${{ env.PRERELEASE }}
+          name: "hypha tools ${{ env.VERSION }}"
+          tag_name: "tools-v${{ env.VERSION }}"
+          body_path: RELEASE_NOTES.md
+          files: |
+            ReleaseBuilds/*.zip
+            ReleaseBuilds/*.nupkg
+            THIRD-PARTY-NOTICES.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
