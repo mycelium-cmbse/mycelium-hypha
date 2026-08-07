@@ -71,6 +71,3 @@ publish it.
 - It then **runs the published binary** over the committed sources. A single-file bundle can fail in
   ways the in-process tests cannot see – its assemblies have no location on disk – so the artifact
   that ships has to prove it still generates.
-
-To rehearse either delivery locally before dispatching the workflow, see
-[Publishing](tools/hypha-cli/README.md#publishing).

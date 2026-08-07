@@ -34,7 +34,6 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- generate
 ```
 
 Installed, that is `hypha discover` / `hypha fetch` / `hypha generate`. See
-[`hypha-cli/README.md`](hypha-cli/README.md) for installation, the full verb list, exit codes and how
-to publish a build; [`RELEASING.md`](../RELEASING.md) covers cutting an actual release.
+[`hypha-cli/README.md`](hypha-cli/README.md) for installation, the full verb list and exit codes.
 
 Each tool has its own README with build and test instructions.
