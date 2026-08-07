@@ -85,6 +85,22 @@ jobs:
             echo "published $RID"
           done
 
+      - name: Smoke-test the self-contained build
+        # The test suite exercises the generators in-process, where the assembly has a location on
+        # disk and the templates sit beside it. A single-file bundle has neither, so it can fail in
+        # ways nothing else here would notice - it did once, on Assembly.Location. Run the artifact
+        # that ships, over the committed sources, and let it prove it still generates.
+        run: |
+          set -euo pipefail
+          ./publish/linux-x64/hypha generate --no-logo --output "${RUNNER_TEMP}/smoke"
+
+          count=$(find "${RUNNER_TEMP}/smoke/knowledge" -type f | wc -l)
+          if [ "$count" -lt 100 ]; then
+            echo "::error::the self-contained build generated only ${count} files"
+            exit 1
+          fi
+          echo "the self-contained build generated ${count} files"
+
       - name: Generate THIRD-PARTY-NOTICES.txt
         run: |
           set -euo pipefail
