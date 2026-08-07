@@ -37,6 +37,10 @@ obj/
 *.suo
 .vs/
 
+# What the documented local publish/pack of the CLI writes (see tools/hypha-cli/README.md).
+publish/
+ReleaseBuilds/
+
 # ---------------------------------------------------------------------------
 # Python (tools/spec-extract)
 # ---------------------------------------------------------------------------

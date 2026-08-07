@@ -20,7 +20,7 @@ Two deliveries, from one codebase. Pick whichever matches what you already have:
 | no toolchain at all | download the self-contained archive for your platform from the [releases](https://github.com/mycelium-cmbse/mycelium-hypha/releases) |
 
 The self-contained build bundles the .NET runtime, so nothing else needs installing. It is larger
-(~65 MB) for exactly that reason.
+(~80 MB) for exactly that reason.
 
 Working inside a checkout, you can also skip installation entirely:
 
@@ -92,14 +92,48 @@ dotnet build mycelium-hypha.sln
 dotnet test tools/hypha-cli/Hypha.Tools.Tests/Hypha.Tools.Tests.csproj
 ```
 
-Publishing a self-contained build by hand:
+## Publishing
+
+Cutting an actual release is the **Release** workflow's job – see
+[`RELEASING.md`](../../RELEASING.md). What follows is how to produce the same two artifacts locally,
+which is worth doing before releasing and whenever you want to hand someone a build.
+
+### A self-contained executable
+
+One file, the .NET runtime included, nothing to install on the far side:
 
 ```sh
 dotnet publish tools/hypha-cli/Hypha.Tools -c Release -r win-x64 \
   --self-contained true -p:PublishSingleFile=true -o publish/win-x64
 ```
 
-`linux-x64`, `osx-x64` and `osx-arm64` work the same way; the release workflow does all four.
+`linux-x64`, `osx-x64` and `osx-arm64` work the same way; the release workflow does all four, with
+`-p:Version=X.Y.Z` added so the banner and the assembly agree with the tag.
+
+The output is `hypha.exe` (or `hypha`) **and a `Templates/` folder beside it** – the Handlebars
+templates stay loose rather than being bundled, so keep them together when you copy the build
+somewhere. They are found through `AppContext.BaseDirectory`; `Assembly.Location` is empty in a
+single-file bundle and resolving them that way silently worked everywhere except in the artifact that
+ships.
+
+Always run the thing you just published before handing it out – the in-process tests cannot see a
+bundling failure:
+
+```sh
+publish/win-x64/hypha.exe generate --output /tmp/smoke     # 1090 files across 2 releases
+```
+
+### A `dotnet tool` package
+
+```sh
+dotnet pack tools/hypha-cli/Hypha.Tools -c Release -p:Version=1.0.0 -o ReleaseBuilds
+dotnet tool install --global Hypha.Tools --version 1.0.0 --add-source ReleaseBuilds
+```
+
+`dotnet tool uninstall --global Hypha.Tools` afterwards, or the local build shadows the released one.
+
+### What is not attempted
+
 **NativeAOT is deliberately out of scope**: Handlebars.Net compiles its templates at runtime through
 expression trees, which AOT forbids, and uml4net is reflection-heavy over XMI. Trimming carries a
 milder version of the same risk and is left off until someone verifies it.
