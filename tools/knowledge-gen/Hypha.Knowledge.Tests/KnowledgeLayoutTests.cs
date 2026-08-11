@@ -56,6 +56,9 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     this.Relative(this.layout.Bnf("2026-05")), Is.EqualTo("sources/2026-05/textual/bnf"));
                 Assert.That(
+                    this.Relative(this.layout.ModelLibrarySources("2026-05")),
+                    Is.EqualTo("sources/2026-05/textual/sysml.library"));
+                Assert.That(
                     this.Relative(this.layout.Specifications("2026-05")), Is.EqualTo("sources/2026-05/specs"));
             });
         }
@@ -78,6 +81,15 @@ namespace Hypha.Knowledge.Tests
                     this.Relative(this.layout.Examples("2026-05")),
                     Is.EqualTo("knowledge/2026-05/textual-notation/examples"));
                 Assert.That(
+                    this.Relative(this.layout.ModelLibrary("2026-05")),
+                    Is.EqualTo("knowledge/2026-05/model-library"));
+                Assert.That(
+                    this.Relative(this.layout.ModelLibraryPackages("2026-05")),
+                    Is.EqualTo("knowledge/2026-05/model-library/packages"));
+                Assert.That(
+                    this.Relative(this.layout.ModelLibraryIndex("2026-05")),
+                    Is.EqualTo("knowledge/2026-05/model-library/index.json"));
+                Assert.That(
                     this.Relative(this.layout.CrossReferences("2026-05")),
                     Is.EqualTo("knowledge/2026-05/cross-references.json"));
             });
@@ -96,6 +108,9 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     this.Relative(this.layout.CrossReferenceSchema),
                     Is.EqualTo("knowledge/cross-references.schema.json"));
+                Assert.That(
+                    this.Relative(this.layout.ModelLibrarySchema),
+                    Is.EqualTo("knowledge/model-library.schema.json"));
             });
         }
 

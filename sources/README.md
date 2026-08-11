@@ -42,6 +42,7 @@ namespace `Hypha.Knowledge.Releases`); which files make up a release is stated i
 | Specification PDFs | Release | `doc/*.pdf` | OMG, **git-ignored** |
 | Textual grammar | Release | `bnf/*.kebnf`, `*.kgbnf` | EPL-2.0, committed |
 | Textual examples | Release | `kerml/`, `sysml/` | EPL-2.0, committed |
+| Standard model libraries | Release | `sysml.library/**/*.sysml`, `*.kerml` | EPL-2.0, committed |
 
 `PrimitiveTypes.xmi` is published by neither upstream: it is the OMG UML primitives library
 (`…/PrimitiveTypes/20161101`), referenced through a path map and identical for every release, so it

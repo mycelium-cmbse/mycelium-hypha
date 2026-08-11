@@ -198,9 +198,10 @@ License 2.0 (https://www.eclipse.org/legal/epl-2.0/).
 
 The committed textual-notation sources under
 
-  sources/textual/bnf/      (KerML / SysML textual & graphical grammar)
-  sources/textual/kerml/    (KerML example models)
-  sources/textual/sysml/    (SysML v2 example models)
+  sources/textual/bnf/            (KerML / SysML textual & graphical grammar)
+  sources/textual/kerml/          (KerML example models)
+  sources/textual/sysml/          (SysML v2 example models)
+  sources/textual/sysml.library/  (SysML v2 standard model libraries: ISQ, ScalarValues, SysML.sysml, ...)
 
 originate from the SysML v2 release repository, Systems-Modeling/SysML-v2-Release
 (https://github.com/Systems-Modeling/SysML-v2-Release) at commit

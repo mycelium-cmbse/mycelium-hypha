@@ -87,11 +87,15 @@ namespace Hypha.Knowledge.Tests
 
             public FileInfo CrossReferenceSchema => inner.CrossReferenceSchema;
 
+            public FileInfo ModelLibrarySchema => inner.ModelLibrarySchema;
+
             public DirectoryInfo Xmi(string tag) => inner.Xmi(tag);
 
             public DirectoryInfo TextualSources(string tag) => inner.TextualSources(tag);
 
             public DirectoryInfo Bnf(string tag) => inner.Bnf(tag);
+
+            public DirectoryInfo ModelLibrarySources(string tag) => inner.ModelLibrarySources(tag);
 
             public FileInfo Grammar(string tag, string fileName) => inner.Grammar(tag, fileName);
 
@@ -106,6 +110,12 @@ namespace Hypha.Knowledge.Tests
             public DirectoryInfo TextualNotation(string tag) => inner.TextualNotation(tag);
 
             public DirectoryInfo Examples(string tag) => inner.Examples(tag);
+
+            public DirectoryInfo ModelLibrary(string tag) => inner.ModelLibrary(tag);
+
+            public DirectoryInfo ModelLibraryPackages(string tag) => inner.ModelLibraryPackages(tag);
+
+            public FileInfo ModelLibraryIndex(string tag) => inner.ModelLibraryIndex(tag);
 
             public FileInfo CommittedCrossReferences(string tag) => inner.CommittedCrossReferences(tag);
 

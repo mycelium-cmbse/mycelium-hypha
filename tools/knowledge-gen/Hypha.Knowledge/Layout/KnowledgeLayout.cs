@@ -80,6 +80,10 @@ namespace Hypha.Knowledge.Layout
         public FileInfo CrossReferenceSchema =>
             this.FileAt(KnowledgeFolder, "cross-references.schema.json");
 
+        /// <inheritdoc/>
+        public FileInfo ModelLibrarySchema =>
+            this.FileAt(KnowledgeFolder, "model-library.schema.json");
+
         /// <summary>
         /// Walks up from <paramref name="start"/> looking for a folder that holds both
         /// <c>sources/</c> and <c>knowledge/</c>.
@@ -114,6 +118,10 @@ namespace Hypha.Knowledge.Layout
             this.Folder(SourcesFolder, Tag(tag), "textual", "bnf");
 
         /// <inheritdoc/>
+        public DirectoryInfo ModelLibrarySources(string tag) =>
+            this.Folder(SourcesFolder, Tag(tag), "textual", "sysml.library");
+
+        /// <inheritdoc/>
         public FileInfo Grammar(string tag, string fileName)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
@@ -143,6 +151,18 @@ namespace Hypha.Knowledge.Layout
         /// <inheritdoc/>
         public DirectoryInfo Examples(string tag) =>
             new(Path.Combine(this.TextualNotation(tag).FullName, "examples"));
+
+        /// <inheritdoc/>
+        public DirectoryInfo ModelLibrary(string tag) =>
+            this.OutputFolder(KnowledgeFolder, Tag(tag), "model-library");
+
+        /// <inheritdoc/>
+        public DirectoryInfo ModelLibraryPackages(string tag) =>
+            new(Path.Combine(this.ModelLibrary(tag).FullName, "packages"));
+
+        /// <inheritdoc/>
+        public FileInfo ModelLibraryIndex(string tag) =>
+            new(Path.Combine(this.ModelLibrary(tag).FullName, "index.json"));
 
         /// <inheritdoc/>
         /// <remarks>
