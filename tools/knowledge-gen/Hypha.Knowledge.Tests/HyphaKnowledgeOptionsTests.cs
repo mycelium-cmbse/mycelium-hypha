@@ -116,7 +116,7 @@ namespace Hypha.Knowledge.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(provider.GetService<ILoggerFactory>(), Is.Not.Null);
-                Assert.That(provider.GetServices<IKnowledgeGenerator>().ToList(), Has.Count.EqualTo(3));
+                Assert.That(provider.GetServices<IKnowledgeGenerator>().ToList(), Has.Count.EqualTo(4));
             });
         }
     }
