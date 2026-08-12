@@ -98,6 +98,7 @@ namespace Hypha.Knowledge
                 options.MaxDownloadConcurrency));
 
             services.AddSingleton<IReleaseInstaller, ReleaseInstaller>();
+            services.AddSingleton<IReleaseWindowEvictor, ReleaseWindowEvictor>();
 
             // The grammar services are pure functions of the grammar text, so one instance serves
             // every caller.

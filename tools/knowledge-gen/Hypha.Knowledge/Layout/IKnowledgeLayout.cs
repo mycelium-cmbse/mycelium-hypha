@@ -67,6 +67,9 @@ namespace Hypha.Knowledge.Layout
         /// <summary><c>sources/</c> - the folder every release's inputs are fetched into.</summary>
         DirectoryInfo Sources { get; }
 
+        /// <summary><c>sources/&lt;tag&gt;</c> - everything fetched for one release.</summary>
+        DirectoryInfo ReleaseSources(string tag);
+
         /// <summary><c>sources/&lt;tag&gt;/xmi</c> - the metamodel XMI.</summary>
         DirectoryInfo Xmi(string tag);
 

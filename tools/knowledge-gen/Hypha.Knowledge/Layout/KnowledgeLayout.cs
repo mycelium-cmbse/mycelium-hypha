@@ -107,6 +107,9 @@ namespace Hypha.Knowledge.Layout
         }
 
         /// <inheritdoc/>
+        public DirectoryInfo ReleaseSources(string tag) => this.Folder(SourcesFolder, Tag(tag));
+
+        /// <inheritdoc/>
         public DirectoryInfo Xmi(string tag) => this.Folder(SourcesFolder, Tag(tag), "xmi");
 
         /// <inheritdoc/>

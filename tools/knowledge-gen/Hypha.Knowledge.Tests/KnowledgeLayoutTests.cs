@@ -50,6 +50,8 @@ namespace Hypha.Knowledge.Tests
         {
             Assert.Multiple(() =>
             {
+                Assert.That(
+                    this.Relative(this.layout.ReleaseSources("2026-05")), Is.EqualTo("sources/2026-05"));
                 Assert.That(this.Relative(this.layout.Xmi("2026-05")), Is.EqualTo("sources/2026-05/xmi"));
                 Assert.That(
                     this.Relative(this.layout.TextualSources("2026-05")), Is.EqualTo("sources/2026-05/textual"));
