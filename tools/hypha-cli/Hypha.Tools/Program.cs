@@ -24,6 +24,7 @@ namespace Hypha.Tools
     using Hypha.Tools.Hosting;
 
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     using Spectre.Console;
 
@@ -96,6 +97,19 @@ namespace Hypha.Tools
                         provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(list);
+
+            var moveWindow = new MoveWindowCommand();
+            moveWindow.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new MoveWindowCommand.Handler(
+                        provider.GetRequiredService<IReleaseInstaller>(),
+                        provider.GetServices<IKnowledgeGenerator>(),
+                        provider.GetRequiredService<IKnowledgeLayout>(),
+                        provider.GetRequiredService<IReleaseWindowEvictor>(),
+                        provider.GetRequiredService<IProcessRunner>(),
+                        provider.GetRequiredService<ILogger<MoveWindowCommand.Handler>>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            root.Add(moveWindow);
 
             return root;
         }

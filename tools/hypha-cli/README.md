@@ -39,6 +39,7 @@ walking up from the working directory when omitted), `--token`, `--log-level` an
 | `hypha fetch --tag <release>` | Downloads that release's inputs into `sources/<tag>/` and records it in `knowledge/versions.json`. |
 | `hypha generate [artifact]` | Generates the knowledge base. Every artifact for every installed release when nothing is narrowed. |
 | `hypha list` | Lists the installed releases and which one answers by default. |
+| `hypha move-window --tag <release> [--keep N]` | Fetches, regenerates, re-extracts specifications, re-blesses fixtures, verifies, then evicts releases outside the window (default `--keep`: 2). |
 
 ```sh
 hypha discover                              # what can be installed
@@ -50,8 +51,25 @@ hypha generate --output /tmp/knowledge      # generate without touching the repo
 
 The artifact names are not a fixed list: they are whatever `IKnowledgeGenerator` implementations are
 registered, so `hypha generate nonsense` reports the ones that exist. Today they are `metamodel`,
-`grammar-references`, `textual-notation` and `cross-references`, run in that order because the
-cross-references read what the others write.
+`grammar-references`, `textual-notation`, `model-library` and `cross-references`, run in that order
+because the cross-references read what the others write.
+
+### Moving the release window
+
+`hypha move-window --tag <release>` is the one command that advances hypha to a newer upstream
+release: fetch → regenerate → re-extract specification text → re-bless the metamodel-gen test
+fixtures that follow the default release → evict whatever falls outside the window → verify the
+result regenerates byte-identical. `--keep` (default 2) sets how many releases the window holds;
+whichever fall outside it have their `sources/<tag>/` and `knowledge/<tag>/` deleted **immediately**,
+in the same run — nothing is left for later manual cleanup. Nothing is committed automatically:
+everything the command does, including the deletions, is still a `git checkout` away from undone
+until you commit.
+
+It reports which step it is on as it goes and can take several minutes — specification extraction is
+the dominant cost. Unlike every other verb, **it needs a full source checkout with the .NET SDK and a
+provisioned `tools/spec-extract/.venv`** (`python -m venv .venv && pip install -e .[dev]`, from
+`tools/spec-extract/`): its re-bless and verify steps shell out to `dotnet test`, and specification
+extraction shells out to `pytest`. It cannot run from the standalone distributed binary.
 
 ### Fetching the specification PDFs
 

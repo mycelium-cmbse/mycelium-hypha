@@ -31,7 +31,8 @@ namespace Hypha.Tools.Tests
         {
             var verbs = this.root.Subcommands.Select(command => command.Name);
 
-            Assert.That(verbs, Is.EquivalentTo(new[] { "discover", "fetch", "generate", "list" }));
+            Assert.That(
+                verbs, Is.EquivalentTo(new[] { "discover", "fetch", "generate", "list", "move-window" }));
         }
 
         [Test]
@@ -45,6 +46,7 @@ namespace Hypha.Tools.Tests
         [TestCase("fetch --tag 2026-05")]
         [TestCase("generate")]
         [TestCase("list")]
+        [TestCase("move-window --tag 2026-06")]
         public void The_global_options_reach_every_verb(string commandLine)
         {
             var parsed = this.root.Parse(
