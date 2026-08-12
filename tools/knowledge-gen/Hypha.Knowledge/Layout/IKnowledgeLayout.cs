@@ -61,6 +61,9 @@ namespace Hypha.Knowledge.Layout
         /// <summary><c>knowledge/cross-references.schema.json</c>, which is not per release.</summary>
         FileInfo CrossReferenceSchema { get; }
 
+        /// <summary><c>knowledge/model-library.schema.json</c>, which is not per release.</summary>
+        FileInfo ModelLibrarySchema { get; }
+
         /// <summary><c>sources/</c> - the folder every release's inputs are fetched into.</summary>
         DirectoryInfo Sources { get; }
 
@@ -72,6 +75,11 @@ namespace Hypha.Knowledge.Layout
 
         /// <summary><c>sources/&lt;tag&gt;/textual/bnf</c>.</summary>
         DirectoryInfo Bnf(string tag);
+
+        /// <summary>
+        /// <c>sources/&lt;tag&gt;/textual/sysml.library</c> - the normative standard libraries.
+        /// </summary>
+        DirectoryInfo ModelLibrarySources(string tag);
 
         /// <summary>One of that release's grammars, e.g. <c>KerML-textual-bnf.kebnf</c>.</summary>
         FileInfo Grammar(string tag, string fileName);
@@ -93,6 +101,15 @@ namespace Hypha.Knowledge.Layout
 
         /// <summary><c>knowledge/&lt;tag&gt;/textual-notation/examples</c>.</summary>
         DirectoryInfo Examples(string tag);
+
+        /// <summary><c>knowledge/&lt;tag&gt;/model-library</c>.</summary>
+        DirectoryInfo ModelLibrary(string tag);
+
+        /// <summary><c>knowledge/&lt;tag&gt;/model-library/packages</c>.</summary>
+        DirectoryInfo ModelLibraryPackages(string tag);
+
+        /// <summary><c>knowledge/&lt;tag&gt;/model-library/index.json</c>.</summary>
+        FileInfo ModelLibraryIndex(string tag);
 
         /// <summary>
         /// <c>knowledge/&lt;tag&gt;/spec/&lt;document&gt;/index.json</c> - git-ignored, so it is

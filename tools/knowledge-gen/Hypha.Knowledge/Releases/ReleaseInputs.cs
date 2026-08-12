@@ -45,7 +45,7 @@ namespace Hypha.Knowledge.Releases
         ];
 
         private static readonly string[] GrammarSuffixes = [".kebnf", ".kgbnf"];
-        private static readonly string[] ModelRoots = ["kerml/", "sysml/"];
+        private static readonly string[] ModelRoots = ["kerml/", "sysml/", "sysml.library/"];
         private static readonly string[] ModelSuffixes = [".kerml", ".sysml"];
 
         /// <summary>
@@ -53,9 +53,13 @@ namespace Hypha.Knowledge.Releases
         /// </summary>
         /// <remarks>
         /// Grammar first, then the models, each ordered - so the result is stable regardless of the
-        /// order the listing arrives in. The grammar's HTML rendering, CSS and SVGs are excluded, and
-        /// so is <c>sysml.library/</c>: ingesting the standard libraries is a separate decision (#80),
-        /// and a loose prefix match would quietly pull in 24 MB of it.
+        /// order the listing arrives in. The grammar's HTML rendering, CSS and SVGs are excluded.
+        /// <c>sysml.library/</c> - the normative standard libraries (ISQ, ScalarValues, SysML.sysml,
+        /// ...) - is included as of #80: it is normative model content a user's own model
+        /// specializes, not merely an example. The exact "sysml.library/" prefix (trailing slash) is
+        /// what keeps its siblings <c>sysml.library.xmi/</c> (24 MB) and <c>sysml.library.kpar/</c>
+        /// out without a second rule, since the character after "sysml.library" there is "." rather
+        /// than "/".
         /// </remarks>
         public static IReadOnlyList<string> SelectTextual(IEnumerable<string> treePaths)
         {

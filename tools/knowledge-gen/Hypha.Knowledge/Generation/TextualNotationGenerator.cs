@@ -80,7 +80,12 @@ namespace Hypha.Knowledge.Generation
             GenerationLog.Started(this.logger, this.Artifact, tag);
 
             var textualRoot = this.layout.TextualSources(tag);
-            var models = this.catalog.Discover(textualRoot);
+
+            // The standard library gets its own artifact (ModelLibraryGenerator, #80) rather than being
+            // rendered as an "example" - it is normative model content, not a worked example.
+            var models = this.catalog.Discover(textualRoot)
+                .Where(model => !model.StartsWith("sysml.library/", StringComparison.Ordinal))
+                .ToList();
 
             if (models.Count == 0)
             {

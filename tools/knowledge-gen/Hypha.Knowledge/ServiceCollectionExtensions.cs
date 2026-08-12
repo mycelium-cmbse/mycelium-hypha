@@ -17,6 +17,7 @@ namespace Hypha.Knowledge
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
 
@@ -108,6 +109,9 @@ namespace Hypha.Knowledge
             services.AddSingleton<INotationRenderer, NotationRenderer>();
             services.AddSingleton<IModelCatalog, ModelCatalog>();
 
+            services.AddSingleton<IDeclarationScanner, DeclarationScanner>();
+            services.AddSingleton<IModelLibraryRenderer, ModelLibraryRenderer>();
+
             services.AddSingleton<ICrossReferenceBuilder, CrossReferenceBuilder>();
             services.AddSingleton<IKnowledgeReader, KnowledgeReader>();
 
@@ -115,6 +119,7 @@ namespace Hypha.Knowledge
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
             services.AddSingleton<IKnowledgeGenerator, GrammarReferenceGenerator>();
             services.AddSingleton<IKnowledgeGenerator, TextualNotationGenerator>();
+            services.AddSingleton<IKnowledgeGenerator, ModelLibraryGenerator>();
             services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
 
             services.AddSingleton<IKnowledgeLayout>(_ =>

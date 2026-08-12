@@ -30,7 +30,13 @@ namespace Hypha.Knowledge.Tests
             "kerml/Kernel/Connections.kerml",
             "sysml/training/02. Part Definitions/Part Definition Example.sysml",
             "sysml.library/Systems Library/Parts.sysml",
+            "sysml.library/Domain Libraries/Quantities and Units/ISQ.kerml",
+            "sysml.library/Systems Library/.meta.json",
+            "sysml.library/Systems Library/.project.json",
+            "sysml.library/.gitignore",
+            "sysml.library/.project",
             "sysml.library.xmi/Parts.xmi",
+            "sysml.library.kpar/Parts.kpar",
             "doc/1-Kernel_Modeling_Language.pdf",
             "README.adoc",
         ];
@@ -76,13 +82,26 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Excludes_the_model_libraries()
+        public void Selects_the_model_library_but_not_its_xmi_kpar_siblings_or_chrome()
         {
-            // Ingesting the standard libraries is a separate decision (#80). A loose prefix match on
-            // "sysml" would quietly pull in 24 MB of sysml.library.xmi.
+            // As of #80: the standard libraries are normative model content, not merely an example,
+            // so they are selected - but only the .sysml/.kerml models, never the XMI/kpar forms of
+            // the same content or the per-package project chrome that ships alongside them.
             var selected = ReleaseInputs.SelectTextual(Tree);
 
-            Assert.That(selected.Where(path => path.StartsWith("sysml.library")), Is.Empty);
+            Assert.Multiple(() =>
+            {
+                Assert.That(selected, Does.Contain("sysml.library/Systems Library/Parts.sysml"));
+                Assert.That(
+                    selected, Does.Contain("sysml.library/Domain Libraries/Quantities and Units/ISQ.kerml"));
+                Assert.That(selected.Where(path => path.StartsWith("sysml.library.xmi/")), Is.Empty);
+                Assert.That(selected.Where(path => path.StartsWith("sysml.library.kpar/")), Is.Empty);
+                Assert.That(
+                    selected.Where(path => path.StartsWith("sysml.library/")
+                        && !(path.EndsWith(".sysml") || path.EndsWith(".kerml"))),
+                    Is.Empty,
+                    "chrome files (.meta.json, .project.json, .gitignore, .project) must stay out");
+            });
         }
 
         [Test]
