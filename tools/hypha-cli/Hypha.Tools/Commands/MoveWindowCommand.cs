@@ -141,7 +141,7 @@ namespace Hypha.Tools.Commands
                     if (exitCode != 0)
                     {
                         MoveWindowLog.Failed(this.logger, step, tag, exitCode);
-                        this.ReportFailure(step, completed, tag);
+                        ReportFailure(step, completed, tag);
 
                         return false;
                     }
@@ -193,7 +193,7 @@ namespace Hypha.Tools.Commands
                 }
                 catch (InvalidOperationException exception)
                 {
-                    this.ReportFailure(MoveWindowStep.Evict, completed, tag, exception.Message);
+                    ReportFailure(MoveWindowStep.Evict, completed, tag, exception.Message);
 
                     return 1;
                 }
@@ -274,8 +274,8 @@ namespace Hypha.Tools.Commands
                 this.processes.RunAsync(
                     "dotnet", $"test {projectPath} --filter \"{filter}\"", this.layout.Root, cancellationToken);
 
-            private void ReportFailure(
-                MoveWindowStep step, IReadOnlyList<MoveWindowStep> completed, string tag, string? reason = null)
+            private static void ReportFailure(
+                MoveWindowStep step, List<MoveWindowStep> completed, string tag, string? reason = null)
             {
                 var description = MoveWindowLog.Steps.Single(entry => entry.Step == step).Description;
 
