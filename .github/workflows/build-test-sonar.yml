@@ -37,9 +37,15 @@ jobs:
           python-version: '3.12'
 
       - name: Install spec-extract dependencies (Python)
-        # Wheels only (no source builds / setup scripts) and pinned to the committed lock.
+        # A real .venv, not the runner's system interpreter, matching the documented local setup:
+        # `move-window`'s pre-flight check looks for tools/spec-extract/.venv/bin/python and fails
+        # the step - and every test asserting on it - if it's missing. Wheels only (no source
+        # builds / setup scripts) and pinned to the committed lock. Prepending its bin to PATH lets
+        # the later ruff/pytest steps resolve to this venv without changing how they're invoked.
         run: |
-          pip install --only-binary :all: --no-deps -r tools/spec-extract/requirements-dev.lock
+          python -m venv tools/spec-extract/.venv
+          tools/spec-extract/.venv/bin/pip install --only-binary :all: --no-deps -r tools/spec-extract/requirements-dev.lock
+          echo "$PWD/tools/spec-extract/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Cache NuGet packages
         uses: actions/cache@v4

@@ -94,8 +94,11 @@ that exists in *both* upstreams — the metamodel XMI comes from the Pilot-Imple
 specs, grammar and models from the Release repo.
 
 `knowledge/versions.json` records which releases this checkout carries and which one answers by
-default. The repository ships a **rolling window of the two most recent releases**; any other release
-can be generated locally (see [tools/spec-extract](tools/spec-extract/README.md)).
+default. The repository ships a **rolling window of the two most recent releases**, maintained with
+one command — `hypha move-window --tag <release>` (see
+[tools/hypha-cli](tools/hypha-cli/README.md)) — that fetches, regenerates, verifies and evicts in
+one step; any other release can be generated locally (see
+[tools/spec-extract](tools/spec-extract/README.md)).
 
 The **tag is the version identifier.** The model URI inside the XMI (`…/SysML/20250201`) is
 deliberately ignored: it tracks neither the release nor the content — the 2026-05 metamodel still

@@ -51,8 +51,15 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- fetch --tag 2026-05 # source
 **The orchestration lives in the library, not in the fixtures.** Each artifact is an
 `IKnowledgeGenerator` (`Artifact`, `Order`, `GenerateAsync(tag)`), registered as a collection, so a
 full run is a loop over `Order` — metamodel (10), grammar references (20), textual notation (30),
-cross-references (40, last, because it reads the index and the generated examples). The CLI resolves
-that collection; it does not know the artifact names, so adding a generator adds its verb.
+model library (35), cross-references (40, last, because it reads the index and the generated
+examples). The CLI resolves that collection; it does not know the artifact names, so adding a
+generator adds its verb.
+
+`hypha move-window --tag <release>` is the one verb that deliberately crosses the CLI/test split
+above: it drives fetch → generate → the rest of this section's steps, then shells out to `dotnet
+test`/`pytest` as subordinate steps (re-blessing the metamodel-gen fixtures, then a final byte-
+identical regeneration check) before evicting whatever falls outside the rolling window. It is the
+one entry point for moving hypha to a newer release; see `tools/hypha-cli/README.md`.
 
 Inputs are read from `RepositoryRoot`, output is written to `OutputRoot` (`--output`), which defaults
 to the same folder. That separation is what lets `KnowledgeRegenerationTests` regenerate everything
