@@ -9,6 +9,8 @@
 
 namespace Hypha.Tools.Hook
 {
+    using System;
+    using System.Linq;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -33,15 +35,11 @@ namespace Hypha.Tools.Hook
                 return null;
             }
 
-            foreach (Match match in RowPattern().Matches(releaseBody))
-            {
-                if (string.Equals(match.Groups["name"].Value, assetName, System.StringComparison.Ordinal))
-                {
-                    return match.Groups["sha"].Value.ToLowerInvariant();
-                }
-            }
-
-            return null;
+            return RowPattern()
+                .Matches(releaseBody)
+                .Where(match => string.Equals(match.Groups["name"].Value, assetName, StringComparison.Ordinal))
+                .Select(match => match.Groups["sha"].Value.ToLowerInvariant())
+                .FirstOrDefault();
         }
     }
 }

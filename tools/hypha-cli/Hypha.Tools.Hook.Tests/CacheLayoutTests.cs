@@ -21,13 +21,18 @@ namespace Hypha.Tools.Hook.Tests
         [Test]
         public void The_root_is_resolved_from_local_application_data()
         {
+            // A real absolute path on whichever OS the test runs on, not a hardcoded Windows one:
+            // "C:/..." is not absolute on Linux, so DirectoryInfo would resolve it against the working
+            // directory instead of returning it unchanged - exactly what broke this on the Linux CI
+            // runner. Path.GetTempPath() is always absolute on the current OS.
+            var fakeLocalApplicationData = Path.Combine(Path.GetTempPath(), "fake-local-application-data");
+
             var root = CacheLayout.ResolveRoot(folder =>
                 folder == Environment.SpecialFolder.LocalApplicationData
-                    ? Path.Combine("C:", "Users", "sam", "AppData", "Local")
+                    ? fakeLocalApplicationData
                     : throw new InvalidOperationException("unexpected folder requested"));
 
-            Assert.That(root.FullName, Is.EqualTo(
-                Path.Combine("C:", "Users", "sam", "AppData", "Local", "mycelium-hypha")));
+            Assert.That(root.FullName, Is.EqualTo(Path.Combine(fakeLocalApplicationData, "mycelium-hypha")));
         }
 
         [Test]

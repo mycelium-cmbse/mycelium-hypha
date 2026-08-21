@@ -147,7 +147,8 @@ namespace Hypha.Tools.Hook
                     return null;
                 }
 
-                ZipFile.ExtractToDirectory(archivePath, binDirectory.FullName, overwriteFiles: true);
+                await ZipFile.ExtractToDirectoryAsync(
+                    archivePath, binDirectory.FullName, overwriteFiles: true, cancellationToken);
                 File.Delete(archivePath);
 
                 if (!OperatingSystem.IsWindows())
@@ -165,7 +166,7 @@ namespace Hypha.Tools.Hook
 
                 // Written last, only once extraction succeeded: its presence is what IsCached trusts
                 // to skip the network on every later run.
-                File.WriteAllText(cache.OkMarker(version, rid).FullName, expectedSha256);
+                await File.WriteAllTextAsync(cache.OkMarker(version, rid).FullName, expectedSha256, cancellationToken);
 
                 executable.Refresh();
 

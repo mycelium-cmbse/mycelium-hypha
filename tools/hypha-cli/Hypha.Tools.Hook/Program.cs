@@ -62,7 +62,7 @@ namespace Hypha.Tools.Hook
 
             if (context is not null)
             {
-                Console.Out.Write(JsonSerializer.Serialize(
+                await Console.Out.WriteAsync(JsonSerializer.Serialize(
                     HookOutput.SessionStart(context), HookJsonContext.Default.HookOutput));
             }
 
