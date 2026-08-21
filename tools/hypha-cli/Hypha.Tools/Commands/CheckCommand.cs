@@ -10,6 +10,7 @@
 namespace Hypha.Tools.Commands
 {
     using System;
+    using System.Collections.Generic;
     using System.CommandLine;
     using System.Linq;
     using System.Text.Json;
@@ -88,7 +89,7 @@ namespace Hypha.Tools.Commands
                     // several lines - exactly what the hook parsing stdout as one line cannot survive.
                     // Still goes through AnsiConsole.Console, so a test that redirects it (as
                     // RecordedConsole does) can capture this the same way it captures everything else.
-                    AnsiConsole.Console.Profile.Out.Writer.Write(JsonSerializer.Serialize(result));
+                    await AnsiConsole.Console.Profile.Out.Writer.WriteAsync(JsonSerializer.Serialize(result));
 
                     return 0;
                 }
@@ -100,6 +101,8 @@ namespace Hypha.Tools.Commands
 
             private static void Report(CheckResult result)
             {
+                var installed = new HashSet<string>(result.InstalledTags, StringComparer.Ordinal);
+
                 var table = new Table().Border(TableBorder.Rounded);
                 table.AddColumn("release");
                 table.AddColumn("installed");
@@ -114,14 +117,14 @@ namespace Hypha.Tools.Commands
                 {
                     table.AddRow(
                         Markup.Escape(tag),
-                        result.InstalledTags.Contains(tag, StringComparer.Ordinal) ? "yes" : string.Empty,
+                        installed.Contains(tag) ? "yes" : string.Empty,
                         string.Equals(tag, result.DefaultTag, StringComparison.Ordinal) ? "yes" : string.Empty);
                 }
 
                 AnsiConsole.Write(table);
 
-                var newest = result.AvailableOnline.FirstOrDefault();
-                if (newest is not null && !result.InstalledTags.Contains(newest, StringComparer.Ordinal))
+                var newest = result.AvailableOnline.Count > 0 ? result.AvailableOnline[0] : null;
+                if (newest is not null && !installed.Contains(newest))
                 {
                     AnsiConsole.MarkupLine(
                         $"[yellow]{Markup.Escape(newest)}[/] is newer than anything installed. "
