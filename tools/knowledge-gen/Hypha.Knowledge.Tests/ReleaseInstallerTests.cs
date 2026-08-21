@@ -226,6 +226,53 @@ namespace Hypha.Knowledge.Tests
             Assert.That(this.layout.VersionManifest.Exists, Is.False);
         }
 
+        [Test]
+        public async Task Progress_reaches_the_metamodel_and_textual_fetches_but_never_specifications()
+        {
+            IProgress<FetchProgress>? seenByMetamodel = null;
+            IProgress<FetchProgress>? seenByTextual = null;
+
+            this.fetcher
+                .Setup(mock => mock.FetchMetamodelAsync(
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<FetchProgress>>()))
+                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<FetchProgress>?>(
+                    (_, _, _, _, progress) => seenByMetamodel = progress)
+                .ReturnsAsync(Files("KerML.uml", "SysML.uml"));
+
+            this.fetcher
+                .Setup(mock => mock.FetchTextualAsync(
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<FetchProgress>>()))
+                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<FetchProgress>?>(
+                    (_, _, _, _, progress) => seenByTextual = progress)
+                .ReturnsAsync(Files("model.sysml"));
+
+            this.fetcher
+                .Setup(mock => mock.FetchSpecificationsAsync(
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Files("KerML.pdf"));
+
+            var reporter = new Progress<FetchProgress>();
+
+            await this.installer.InstallAsync(
+                new ReleaseInstallRequest { Tag = "2026-05", IncludeSpecifications = true },
+                CancellationToken.None,
+                reporter);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(seenByMetamodel, Is.SameAs(reporter));
+                Assert.That(seenByTextual, Is.SameAs(reporter));
+            });
+
+            this.fetcher.Verify(
+                mock => mock.FetchSpecificationsAsync(
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                Times.Once,
+                "specifications are only ever called through the 4-argument overload - no progress reporter reaches it");
+        }
+
         private static IReadOnlyList<FileInfo> Files(params string[] names) =>
             Array.ConvertAll(names, name => new FileInfo(name));
 

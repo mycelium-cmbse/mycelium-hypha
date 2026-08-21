@@ -79,7 +79,10 @@ After an intended format change, regenerate with `hypha generate`, review the di
 ## Committed vs git-ignored (and why)
 
 - **Committed:** `knowledge/metamodel/`, `knowledge/textual-notation/`; `sources/xmi/` and
-  `sources/textual/` (both EPL-2.0).
+  `sources/textual/` (both EPL-2.0); `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT
+  binary the plugin's `SessionStart` hook dispatches to (see `tools/hypha-cli/README.md`'s
+  "Automatic sync" section) — the only compiled binary this repository commits, and deliberately
+  *not* under `bin/`, which `.gitignore` otherwise excludes at any depth.
 - **Git-ignored — never commit:** `sources/specs/*.pdf` and the generated `knowledge/spec/`. These are
   **full verbatim OMG specification text**; the OMG license forbids redistributing it, so it is
   regenerated locally only. A SessionStart hook (`hooks/check-spec-pdfs.py`) tells the user when the

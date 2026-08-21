@@ -126,7 +126,7 @@ namespace Hypha.Knowledge.Releases
         /// <summary>Fetches the metamodel XMI for a release. Needs no tree listing: the paths are known.</summary>
         public Task<IReadOnlyList<FileInfo>> FetchMetamodelAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -137,13 +137,14 @@ namespace Hypha.Knowledge.Releases
                     Destination: new FileInfo(Path.Combine(sourcesRoot.FullName, tag, "xmi", entry.Value))))
                 .ToList();
 
-            return this.DownloadManyAsync(Upstream.PilotRepository, tag, targets, skipExisting, cancellationToken);
+            return this.DownloadManyAsync(
+                Upstream.PilotRepository, tag, targets, skipExisting, "metamodel", progress, cancellationToken);
         }
 
         /// <summary>Fetches the grammar and textual models, preserving the upstream layout.</summary>
         public async Task<IReadOnlyList<FileInfo>> FetchTextualAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -157,7 +158,7 @@ namespace Hypha.Knowledge.Releases
                 .ToList();
 
             return await this.DownloadManyAsync(
-                Upstream.ReleaseRepository, tag, targets, skipExisting, cancellationToken);
+                Upstream.ReleaseRepository, tag, targets, skipExisting, "textual", progress, cancellationToken);
         }
 
         /// <summary>
@@ -169,7 +170,7 @@ namespace Hypha.Knowledge.Releases
         /// </remarks>
         public Task<IReadOnlyList<FileInfo>> FetchSpecificationsAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -180,7 +181,9 @@ namespace Hypha.Knowledge.Releases
                         Path.Combine(sourcesRoot.FullName, tag, "specs", Path.GetFileName(path)))))
                 .ToList();
 
-            return this.DownloadManyAsync(Upstream.ReleaseRepository, tag, targets, skipExisting, cancellationToken);
+            return this.DownloadManyAsync(
+                Upstream.ReleaseRepository, tag, targets, skipExisting, "specifications", progress,
+                cancellationToken);
         }
 
         private async Task<IReadOnlyList<FileInfo>> DownloadManyAsync(
@@ -188,9 +191,12 @@ namespace Hypha.Knowledge.Releases
             string tag,
             List<(string Path, FileInfo Destination)> targets,
             bool skipExisting,
+            string kind,
+            IProgress<FetchProgress>? progress,
             CancellationToken cancellationToken)
         {
             var written = new FileInfo[targets.Count];
+            var done = 0;
 
             await Parallel.ForEachAsync(
                 Enumerable.Range(0, targets.Count),
@@ -204,6 +210,8 @@ namespace Hypha.Knowledge.Releases
                     var (path, destination) = targets[index];
                     written[index] = await this.DownloadAsync(
                         repository, tag, path, destination, skipExisting, token);
+
+                    progress?.Report(new FetchProgress(kind, Interlocked.Increment(ref done), targets.Count));
                 });
 
             return written;

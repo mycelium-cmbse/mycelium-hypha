@@ -9,6 +9,7 @@
 
 namespace Hypha.Knowledge.Releases
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Threading;
@@ -33,27 +34,42 @@ namespace Hypha.Knowledge.Releases
             CancellationToken cancellationToken = default);
 
         /// <summary>Fetches the metamodel XMI for a release.</summary>
+        /// <param name="progress">
+        /// Reported once per file, after it completes - whether it was downloaded or skipped because
+        /// it was already there. <c>null</c> when nobody needs to show progress.
+        /// </param>
         Task<IReadOnlyList<FileInfo>> FetchMetamodelAsync(
             string tag,
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            IProgress<FetchProgress>? progress = null);
 
         /// <summary>Fetches the grammar and textual models, preserving the upstream layout.</summary>
+        /// <param name="progress">
+        /// Reported once per file, after it completes - whether it was downloaded or skipped because
+        /// it was already there. <c>null</c> when nobody needs to show progress.
+        /// </param>
         Task<IReadOnlyList<FileInfo>> FetchTextualAsync(
             string tag,
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            IProgress<FetchProgress>? progress = null);
 
         /// <summary>
         /// Fetches the specification PDFs into the <b>git-ignored</b> folder. They are OMG-copyrighted
         /// and must never be committed.
         /// </summary>
+        /// <param name="progress">
+        /// Reported once per file, after it completes - whether it was downloaded or skipped because
+        /// it was already there. <c>null</c> when nobody needs to show progress.
+        /// </param>
         Task<IReadOnlyList<FileInfo>> FetchSpecificationsAsync(
             string tag,
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            IProgress<FetchProgress>? progress = null);
     }
 }

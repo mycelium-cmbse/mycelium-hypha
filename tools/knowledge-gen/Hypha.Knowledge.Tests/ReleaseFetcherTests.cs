@@ -197,6 +197,72 @@ namespace Hypha.Knowledge.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => new ReleaseFetcher(client, maxConcurrency: 0));
         }
 
+        [Test]
+        public async Task Progress_is_reported_once_per_target_and_reaches_the_full_total()
+        {
+            using var client = new HttpClient(StubHandler.WithContent("%PDF"));
+
+            // A plain thread-safe collector, not Progress<T>: with no SynchronizationContext (as in a
+            // console app / this test), Progress<T> still marshals through the thread pool, so multiple
+            // callbacks from the concurrent downloads below could run at once - collecting into
+            // something itself thread-safe is what makes the assertions below reliable.
+            var reports = new ConcurrentBag<FetchProgress>();
+            var progress = new SynchronousProgress<FetchProgress>(reports.Add);
+
+            var written = await new ReleaseFetcher(client, maxConcurrency: 3)
+                .FetchSpecificationsAsync("2026-05", this.workspace, progress: progress);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(reports, Has.Count.EqualTo(written.Count));
+                Assert.That(reports.Select(report => report.Total), Is.All.EqualTo(written.Count));
+                Assert.That(reports.Select(report => report.Done), Is.EquivalentTo(
+                    Enumerable.Range(1, written.Count)));
+                Assert.That(reports.Select(report => report.Kind), Is.All.EqualTo("specifications"));
+            });
+        }
+
+        [Test]
+        public async Task Progress_still_counts_a_skipped_file_as_one_completed()
+        {
+            // Pre-populate both metamodel destinations non-empty, so skipExisting resumes both without
+            // a single HTTP request - progress must still see two files "done", not zero.
+            var written = await new ReleaseFetcher(new HttpClient(StubHandler.WithContent("xmi")))
+                .FetchMetamodelAsync("2026-05", this.workspace);
+            foreach (var file in written)
+            {
+                Assert.That(await File.ReadAllTextAsync(file.FullName), Is.EqualTo("xmi"));
+            }
+
+            var handler = StubHandler.WithContent("xmi");
+            var reports = new ConcurrentBag<FetchProgress>();
+
+            await new ReleaseFetcher(new HttpClient(handler)).FetchMetamodelAsync(
+                "2026-05", this.workspace, skipExisting: true,
+                progress: new SynchronousProgress<FetchProgress>(reports.Add));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(handler.Requests, Is.Empty, "nothing should have been re-downloaded");
+                Assert.That(reports, Has.Count.EqualTo(2), "both files count as done, skipped or not");
+                Assert.That(reports.Select(report => report.Done), Is.EquivalentTo(new[] { 1, 2 }));
+            });
+        }
+
+        /// <summary>
+        /// An <see cref="IProgress{T}"/> that invokes its callback synchronously and directly, rather
+        /// than through <see cref="Progress{T}"/>'s <see cref="System.Threading.SynchronizationContext"/>
+        /// marshalling - simpler to reason about in a test that only cares what was reported, not when.
+        /// </summary>
+        private sealed class SynchronousProgress<T> : IProgress<T>
+        {
+            private readonly Action<T> callback;
+
+            public SynchronousProgress(Action<T> callback) => this.callback = callback;
+
+            public void Report(T value) => this.callback(value);
+        }
+
         private sealed class StubHandler : HttpMessageHandler
         {
             private readonly string body;
