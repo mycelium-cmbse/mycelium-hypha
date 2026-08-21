@@ -20,7 +20,7 @@ namespace Hypha.Tools.Hook
     /// </remarks>
     [JsonSerializable(typeof(PluginManifest))]
     [JsonSerializable(typeof(GitHubRelease))]
-    [JsonSerializable(typeof(HookSyncStatus))]
+    [JsonSerializable(typeof(HookCheckResult))]
     [JsonSerializable(typeof(HookOutput))]
     public sealed partial class HookJsonContext : JsonSerializerContext
     {

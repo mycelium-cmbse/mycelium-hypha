@@ -90,15 +90,9 @@ namespace Hypha.Tools.Hook.Tests
         {
             var cache = new CacheLayout(new DirectoryInfo(Path.Combine(Path.GetTempPath(), "cache")), "abc123");
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(
-                    cache.StatusFile.FullName,
-                    Is.EqualTo(Path.Combine(Path.GetTempPath(), "cache", "state", "abc123", "sync-status.json")));
-                Assert.That(
-                    cache.SyncLogFile.FullName,
-                    Is.EqualTo(Path.Combine(Path.GetTempPath(), "cache", "state", "abc123", "sync.log")));
-            });
+            Assert.That(
+                cache.DownloadErrorLog.FullName,
+                Is.EqualTo(Path.Combine(Path.GetTempPath(), "cache", "state", "abc123", "download-error.log")));
         }
     }
 }

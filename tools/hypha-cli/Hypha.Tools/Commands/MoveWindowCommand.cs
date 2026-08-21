@@ -154,7 +154,7 @@ namespace Hypha.Tools.Commands
                 if (!await Run(
                         MoveWindowStep.Fetch,
                         () => new FetchCommand.Handler(this.installer).InvokeAsync(
-                            ParseAs(new FetchCommand(), $"fetch --tag {tag} --include-specs"), cancellationToken)))
+                            ParseAs(new FetchCommand(), $"fetch --tag {tag}"), cancellationToken)))
                 {
                     return 1;
                 }

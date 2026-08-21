@@ -135,8 +135,9 @@ Running `pytest` with the PDFs present in `sources/<tag>/specs/` runs `test_gene
 writes the git-ignored `knowledge/<tag>/spec/` tree from the real specs. Without the PDFs those tests
 (and the real-PDF smoke test) **skip**; the assertion-based unit tests always run.
 
-The PDFs themselves can be downloaded with `hypha fetch --tag <release> --include-specs`, which puts
-them where this tool expects them. They remain OMG-copyrighted and git-ignored either way.
+The PDFs themselves can be downloaded with `hypha fetch --tag <release>` (they come by default now;
+pass `--no-specs` to skip them), which puts them where this tool expects them. They remain
+OMG-copyrighted and git-ignored either way.
 
 ## Status
 

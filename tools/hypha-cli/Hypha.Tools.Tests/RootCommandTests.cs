@@ -33,7 +33,10 @@ namespace Hypha.Tools.Tests
 
             Assert.That(
                 verbs,
-                Is.EquivalentTo(new[] { "discover", "fetch", "generate", "list", "move-window", "sync" }));
+                Is.EquivalentTo(new[]
+                {
+                    "discover", "fetch", "generate", "list", "move-window", "use", "remove", "check",
+                }));
         }
 
         [Test]
@@ -48,7 +51,9 @@ namespace Hypha.Tools.Tests
         [TestCase("generate")]
         [TestCase("list")]
         [TestCase("move-window --tag 2026-06")]
-        [TestCase("sync --status-file status.json")]
+        [TestCase("use --tag 2026-05")]
+        [TestCase("remove --tag 2026-05")]
+        [TestCase("check")]
         public void The_global_options_reach_every_verb(string commandLine)
         {
             var parsed = this.root.Parse(

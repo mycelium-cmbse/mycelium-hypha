@@ -85,8 +85,10 @@ After an intended format change, regenerate with `hypha generate`, review the di
   *not* under `bin/`, which `.gitignore` otherwise excludes at any depth.
 - **Git-ignored — never commit:** `sources/specs/*.pdf` and the generated `knowledge/spec/`. These are
   **full verbatim OMG specification text**; the OMG license forbids redistributing it, so it is
-  regenerated locally only. A SessionStart hook (`hooks/check-spec-pdfs.py`) tells the user when the
-  PDFs are missing.
+  regenerated locally only, and needs a maintainer source checkout even when the PDFs are present
+  (`tools/spec-extract` is not shipped with the plugin). The plugin's `SessionStart` hook
+  (`Hypha.Tools.Hook`, `hooks/native/<rid>/hypha-hook`) tells the user when the PDFs are missing for
+  the default release.
 - Exact upstream sources, commits and licenses are recorded in `sources/README.md` and `NOTICE`.
   (Metamodel XMI ← `SysML-v2-Pilot-Implementation`; PDFs + textual sources ← `SysML-v2-Release`.)
 

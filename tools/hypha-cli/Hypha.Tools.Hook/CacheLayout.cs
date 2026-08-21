@@ -20,10 +20,10 @@ namespace Hypha.Tools.Hook
     /// tree mid-run and an in-tree file would show as untracked noise in a maintainer's own checkout.
     /// </summary>
     /// <remarks>
-    /// Both this hook and <c>hypha sync</c> compute the same paths independently, from
-    /// <see cref="System.Environment.SpecialFolder.LocalApplicationData"/> - the standard
-    /// cross-platform .NET API (<c>%LOCALAPPDATA%</c> on Windows, <c>~/.local/share</c> on Linux,
-    /// <c>~/Library/Application Support</c> on macOS), so neither hand-rolls per-OS env var lookup.
+    /// Resolved from <see cref="System.Environment.SpecialFolder.LocalApplicationData"/> - the
+    /// standard cross-platform .NET API (<c>%LOCALAPPDATA%</c> on Windows, <c>~/.local/share</c> on
+    /// Linux, <c>~/Library/Application Support</c> on macOS), so this hand-rolls no per-OS env var
+    /// lookup of its own.
     /// </remarks>
     public sealed class CacheLayout
     {
@@ -74,12 +74,6 @@ namespace Hypha.Tools.Hook
 
         /// <summary><c>state/&lt;install-key&gt;/</c> - this install's operational state.</summary>
         public DirectoryInfo StateDirectory => new(Path.Combine(this.Root.FullName, "state", this.InstallKey));
-
-        /// <summary>Where <c>hypha sync</c> writes its progress.</summary>
-        public FileInfo StatusFile => new(Path.Combine(this.StateDirectory.FullName, "sync-status.json"));
-
-        /// <summary>Where <c>hypha sync</c> logs, instead of the console.</summary>
-        public FileInfo SyncLogFile => new(Path.Combine(this.StateDirectory.FullName, "sync.log"));
 
         /// <summary>Where a failed CLI download/verification is recorded for manual diagnosis.</summary>
         public FileInfo DownloadErrorLog => new(Path.Combine(this.StateDirectory.FullName, "download-error.log"));
