@@ -57,6 +57,35 @@ namespace Hypha.Tools.Hook.Tests
         }
 
         [Test]
+        public void HookCheckResult_reads_what_hypha_check_json_prints()
+        {
+            var result = JsonSerializer.Deserialize(
+                """{"installedTags":["2026-05","2026-04"],"defaultTag":"2026-05","availableOnline":["2026-06"]}""",
+                HookJsonContext.Default.HookCheckResult);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result!.InstalledTags, Is.EqualTo(new[] { "2026-05", "2026-04" }));
+                Assert.That(result.DefaultTag, Is.EqualTo("2026-05"));
+                Assert.That(result.AvailableOnline, Is.EqualTo(new[] { "2026-06" }));
+            });
+        }
+
+        [Test]
+        public void HookCheckResult_tolerates_nothing_installed()
+        {
+            var result = JsonSerializer.Deserialize(
+                """{"installedTags":[],"defaultTag":null,"availableOnline":["2026-06"]}""",
+                HookJsonContext.Default.HookCheckResult);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result!.InstalledTags, Is.Empty);
+                Assert.That(result.DefaultTag, Is.Null);
+            });
+        }
+
+        [Test]
         public void HookOutput_SessionStart_builds_the_shape_a_hook_prints()
         {
             var output = HookOutput.SessionStart("Hypha: downloading 2026-06 sources - 50%.");

@@ -21,10 +21,12 @@ namespace Hypha.Tools.Hook.Tests
     /// </summary>
     /// <remarks>
     /// <see cref="Program.RunAsync"/> takes its <see cref="HttpClient"/> as a parameter specifically so
-    /// it can be driven end-to-end here against a stub transport, rather than only through
-    /// <see cref="Program.Main"/> (which always builds a real one) - real detached-process spawning at
-    /// the very end of a fully successful run is still left to manual verification, per
-    /// <c>tools/hypha-cli/README.md</c>.
+    /// it can be driven here against a stub transport for the CLI-provisioning half, rather than only
+    /// through <see cref="Program.Main"/> (which always builds a real one). Running the cached
+    /// executable it provisions - the actual <c>hypha check</c> subprocess - is real process spawning
+    /// with real stdout, so exercising RunAsync's full happy path end-to-end is left to manual
+    /// verification, per <c>tools/hypha-cli/README.md</c>; <see cref="CheckRunnerTests"/> and
+    /// <see cref="CheckResultSummarizerTests"/> cover that half's logic directly instead.
     /// </remarks>
     [TestFixture]
     public class ProgramTests
@@ -110,39 +112,31 @@ namespace Hypha.Tools.Hook.Tests
         }
 
         [Test]
-        public void ReadStatus_is_null_when_there_is_no_status_file()
+        public void ParseCheckResult_parses_a_valid_line_of_json()
         {
-            var cache = new CacheLayout(this.workspace, "abc123");
-
-            Assert.That(Program.ReadStatus(cache), Is.Null);
-        }
-
-        [Test]
-        public void ReadStatus_reads_a_real_status_file()
-        {
-            var cache = new CacheLayout(this.workspace, "abc123");
-            cache.StatusFile.Directory!.Create();
-            File.WriteAllText(
-                cache.StatusFile.FullName,
-                """{"schemaVersion": "1.0.0", "phase": "fetching", "targetTag": "2026-06"}""");
-
-            var status = Program.ReadStatus(cache);
+            var result = Program.ParseCheckResult(
+                """{"installedTags":["2026-05"],"defaultTag":"2026-05","availableOnline":["2026-06","2026-05"]}""");
 
             Assert.Multiple(() =>
             {
-                Assert.That(status!.Phase, Is.EqualTo("fetching"));
-                Assert.That(status.TargetTag, Is.EqualTo("2026-06"));
+                Assert.That(result!.InstalledTags, Is.EqualTo(new[] { "2026-05" }));
+                Assert.That(result.DefaultTag, Is.EqualTo("2026-05"));
+                Assert.That(result.AvailableOnline, Is.EqualTo(new[] { "2026-06", "2026-05" }));
             });
         }
 
-        [Test]
-        public void ReadStatus_is_null_for_unreadable_json_rather_than_throwing()
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("   ")]
+        public void ParseCheckResult_is_null_for_empty_or_missing_output(string? output)
         {
-            var cache = new CacheLayout(this.workspace, "abc123");
-            cache.StatusFile.Directory!.Create();
-            File.WriteAllText(cache.StatusFile.FullName, "not json");
+            Assert.That(Program.ParseCheckResult(output), Is.Null);
+        }
 
-            Assert.That(Program.ReadStatus(cache), Is.Null);
+        [Test]
+        public void ParseCheckResult_is_null_for_unreadable_json_rather_than_throwing()
+        {
+            Assert.That(Program.ParseCheckResult("not json at all"), Is.Null);
         }
 
         [Test]
@@ -158,61 +152,21 @@ namespace Hypha.Tools.Hook.Tests
         }
 
         [Test]
-        public async Task RunAsync_reports_nothing_and_provisions_nothing_when_the_release_cannot_be_reached()
+        public async Task RunAsync_provisions_nothing_further_when_the_release_cannot_be_reached()
         {
             Environment.SetEnvironmentVariable("CLAUDE_PLUGIN_ROOT", this.workspace.FullName);
             WritePluginManifest(this.workspace, """{"hyphaCliVersion": "1.2.0"}""");
 
             var handler = new CountingHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
 
-            // Must not throw: EnsureAsync catches the failure internally, and RunAsync simply returns.
+            // Must not throw: CliProvisioner.EnsureAsync catches the failure internally, and RunAsync
+            // simply returns once it sees no executable came back - never reaching CheckRunner at all.
             Assert.That(
-                async () => await Program.RunAsync(new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") }),
+                async () => await Program.RunAsync(
+                    new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") }),
                 Throws.Nothing);
 
             Assert.That(handler.Requests, Is.EqualTo(1));
-        }
-
-        [Test]
-        public async Task RunAsync_prints_a_summary_when_a_previous_run_left_progress_behind()
-        {
-            Environment.SetEnvironmentVariable("CLAUDE_PLUGIN_ROOT", this.workspace.FullName);
-            WritePluginManifest(this.workspace, """{"hyphaCliVersion": "1.2.0"}""");
-
-            var cache = new CacheLayout(
-                CacheLayout.ResolveRoot(), CacheLayout.ComputeInstallKey(this.workspace.FullName));
-            cache.StatusFile.Directory!.Create();
-            File.WriteAllText(
-                cache.StatusFile.FullName,
-                """{"schemaVersion": "1.0.0", "phase": "fetching", "targetTag": "2026-06", "fetch": {"kind": "textual", "done": 1, "total": 2}}""");
-
-            try
-            {
-                var handler = new CountingHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
-                var originalOut = Console.Out;
-                var writer = new StringWriter();
-                Console.SetOut(writer);
-
-                try
-                {
-                    await Program.RunAsync(
-                        new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") });
-                }
-                finally
-                {
-                    Console.SetOut(originalOut);
-                }
-
-                Assert.That(writer.ToString(), Does.Contain("2026-06").And.Contains("textual"));
-            }
-            finally
-            {
-                cache.StateDirectory.Refresh();
-                if (cache.StateDirectory.Exists)
-                {
-                    cache.StateDirectory.Delete(recursive: true);
-                }
-            }
         }
 
         private static void WritePluginManifest(DirectoryInfo pluginRoot, string json)

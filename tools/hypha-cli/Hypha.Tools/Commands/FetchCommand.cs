@@ -31,13 +31,14 @@ namespace Hypha.Tools.Commands
                 Required = true,
             };
 
-        /// <summary>Whether the OMG specification PDFs come too.</summary>
-        public static readonly Option<bool> IncludeSpecifications =
-            new("--include-specs")
+        /// <summary>Whether the OMG specification PDFs are skipped.</summary>
+        public static readonly Option<bool> NoSpecs =
+            new("--no-specs")
             {
                 Description =
-                    "Also download the OMG specification PDFs. They are copyright OMG, land in a "
-                    + "git-ignored folder and must never be committed.",
+                    "Skip the OMG specification PDFs. Downloaded by default, since a fully local "
+                    + "install needs everything - they are copyright OMG, land in a git-ignored "
+                    + "folder and must never be committed.",
                 DefaultValueFactory = _ => false,
             };
 
@@ -64,7 +65,7 @@ namespace Hypha.Tools.Commands
             : base("fetch", "Download a release's inputs into sources/ and record it")
         {
             this.Options.Add(Tag);
-            this.Options.Add(IncludeSpecifications);
+            this.Options.Add(NoSpecs);
             this.Options.Add(Force);
             this.Options.Add(NoDefault);
         }
@@ -94,7 +95,7 @@ namespace Hypha.Tools.Commands
                 var request = new ReleaseInstallRequest
                 {
                     Tag = parseResult.GetValue(Tag)!,
-                    IncludeSpecifications = parseResult.GetValue(IncludeSpecifications),
+                    IncludeSpecifications = !parseResult.GetValue(NoSpecs),
                     SkipExisting = !parseResult.GetValue(Force),
                     MakeDefault = !parseResult.GetValue(NoDefault),
                 };

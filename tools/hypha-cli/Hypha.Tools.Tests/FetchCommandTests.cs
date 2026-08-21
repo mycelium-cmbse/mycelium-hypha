@@ -59,19 +59,34 @@ namespace Hypha.Tools.Tests
                         request.Tag == "2026-05"
                         && request.SkipExisting
                         && request.MakeDefault
-                        && !request.IncludeSpecifications),
+                        && request.IncludeSpecifications),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
         [Test]
-        public async Task The_copyrighted_specifications_are_only_fetched_when_asked_for()
+        public async Task The_copyrighted_specifications_are_fetched_by_default()
         {
-            await this.Invoke("fetch --tag 2026-05 --include-specs");
+            // A fully local install needs everything, including the PDFs - downloading them is a
+            // plain HTTP call with no toolchain implication; only extracting clause text from them
+            // needs Python.
+            await this.Invoke("fetch --tag 2026-05");
 
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ReleaseInstallRequest>(request => request.IncludeSpecifications),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Test]
+        public async Task No_specs_skips_the_copyrighted_PDFs()
+        {
+            await this.Invoke("fetch --tag 2026-05 --no-specs");
+
+            this.installer.Verify(
+                mock => mock.InstallAsync(
+                    It.Is<ReleaseInstallRequest>(request => !request.IncludeSpecifications),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }

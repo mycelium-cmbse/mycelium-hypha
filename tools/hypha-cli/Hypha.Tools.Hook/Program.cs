@@ -17,8 +17,10 @@ namespace Hypha.Tools.Hook
     using System.Threading.Tasks;
 
     /// <summary>
-    /// The <c>SessionStart</c> hook entry point: ensures the real <c>hypha</c> CLI is cached, reports
-    /// whatever progress a previous <c>hypha sync</c> run left behind, and launches a new one detached.
+    /// The <c>SessionStart</c> hook entry point: ensures the real <c>hypha</c> CLI is cached, runs
+    /// <c>hypha check</c> to compare local releases against what is offerable upstream, and reports
+    /// the result. Never fetches or generates anything itself - deciding whether to act on what it
+    /// reports is left entirely to the user, through a skill.
     /// </summary>
     /// <remarks>
     /// Committed per platform under <c>hooks/native/&lt;rid&gt;/</c> and reached through a one-line POSIX
@@ -63,15 +65,6 @@ namespace Hypha.Tools.Hook
             var rid = RuntimeInformation.RuntimeIdentifier;
             var cache = new CacheLayout(CacheLayout.ResolveRoot(), CacheLayout.ComputeInstallKey(pluginRoot.FullName));
 
-            var status = ReadStatus(cache);
-            var context = StatusSummarizer.Summarize(status, cache.SyncLogFile.FullName);
-
-            if (context is not null)
-            {
-                await Console.Out.WriteAsync(JsonSerializer.Serialize(
-                    HookOutput.SessionStart(context), HookJsonContext.Default.HookOutput));
-            }
-
             var provisioner = new CliProvisioner(client);
 
             var executable = await provisioner.EnsureAsync(cache, version, rid, default);
@@ -80,19 +73,38 @@ namespace Hypha.Tools.Hook
                 return;
             }
 
-            cache.StateDirectory.Create();
-
-            DetachedProcessLauncher.Start(
+            // check only ever compares local releases against what is offerable upstream - cheap
+            // enough to wait for here, synchronously, with nothing left to poll for later.
+            var output = await CheckRunner.RunAndCaptureOutputAsync(
                 executable.FullName,
-                [
-                    "sync",
-                    "--repository-root", pluginRoot.FullName,
-                    "--status-file", cache.StatusFile.FullName,
-                    "--log-file", cache.SyncLogFile.FullName,
-                    "--no-logo",
-                    "--log-level", "Warning",
-                ],
-                pluginRoot.FullName);
+                ["check", "--json", "--no-logo", "--repository-root", pluginRoot.FullName],
+                pluginRoot.FullName,
+                default);
+
+            var context = CheckResultSummarizer.Summarize(ParseCheckResult(output), pluginRoot);
+
+            if (context is not null)
+            {
+                await Console.Out.WriteAsync(JsonSerializer.Serialize(
+                    HookOutput.SessionStart(context), HookJsonContext.Default.HookOutput));
+            }
+        }
+
+        internal static HookCheckResult? ParseCheckResult(string? output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize(output, HookJsonContext.Default.HookCheckResult);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
         }
 
         internal static DirectoryInfo ResolvePluginRoot()
@@ -132,29 +144,5 @@ namespace Hypha.Tools.Hook
             }
         }
 
-        internal static HookSyncStatus? ReadStatus(CacheLayout cache)
-        {
-            var file = cache.StatusFile;
-            file.Refresh();
-
-            if (!file.Exists)
-            {
-                return null;
-            }
-
-            try
-            {
-                return JsonSerializer.Deserialize(
-                    File.ReadAllText(file.FullName), HookJsonContext.Default.HookSyncStatus);
-            }
-            catch (IOException)
-            {
-                return null;
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
-        }
     }
 }

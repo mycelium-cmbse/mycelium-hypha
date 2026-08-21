@@ -22,7 +22,6 @@ namespace Hypha.Tools
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
     using Hypha.Tools.Hosting;
-    using Hypha.Tools.Sync;
 
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -112,21 +111,28 @@ namespace Hypha.Tools
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(moveWindow);
 
-            var sync = new SyncCommand();
-            sync.SetAction((parseResult, cancellationToken) => Run(
+            var use = new UseCommand();
+            use.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                provider => new SyncCommand.Handler(
+                provider => new UseCommand.Handler(provider.GetRequiredService<IKnowledgeLayout>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            root.Add(use);
+
+            var remove = new RemoveCommand();
+            remove.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new RemoveCommand.Handler(provider.GetRequiredService<IReleaseRemover>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            root.Add(remove);
+
+            var check = new CheckCommand();
+            check.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new CheckCommand.Handler(
                         provider.GetRequiredService<IReleaseDiscovery>(),
-                        provider.GetRequiredService<IReleaseInstaller>(),
-                        provider.GetServices<IKnowledgeGenerator>(),
-                        provider.GetRequiredService<IKnowledgeLayout>(),
-                        new SyncStatusWriter(parseResult.GetValue(SyncCommand.StatusFile)!),
-                        new FileSyncLock(new FileInfo(
-                            parseResult.GetValue(SyncCommand.StatusFile)!.FullName + ".lock")),
-                        provider.GetRequiredService<ILogger<SyncCommand.Handler>>())
-                    .InvokeAsync(parseResult, cancellationToken),
-                logFile: parseResult.GetValue(SyncCommand.LogFile)));
-            root.Add(sync);
+                        provider.GetRequiredService<IKnowledgeLayout>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            root.Add(check);
 
             return root;
         }
@@ -138,14 +144,13 @@ namespace Hypha.Tools
         private static async Task<int> Run(
             ParseResult parseResult,
             Func<IServiceProvider, Task<int>> handler,
-            DirectoryInfo? outputRoot = null,
-            FileInfo? logFile = null)
+            DirectoryInfo? outputRoot = null)
         {
             Banner(parseResult);
 
             try
             {
-                await using var provider = KnowledgeServices.Build(parseResult, outputRoot, logFile);
+                await using var provider = KnowledgeServices.Build(parseResult, outputRoot);
 
                 return await handler(provider);
             }

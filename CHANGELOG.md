@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`hypha use`, `hypha remove` and `hypha check`** (`refs #106`) replace `hypha sync`: switching the
+  default release, removing one no longer wanted, and comparing installed releases against what is
+  offerable upstream are now separate, always-safe-to-run verbs instead of one verb that silently
+  fetched and generated the newest release automatically.
+  - The `version-management` skill gives Claude the vocabulary to list local vs. online releases,
+    fetch a chosen tag with visible progress, switch the default, or remove one - always confirming
+    with the user first, since fetching costs real time and removing is destructive.
+  - `hypha fetch` downloads the OMG specification PDFs **by default** now (`--no-specs` to opt out) -
+    a fully local install needs everything a plain HTTP call can get it.
+
+### Changed
+- **The plugin's `SessionStart` hook only ever compares now - it never fetches or generates anything
+  itself** (`refs #106`). `Hypha.Tools.Hook` runs `hypha check --json` synchronously (cheap enough - a
+  couple of GitHub API calls - that no background process is needed) and reports what it finds:
+  nothing installed yet, a newer release available, or nothing to report - leaving the decision to
+  fetch entirely to the user. The same hook also folds in what `hooks/check-spec-pdfs.py` used to do
+  separately (naming missing OMG PDFs for the default release), so the plugin needs one
+  `SessionStart` hook instead of two, and no longer depends on Python being present just to run it.
+
+### Removed
+- **`hypha sync` and the background/lock/status-file machinery it needed** (`refs #106`). Detached
+  launching, a file lock, and a polled status file existed only because a hook-triggered fetch had to
+  return immediately and report progress later; once fetching is something the user asks for and
+  Claude runs in the foreground, none of that indirection is needed. `hooks/check-spec-pdfs.py` is
+  retired, folded into `Hypha.Tools.Hook`.
+
+### Added
 - **`hypha`, a distributable command-line tool, is now what generates the knowledge base**
   (`fixes #81`). It ships as a `dotnet tool` for anyone with the .NET 10 SDK and as a
   **self-contained** executable per platform (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`) for

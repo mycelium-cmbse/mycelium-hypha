@@ -125,8 +125,9 @@ needed only for the git-ignored `knowledge/<tag>/spec/`.
 `knowledge/<tag>/metamodel/` and `knowledge/<tag>/textual-notation/` are committed, so the plugin works without
 running any pipeline. `knowledge/<tag>/spec/` holds **verbatim OMG specification text** and is deliberately
 **not committed** (the OMG license forbids redistributing it). To enable spec citation, obtain the
-three PDFs and regenerate it locally with `tools/spec-extract`; a SessionStart hook
-(`hooks/check-spec-pdfs.py`) reminds you when the PDFs are missing.
+three PDFs and regenerate it locally with `tools/spec-extract` (a maintainer source checkout only -
+not shipped with the plugin); the plugin's `SessionStart` hook reminds you when the PDFs are missing
+for the default release.
 
 `cross-references.json` links each metamodel element to the clauses that treat it, its grammar
 production and any worked example. It records clause **identifiers only, never clause text**, so it

@@ -55,26 +55,31 @@ one is the default, and the upstream commit each tag resolved to (traceability o
 identifier). Fetching another release writes a new `sources/<tag>/` folder; only the window's tags are
 committed.
 
-The OMG PDFs must be obtained per release. A plugin **SessionStart** hook
-(`hooks/check-spec-pdfs.py`) checks the default release and names the exact files and tagged URLs
-when any are missing.
+The OMG PDFs are downloaded by default now (`hypha fetch --tag <release>`, opt out with
+`--no-specs`) - a fully local install needs everything a plain HTTP call can get it, though *quoting*
+their text still needs a maintainer source checkout (see `tools/spec-extract/README.md`). The
+plugin's `SessionStart` hook (`Hypha.Tools.Hook`, see `tools/hypha-cli/README.md`'s "Automatic version
+check" section) still names the exact files and tagged URLs when they're missing for the default
+release, folded into the same message that reports newer releases.
 
-### What the committed window is for, once `hypha sync` can add to it
+### What the committed window is for, now that `hypha use`/`remove` let the user manage more
 
 The two releases committed to this repository are the **permanent, offline-working floor**: a fresh
 plugin install works immediately, with zero setup and no network access, because they are already
-here. That does not change.
+here.
 
-On top of that floor, a second `SessionStart` hook (see `tools/hypha-cli/README.md`'s "Automatic
-sync" section) may opportunistically fetch and generate **one** more recent release when it is
-reachable, running `hypha sync` detached so it never blocks a session from starting. That release
-lands as an ordinary, **untracked** `knowledge/<tag>/` + `sources/<tag>/` — visible in `git status`,
-never gitignored — because it is not part of the committed floor. A maintainer can `git add` it to
-promote it into the committed window through the normal `hypha move-window` flow, or simply leave it:
-the next `hypha sync` run prunes it automatically once a newer release replaces it. `hypha sync` never
-touches the two committed releases themselves — only the one tag it added on its own.
+Beyond that floor, the plugin's `SessionStart` hook only ever **compares** what's installed against
+what's offerable upstream (`hypha check`) and reports the result - it never fetches or generates
+anything itself. Getting an additional release, older or newer, is always something the user asks for
+(conversationally, through the `version-management` skill, or directly): `hypha fetch --tag <tag>` +
+`hypha generate --tag <tag>` lands it as an ordinary, **untracked** `knowledge/<tag>/` +
+`sources/<tag>/` - visible in `git status`, never gitignored - because it is not part of the committed
+floor. `hypha use --tag <tag>` switches which installed release every skill answers from;
+`hypha remove --tag <tag>` drops one no longer wanted (refusing on the current default or the last
+release without `--force`). A maintainer can `git add` an untracked release to promote it into the
+committed window through the normal `hypha move-window` flow.
 
-Two gaps are permanent, by design, rather than bugs to fix: `hypha sync` only runs on the four RIDs
+Two gaps are permanent, by design, rather than bugs to fix: the hook only runs on the four RIDs
 `.github/workflows/release.yml` publishes (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`), and the
 plugin's dispatch shim needs a POSIX-compatible shell (present via Git Bash on essentially every
 Windows development machine, but not guaranteed) to pick the right platform binary.

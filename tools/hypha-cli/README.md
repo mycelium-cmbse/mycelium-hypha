@@ -40,7 +40,9 @@ walking up from the working directory when omitted), `--token`, `--log-level` an
 | `hypha generate [artifact]` | Generates the knowledge base. Every artifact for every installed release when nothing is narrowed. |
 | `hypha list` | Lists the installed releases and which one answers by default. |
 | `hypha move-window --tag <release> [--keep N]` | Fetches, regenerates, re-extracts specifications, re-blesses fixtures, verifies, then evicts releases outside the window (default `--keep`: 2). |
-| `hypha sync --status-file <path>` | Fetches and generates the newest offerable release, if it is not installed already; the one verb the plugin's `SessionStart` hook drives. |
+| `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
+| `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
+| `hypha check [--json]` | Compares installed releases against what is offerable upstream - no fetching, no generating; the one verb the plugin's `SessionStart` hook drives. |
 
 ```sh
 hypha discover                              # what can be installed
@@ -72,31 +74,34 @@ provisioned `tools/spec-extract/.venv`** (`python -m venv .venv && pip install -
 `tools/spec-extract/`): its re-bless and verify steps shell out to `dotnet test`, and specification
 extraction shells out to `pytest`. It cannot run from the standalone distributed binary.
 
-### Automatic sync
+### Automatic version check
 
-`hypha sync` is what a plugin *install* actually runs, unattended, to bring itself up to the newest
-offerable release beyond the two committed with it. It is deliberately not `move-window` under
-another name:
+Nothing generated is committed to git (see the repository root `CLAUDE.md`): the plugin fetches and
+generates every release entirely on the user's machine, on request, and holds none of that content in
+git. `hypha check` is what the plugin's `SessionStart` hook runs, every session, to compare what is
+installed locally against what is offerable upstream - and *only* to compare. It never fetches or
+generates anything itself; deciding whether to act on what it reports is left entirely to the user,
+through the `version-management` skill (`skills/version-management/SKILL.md`).
 
-- It **never shells out to `dotnet test`/`pytest`** — no re-bless, no verify, no specification
-  extraction — so it works from the downloaded self-contained binary a plugin install actually has,
+That is a deliberate difference from `move-window`, not a smaller version of it:
+
+- It **never shells out to `dotnet test`/`pytest`** - no re-bless, no verify, no specification
+  extraction - so it works from the downloaded self-contained binary a plugin install actually has,
   not just from a full source checkout.
-- It **never fetches specification PDFs**: a plugin install has no OMG PDFs to include.
-- It **never calls the shared window evictor**. `IReleaseWindowEvictor` deletes indiscriminately by
-  tag age with no notion of "committed vs. locally fetched", which is fine for a maintainer who is
-  looking at the result, and wrong for code running unattended — it could just as easily delete one of
-  the two releases the plugin actually ships with. `hypha sync` instead tracks, in its own
-  `--status-file`, only the one release *it* previously added, and only ever prunes that one.
+- It is **read-only**: a couple of GitHub API calls, nothing written to disk. There is nothing here for
+  `IReleaseWindowEvictor` (which deletes indiscriminately by tag age) to get wrong, because nothing is
+  ever deleted or fetched by this verb - only `hypha remove`, run because a user asked for exactly that
+  tag to go, ever deletes a release.
 
 It is driven by a small companion project, `Hypha.Tools.Hook` (`tools/hypha-cli/Hypha.Tools.Hook`),
 **not** part of `Hypha.Tools` itself. `Hypha.Tools.Hook` is the one thing in this repository that *is*
 NativeAOT-published and committed to git, at `hooks/native/<rid>/hypha-hook(.exe)`: unlike the main
-CLI, it never generates anything, only downloads and launches `hypha sync`, so it carries none of the
-reflection-heavy dependencies (Handlebars.Net, uml4net) that keep `Hypha.Tools` off AOT - which is
+CLI, it never generates anything, only downloads and launches the CLI that does, so it carries none of
+the reflection-heavy dependencies (Handlebars.Net, uml4net) that keep `Hypha.Tools` off AOT - which is
 what makes it small enough (single-digit MB per platform) to commit rather than download on demand.
-`.claude-plugin/plugin.json` registers a second `SessionStart` hook whose command is a one-line POSIX
-shell dispatch shim - pure glue, no logic - that `exec`s the right platform binary for the current OS
-and architecture; see `.github/workflows/hook-binaries.yml` for how those binaries are built.
+`.claude-plugin/plugin.json` registers a `SessionStart` hook whose command is a one-line POSIX shell
+dispatch shim - pure glue, no logic - that `exec`s the right platform binary for the current OS and
+architecture; see `.github/workflows/hook-binaries.yml` for how those binaries are built.
 
 Each session start, that binary:
 
@@ -104,18 +109,21 @@ Each session start, that binary:
    `hyphaCliVersion`) from GitHub Releases the first time it is needed, caching it outside the
    plugin's own git-managed folder (under the OS's local application data directory) so a plugin
    update/reinstall can never disturb it mid-run.
-2. Reads whatever `hypha sync --status-file <path>` last wrote and reports it as one line of
-   `additionalContext` - a percentage while fetching or generating, a pointer to the log file on
-   failure, nothing at all once it settles on up-to-date or done.
-3. Launches `hypha sync` **detached**, so the session starts immediately rather than waiting out
-   what can be a multi-minute download. A file lock (co-located with the status file) stops two
-   sessions starting close together from launching two overlapping runs.
+2. Runs `hypha check --json`, **synchronously** - cheap enough to wait for inline (SessionStart's
+   default timeout is 10 minutes), with nothing to poll for later the way a background fetch would
+   need.
+3. Reports the result as one line of `additionalContext`: nothing installed yet (names what is
+   available online), a newer release exists (names it), or nothing to report - silent, matching the
+   tone of the OMG-PDF-presence check this hook also folds in (see `CheckResultSummarizer`).
 
 ### Fetching the specification PDFs
 
-`hypha fetch --tag <release> --include-specs` also downloads the OMG specification PDFs. They are
-**OMG-copyrighted**, land in the git-ignored `sources/<tag>/specs/`, and must never be committed. You
-only need them for spec citation – see [`tools/spec-extract`](../spec-extract/README.md).
+`hypha fetch --tag <release>` downloads the OMG specification PDFs **by default** now - a fully local
+install needs everything, and downloading them is a plain HTTP call with no toolchain implication.
+Pass `--no-specs` to skip them. They land in the git-ignored `sources/<tag>/specs/` and must never be
+committed. Only *quoting* their text (`knowledge/<tag>/spec/`) needs Python and a maintainer source
+checkout – see [`tools/spec-extract`](../spec-extract/README.md); an installed plugin does not have
+that checkout, so spec-citation can name the governing clause but not quote it verbatim.
 
 ### Exit codes
 
@@ -162,7 +170,7 @@ dotnet publish tools/hypha-cli/Hypha.Tools -c Release -r win-x64 \
 templates at runtime through expression trees, which AOT forbids, and uml4net is reflection-heavy over
 XMI. Trimming carries a milder version of the same risk and is left off until someone verifies it.
 
-`Hypha.Tools.Hook` (see "Automatic sync" above) is the exception: it carries neither dependency, so it
+`Hypha.Tools.Hook` (see "Automatic version check" above) is the exception: it carries neither dependency, so it
 *is* NativeAOT-published, and the result is committed to `hooks/native/<rid>/` rather than downloaded
 on demand:
 
