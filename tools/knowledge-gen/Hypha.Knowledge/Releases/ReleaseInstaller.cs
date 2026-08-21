@@ -69,7 +69,9 @@ namespace Hypha.Knowledge.Releases
 
         /// <inheritdoc/>
         public async Task<ReleaseInstallation> InstallAsync(
-            ReleaseInstallRequest request, CancellationToken cancellationToken = default)
+            ReleaseInstallRequest request,
+            CancellationToken cancellationToken = default,
+            IProgress<FetchProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(request);
 
@@ -87,11 +89,11 @@ namespace Hypha.Knowledge.Releases
             sources.Create();
 
             var metamodel = await this.fetcher.FetchMetamodelAsync(
-                tag, sources, request.SkipExisting, cancellationToken);
+                tag, sources, request.SkipExisting, cancellationToken, progress);
             FetchedMessage(this.logger, "metamodel", metamodel.Count, null);
 
             var textual = await this.fetcher.FetchTextualAsync(
-                tag, sources, request.SkipExisting, cancellationToken);
+                tag, sources, request.SkipExisting, cancellationToken, progress);
             FetchedMessage(this.logger, "textual", textual.Count, null);
 
             IReadOnlyList<FileInfo> specifications = [];

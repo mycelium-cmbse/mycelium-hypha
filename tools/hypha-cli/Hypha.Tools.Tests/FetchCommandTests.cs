@@ -40,7 +40,8 @@ namespace Hypha.Tools.Tests
             this.installer
                 .Setup(mock => mock.InstallAsync(
                     It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _) => Installation(request));
+                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<FetchProgress>? _) =>
+                    Installation(request));
 
             this.handler = new FetchCommand.Handler(this.installer.Object);
         }

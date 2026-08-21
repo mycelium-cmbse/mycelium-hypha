@@ -43,7 +43,13 @@ namespace Hypha.Tools.Hosting
         /// Where generated artifacts go; <c>null</c> writes them into the repository, which is the
         /// normal run.
         /// </param>
-        public static ServiceProvider Build(ParseResult parseResult, DirectoryInfo? outputRoot = null)
+        /// <param name="logFile">
+        /// When given, logs go to this file instead of the console. <c>sync</c> uses this when the
+        /// hook binary launches it detached: routing its diagnostics to a file removes any dependence
+        /// on how the parent chose to handle the child's stdio pipes.
+        /// </param>
+        public static ServiceProvider Build(
+            ParseResult parseResult, DirectoryInfo? outputRoot = null, FileInfo? logFile = null)
         {
             ArgumentNullException.ThrowIfNull(parseResult);
 
@@ -66,12 +72,15 @@ namespace Hypha.Tools.Hosting
             {
                 builder.ClearProviders();
 
-                var logger = new LoggerConfiguration()
-                    .MinimumLevel.Is(level)
-                    .WriteTo.Console(outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
-                    .CreateLogger();
+                var configuration = new LoggerConfiguration().MinimumLevel.Is(level);
 
-                builder.AddProvider(new SerilogLoggerProvider(logger, dispose: true));
+                configuration = logFile is null
+                    ? configuration.WriteTo.Console(
+                        outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                    : configuration.WriteTo.File(
+                        logFile.FullName, outputTemplate: "[{Timestamp:O}] [{Level:u3}] {Message:lj}{NewLine}{Exception}");
+
+                builder.AddProvider(new SerilogLoggerProvider(configuration.CreateLogger(), dispose: true));
                 builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
             });
 

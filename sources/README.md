@@ -59,6 +59,26 @@ The OMG PDFs must be obtained per release. A plugin **SessionStart** hook
 (`hooks/check-spec-pdfs.py`) checks the default release and names the exact files and tagged URLs
 when any are missing.
 
+### What the committed window is for, once `hypha sync` can add to it
+
+The two releases committed to this repository are the **permanent, offline-working floor**: a fresh
+plugin install works immediately, with zero setup and no network access, because they are already
+here. That does not change.
+
+On top of that floor, a second `SessionStart` hook (see `tools/hypha-cli/README.md`'s "Automatic
+sync" section) may opportunistically fetch and generate **one** more recent release when it is
+reachable, running `hypha sync` detached so it never blocks a session from starting. That release
+lands as an ordinary, **untracked** `knowledge/<tag>/` + `sources/<tag>/` — visible in `git status`,
+never gitignored — because it is not part of the committed floor. A maintainer can `git add` it to
+promote it into the committed window through the normal `hypha move-window` flow, or simply leave it:
+the next `hypha sync` run prunes it automatically once a newer release replaces it. `hypha sync` never
+touches the two committed releases themselves — only the one tag it added on its own.
+
+Two gaps are permanent, by design, rather than bugs to fix: `hypha sync` only runs on the four RIDs
+`.github/workflows/release.yml` publishes (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`), and the
+plugin's dispatch shim needs a POSIX-compatible shell (present via Git Bash on essentially every
+Windows development machine, but not guaranteed) to pick the right platform binary.
+
 ## Licensing
 
 The XMI and textual sources are EPL-2.0 and committed; the OMG PDFs are copyrighted and git-ignored

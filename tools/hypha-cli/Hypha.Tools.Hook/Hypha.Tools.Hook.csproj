@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Hypha.Tools.Hook</RootNamespace>
+    <AssemblyName>hypha-hook</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Publish">
+    <!-- The one hypha-cli project that IS NativeAOT-published: it never generates anything itself,
+         only downloads and launches the real `hypha` CLI, so it carries none of the reflection-heavy
+         dependencies (Handlebars.Net, uml4net) that keep Hypha.Tools off AOT. That is what makes it
+         small enough to commit into the plugin repository per platform - see hooks/native/. Deliberately
+         has NO ProjectReference to Hypha.Tools or Hypha.Knowledge: pulling either in would drag their
+         non-AOT-safe dependency graph into this build. -->
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <StripSymbols>true</StripSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- So the tests can exercise the pure functions (checksum parsing, status summarisation, cache
+         path resolution, lock staleness) directly. -->
+    <InternalsVisibleTo Include="Hypha.Tools.Hook.Tests" />
+  </ItemGroup>
+
+</Project>

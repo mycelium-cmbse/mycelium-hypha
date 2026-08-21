@@ -1,0 +1,106 @@
+name: Hook binaries
+
+# Builds the small NativeAOT `hypha-hook` binary (tools/hypha-cli/Hypha.Tools.Hook) for every platform
+# the plugin's SessionStart hook needs to dispatch to, and commits them into hooks/native/<rid>/.
+#
+# Unlike the full `hypha` CLI (see release.yml), this binary IS committed to the repository: it never
+# generates anything itself, only downloads and launches the real CLI, so NativeAOT keeps it small
+# (single-digit MB per platform) rather than the ~80MB a self-contained non-AOT publish would need.
+# The plugin's SessionStart hook has no other way to reach a platform-specific compiled binary - see
+# tools/hypha-cli/README.md.
+#
+# True NativeAOT cross-compilation across OS families is not reliably supported, so this needs a
+# matrix of native runners, unlike release.yml's single-runner self-contained publish.
+#
+# Run by hand after any change to Hypha.Tools.Hook. Not tied to a version number or a release tag: the
+# committed binaries simply track whatever is on the branch this workflow runs against.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            executable: hypha-hook.exe
+          - os: ubuntu-latest
+            rid: linux-x64
+            executable: hypha-hook
+          - os: macos-latest
+            rid: osx-x64
+            executable: hypha-hook
+          - os: macos-latest
+            rid: osx-arm64
+            executable: hypha-hook
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish ${{ matrix.rid }}
+        run: |
+          dotnet publish tools/hypha-cli/Hypha.Tools.Hook/Hypha.Tools.Hook.csproj \
+            -c Release -r ${{ matrix.rid }} -p:PublishAot=true \
+            -o publish/${{ matrix.rid }}
+        shell: bash
+
+      - name: Upload ${{ matrix.rid }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: hypha-hook-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/${{ matrix.executable }}
+          if-no-files-found: error
+
+  commit:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Download every platform's binary
+        uses: actions/download-artifact@v6
+        with:
+          pattern: hypha-hook-*
+          path: downloaded
+
+      - name: Place binaries under hooks/native/
+        run: |
+          set -euo pipefail
+          for rid in win-x64 linux-x64 osx-x64 osx-arm64; do
+            mkdir -p "hooks/native/${rid}"
+            src="downloaded/hypha-hook-${rid}"
+            cp "${src}"/* "hooks/native/${rid}/"
+          done
+
+          # The self-contained apphost is a native executable; the AOT publish output has no other
+          # files worth keeping (no .pdb - StripSymbols is set in the csproj, no .dll dependencies).
+          chmod +x hooks/native/linux-x64/hypha-hook hooks/native/osx-x64/hypha-hook hooks/native/osx-arm64/hypha-hook
+
+      - name: Commit if anything changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- hooks/native; then
+            echo "::notice::hooks/native is already up to date; nothing to commit."
+            exit 0
+          fi
+
+          git add hooks/native
+          git commit -m "[Add] rebuild the hook binaries for hooks/native/"
+          git push

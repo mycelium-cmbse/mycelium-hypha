@@ -66,7 +66,7 @@ namespace Hypha.Tools.Tests
             this.installer
                 .Setup(mock => mock.InstallAsync(
                     It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _) =>
+                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<FetchProgress>? _) =>
                 {
                     this.order.Add($"fetch:{request.Tag}");
 
