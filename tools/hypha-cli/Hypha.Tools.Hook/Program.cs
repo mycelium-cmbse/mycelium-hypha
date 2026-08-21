@@ -11,6 +11,7 @@ namespace Hypha.Tools.Hook
 {
     using System;
     using System.IO;
+    using System.Net.Http;
     using System.Runtime.InteropServices;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -32,7 +33,8 @@ namespace Hypha.Tools.Hook
         {
             try
             {
-                await RunAsync();
+                using var client = CliProvisioner.CreateClient();
+                await RunAsync(client);
             }
             catch (Exception)
             {
@@ -44,7 +46,11 @@ namespace Hypha.Tools.Hook
             return 0;
         }
 
-        private static async Task RunAsync()
+        /// <summary>
+        /// The hook's real work, taking the HTTP client as a parameter so a test can supply a stub
+        /// transport instead of a real one reaching GitHub.
+        /// </summary>
+        internal static async Task RunAsync(HttpClient client)
         {
             var pluginRoot = ResolvePluginRoot();
             var version = ReadPinnedCliVersion(pluginRoot);
@@ -66,7 +72,6 @@ namespace Hypha.Tools.Hook
                     HookOutput.SessionStart(context), HookJsonContext.Default.HookOutput));
             }
 
-            using var client = CliProvisioner.CreateClient();
             var provisioner = new CliProvisioner(client);
 
             var executable = await provisioner.EnsureAsync(cache, version, rid, default);
@@ -90,7 +95,7 @@ namespace Hypha.Tools.Hook
                 pluginRoot.FullName);
         }
 
-        private static DirectoryInfo ResolvePluginRoot()
+        internal static DirectoryInfo ResolvePluginRoot()
         {
             var fromEnvironment = Environment.GetEnvironmentVariable("CLAUDE_PLUGIN_ROOT");
             if (!string.IsNullOrWhiteSpace(fromEnvironment))
@@ -105,7 +110,7 @@ namespace Hypha.Tools.Hook
             return baseDirectory.Parent?.Parent?.Parent ?? baseDirectory;
         }
 
-        private static string? ReadPinnedCliVersion(DirectoryInfo pluginRoot)
+        internal static string? ReadPinnedCliVersion(DirectoryInfo pluginRoot)
         {
             var manifestPath = Path.Combine(pluginRoot.FullName, ".claude-plugin", "plugin.json");
 
@@ -127,7 +132,7 @@ namespace Hypha.Tools.Hook
             }
         }
 
-        private static HookSyncStatus? ReadStatus(CacheLayout cache)
+        internal static HookSyncStatus? ReadStatus(CacheLayout cache)
         {
             var file = cache.StatusFile;
             file.Refresh();

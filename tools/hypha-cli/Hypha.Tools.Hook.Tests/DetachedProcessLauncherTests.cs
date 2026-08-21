@@ -9,8 +9,11 @@
 
 namespace Hypha.Tools.Hook.Tests
 {
+    using System;
+    using System.IO;
+
     /// <summary>
-    /// Suite of tests for <see cref="DetachedProcessLauncher"/>'s pure <c>ProcessStartInfo</c> building.
+    /// Suite of tests for <see cref="DetachedProcessLauncher"/>.
     /// </summary>
     [TestFixture]
     public class DetachedProcessLauncherTests
@@ -56,6 +59,31 @@ namespace Hypha.Tools.Hook.Tests
                 Assert.That(info.FileName, Is.EqualTo("hypha"));
                 Assert.That(info.WorkingDirectory, Is.EqualTo(@"C:\repo"));
             });
+        }
+
+        [Test]
+        public void Starting_a_nonexistent_executable_fails_gracefully_rather_than_throwing()
+        {
+            var started = DetachedProcessLauncher.Start(
+                Path.Combine(Path.GetTempPath(), $"hypha-does-not-exist-{Guid.NewGuid():N}"),
+                ["sync"],
+                Path.GetTempPath());
+
+            Assert.That(started, Is.False);
+        }
+
+        [Test]
+        public void Starting_a_real_short_lived_process_succeeds()
+        {
+            // A trivial, instantly-exiting command available on any OS - not `hypha` itself, since this
+            // test only needs to prove Start() reports success for something real, not exercise sync.
+            var (fileName, arguments) = OperatingSystem.IsWindows()
+                ? ("cmd.exe", new[] { "/c", "exit", "0" })
+                : ("/bin/sh", new[] { "-c", "exit 0" });
+
+            var started = DetachedProcessLauncher.Start(fileName, arguments, Path.GetTempPath());
+
+            Assert.That(started, Is.True);
         }
     }
 }

@@ -12,6 +12,8 @@ namespace Hypha.Tools.Tests
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -219,6 +221,162 @@ namespace Hypha.Tools.Tests
             Assert.That(this.syncLock.ReleaseCount, Is.EqualTo(1));
         }
 
+        [TestCase(typeof(HttpRequestException), "network")]
+        [TestCase(typeof(UnauthorizedAccessException), "disk")]
+        [TestCase(typeof(InvalidOperationException), "unexpected")]
+        public async Task Failures_are_classified_by_kind(Type exceptionType, string expectedKind)
+        {
+            this.discovery
+                .Setup(mock => mock.AvailableAsync(It.IsAny<CancellationToken>()))
+                .ThrowsAsync((Exception)Activator.CreateInstance(exceptionType, "boom")!);
+
+            await this.Invoke();
+
+            Assert.That(this.statusWriter.Last!.Error!.Kind, Is.EqualTo(expectedKind));
+        }
+
+        [Test]
+        public async Task A_second_sync_prunes_the_release_the_first_one_added()
+        {
+            var workspace = Directory.CreateDirectory(
+                Path.Combine(Path.GetTempPath(), $"hypha-sync-second-{Guid.NewGuid():N}"));
+
+            try
+            {
+                var realLayout = new KnowledgeLayout(workspace);
+                Seed(realLayout, "2026-05");
+                Seed(realLayout, "2026-06");
+                WriteManifest(realLayout, "2026-06", "2026-05", "2026-06");
+
+                this.layout.SetupGet(mock => mock.InstalledTags).Returns(["2026-06", "2026-05"]);
+                this.layout.Setup(mock => mock.VersionManifest).Returns(realLayout.VersionManifest);
+                this.layout.Setup(mock => mock.ReleaseSources(It.IsAny<string>()))
+                    .Returns((string tag) => realLayout.ReleaseSources(tag));
+                this.layout.Setup(mock => mock.Knowledge(It.IsAny<string>()))
+                    .Returns((string tag) => realLayout.Knowledge(tag));
+
+                // Seed the status file as if a first sync already ran and added 2026-06 on top of the
+                // committed 2026-05 baseline.
+                this.statusWriter.Write(new SyncStatus
+                {
+                    Phase = SyncPhase.Done,
+                    CommittedBaselineTags = ["2026-05"],
+                    LocallyAddedTag = "2026-06",
+                });
+
+                this.discovery
+                    .Setup(mock => mock.AvailableAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((IReadOnlyList<string>)["2026-07"]);
+
+                // The installer is mocked, so it never touches the real manifest on its own - fetch
+                // "2026-07" must also make it the real default, exactly like ReleaseInstaller does,
+                // otherwise pruning "2026-06" would find it still recorded as the default and refuse.
+                this.installer
+                    .Setup(mock => mock.InstallAsync(
+                        It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>(),
+                        It.IsAny<IProgress<FetchProgress>>()))
+                    .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<FetchProgress>? _) =>
+                    {
+                        var existing = VersionManifestFile.ReadIfPresent(realLayout.VersionManifest.FullName);
+                        var versions = (existing?.Versions ?? []).ToList();
+                        versions.Add(new InstalledVersion(
+                            request.Tag,
+                            new UpstreamReference(Upstream.ReleaseRepository, "abc"),
+                            new UpstreamReference(Upstream.PilotRepository, "def")));
+                        VersionManifestFile.Write(
+                            VersionManifest.Build(request.Tag, versions), realLayout.VersionManifest.FullName);
+
+                        return Installation(request);
+                    });
+
+                var result = await this.Invoke();
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(result, Is.EqualTo(0));
+                    Assert.That(this.statusWriter.Last!.LocallyAddedTag, Is.EqualTo("2026-07"));
+
+                    // The committed baseline is untouched; the previously-added 2026-06 is gone.
+                    Assert.That(realLayout.ReleaseSources("2026-06").Exists, Is.False);
+                    Assert.That(realLayout.ReleaseSources("2026-05").Exists, Is.True);
+                });
+            }
+            finally
+            {
+                workspace.Refresh();
+                if (workspace.Exists)
+                {
+                    workspace.Delete(recursive: true);
+                }
+            }
+        }
+
+        [Test]
+        public async Task Fetch_progress_reported_by_the_installer_reaches_the_status_file()
+        {
+            // Progress<T> posts through a SynchronizationContext, defaulting to the thread pool when
+            // none is set (as in this test) - making the callback's timing nondeterministic relative
+            // to the test's own assertions. Installing an immediate, run-it-now context makes
+            // Report() synchronous for the duration of this test, without changing SyncCommand itself.
+            var originalContext = SynchronizationContext.Current;
+            SynchronizationContext.SetSynchronizationContext(new ImmediateSynchronizationContext());
+
+            try
+            {
+                this.discovery
+                    .Setup(mock => mock.AvailableAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((IReadOnlyList<string>)["2026-06"]);
+
+                this.installer
+                    .Setup(mock => mock.InstallAsync(
+                        It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>(),
+                        It.IsAny<IProgress<FetchProgress>>()))
+                    .Returns<ReleaseInstallRequest, CancellationToken, IProgress<FetchProgress>?>(
+                        async (request, _, progress) =>
+                        {
+                            progress?.Report(new FetchProgress("textual", 1, 2));
+                            await Task.Yield();
+
+                            return Installation(request);
+                        });
+
+                await this.Invoke();
+
+                Assert.That(
+                    this.statusWriter.History,
+                    Has.Some.Matches<SyncStatus>(status =>
+                        status.Fetch is { Kind: "textual", Done: 1, Total: 2 }));
+            }
+            finally
+            {
+                SynchronizationContext.SetSynchronizationContext(originalContext);
+            }
+        }
+
+        private sealed class ImmediateSynchronizationContext : SynchronizationContext
+        {
+            public override void Post(SendOrPostCallback d, object? state) => d(state);
+        }
+
+        private static void Seed(KnowledgeLayout layout, string tag)
+        {
+            var xmi = layout.Xmi(tag);
+            xmi.Create();
+            File.WriteAllText(Path.Combine(xmi.FullName, "KerML.uml"), "<xmi/>");
+        }
+
+        private static void WriteManifest(KnowledgeLayout layout, string defaultTag, params string[] tags)
+        {
+            var versions = Array.ConvertAll(
+                tags,
+                tag => new InstalledVersion(
+                    tag,
+                    new UpstreamReference(Upstream.ReleaseRepository, "abc"),
+                    new UpstreamReference(Upstream.PilotRepository, "def")));
+
+            VersionManifestFile.Write(VersionManifest.Build(defaultTag, versions), layout.VersionManifest.FullName);
+        }
+
         private Task<int> Invoke()
         {
             var handler = new SyncCommand.Handler(
@@ -277,12 +435,15 @@ namespace Hypha.Tools.Tests
 
             public int WriteCount { get; private set; }
 
+            public List<SyncStatus> History { get; } = [];
+
             public SyncStatus? Load() => this.Last;
 
             public void Write(SyncStatus status)
             {
                 this.Last = status;
                 this.WriteCount++;
+                this.History.Add(status);
             }
         }
 

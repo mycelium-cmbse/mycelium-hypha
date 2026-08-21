@@ -110,6 +110,28 @@ namespace Hypha.Tools.Tests
             Assert.That(new FileSyncLock(this.lockFile).TryAcquire(), Is.True);
         }
 
+        [Test]
+        public void A_lock_file_containing_the_JSON_null_literal_is_treated_as_stale()
+        {
+            this.lockFile.Directory?.Create();
+            File.WriteAllText(this.lockFile.FullName, "null");
+
+            Assert.That(new FileSyncLock(this.lockFile).TryAcquire(), Is.True);
+        }
+
+        [Test]
+        public void A_lock_file_that_cannot_be_read_at_all_is_not_treated_as_stale()
+        {
+            WriteLockContents(this.lockFile, pid: Environment.ProcessId, startedAt: DateTimeOffset.UtcNow);
+
+            // Held exclusively so IsStale's own read fails with an IOException, distinct from "not
+            // json" (a readable-but-meaningless file) - a real read failure must not be reclaimed.
+            using var exclusive = new FileStream(
+                this.lockFile.FullName, FileMode.Open, FileAccess.Read, FileShare.None);
+
+            Assert.That(new FileSyncLock(this.lockFile).TryAcquire(), Is.False);
+        }
+
         private static void WriteLockContents(FileInfo path, int pid, DateTimeOffset startedAt)
         {
             path.Directory?.Create();
