@@ -18,11 +18,11 @@ name: Hook binaries
 on:
   workflow_dispatch: {}
 
-permissions:
-  contents: write
-
 jobs:
   build:
+    permissions:
+      contents: read
+
     strategy:
       matrix:
         include:
@@ -66,6 +66,8 @@ jobs:
   commit:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6.0.2
 
