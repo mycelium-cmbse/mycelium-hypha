@@ -39,7 +39,7 @@ walking up from the working directory when omitted), `--token`, `--log-level` an
 | `hypha fetch --tag <release>` | Downloads that release's inputs into `sources/<tag>/` and records it in `knowledge/versions.json`. |
 | `hypha generate [artifact]` | Generates the knowledge base. Every artifact for every installed release when nothing is narrowed. |
 | `hypha list` | Lists the installed releases and which one answers by default. |
-| `hypha move-window --tag <release> [--keep N]` | Fetches, regenerates, re-extracts specifications, re-blesses fixtures, verifies, then evicts releases outside the window (default `--keep`: 2). |
+| `hypha move-window --tag <release> [--keep N]` | Maintainer-only: fetches, regenerates, re-extracts specifications, re-blesses the metamodel-gen fixtures, verifies, then prunes locally-installed releases beyond `--keep` (default 2). |
 | `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
 | `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
 | `hypha check [--json]` | Compares installed releases against what is offerable upstream - no fetching, no generating; the one verb the plugin's `SessionStart` hook drives. |
@@ -59,14 +59,16 @@ because the cross-references read what the others write.
 
 ### Moving the release window
 
-`hypha move-window --tag <release>` is the one command that advances hypha to a newer upstream
-release: fetch → regenerate → re-extract specification text → re-bless the metamodel-gen test
-fixtures that follow the default release → evict whatever falls outside the window → verify the
-result regenerates byte-identical. `--keep` (default 2) sets how many releases the window holds;
-whichever fall outside it have their `sources/<tag>/` and `knowledge/<tag>/` deleted **immediately**,
-in the same run — nothing is left for later manual cleanup. Nothing is committed automatically:
-everything the command does, including the deletions, is still a `git checkout` away from undone
-until you commit.
+`hypha move-window --tag <release>` is a maintainer-only convenience for advancing to a newer upstream
+release in a source checkout: fetch → regenerate → re-extract specification text → re-bless
+`Hypha.MetamodelGen.Tests`' `Expected/` golden files against its committed XMI fixture (a fixed
+regression fixture, unrelated to the release just fetched - see CLAUDE.md's "Committed vs
+git-ignored") → prune whatever falls outside the local `--keep` count → verify the result regenerates
+self-consistently. `--keep` (default 2) is just how many releases stay installed locally; whichever
+fall outside it have their `sources/<tag>/` and `knowledge/<tag>/` deleted **immediately**, in the
+same run — nothing is left for later manual cleanup. Nothing is committed automatically, and nothing
+per-release is committed at all (see CLAUDE.md) — the deletions only ever touch the local, git-ignored
+`sources/`/`knowledge/` folders.
 
 It reports which step it is on as it goes and can take several minutes — specification extraction is
 the dominant cost. Unlike every other verb, **it needs a full source checkout with the .NET SDK and a

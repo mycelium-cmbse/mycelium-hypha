@@ -7,7 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Two things in one repository, scoped to the **OMG SysML v2 / KerML** standards (not UML):
 
 1. The **`hypha` Claude plugin** — `.claude-plugin/`, `skills/`, `agents/`, `commands/`, `hooks/`, and
-   the `knowledge/` base the plugin reads at runtime.
+   the `knowledge/` base the plugin reads at runtime. Nothing per-release under `knowledge/` is
+   committed (see "Committed vs git-ignored" below): a plugin install fetches and generates it on the
+   user's own machine, on request.
 2. The **generation pipelines** in `tools/` that build `knowledge/` from upstream OMG sources in
    `sources/`. The pipelines are not shipped with the plugin.
 
@@ -56,17 +58,21 @@ examples). The CLI resolves that collection; it does not know the artifact names
 generator adds its verb.
 
 `hypha move-window --tag <release>` is the one verb that deliberately crosses the CLI/test split
-above: it drives fetch → generate → the rest of this section's steps, then shells out to `dotnet
-test`/`pytest` as subordinate steps (re-blessing the metamodel-gen fixtures, then a final byte-
-identical regeneration check) before evicting whatever falls outside the rolling window. It is the
-one entry point for moving hypha to a newer release; see `tools/hypha-cli/README.md`.
+above: a maintainer-only, source-checkout-only convenience that drives fetch → generate → the rest of
+this section's steps, then shells out to `dotnet test`/`pytest` as subordinate steps (re-extracting
+specification text, re-blessing the `Hypha.MetamodelGen.Tests` `Expected/` fixtures, then a final
+self-consistency regeneration check) before pruning whichever locally-installed releases fall outside
+`--keep`. Nothing it does is committed automatically, and nothing it prunes was ever committed either
+- see `tools/hypha-cli/README.md`.
 
 Inputs are read from `RepositoryRoot`, output is written to `OutputRoot` (`--output`), which defaults
-to the same folder. That separation is what lets `KnowledgeRegenerationTests` regenerate everything
-into a scratch folder and compare it **byte for byte** against the committed files: the **committed
-files are the golden**, and proving they are still reproducible no longer means rewriting them.
-After an intended format change, regenerate with `hypha generate`, review the diff, and run the
-`[Explicit]` `Bless_*` tests for the metamodel expectations.
+to the same folder. That separation is what lets `KnowledgeRegenerationTests` fetch a release fresh
+and regenerate it twice into independent scratch folders, comparing the two runs **byte for byte**
+against *each other*: proof the generators are deterministic, not that they match a committed
+baseline - nothing per-release is committed to compare against any more (see "Committed vs
+git-ignored" below). After an intended format change, regenerate and review the diff by hand; the
+one real "matches a known-good baseline" check left is `Hypha.MetamodelGen.Tests`' `Expected/`
+golden files, re-blessed with its `[Explicit]` `Bless_expected_files` tests.
 
 - `spec-extract`'s `test_generate.py` writes the git-ignored `knowledge/<tag>/spec/` from
   `sources/<tag>/specs/*.pdf`. That is now all Python does here, and it is the one place the old
@@ -78,26 +84,50 @@ After an intended format change, regenerate with `hypha generate`, review the di
 
 ## Committed vs git-ignored (and why)
 
-- **Committed:** `knowledge/metamodel/`, `knowledge/textual-notation/`; `sources/xmi/` and
-  `sources/textual/` (both EPL-2.0); `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT
-  binary the plugin's `SessionStart` hook dispatches to (see `tools/hypha-cli/README.md`'s
-  "Automatic sync" section) — the only compiled binary this repository commits, and deliberately
-  *not* under `bin/`, which `.gitignore` otherwise excludes at any depth.
-- **Git-ignored — never commit:** `sources/specs/*.pdf` and the generated `knowledge/spec/`. These are
-  **full verbatim OMG specification text**; the OMG license forbids redistributing it, so it is
-  regenerated locally only, and needs a maintainer source checkout even when the PDFs are present
-  (`tools/spec-extract` is not shipped with the plugin). The plugin's `SessionStart` hook
-  (`Hypha.Tools.Hook`, `hooks/native/<rid>/hypha-hook`) tells the user when the PDFs are missing for
-  the default release.
+Nothing per-release is committed any more, for anything — not a rolling window of it, not one
+release. Every release's inputs and generated knowledge live entirely on the user's own machine, one
+uniform model instead of the licensing-driven split this used to have. See `skills/version-management/
+SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface that drives it.
+
+- **Git-ignored, per release:** `sources/<tag>/` (fetched inputs: XMI, textual sources, specification
+  PDFs) and `knowledge/<tag>/` (everything generated from them: metamodel, textual-notation,
+  model-library, cross-references.json, and - when the specifications are present - spec/), plus
+  `knowledge/versions.json`, the manifest recording which releases are installed locally and which one
+  is the default. `.gitignore`'s `/sources/*/` and `/knowledge/*/` patterns are root-anchored so they
+  only match this per-repository-root layout, not the small, deliberately-committed XMI fixture under
+  `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/` (see below).
+- **Committed, not per release:** `knowledge/README.md`, `knowledge/cross-references.schema.json`,
+  `knowledge/model-library.schema.json` (hand-authored, describe the shape rather than one release's
+  content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
+  `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT binary the plugin's `SessionStart` hook
+  dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section) — the only
+  compiled binary this repository commits, and deliberately *not* under `bin/`, which `.gitignore`
+  otherwise excludes at any depth.
+- **Committed as a test fixture, not a distributed one:** `tools/metamodel-gen/Hypha.MetamodelGen.Tests
+  /Fixtures/xmi/` holds one real release's XMI (captured from `TestModel.FixtureTag`), so
+  `Hypha.MetamodelGen.Tests` has something real to exercise the generators against without a network
+  fetch. It lives under `tools/`, which is never shipped with the plugin (see "What this repo is"
+  above), so committing it does not reintroduce a distributed knowledge floor - it only means this one
+  fixture release is no longer regression-tested against every other release, which is the accepted
+  consequence of dropping the committed floor entirely.
+- **Git-ignored, never commit, for any release:** `sources/<tag>/specs/*.pdf` and the generated
+  `knowledge/<tag>/spec/`. These are **full verbatim OMG specification text**; the OMG license forbids
+  redistributing it, so it is regenerated locally only, and needs a maintainer source checkout even
+  when the PDFs are present (`tools/spec-extract` is not shipped with the plugin). The plugin's
+  `SessionStart` hook (`Hypha.Tools.Hook`, `hooks/native/<rid>/hypha-hook`) tells the user when the
+  PDFs are missing for the default release.
 - Exact upstream sources, commits and licenses are recorded in `sources/README.md` and `NOTICE`.
   (Metamodel XMI ← `SysML-v2-Pilot-Implementation`; PDFs + textual sources ← `SysML-v2-Release`.)
 
-## Determinism of committed artifacts
+## Determinism of generated artifacts
 
-Anything generated and committed must be byte-stable: sort collections with `StringComparer.Ordinal`,
-emit LF (`.gitattributes` pins `knowledge/** eol=lf`), and include no timestamps, machine paths, or
+Anything generated must still be byte-stable: sort collections with `StringComparer.Ordinal`, emit LF
+(`.gitattributes` pins `knowledge/** eol=lf`), and include no timestamps, machine paths, or
 culture-sensitive formatting. JSON uses `System.Text.Json` with fixed options and `\r\n`→`\n`
-normalization. Golden tests compare against the committed files, so non-deterministic output breaks CI.
+normalization. That property is what `KnowledgeRegenerationTests` checks now (two independent runs
+must match each other byte for byte - see "The CLI generates, the tests verify" above), and it is what
+`Hypha.MetamodelGen.Tests`' `Expected/` golden files check against the committed XMI fixture; neither
+kind of test tolerates non-deterministic output.
 
 ## Knowledge-base shape (what the skills/agents consume)
 
@@ -118,7 +148,10 @@ normalization. Golden tests compare against the committed files, so non-determin
 - `knowledge/<tag>/cross-references.json` (+ `knowledge/cross-references.schema.json`) — element →
   clause **identifier**, grammar production, the metamodel features its syntax populates, and worked
   examples. Every edge carries its provenance tier and the method that produced it. **Never contains
-  clause text** — that is what lets it be committed while `knowledge/<tag>/spec/` cannot be.
+  clause text** — that is what would have let it be committed while `knowledge/<tag>/spec/` could not,
+  back when a rolling window of releases was committed at all; the distinction no longer matters for
+  what ships in git (nothing per-release does, see "Committed vs git-ignored" above), but it still
+  matters for what a spec-citation answer may quote versus merely cite.
 
 ## spec-extract pipeline (layered, char-based)
 

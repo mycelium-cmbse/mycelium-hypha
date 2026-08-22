@@ -37,7 +37,7 @@ namespace Hypha.MetamodelGen.Tests
             var model = TestModel.Model;
             if (model is null)
             {
-                Assert.Ignore("No SysML *.uml model found under sources/xmi/.");
+                Assert.Ignore("No SysML model found in the fixture.");
             }
 
             // The metaclasses to verify come from uml4net's ModelInspector, not a hard-coded list.

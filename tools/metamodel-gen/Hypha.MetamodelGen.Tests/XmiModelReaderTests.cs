@@ -43,18 +43,13 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         /// <summary>
-        /// Returns the metamodel entry point for the default release, under
-        /// <c>sources/&lt;tag&gt;/xmi/</c>: the <c>*.uml</c> model is preferred, falling back to a
-        /// <c>*.xmi</c> file (e.g. the shared primitive types). Returns <c>null</c> if none is found.
+        /// Returns the metamodel entry point under the committed test fixture
+        /// (<c>Fixtures/xmi/</c>, see <see cref="TestModel"/>): the <c>*.uml</c> model is preferred,
+        /// falling back to a <c>*.xmi</c> file. Returns <c>null</c> if none is found.
         /// </summary>
         private static string? TryLocateXmiFile()
         {
-            if (Repository.Layout?.DefaultTag is not { } tag)
-            {
-                return null;
-            }
-
-            var xmiDir = Repository.Layout!.Xmi(tag);
+            var xmiDir = new DirectoryInfo(Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", "xmi"));
             if (!xmiDir.Exists)
             {
                 return null;

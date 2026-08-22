@@ -21,13 +21,16 @@ namespace Hypha.Tools.Commands
         /// <summary>Re-extract the specification text from the release's PDFs.</summary>
         ExtractSpecifications,
 
-        /// <summary>Re-bless the metamodel-gen test fixtures that follow the default release.</summary>
+        /// <summary>
+        /// Re-bless the <c>Hypha.MetamodelGen.Tests</c> <c>Expected/</c> golden files against its
+        /// committed XMI fixture (a fixed regression fixture, independent of the release just fetched).
+        /// </summary>
         ReblessFixtures,
 
-        /// <summary>Drop the releases that fall outside the window.</summary>
+        /// <summary>Drop the locally-installed releases that fall outside <c>--keep</c>.</summary>
         Evict,
 
-        /// <summary>Confirm the committed knowledge base still regenerates byte-identical.</summary>
+        /// <summary>Confirm the regenerated knowledge base is self-consistent (see CLAUDE.md).</summary>
         Verify,
     }
 }

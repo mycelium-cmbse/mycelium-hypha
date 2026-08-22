@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **The committed knowledge floor** (`fixes #106`). `knowledge/2026-04/`, `knowledge/2026-05/`,
+  `sources/2026-04/`, `sources/2026-05/` and `knowledge/versions.json` are no longer committed to git -
+  2,120 files. Part 1 (`hypha use`/`remove`/`check`, below) landed the interactive mechanics while this
+  floor still existed, so they could be verified before anything was deleted; this closes #106 by
+  deleting it. A plugin install now fetches and generates *every* release identically, entirely on the
+  user's own machine, on request - not two privileged releases pre-installed and everything else
+  second-class.
+
+### Changed
+- **`.gitignore`, `CLAUDE.md`, `README.md`, `sources/README.md` and `knowledge/README.md`** rewritten
+  for the no-committed-floor model (`fixes #106`): `/sources/*/` and `/knowledge/*/` are now
+  root-anchored git-ignore patterns covering everything per-release, not just the OMG PDFs and their
+  extracted text.
+- **`Hypha.MetamodelGen.Tests` reads a committed test fixture instead of `sources/<tag>/xmi/`**
+  (`fixes #106`): one real release's XMI is committed under
+  `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/xmi/` - a fixture for this test project alone
+  (`tools/` is never shipped with the plugin), so the generators still have real regression coverage
+  without a network fetch or a reintroduced distributed knowledge floor. The accepted consequence:
+  only that one fixture release is exercised, not every installed release, since nothing per-release
+  is committed to loop over any more.
+- **`KnowledgeRegenerationTests`, `MetamodelJsonGoldenTests`, `MetamodelJsonInvariantTests` and
+  `PackageDiagramGoldenTests` redesigned** (`fixes #106`): with no committed `knowledge/<tag>/` left to
+  diff against, `KnowledgeRegenerationTests` now fetches one release fresh and asserts two independent
+  regenerations are byte-identical to *each other* (self-consistency, not a match against a
+  human-reviewed baseline - a real reduction in rigor, named as such in its own doc comment); the
+  metamodel-gen golden tests moved to the same committed-`Expected/`-fixture pattern
+  `MetaclassFileGoldenTests` already used.
+- **`hypha move-window`** (`refs #106`) is now documented and commented as the maintainer-only,
+  source-checkout-only convenience it always functionally was, not a way to move a *committed* rolling
+  window - its `--keep` count only ever governed which releases stay installed locally.
+
 ### Added
 - **`hypha use`, `hypha remove` and `hypha check`** (`refs #106`) replace `hypha sync`: switching the
   default release, removing one no longer wanted, and comparing installed releases against what is

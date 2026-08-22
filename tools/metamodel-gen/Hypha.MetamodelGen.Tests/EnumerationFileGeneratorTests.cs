@@ -36,7 +36,7 @@ namespace Hypha.MetamodelGen.Tests
         {
             if (TestModel.Model is null)
             {
-                Assert.Ignore("No SysML *.uml model found under sources/<tag>/xmi/.");
+                Assert.Ignore("No SysML model found in the fixture.");
             }
 
             DirectoryInfo? outputDirectory = null;

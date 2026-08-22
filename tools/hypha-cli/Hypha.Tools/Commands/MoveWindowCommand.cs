@@ -27,15 +27,18 @@ namespace Hypha.Tools.Commands
     using Spectre.Console;
 
     /// <summary>
-    /// Moves the rolling window to a release: fetches it, regenerates and verifies the knowledge
-    /// base, then evicts whichever releases no longer fit.
+    /// Advances the default release: fetches it, regenerates and verifies the knowledge base, then
+    /// prunes whichever locally-installed releases no longer fit the requested count.
     /// </summary>
     /// <remarks>
-    /// The one verb that is not self-contained: unlike <c>fetch</c>/<c>generate</c>, its re-bless and
-    /// verify steps shell out to <c>dotnet test</c> against the solution's own test projects, and its
-    /// specification-extraction step shells out to <c>pytest</c> in <c>tools/spec-extract</c>. It
-    /// needs a full source checkout with the .NET SDK and a provisioned <c>tools/spec-extract/.venv</c>
-    /// - it cannot run from the standalone distributed binary the other verbs work from.
+    /// A maintainer-only, source-checkout-only convenience - not a way to move a committed rolling
+    /// window, since nothing per-release is committed to git any more (see the repository root
+    /// <c>CLAUDE.md</c>'s "Committed vs git-ignored"). The one verb that is not self-contained: unlike
+    /// <c>fetch</c>/<c>generate</c>, its re-bless and verify steps shell out to <c>dotnet test</c>
+    /// against the solution's own test projects, and its specification-extraction step shells out to
+    /// <c>pytest</c> in <c>tools/spec-extract</c>. It needs a full source checkout with the .NET SDK
+    /// and a provisioned <c>tools/spec-extract/.venv</c> - it cannot run from the standalone
+    /// distributed binary the other verbs work from.
     /// </remarks>
     public sealed class MoveWindowCommand : Command
     {
