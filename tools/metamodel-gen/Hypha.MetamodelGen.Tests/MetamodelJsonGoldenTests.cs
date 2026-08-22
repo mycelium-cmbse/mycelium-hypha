@@ -9,7 +9,6 @@
 
 namespace Hypha.MetamodelGen.Tests
 {
-    using System.Collections.Generic;
     using System.IO;
     using System.Text;
 
@@ -18,71 +17,67 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     /// <summary>
-    /// Golden-file tests for the JSON sidecar. The committed <c>knowledge/metamodel/metamodel.json</c>
-    /// and <c>index.json</c> ARE the golden files (regenerated in-memory and compared), so the large
-    /// rich graph is not duplicated under <c>Expected/</c>.
+    /// Golden-file tests for the JSON sidecar, compared against a committed expected file under
+    /// <c>Expected/metamodel/</c> - the fixture model (see <see cref="TestModel"/>) is the only one
+    /// exercised now that nothing per-release is committed.
     /// </summary>
     [TestFixture]
     public class MetamodelJsonGoldenTests
     {
-        /// <summary>The installed release tags; each is golden-tested in its own right.</summary>
-        private static IEnumerable<string> Tags() => TestModel.Tags;
-
-        [TestCaseSource(nameof(Tags))]
-        public void Generated_metamodel_json_matches_committed(string tag)
+        [Test]
+        public void Generated_metamodel_json_matches_expected()
         {
-            AssertMatchesCommitted(tag, "metamodel.json", BuildMetamodelJson(tag));
-        }
-
-        [TestCaseSource(nameof(Tags))]
-        public void Generated_index_json_matches_committed(string tag)
-        {
-            AssertMatchesCommitted(tag, "index.json", BuildIndexJson(tag));
+            AssertMatchesExpected("metamodel.json", BuildMetamodelJson());
         }
 
         [Test]
-        [Explicit("Regenerates the committed knowledge-base JSON; run manually after an intended format change.")]
-        public void Bless_committed_files()
+        public void Generated_index_json_matches_expected()
         {
-            foreach (var tag in TestModel.Tags)
-            {
-                var directory = JsonSidecarTestSupport.KnowledgeDirectory(tag).FullName;
-                Directory.CreateDirectory(directory);
-
-                File.WriteAllText(
-                    Path.Combine(directory, "metamodel.json"), BuildMetamodelJson(tag), new UTF8Encoding(false));
-                File.WriteAllText(
-                    Path.Combine(directory, "index.json"), BuildIndexJson(tag), new UTF8Encoding(false));
-            }
+            AssertMatchesExpected("index.json", BuildIndexJson());
         }
 
-        private static string BuildMetamodelJson(string tag)
+        [Test]
+        [Explicit("Regenerates the committed expected JSON; run manually after an intended format change.")]
+        public void Bless_expected_files()
         {
-            var model = TestModel.ModelFor(tag);
-            Assert.That(model, Is.Not.Null, $"No SysML model found under sources/{tag}/xmi/.");
+            var directory = Path.Combine(
+                Repository.Layout!.Root.FullName,
+                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "metamodel");
+            Directory.CreateDirectory(directory);
+
+            File.WriteAllText(
+                Path.Combine(directory, "metamodel.json"), BuildMetamodelJson(), new UTF8Encoding(false));
+            File.WriteAllText(
+                Path.Combine(directory, "index.json"), BuildIndexJson(), new UTF8Encoding(false));
+        }
+
+        private static string BuildMetamodelJson()
+        {
+            var model = TestModel.Model;
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
 
             var document = MetamodelJsonGenerator.BuildDocument(
-                model!, JsonSidecarTestSupport.ComputeSourceHash(tag));
+                model!, JsonSidecarTestSupport.ComputeSourceHash());
             return MetamodelJsonGenerator.Serialize(document);
         }
 
-        private static string BuildIndexJson(string tag)
+        private static string BuildIndexJson()
         {
-            var model = TestModel.ModelFor(tag);
-            Assert.That(model, Is.Not.Null, $"No SysML model found under sources/{tag}/xmi/.");
+            var model = TestModel.Model;
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
 
             var document = MetamodelJsonGenerator.BuildDocument(
-                model!, JsonSidecarTestSupport.ComputeSourceHash(tag));
+                model!, JsonSidecarTestSupport.ComputeSourceHash());
             return MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildIndex(document));
         }
 
-        private static void AssertMatchesCommitted(string tag, string fileName, string generated)
+        private static void AssertMatchesExpected(string fileName, string generated)
         {
-            var committedPath = Path.Combine(JsonSidecarTestSupport.KnowledgeDirectory(tag).FullName, fileName);
-            Assert.That(File.Exists(committedPath), Is.True, $"Missing committed file: {committedPath}");
+            var expectedPath = Path.Combine(JsonSidecarTestSupport.ExpectedDirectory, fileName);
+            Assert.That(File.Exists(expectedPath), Is.True, $"Missing expected golden file: {expectedPath}");
 
-            var committed = JsonSidecarTestSupport.Normalize(File.ReadAllText(committedPath));
-            Assert.That(JsonSidecarTestSupport.Normalize(generated), Is.EqualTo(committed));
+            var expected = JsonSidecarTestSupport.Normalize(File.ReadAllText(expectedPath));
+            Assert.That(JsonSidecarTestSupport.Normalize(generated), Is.EqualTo(expected));
         }
     }
 }

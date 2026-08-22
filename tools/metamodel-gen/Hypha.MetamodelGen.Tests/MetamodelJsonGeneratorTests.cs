@@ -18,8 +18,8 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests for <see cref="MetamodelJsonGenerator"/>. Running these regenerates
-    /// <c>knowledge/metamodel/metamodel.json</c> and <c>index.json</c>.
+    /// Tests for <see cref="MetamodelJsonGenerator"/>, exercised against the fixture model and
+    /// written to a scratch directory (see <see cref="TestOutput"/>).
     /// </summary>
     [TestFixture]
     public class MetamodelJsonGeneratorTests
@@ -33,7 +33,7 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.Ignore("No SysML *.uml model found under sources/<tag>/xmi/.");
             }
 
-            var hash = JsonSidecarTestSupport.ComputeSourceHash(Repository.Layout?.DefaultTag!);
+            var hash = JsonSidecarTestSupport.ComputeSourceHash();
 
             var document = MetamodelJsonGenerator.BuildDocument(model!, hash);
 
@@ -51,7 +51,7 @@ namespace Hypha.MetamodelGen.Tests
             var second = MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildDocument(model!, hash));
             Assert.That(second, Is.EqualTo(first));
 
-            // Produce the committed knowledge-base files, for every installed release.
+            // Produce the sidecar files for the fixture release.
             foreach (var tag in TestModel.Tags)
             {
                 var tagModel = TestModel.ModelFor(tag);
@@ -59,7 +59,7 @@ namespace Hypha.MetamodelGen.Tests
 
                 var outputDirectory = TestOutput.Directory(tag);
                 await MetamodelJsonGenerator.GenerateAsync(
-                    tagModel!, outputDirectory, JsonSidecarTestSupport.ComputeSourceHash(tag));
+                    tagModel!, outputDirectory, JsonSidecarTestSupport.ComputeSourceHash());
 
                 Assert.Multiple(() =>
                 {

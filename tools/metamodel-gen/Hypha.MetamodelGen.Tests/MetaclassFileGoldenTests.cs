@@ -47,7 +47,7 @@ namespace Hypha.MetamodelGen.Tests
         public void Generated_element_matches_expected(string metaclassName)
         {
             var model = TestModel.Model;
-            Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
 
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);

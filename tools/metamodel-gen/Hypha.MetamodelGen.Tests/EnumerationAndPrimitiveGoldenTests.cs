@@ -60,7 +60,7 @@ namespace Hypha.MetamodelGen.Tests
         public void Generated_enumeration_matches_expected(string enumerationName)
         {
             var model = TestModel.Model;
-            Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
 
             var enumeration = ElementCatalog.Enumerations(model!).Single(e => e.Name == enumerationName);
             var generated = Normalize(new EnumerationFileGenerator().GenerateElement(enumeration));
@@ -72,7 +72,7 @@ namespace Hypha.MetamodelGen.Tests
         public void Generated_primitive_type_matches_expected(string primitiveTypeName)
         {
             var model = TestModel.Model;
-            Assert.That(model, Is.Not.Null, "No SysML model found under sources/xmi/.");
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
 
             var primitiveType = ElementCatalog.PrimitiveTypes(model!).Single(p => p.Name == primitiveTypeName);
             var generated = Normalize(new PrimitiveTypeFileGenerator().GenerateElement(primitiveType));

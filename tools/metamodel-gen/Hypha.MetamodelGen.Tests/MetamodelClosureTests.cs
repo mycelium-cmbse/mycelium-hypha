@@ -31,7 +31,7 @@ namespace Hypha.MetamodelGen.Tests
             var model = TestModel.Model;
             if (model is null)
             {
-                Assert.Ignore("No SysML model found under sources/xmi/.");
+                Assert.Ignore("No SysML model found in the fixture.");
             }
 
             document = MetamodelJsonGenerator.BuildDocument(model!, "test-hash");

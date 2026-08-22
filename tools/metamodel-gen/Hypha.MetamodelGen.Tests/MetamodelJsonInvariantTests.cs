@@ -10,7 +10,6 @@
 namespace Hypha.MetamodelGen.Tests
 {
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Text.Json;
 
@@ -19,8 +18,9 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     /// <summary>
-    /// Validates the committed JSON by round-tripping it back into the strongly-typed records (the
-    /// records are the schema) and asserting structural invariants.
+    /// Validates the generated JSON, round-tripped through serialization back into the strongly-typed
+    /// records (the records are the schema), and asserts structural invariants. Built fresh from the
+    /// fixture model each time - nothing per-release is committed for this to read any more.
     /// </summary>
     [TestFixture]
     public class MetamodelJsonInvariantTests
@@ -31,9 +31,28 @@ namespace Hypha.MetamodelGen.Tests
             PropertyNameCaseInsensitive = true,
         };
 
-        private static MetamodelDocument ReadDocument() => Read<MetamodelDocument>("metamodel.json");
+        private static MetamodelDocument ReadDocument()
+        {
+            var model = TestModel.Model;
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
 
-        private static MetamodelLookup ReadIndex() => Read<MetamodelLookup>("index.json");
+            var document = MetamodelJsonGenerator.BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
+            var json = MetamodelJsonGenerator.Serialize(document);
+
+            return JsonSerializer.Deserialize<MetamodelDocument>(json, Options)!;
+        }
+
+        private static MetamodelLookup ReadIndex()
+        {
+            var model = TestModel.Model;
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
+
+            var document = MetamodelJsonGenerator.BuildDocument(model!, JsonSidecarTestSupport.ComputeSourceHash());
+            var index = MetamodelJsonGenerator.BuildIndex(document);
+            var json = MetamodelJsonGenerator.Serialize(index);
+
+            return JsonSerializer.Deserialize<MetamodelLookup>(json, Options)!;
+        }
 
         [Test]
         public void Type_and_inheritance_references_resolve_to_a_class()
@@ -108,15 +127,5 @@ namespace Hypha.MetamodelGen.Tests
             }
         }
 
-        private static T Read<T>(string fileName)
-        {
-            // The invariants hold for every release; the default one stands in for all of them here,
-            // and the golden tests cover each installed tag byte-for-byte.
-            var path = Path.Combine(
-                JsonSidecarTestSupport.KnowledgeDirectory(Repository.Layout?.DefaultTag!).FullName, fileName);
-            Assert.That(File.Exists(path), Is.True, $"Missing committed file: {path}");
-
-            return JsonSerializer.Deserialize<T>(File.ReadAllText(path), Options)!;
-        }
     }
 }

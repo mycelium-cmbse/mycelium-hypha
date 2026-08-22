@@ -1,8 +1,10 @@
 # knowledge/
 
-The **generated knowledge base** that the Hypha plugin reads at runtime. This directory is
-committed so the plugin works without running the generation pipelines; regenerate it whenever
-the upstream OMG sources change.
+The **generated knowledge base** that the Hypha plugin reads at runtime, one folder per release tag.
+Nothing per-release here is committed to this repository any more — a plugin install fetches and
+generates it on the user's own machine, on request. See the root [`CLAUDE.md`](../CLAUDE.md)'s
+"Committed vs git-ignored" for the authoritative list of what *is* committed (schemas and shared
+inputs only) and [`sources/README.md`](../sources/README.md) for how a release is fetched.
 
 > Do not hand-edit generated files. Change the pipeline (`tools/`) or the source (`sources/`)
 > and regenerate. Curated content (currently only parts of `textual-notation/`) is the exception
@@ -12,33 +14,37 @@ the upstream OMG sources change.
 
 ```
 knowledge/
-├── metamodel/              Combined KerML + SysML v2 metamodel (one tree)
-│   ├── index.md            Manifest: every metaclass (+ enumeration, primitive type) → its element file
-│   └── elements/           One markdown file per element (metaclasses, enumerations, primitive types)
-├── spec/
-│   ├── kerml/              KerML 1.0 spec text, segmented by clause
-│   └── sysml2/             SysML v2 (Parts 1–2) spec text, segmented by clause
-└── textual-notation/
-    ├── index.md            Grammar summary + entry point
-    └── examples/           Worked SysML v2 / KerML textual-notation examples
+├── versions.json           Installed release tags + which is the default        (local, git-ignored)
+├── cross-references.schema.json, model-library.schema.json                      (committed)
+└── <tag>/                  e.g. 2026-05                                         (local, git-ignored)
+    ├── metamodel/          Combined KerML + SysML v2 metamodel (one tree)
+    │   ├── index.md        Manifest: every metaclass (+ enumeration, primitive type) → its element file
+    │   └── elements/       One markdown file per element (metaclasses, enumerations, primitive types)
+    ├── spec/
+    │   ├── kerml/          KerML 1.0 spec text, segmented by clause
+    │   └── sysml2/         SysML v2 (Parts 1–2) spec text, segmented by clause
+    ├── textual-notation/
+    │   ├── index.md        Grammar summary + entry point
+    │   └── examples/       Worked SysML v2 / KerML textual-notation examples
+    └── cross-references.json
 ```
 
 ## How it's generated
 
 | Output | Source | Pipeline |
 | --- | --- | --- |
-| `metamodel/` | `sources/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
-| `spec/` | `sources/specs/*.pdf` | `tools/spec-extract` (Python) — **git-ignored output** |
-| `textual-notation/` | `sources/textual/`, grammar (`bnf/`) | curated + scripted |
+| `<tag>/metamodel/` | `sources/<tag>/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
+| `<tag>/spec/` | `sources/<tag>/specs/*.pdf` | `tools/spec-extract` (Python) — git-ignored, needs a maintainer checkout |
+| `<tag>/textual-notation/` | `sources/<tag>/textual/`, grammar (`bnf/`) | `tools/knowledge-gen` (C#) |
+| `<tag>/cross-references.json` | the metamodel index + generated examples | `tools/knowledge-gen` (C#) |
 
 The exact upstream source, version and commit of each input (and its license) are recorded in
 [`sources/README.md`](../sources/README.md#provenance), so a regenerated knowledge base is traceable
 to a specific specification version.
 
-> **Exception:** `spec/` holds verbatim OMG specification text and is **git-ignored** — it is *not*
-> committed (OMG licensing forbids redistributing the spec). Regenerate it locally by running
-> `tools/spec-extract`'s tests with the PDFs present in `sources/specs/`. Everything else under
-> `knowledge/` is committed.
+> `spec/` holds verbatim OMG specification text (OMG licensing forbids redistributing it) and needs a
+> maintainer source checkout of `tools/spec-extract` to generate even locally — every other `<tag>/`
+> subfolder is a plain `hypha generate --tag <tag>` away. Neither is committed: see `CLAUDE.md`.
 
 ## Element file convention (`metamodel/elements`)
 

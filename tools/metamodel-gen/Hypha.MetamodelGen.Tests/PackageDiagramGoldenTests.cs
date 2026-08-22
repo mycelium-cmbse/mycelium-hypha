@@ -18,75 +18,68 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     /// <summary>
-    /// Golden-file tests for the package diagrams. As with the JSON sidecar, the committed
-    /// <c>knowledge/metamodel/diagrams/*.md</c> ARE the golden files (regenerated in-memory and
-    /// compared), so 41 diagrams are not duplicated under <c>Expected/</c>.
+    /// Golden-file tests for the package diagrams, compared against committed expected files under
+    /// <c>Expected/metamodel/diagrams/</c> - the fixture model (see <see cref="TestModel"/>) is the
+    /// only one exercised now that nothing per-release is committed.
     /// </summary>
     [TestFixture]
     public class PackageDiagramGoldenTests
     {
-        /// <summary>
-        /// Every (release tag, package) pair to golden-test. Both dimensions are discovered – the
-        /// tags from the manifest, the packages from the generator – never hard-coded.
-        /// </summary>
-        private static IEnumerable<TestCaseData> TaggedPackages()
+        /// <summary>The packages to golden-test, discovered from the generator, never hard-coded.</summary>
+        private static IEnumerable<string> PackageNames()
         {
-            foreach (var tag in TestModel.Tags)
+            var model = TestModel.Model;
+            if (model is null)
             {
-                var model = TestModel.ModelFor(tag);
-                if (model is null)
-                {
-                    continue;
-                }
+                yield break;
+            }
 
-                foreach (var payload in PackageDiagramGenerator.CreatePayloads(model))
-                {
-                    yield return new TestCaseData(tag, payload.Package).SetName(
-                        $"Generated_diagram_matches_committed({tag},{payload.Package})");
-                }
+            foreach (var payload in PackageDiagramGenerator.CreatePayloads(model))
+            {
+                yield return payload.Package;
             }
         }
 
-        [TestCaseSource(nameof(TaggedPackages))]
-        public void Generated_diagram_matches_committed(string tag, string packageName)
+        [TestCaseSource(nameof(PackageNames))]
+        public void Generated_diagram_matches_expected(string packageName)
         {
-            var committedPath = Path.Combine(DiagramDirectory(tag), $"{packageName}.md");
-            Assert.That(File.Exists(committedPath), Is.True, $"Missing committed diagram: {committedPath}");
+            var expectedPath = Path.Combine(DiagramDirectory(), $"{packageName}.md");
+            Assert.That(File.Exists(expectedPath), Is.True, $"Missing expected diagram: {expectedPath}");
 
-            var committed = Normalize(File.ReadAllText(committedPath));
+            var expected = Normalize(File.ReadAllText(expectedPath));
 
-            Assert.That(Normalize(Build(tag, packageName)), Is.EqualTo(committed));
+            Assert.That(Normalize(Build(packageName)), Is.EqualTo(expected));
         }
 
         [Test]
-        [Explicit("Regenerates the committed knowledge-base diagrams; run manually after an intended format change.")]
-        public void Bless_committed_files()
+        [Explicit("Regenerates the committed expected diagrams; run manually after an intended format change.")]
+        public void Bless_expected_files()
         {
-            foreach (var tag in TestModel.Tags)
+            var model = TestModel.Model;
+            if (model is null)
             {
-                var model = TestModel.ModelFor(tag);
-                if (model is null)
-                {
-                    continue;
-                }
+                return;
+            }
 
-                var directory = DiagramDirectory(tag);
-                Directory.CreateDirectory(directory);
+            var directory = Path.Combine(
+                Repository.Layout!.Root.FullName,
+                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "metamodel",
+                PackageDiagramGenerator.DiagramDirectoryName);
+            Directory.CreateDirectory(directory);
 
-                foreach (var payload in PackageDiagramGenerator.CreatePayloads(model))
-                {
-                    File.WriteAllText(
-                        Path.Combine(directory, $"{payload.Package}.md"),
-                        Build(tag, payload.Package),
-                        new UTF8Encoding(false));
-                }
+            foreach (var payload in PackageDiagramGenerator.CreatePayloads(model))
+            {
+                File.WriteAllText(
+                    Path.Combine(directory, $"{payload.Package}.md"),
+                    Build(payload.Package),
+                    new UTF8Encoding(false));
             }
         }
 
-        private static string Build(string tag, string packageName)
+        private static string Build(string packageName)
         {
-            var model = TestModel.ModelFor(tag);
-            Assert.That(model, Is.Not.Null, $"No SysML model found under sources/{tag}/xmi/.");
+            var model = TestModel.Model;
+            Assert.That(model, Is.Not.Null, "No SysML model found in the fixture.");
 
             var generator = new PackageDiagramGenerator();
 
@@ -98,13 +91,13 @@ namespace Hypha.MetamodelGen.Tests
                 }
             }
 
-            Assert.Fail($"The generator produced no payload for package '{packageName}' at {tag}.");
+            Assert.Fail($"The generator produced no payload for package '{packageName}'.");
             return string.Empty;
         }
 
-        private static string DiagramDirectory(string tag) =>
+        private static string DiagramDirectory() =>
             Path.Combine(
-                Repository.Layout!.Metamodel(tag).FullName,
+                TestContext.CurrentContext.TestDirectory, "Expected", "metamodel",
                 PackageDiagramGenerator.DiagramDirectoryName);
 
         private static string Normalize(string text) => text.Replace("\r\n", "\n").TrimEnd('\n');
