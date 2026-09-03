@@ -28,7 +28,8 @@ namespace Hypha.Knowledge.Generation
     /// <remarks>
     /// Runs last: it reads the metamodel index and the generated example pages, so both have to exist
     /// first. It does <b>not</b> need the OMG specifications - see #88 for how the title-matched clause
-    /// edges survive without them.
+    /// edges survive without them, and #113 for why that no longer depends on a committed prior
+    /// document to carry them from.
     /// </remarks>
     public sealed class CrossReferenceGenerator : IKnowledgeGenerator
     {
@@ -161,6 +162,19 @@ namespace Hypha.Knowledge.Generation
                     StringComparer.Ordinal);
             }
 
+            // Neither source of title-matched edges exists: no specification PDFs were extracted (the
+            // ordinary case for every install without a maintainer source checkout - see #113) and
+            // nothing was carried forward (nothing is committed for any release any more - see #106).
+            // That combination is no longer the rare accident CrossReferenceInputs.AllowGrammarOnly's
+            // doc comment describes; it is the default state of a real install, so state the
+            // grammar-only document is intended rather than let the builder refuse it.
+            var grammarOnly = clauseTitles.Count == 0 && carried.Count == 0;
+
+            if (grammarOnly)
+            {
+                GenerationLog.Degraded(this.logger, this.Artifact, tag);
+            }
+
             return new CrossReferenceInputs
             {
                 Elements = elements,
@@ -168,6 +182,7 @@ namespace Hypha.Knowledge.Generation
                 Documents = documents,
                 ClauseTitles = clauseTitles,
                 CarriedClauseEdges = carried,
+                AllowGrammarOnly = grammarOnly,
                 Productions = Project(parsed, value => this.links.MetaclassLinks(value, names)),
                 GrammarClauses = Project(parsed, value => this.links.ClauseLinks(value, names)),
                 GrammarFeatures = Project(parsed, value => this.links.FeatureLinks(value, names)),

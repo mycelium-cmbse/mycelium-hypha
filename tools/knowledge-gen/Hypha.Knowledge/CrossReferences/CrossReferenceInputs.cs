@@ -55,11 +55,13 @@ namespace Hypha.Knowledge.CrossReferences
         /// Permits a document built from the grammar alone, with no title-matched clause edges at all.
         /// </summary>
         /// <remarks>
-        /// Off by default, because the combination that reaches it is almost always an accident: a new
-        /// release tag on a machine without the specification PDFs has neither a clause catalog to
-        /// match against nor a previous document to carry from, and would otherwise be written with
-        /// roughly a third of its clause edges missing and nothing failing. Setting this says the
-        /// grammar-only document is what was wanted.
+        /// Off by default for anyone building <see cref="CrossReferenceInputs"/> directly - a document
+        /// missing roughly a third of its clause edges should never be written silently. But
+        /// <c>CrossReferenceGenerator</c> sets it whenever neither <see cref="ClauseTitles"/> nor
+        /// <see cref="CarriedClauseEdges"/> has anything: a release tag with no specification PDFs
+        /// extracted (no maintainer source checkout) and nothing committed to carry forward from
+        /// (nothing is committed for any release any more - see #106) is not an accident any more, it
+        /// is the default state of a real install - see #113.
         /// </remarks>
         public bool AllowGrammarOnly { get; init; }
 

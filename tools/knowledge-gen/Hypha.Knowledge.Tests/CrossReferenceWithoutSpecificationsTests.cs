@@ -22,8 +22,10 @@ namespace Hypha.Knowledge.Tests
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// The claim from #88, checked on the real knowledge base rather than on synthetic data: the
-    /// cross-references come out the same whether or not the OMG specifications are present.
+    /// #88's carry-forward mechanism no longer has a committed document to carry from - nothing is
+    /// committed for any release any more (see #106) - so a release with no specification catalog
+    /// extracted (the ordinary case for every install without a maintainer source checkout) must
+    /// still generate rather than refuse (see #113).
     /// </summary>
     /// <remarks>
     /// The catalog is hidden by decorating the layout rather than by moving files about, so the test
@@ -33,23 +35,30 @@ namespace Hypha.Knowledge.Tests
     public class CrossReferenceWithoutSpecificationsTests
     {
         [Test]
-        public async Task The_same_document_is_produced_without_the_specification_catalog()
+        public async Task Generation_degrades_gracefully_instead_of_refusing()
         {
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
             var layout = provider.GetRequiredService<IKnowledgeLayout>();
             var tag = layout.DefaultTag;
 
-            if (tag is null || !layout.SpecificationCatalog(tag, "kerml").Exists)
+            if (tag is null)
             {
-                Assert.Ignore("the specification catalog has not been extracted");
+                Assert.Ignore("no release is installed locally to generate for");
                 return;
             }
 
-            var withCatalog = await Generate(provider, layout, tag);
-            var withoutCatalog = await Generate(provider, new WithoutSpecifications(layout), tag);
+            // CommittedCrossReferences is already always missing in this repository - nothing is
+            // committed for any release any more - so forcing the specification catalog missing too
+            // reproduces exactly what every real end-user's install has: neither source of
+            // title-matched edges.
+            var withoutCatalogOrCommitted = await Generate(provider, new WithoutSpecifications(layout), tag);
 
-            Assert.That(withoutCatalog, Is.EqualTo(withCatalog));
+            Assert.That(withoutCatalogOrCommitted, Does.Contain("\"schemaVersion\""));
+            Assert.That(
+                withoutCatalogOrCommitted,
+                Does.Not.Contain("\"title\""),
+                "the licensing guarantee: no clause title may reach this file");
         }
 
         private static async Task<string> Generate(
