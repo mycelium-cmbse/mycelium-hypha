@@ -110,10 +110,18 @@ jobs:
         # The test suite exercises the generators in-process, where the assembly has a location on
         # disk and the templates sit beside it. A single-file bundle has neither, so it can fail in
         # ways nothing else here would notice - it did once, on Assembly.Location. Run the artifact
-        # that ships, over the committed sources, and let it prove it still generates.
+        # that ships, and let it prove it still fetches and generates.
+        #
+        # Nothing is committed to fetch a release from any more (see #106): `generate` has nothing to
+        # do until something is actually fetched first. 2026-05 is the same tag committed as
+        # Hypha.MetamodelGen.Tests' XMI fixture, so it is known-good; --no-specs skips the large,
+        # unneeded OMG specification PDFs.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Raises the anonymous API's 60 requests/hour limit
         run: |
           set -euo pipefail
-          ./publish/linux-x64/hypha generate --no-logo --output "${RUNNER_TEMP}/smoke"
+          ./publish/linux-x64/hypha fetch --tag 2026-05 --no-specs --no-logo
+          ./publish/linux-x64/hypha generate --tag 2026-05 --no-logo --output "${RUNNER_TEMP}/smoke"
 
           count=$(find "${RUNNER_TEMP}/smoke/knowledge" -type f | wc -l)
           if [ "$count" -lt 100 ]; then
