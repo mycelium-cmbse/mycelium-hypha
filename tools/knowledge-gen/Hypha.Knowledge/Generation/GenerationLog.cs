@@ -38,6 +38,13 @@ namespace Hypha.Knowledge.Generation
                 new EventId(3, nameof(Skipped)),
                 "Skipped {Artifact} for {Tag}: {Reason}");
 
+        private static readonly Action<ILogger, string, string, Exception?> DegradedMessage =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Warning,
+                new EventId(4, nameof(Degraded)),
+                "Generating {Artifact} for {Tag} without clause-title edges: no specification clause "
+                + "catalog and no previous document to carry matches from");
+
         /// <summary>Work is about to begin.</summary>
         public static void Started(ILogger logger, string artifact, string tag) =>
             StartedMessage(logger, artifact, tag, null);
@@ -49,6 +56,10 @@ namespace Hypha.Knowledge.Generation
         /// <summary>Nothing was written, and why.</summary>
         public static void Skipped(ILogger logger, string artifact, string tag, string reason) =>
             SkippedMessage(logger, artifact, tag, reason, null);
+
+        /// <summary>The artifact is about to be written with less than its full quality.</summary>
+        public static void Degraded(ILogger logger, string artifact, string tag) =>
+            DegradedMessage(logger, artifact, tag, null);
 
         /// <summary>Reports whichever outcome a result carries.</summary>
         public static GenerationResult Report(
