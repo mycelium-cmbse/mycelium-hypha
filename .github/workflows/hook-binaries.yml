@@ -96,11 +96,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- hooks/native; then
+          git add hooks/native
+
+          if git diff --cached --quiet -- hooks/native; then
             echo "::notice::hooks/native is already up to date; nothing to commit."
             exit 0
           fi
 
-          git add hooks/native
           git commit -m "[Add] rebuild the hook binaries for hooks/native/"
           git push

@@ -54,6 +54,22 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install spec-extract dependencies (Python)
+        # A real .venv, not the runner's system interpreter, matching the documented local setup:
+        # `move-window`'s pre-flight check looks for tools/spec-extract/.venv/bin/python and fails
+        # the step - and every test asserting on it - if it's missing. Wheels only (no source
+        # builds / setup scripts) and pinned to the committed lock. Prepending its bin to PATH lets
+        # `dotnet test` resolve to this venv without changing how it's invoked.
+        run: |
+          python -m venv tools/spec-extract/.venv
+          tools/spec-extract/.venv/bin/pip install --only-binary :all: --no-deps -r tools/spec-extract/requirements-dev.lock
+          echo "$PWD/tools/spec-extract/.venv/bin" >> "$GITHUB_PATH"
+
       - name: Build and test
         # The knowledge base is committed, and the tests prove the generators still reproduce it.
         # Shipping a build that cannot is the one failure this release must not carry.
