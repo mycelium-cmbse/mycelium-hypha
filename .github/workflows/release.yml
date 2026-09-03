@@ -195,6 +195,8 @@ jobs:
         # `tools-v*`, not `v*`: the bare `vX.Y.Z` tags are the plugin's, and marketplace.json pins
         # its source.ref to them. The tool and the plugin version independently.
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "tools-v${VERSION}" -m "hypha tools ${VERSION}"
           git push origin "refs/tags/tools-v${VERSION}"
 
