@@ -29,18 +29,27 @@ mycelium-hypha/
 
 ## Install
 
-In Claude Code, add the marketplace and install the plugin:
+1. In Claude Code, add the marketplace and install the plugin:
 
-```
-/plugin marketplace add mycelium-cmbse/mycelium-hypha
-/plugin install hypha@mycelium
-```
+   ```
+   /plugin marketplace add mycelium-cmbse/mycelium-hypha
+   /plugin install hypha@mycelium
+   ```
 
-Installing adds a `SessionStart` hook that compares what's installed locally against what's offerable
-upstream — silently, feeding what it finds into Claude's context rather than printing anything to your
-terminal. So expect no install-time output at all: the first visible sign anything happened is Claude
-naming the available releases and offering to fetch one, the first time you ask it a SysML v2/KerML
-question in a new session after installing.
+   `/plugin list` confirms it's installed — but installing adds a `SessionStart` hook, and that hook
+   only runs at session start, so nothing about SysML v2/KerML data happens yet.
+
+2. **Start a new session** (or restart your current one) so that hook actually runs. It quietly
+   compares what's installed locally against what's offerable upstream and feeds the result into
+   Claude's context — expect no visible output from this step.
+
+3. Ask it a SysML v2/KerML question. Claude will report that nothing is installed yet, name the
+   releases available upstream, and ask which one to fetch — this is the first visible sign anything
+   happened. Confirm a release, and it fetches and generates it for you (see [Releases](#releases)).
+
+4. Ask your real question. Metamodel lookup and validation now work from what's installed;
+   **spec citation additionally needs the specification text generated locally** (see
+   [The knowledge base](#the-knowledge-base)).
 
 ### Recommended: `jq`
 
@@ -56,11 +65,7 @@ Hypha still works without `jq`: the skills fall back to reading the per-element 
 slower, pulls far more into context, and cannot distinguish a field match from a mention in prose. If
 you use metamodel lookup or validation regularly, install it.
 
-Then use the skills: ask a metamodel-lookup question, request a spec citation, or paste SysML v2
-textual notation to validate. The first time, Claude will ask which release to fetch (see
-[Releases](#releases) below) — after that, metamodel lookup and validation work from what's installed;
-**spec citation additionally needs the specification text generated locally** (see below). For
-example:
+Example prompts for step 4 above:
 
 - *Metamodel lookup* – "What features does `PartUsage` own and inherit?", "How does `ConnectionUsage`
   relate to `ConnectionDefinition`?", or "Which metaclasses specialize `Feature`?"
