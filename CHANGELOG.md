@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-04
+
 ### Removed
 - **The committed knowledge floor** (`fixes #106`). `knowledge/2026-04/`, `knowledge/2026-05/`,
   `sources/2026-04/`, `sources/2026-05/` and `knowledge/versions.json` are no longer committed to git -
