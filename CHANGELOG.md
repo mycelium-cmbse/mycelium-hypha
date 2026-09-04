@@ -60,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fetch entirely to the user. The same hook also folds in what `hooks/check-spec-pdfs.py` used to do
   separately (naming missing OMG PDFs for the default release), so the plugin needs one
   `SessionStart` hook instead of two, and no longer depends on Python being present just to run it.
+- **The `SessionStart` hook now also runs on `resume`, not only `startup`** (`refs #117`). A resumed
+  session (`claude --resume`/`--continue`) used to skip the check entirely; `plugin.json`'s matcher is
+  now `startup|resume`, so a long-running or resumed session still gets a fresh comparison against
+  what's offerable upstream.
 
 ### Removed
 - **`hypha sync` and the background/lock/status-file machinery it needed** (`refs #106`). Detached
