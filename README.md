@@ -9,67 +9,49 @@ textual-notation validation.
 
 mycelium-hypha is two things in one repository:
 
-1. **A Claude plugin** (`hypha`) – the skills and subagents an engineer installs to get grounded
-   answers about KerML and SysML v2, backed by a knowledge base fetched and generated on your own
-   machine, on request — nothing per-release is committed to this repository.
-2. **The generation pipelines** that build that knowledge base from the upstream OMG sources (the
-   metamodel XMI, the specification PDFs, and the textual-notation grammar and examples).
+1. **The `hypha` Claude plugin** – skills and subagents that give grounded answers about KerML and
+   SysML v2, backed by a knowledge base fetched and generated on your own machine, on request.
+   Nothing per-release is committed to this repository.
+2. **The generation pipelines** (`tools/`) that build that knowledge base from the upstream OMG
+   sources. They are not part of the installed plugin – see [Contributing](#contributing) if you
+   want to work on them.
 
 ```
 mycelium-hypha/
-├── .claude-plugin/         Plugin + marketplace manifests (plugin.json, marketplace.json)
-├── hooks/                  Plugin hooks (SessionStart: compares installed releases against upstream)
-│
-├── skills/                 Skills (user- and model-invocable workflows)
-│   ├── metamodel-lookup/
-│   ├── model-library-lookup/
-│   ├── spec-citation/
-│   ├── sysml-validation/
-│   └── version-management/
-│
-├── agents/                 Subagents (metamodel-navigator, spec-citation, sysml-validator)
-│
-├── knowledge/              Knowledge base the plugin reads, one folder per release tag
-│   ├── versions.json       Installed release tags + which is the default      (local, git-ignored)
-│   ├── *.schema.json       Cross-reference / model-library schemas, not per-release   (committed)
-│   └── <tag>/              e.g. 2026-05                                       (local, git-ignored)
-│       ├── textual-notation/  Keyword reference + every model shipped at the tag, verbatim
-│       ├── model-library/  Standard model libraries (ISQ, ScalarValues, SysML.sysml, ...), verbatim,
-│       │                   + a qualified-name → declaration index.json
-│       ├── metamodel/      Combined KerML + SysML v2 metamodel: one file per element, + index.json,
-│       │                   metamodel.json (the structural graph) and
-│       │                   diagrams/ (a Mermaid class diagram per package)
-│       ├── spec/           Per-clause specification text          (generated locally, git-ignored)
-│       └── cross-references.json  Element → clause id, grammar production, example
-│
-├── sources/                Raw inputs, one folder per release tag (see sources/README.md)
-│   ├── PrimitiveTypes.xmi  OMG UML primitives library         (shared by every release, committed)
-│   └── <tag>/                                                 (local, git-ignored)
-│       ├── xmi/            Metamodel XMI                      (EPL-2.0)
-│       ├── specs/          OMG PDF specifications             (copyrighted)
-│       └── textual/        Grammar + example models and standard model libraries  (EPL-2.0)
-│
-└── tools/                  Generation pipelines (not part of the shipped plugin)
-    ├── knowledge-gen/      C#:           releases (discovery, fetching, versions.json); BNF + models -> textual-notation/; cross-references.json
-    ├── metamodel-gen/      C# (uml4net): XMI → knowledge/<tag>/metamodel/ (elements, index, JSON sidecar, diagrams)
-    │                       Its tests keep one committed XMI fixture for regression coverage — see CLAUDE.md
-    └── spec-extract/       Python:       PDFs -> knowledge/<tag>/spec/ (git-ignored) — the only Python left
+├── .claude-plugin/   Plugin + marketplace manifests
+├── hooks/            SessionStart hook – checks installed releases against upstream
+├── skills/           Conversational workflows (metamodel lookup, spec citation, validation, ...)
+├── agents/           Subagents backing those skills
+├── knowledge/        Knowledge base – fetched and generated locally, one folder per release tag
+├── sources/          Raw OMG inputs – fetched locally, one folder per release tag
+└── tools/            Generation pipelines (not part of the installed plugin)
 ```
 
 ## Install
 
-In Claude Code, add the marketplace and install the plugin:
+1. In Claude Code, add the marketplace and install the plugin:
 
-```
-/plugin marketplace add mycelium-cmbse/mycelium-hypha
-/plugin install hypha@mycelium
-```
+   ```
+   /plugin marketplace add mycelium-cmbse/mycelium-hypha
+   /plugin install hypha@mycelium
+   ```
 
-Installing adds a `SessionStart` hook that compares what's installed locally against what's offerable
-upstream — silently, feeding what it finds into Claude's context rather than printing anything to your
-terminal. So expect no install-time output at all: the first visible sign anything happened is Claude
-naming the available releases and offering to fetch one, the first time you ask it a SysML v2/KerML
-question in a new session after installing.
+   `/plugin list` confirms it's installed – but installing adds a `SessionStart` hook, and that hook
+   only runs at session start, so nothing about SysML v2/KerML data happens yet.
+
+2. **Start a new session, or resume one** (`claude --resume`/`--continue`), so that hook actually
+   runs – it doesn't fire mid-session. It quietly compares what's installed locally against what's
+   offerable upstream and feeds the result into Claude's context – expect no visible output from this
+   step.
+
+3. Ask it, for example, "what SysML v2 releases are available?" Claude will report that nothing is
+   installed yet, name the releases available upstream, and ask which one to fetch – this is the
+   first visible sign anything happened. Confirm a release, and it fetches and generates it for you
+   (see [Releases](#releases)).
+
+4. Ask your real question. Metamodel lookup and validation now work from what's installed;
+   **spec citation additionally needs the specification text generated locally** (see
+   [The knowledge base](#the-knowledge-base)).
 
 ### Recommended: `jq`
 
@@ -85,11 +67,7 @@ Hypha still works without `jq`: the skills fall back to reading the per-element 
 slower, pulls far more into context, and cannot distinguish a field match from a mention in prose. If
 you use metamodel lookup or validation regularly, install it.
 
-Then use the skills: ask a metamodel-lookup question, request a spec citation, or paste SysML v2
-textual notation to validate. The first time, Claude will ask which release to fetch (see
-[Releases](#releases) below) — after that, metamodel lookup and validation work from what's installed;
-**spec citation additionally needs the specification text generated locally** (see below). For
-example:
+Example prompts for step 4 above:
 
 - *Metamodel lookup* – "What features does `PartUsage` own and inherit?", "How does `ConnectionUsage`
   relate to `ConnectionDefinition`?", or "Which metaclasses specialize `Feature`?"
@@ -99,57 +77,32 @@ example:
 
 ## Releases
 
-KerML and SysML v2 are released on a rolling tag cadence (`YYYY-MM`) across two upstream
-repositories, and hypha generates its knowledge base **per release tag**. A hypha version is one tag
-that exists in *both* upstreams — the metamodel XMI comes from the Pilot-Implementation repo, the
-specs, grammar and models from the Release repo.
+KerML and SysML v2 are released on a rolling tag cadence (`YYYY-MM`), and hypha generates its
+knowledge base **per release tag**. Nothing is pre-installed – the first thing a fresh install does
+is ask which release to fetch.
 
-Nothing generated is committed to git: a plugin install fetches and generates every release entirely
-on your own machine, on request. `knowledge/versions.json` records which releases your checkout
-carries locally and which one answers by default; there is no pre-installed floor, so the first thing
-a fresh install does is ask which release to fetch. `hypha check` compares what you have installed
-against what's offerable upstream and tells you when something newer exists; `hypha fetch --tag
-<release>` + `hypha generate --tag <release>` gets it, `hypha use --tag <release>` switches which one
-answers by default, and `hypha remove --tag <release>` drops one you no longer want. All of this is
-driven conversationally through the `version-management` skill — see
-[tools/hypha-cli](tools/hypha-cli/README.md).
-
-The **tag is the version identifier.** The model URI inside the XMI (`…/SysML/20250201`) is
-deliberately ignored: it tracks neither the release nor the content — the 2026-05 metamodel still
-declares a 2025 URI. A consequence, and an accepted one, is that the same model may appear under
-several tags.
+Manage this conversationally, in plain language – "what releases are available", "fetch the latest",
+"switch to 2026-04", "remove 2026-03" – and Claude drives the underlying `hypha` CLI for you (`check`
+/ `fetch` / `generate` / `use` / `remove` – see [tools/hypha-cli](tools/hypha-cli/README.md) if you
+want to run it yourself). It always says what the current default release is, and asks before
+fetching (real time, real bandwidth) or removing (deletes that release's files for good).
 
 The skills state which release an answer came from, and answer from the default unless you name one.
 
 ## The knowledge base
 
-| Tree | Built from | Pipeline | Committed? |
-| --- | --- | --- | --- |
-| `knowledge/<tag>/metamodel/` | `sources/<tag>/xmi/*.uml` | `tools/metamodel-gen` (C# / uml4net) | **git-ignored – fetch + generate locally** |
-| `knowledge/<tag>/spec/` | `sources/<tag>/specs/*.pdf` | `tools/spec-extract` (Python) | **git-ignored – regenerate locally (maintainer checkout only)** |
-| `knowledge/<tag>/textual-notation/` | `sources/<tag>/textual/` (grammar + models) | `tools/knowledge-gen` (C#) | **git-ignored – fetch + generate locally** |
-| `knowledge/<tag>/model-library/` | `sources/<tag>/textual/sysml.library/` | `tools/knowledge-gen` (C#) | **git-ignored – fetch + generate locally** |
-| `knowledge/<tag>/cross-references.json` | the trees above | `tools/knowledge-gen` (C#) | **git-ignored – fetch + generate locally** |
+Once a release is fetched and generated, hypha answers from:
 
-All of it is generated by one command – `hypha generate` (see
-[tools/hypha-cli](tools/hypha-cli/README.md)), installable as a `dotnet tool` or as a self-contained
-executable that needs no toolchain at all. **.NET alone produces every per-release artifact**; Python
-is needed only for the git-ignored `knowledge/<tag>/spec/` text.
+- **the metamodel** – every KerML / SysML v2 metaclass, its features, generalizations and constraints
+- **the textual notation** – the full keyword reference, plus every example model the release ships
+- **the model library** – the standard libraries (ISQ, ScalarValues, SysML.sysml, ...)
+- **cross-references** – links from each metamodel element to the specification clause, grammar
+  production and worked example that treat it, so an answer can point back to *why*
 
-Nothing per-release is committed any more (see #106): a plugin install fetches and generates every
-release identically, entirely on your own machine, on request – `hypha fetch --tag <release>` then
-`hypha generate --tag <release>`, or let Claude drive it through the `version-management` skill.
-`knowledge/<tag>/spec/` additionally needs the three OMG specification PDFs and a maintainer source
-checkout of `tools/spec-extract` (Python) to turn them into quotable text – not available from an
-installed plugin. Metamodel lookup and validation work fully without it; spec citation can still name
-the governing clause, just not quote it verbatim.
-
-`cross-references.json` links each metamodel element to the clauses that treat it, its grammar
-production and any worked example. It records clause **identifiers only, never clause text** – the
-distinction that let it be committed while `knowledge/<tag>/spec/` couldn't, back when a rolling window
-of releases was committed at all. That no longer matters for what ships in git (nothing per-release
-does), but it still matters for what a spec-citation answer may quote (only `knowledge/<tag>/spec/`,
-when present) versus merely cite (`cross-references.json`, generated for every release).
+**Spec citation needs one more step.** Quoting the normative specification text verbatim needs the
+three OMG PDFs, plus a full source checkout to regenerate them into text – not something an installed
+plugin has. Without it, metamodel lookup and validation still work fully, and spec citation can still
+name the governing clause, just not quote the text itself.
 
 ### Provenance
 
@@ -160,10 +113,10 @@ with the data, in the `provenanceTiers` block of `cross-references.json`.
 
 ## Sources
 
-- [Systems-Modeling/SysML-v2-Pilot-Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) – the metamodel XMI (`sources/<tag>/xmi/`, EPL-2.0).
-- [Systems-Modeling/SysML-v2-Release](https://github.com/Systems-Modeling/SysML-v2-Release) – the specification PDFs (`doc/`) and the textual-notation grammar (`bnf/`) and example models.
-- [STARIONGROUP/uml4net](https://github.com/STARIONGROUP/uml4net) – C# library to read XMI models.
-- [STARIONGROUP/SysML2.NET](https://github.com/STARIONGROUP/SysML2.NET) – .NET implementation of the OMG SysML v2 specification, used as a reference for the generator.
+The knowledge base comes from two upstream OMG repositories, one release tag at a time:
+
+- [Systems-Modeling/SysML-v2-Pilot-Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) – the metamodel XMI.
+- [Systems-Modeling/SysML-v2-Release](https://github.com/Systems-Modeling/SysML-v2-Release) – the specification PDFs, the textual-notation grammar, and the example models.
 
 Exact upstream commits and versions are recorded in [sources/README.md](sources/README.md).
 
