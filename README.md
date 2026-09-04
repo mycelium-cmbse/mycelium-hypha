@@ -36,15 +36,15 @@ mycelium-hypha/
    /plugin install hypha@mycelium
    ```
 
-   `/plugin list` confirms it's installed — but installing adds a `SessionStart` hook, and that hook
+   `/plugin list` confirms it's installed – but installing adds a `SessionStart` hook, and that hook
    only runs at session start, so nothing about SysML v2/KerML data happens yet.
 
 2. **Start a new session** (or restart your current one) so that hook actually runs. It quietly
    compares what's installed locally against what's offerable upstream and feeds the result into
-   Claude's context — expect no visible output from this step.
+   Claude's context – expect no visible output from this step.
 
 3. Ask it a SysML v2/KerML question. Claude will report that nothing is installed yet, name the
-   releases available upstream, and ask which one to fetch — this is the first visible sign anything
+   releases available upstream, and ask which one to fetch – this is the first visible sign anything
    happened. Confirm a release, and it fetches and generates it for you (see [Releases](#releases)).
 
 4. Ask your real question. Metamodel lookup and validation now work from what's installed;
