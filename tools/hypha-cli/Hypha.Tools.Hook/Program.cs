@@ -49,10 +49,14 @@ namespace Hypha.Tools.Hook
         }
 
         /// <summary>
-        /// The hook's real work, taking the HTTP client as a parameter so a test can supply a stub
-        /// transport instead of a real one reaching GitHub.
+        /// The hook's real work, taking the HTTP client and the cache root resolver as parameters so a
+        /// test can supply a stub transport and an isolated cache directory instead of a real one
+        /// reaching GitHub and the real, shared <c>%LOCALAPPDATA%\mycelium-hypha</c> (or platform
+        /// equivalent) - which a test must never read from or write to, since a machine that has
+        /// actually used this hook before may already have a matching version/RID cached there.
         /// </summary>
-        internal static async Task RunAsync(HttpClient client)
+        internal static async Task RunAsync(
+            HttpClient client, Func<Environment.SpecialFolder, string>? getFolderPath = null)
         {
             var pluginRoot = ResolvePluginRoot();
             var version = ReadPinnedCliVersion(pluginRoot);
@@ -63,7 +67,8 @@ namespace Hypha.Tools.Hook
             }
 
             var rid = RuntimeInformation.RuntimeIdentifier;
-            var cache = new CacheLayout(CacheLayout.ResolveRoot(), CacheLayout.ComputeInstallKey(pluginRoot.FullName));
+            var cache = new CacheLayout(
+                CacheLayout.ResolveRoot(getFolderPath), CacheLayout.ComputeInstallKey(pluginRoot.FullName));
 
             var provisioner = new CliProvisioner(client);
 
