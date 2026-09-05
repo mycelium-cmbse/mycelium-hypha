@@ -78,9 +78,11 @@ jobs:
           dotnet test mycelium-hypha.sln --no-restore
 
       - name: Pack the dotnet tool
+        # GenerateSBOM=true embeds an SPDX 2.2 manifest in the .nupkg under _manifest/ (Microsoft.Sbom.Targets'
+        # own AfterTargets="Pack" hook - see Hypha.Tools.csproj).
         run: |
           dotnet pack tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj \
-            -c Release -p:Version="${VERSION}" -o ReleaseBuilds
+            -c Release -p:Version="${VERSION}" -p:GenerateSBOM=true -o ReleaseBuilds
 
       - name: Push to NuGet
         env:
@@ -96,12 +98,15 @@ jobs:
             -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Publish a self-contained executable per platform
+        # GenerateSBOM=true runs Hypha.Tools.csproj's GenerateSbomForPublish target (Microsoft.Sbom.Targets
+        # itself only hooks Pack), writing an SPDX 2.2 manifest under publish/$RID/_manifest/ - archived
+        # into each platform's zip below, alongside its own bytes.
         run: |
           set -euo pipefail
           for RID in win-x64 linux-x64 osx-x64 osx-arm64; do
             dotnet publish tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj \
               -c Release -r "$RID" --self-contained true \
-              -p:PublishSingleFile=true -p:Version="${VERSION}" \
+              -p:PublishSingleFile=true -p:Version="${VERSION}" -p:GenerateSBOM=true \
               -o "publish/$RID"
             echo "published $RID"
           done
@@ -180,6 +185,8 @@ jobs:
             echo
             echo "Or download the self-contained build for your platform below - it bundles the .NET"
             echo "runtime, so nothing needs installing."
+            echo
+            echo "Each archive (and the \`.nupkg\`) carries an SPDX 2.2 SBOM under \`_manifest/\`."
             echo
             echo "| asset | SHA256 |"
             echo "| --- | --- |"
