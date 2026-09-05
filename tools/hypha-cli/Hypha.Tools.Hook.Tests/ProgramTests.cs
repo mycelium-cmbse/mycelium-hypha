@@ -35,6 +35,7 @@ namespace Hypha.Tools.Hook.Tests
 
         private string? previousEnvironmentValue;
         private DirectoryInfo workspace = null!;
+        private DirectoryInfo cacheRoot = null!;
 
         [SetUp]
         public void SetUp()
@@ -44,6 +45,12 @@ namespace Hypha.Tools.Hook.Tests
 
             this.workspace = Directory.CreateDirectory(
                 Path.Combine(Path.GetTempPath(), $"hypha-hook-program-{Guid.NewGuid():N}"));
+
+            // Never the real %LOCALAPPDATA%\mycelium-hypha: a machine that has actually used this hook
+            // before may already have the test's chosen version/RID cached there, which would make
+            // CliProvisioner.EnsureAsync's IsCached check skip the network the test means to exercise.
+            this.cacheRoot = Directory.CreateDirectory(
+                Path.Combine(Path.GetTempPath(), $"hypha-hook-cache-{Guid.NewGuid():N}"));
         }
 
         [TearDown]
@@ -58,7 +65,18 @@ namespace Hypha.Tools.Hook.Tests
             {
                 this.workspace.Delete(recursive: true);
             }
+
+            this.cacheRoot.Refresh();
+            if (this.cacheRoot.Exists)
+            {
+                this.cacheRoot.Delete(recursive: true);
+            }
         }
+
+        private string ResolveIsolatedCacheFolder(Environment.SpecialFolder folder) =>
+            folder == Environment.SpecialFolder.LocalApplicationData
+                ? this.cacheRoot.FullName
+                : throw new InvalidOperationException("unexpected folder requested");
 
         [Test]
         public void ResolvePluginRoot_uses_the_environment_variable_when_set()
@@ -146,7 +164,7 @@ namespace Hypha.Tools.Hook.Tests
 
             var handler = new CountingHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
 
-            await Program.RunAsync(new HttpClient(handler));
+            await Program.RunAsync(new HttpClient(handler), this.ResolveIsolatedCacheFolder);
 
             Assert.That(handler.Requests, Is.EqualTo(0));
         }
@@ -163,7 +181,8 @@ namespace Hypha.Tools.Hook.Tests
             // simply returns once it sees no executable came back - never reaching CheckRunner at all.
             Assert.That(
                 async () => await Program.RunAsync(
-                    new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") }),
+                    new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") },
+                    this.ResolveIsolatedCacheFolder),
                 Throws.Nothing);
 
             Assert.That(handler.Requests, Is.EqualTo(1));
