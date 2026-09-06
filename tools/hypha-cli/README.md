@@ -54,8 +54,16 @@ hypha generate --output /tmp/knowledge      # generate without touching the repo
 
 The artifact names are not a fixed list: they are whatever `IKnowledgeGenerator` implementations are
 registered, so `hypha generate nonsense` reports the ones that exist. Today they are `metamodel`,
-`grammar-references`, `textual-notation`, `model-library` and `cross-references`, run in that order
-because the cross-references read what the others write.
+`grammar-references`, `textual-notation`, `model-library`, `spec` and `cross-references`, run in that
+order because the cross-references read what the others write.
+
+`spec` is unlike the rest: it needs the OMG spec PDFs (`hypha fetch` gets them by default; pass
+`--no-specs` to skip) and, the first time it runs, fetches and caches its own copy of
+[`uv`](https://github.com/astral-sh/uv), which resolves or fetches a matching Python itself and
+installs `tools/spec-extract`'s dependencies into a managed venv on demand - so it needs neither a
+pre-existing Python nor a provisioned `.venv`. Either input being unavailable (no PDFs fetched, offline
+on first `uv` provisioning) is a `Skipped` result, the same as any other generator missing its inputs;
+it never blocks the rest of a `hypha generate` run.
 
 ### Moving the release window
 
@@ -123,9 +131,11 @@ Each session start, that binary:
 `hypha fetch --tag <release>` downloads the OMG specification PDFs **by default** now - a fully local
 install needs everything, and downloading them is a plain HTTP call with no toolchain implication.
 Pass `--no-specs` to skip them. They land in the git-ignored `sources/<tag>/specs/` and must never be
-committed. Only *quoting* their text (`knowledge/<tag>/spec/`) needs Python and a maintainer source
-checkout – see [`tools/spec-extract`](../spec-extract/README.md); an installed plugin does not have
-that checkout, so spec-citation can name the governing clause but not quote it verbatim.
+committed. *Quoting* their text (`knowledge/<tag>/spec/`) is `hypha generate`'s `spec` artifact - see
+[`tools/spec-extract`](../spec-extract/README.md) - which needs neither Python nor a maintainer source
+checkout of its own any more: it fetches and caches `uv`, which resolves or fetches a matching Python
+itself. The one remaining way spec-citation degrades to naming a clause rather than quoting it is `uv`
+itself being unprovisionable (offline on its first use, or an unsupported platform).
 
 ### Exit codes
 

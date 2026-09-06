@@ -55,10 +55,13 @@ hypha generate --tag <tag>
 Either way, say what the default is afterward - it's easy for the user to lose track of which release
 they're now getting answers from.
 
-Quoting normative specification text (`knowledge/<tag>/spec/`) needs Python and a maintainer source
-checkout (`tools/spec-extract`) that an installed plugin does not have - `fetch`/`generate` still give
-full metamodel-lookup and sysml-validation, and spec-citation can still name the governing clause, just
-not quote it verbatim. Say so if the user specifically asked for spec citation.
+Quoting normative specification text (`knowledge/<tag>/spec/`) is `generate`'s `spec` artifact: it
+fetches and caches `uv`, which resolves or fetches a matching Python itself and runs
+`tools/spec-extract` through it - no maintainer source checkout or pre-existing Python needed. The one
+way this still degrades to naming a clause rather than quoting it is `uv` itself being unprovisionable
+(offline the first time it's needed, or an unsupported platform); `generate` reports that as a `Skipped`
+result with a reason, the same as any other artifact missing its inputs. Say so if the user specifically
+asked for spec citation and it came back skipped.
 
 ## Switching the default release
 

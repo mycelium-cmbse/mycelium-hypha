@@ -29,6 +29,8 @@ metadata only, never clause text. Clause files are named by zero-padded clause n
 
 > `knowledge/<tag>/spec/` is **generated locally** by `tools/spec-extract` from your own copies of the OMG
 > PDFs and is **not shipped** with the plugin (OMG licensing forbids redistributing the spec text).
+> `hypha generate` fetches and caches `uv` to run that extraction automatically once the PDFs are
+> present (`hypha fetch` gets them by default) — no maintainer source checkout needed any more.
 
 - `knowledge/<tag>/cross-references.json` — **committed**, and available even when the clause text is not.
   It maps each metamodel element to the clause identifiers that treat it. It holds clause *numbers*
@@ -42,8 +44,8 @@ Do not simply refuse. Degrade in this order:
    `jq '.entries["PartUsage"].clauses' knowledge/<tag>/cross-references.json`.
 2. Say plainly that you are giving a clause *reference*, not a quotation, and that the reference is
    `DERIVED` (matched by name) rather than read from the specification.
-3. Tell the user how to unlock verbatim text — obtain the PDFs and regenerate with
-   `tools/spec-extract`.
+3. Tell the user how to unlock verbatim text — `hypha fetch --tag <tag>` for the PDFs (if not already
+   present) then `hypha generate --tag <tag>`, which now provisions everything else on its own.
 
 Never invent or paraphrase the wording of a clause you cannot read. A pointer to the right clause is
 useful; a fabricated quotation is not.
