@@ -16,6 +16,7 @@ namespace Hypha.Knowledge
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
+    using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
@@ -116,6 +117,10 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<ICrossReferenceBuilder, CrossReferenceBuilder>();
             services.AddSingleton<IKnowledgeReader, KnowledgeReader>();
+
+            // The one seam for shelling out - move-window's spec-extract/metamodel-gen steps and the
+            // SpecGenerator's on-demand `uv` invocation both go through this.
+            services.AddSingleton<IProcessRunner, SystemProcessRunner>();
 
             // Registered as a collection: a full run is a loop over Order, not a list of calls each
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
