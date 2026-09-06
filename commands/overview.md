@@ -16,8 +16,8 @@ selected automatically. Three capabilities:
   - *"What features does `PartUsage` own and inherit?"*
   - *"How does `ConnectionUsage` relate to `ConnectionDefinition`?"*
   - *"Which metaclasses specialize `Feature`?"*
-- **Spec citation** – the exact normative wording, with a clause reference. (Needs the OMG PDFs locally;
-  see below.)
+- **Spec citation** – the exact normative wording, with a clause reference. (Needs the OMG spec PDFs
+  fetched locally; see below.)
   - *"What does the SysML v2 spec say about conformance?"*
   - *"Quote the normative rule for redefinition."*
 - **Validation** – check SysML v2 / KerML textual notation against the grammar and metamodel, and
@@ -26,9 +26,12 @@ selected automatically. Three capabilities:
 
 ## Spec citation needs the OMG PDFs
 
-The specification text is **not shipped** (the OMG license forbids redistributing it). To enable spec
-citation, download these three PDFs into `sources/specs/`, then regenerate `knowledge/<tag>/spec/` by running
-`tools/spec-extract` (see its README):
+The specification text is **not shipped** (the OMG license forbids redistributing it), but nothing
+needs downloading or running by hand any more: `hypha fetch` downloads the PDFs into
+`sources/<tag>/specs/` by default (pass `--no-specs` to skip them), and `hypha generate` extracts the
+clause text from them automatically – it fetches and caches [`uv`](https://docs.astral.sh/uv/), which
+resolves or fetches a matching Python itself and runs `tools/spec-extract` through it, so no
+pre-installed Python or maintainer source checkout is needed. The source documents:
 
 - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/1-Kernel_Modeling_Language.pdf
 - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/2a-OMG_Systems_Modeling_Language.pdf
