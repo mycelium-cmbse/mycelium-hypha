@@ -112,10 +112,12 @@ SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface th
   consequence of dropping the committed floor entirely.
 - **Git-ignored, never commit, for any release:** `sources/<tag>/specs/*.pdf` and the generated
   `knowledge/<tag>/spec/`. These are **full verbatim OMG specification text**; the OMG license forbids
-  redistributing it, so it is regenerated locally only, and needs a maintainer source checkout even
-  when the PDFs are present (`tools/spec-extract` is not shipped with the plugin). The plugin's
-  `SessionStart` hook (`Hypha.Tools.Hook`, `hooks/native/<rid>/hypha-hook`) tells the user when the
-  PDFs are missing for the default release.
+  redistributing it, so it is regenerated locally only. `hypha generate`'s `spec` artifact
+  (`SpecGenerator`) drives this: it fetches and caches `uv`, which resolves or fetches a matching
+  Python itself and runs `tools/spec-extract` through it, so this no longer needs a maintainer source
+  checkout or a pre-provisioned `.venv` - only the PDFs (`hypha fetch`, by default) and, the first time,
+  network access to provision `uv`. The plugin's `SessionStart` hook (`Hypha.Tools.Hook`,
+  `hooks/native/<rid>/hypha-hook`) tells the user when the PDFs are missing for the default release.
 - Exact upstream sources, commits and licenses are recorded in `sources/README.md` and `NOTICE`.
   (Metamodel XMI ← `SysML-v2-Pilot-Implementation`; PDFs + textual sources ← `SysML-v2-Release`.)
 

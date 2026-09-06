@@ -7,7 +7,7 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Tests
+namespace Hypha.Knowledge.Tests
 {
     using System;
     using System.Diagnostics;
@@ -15,7 +15,7 @@ namespace Hypha.Tools.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Hypha.Tools.Hosting;
+    using Hypha.Knowledge.Hosting;
 
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
@@ -23,10 +23,10 @@ namespace Hypha.Tools.Tests
     using Moq;
 
     /// <summary>
-    /// Suite of tests for <see cref="SystemProcessRunner"/>: it is the one seam in <c>move-window</c>
-    /// that shells out to a real <see cref="Process"/>, so it is exercised against real short-lived
-    /// child processes rather than mocked - there is nothing left to fake once the process boundary
-    /// itself is what is under test.
+    /// Suite of tests for <see cref="SystemProcessRunner"/>: it is the one seam that shells out to a
+    /// real <see cref="Process"/>, so it is exercised against real short-lived child processes rather
+    /// than mocked - there is nothing left to fake once the process boundary itself is what is under
+    /// test.
     /// </summary>
     [TestFixture]
     public class SystemProcessRunnerTests

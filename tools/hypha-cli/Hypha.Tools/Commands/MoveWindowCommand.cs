@@ -18,9 +18,9 @@ namespace Hypha.Tools.Commands
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Generation;
+    using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
-    using Hypha.Tools.Hosting;
 
     using Microsoft.Extensions.Logging;
 

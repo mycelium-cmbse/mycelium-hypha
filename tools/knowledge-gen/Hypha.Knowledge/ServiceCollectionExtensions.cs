@@ -11,17 +11,21 @@ namespace Hypha.Knowledge
 {
     using System;
     using System.IO;
+    using System.Net.Http;
     using System.Net.Http.Headers;
 
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
+    using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
+    using Hypha.Knowledge.Toolchain;
 
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Registers the knowledge services, so the CLI (see #81) composes them in one place instead of
@@ -117,11 +121,20 @@ namespace Hypha.Knowledge
             services.AddSingleton<ICrossReferenceBuilder, CrossReferenceBuilder>();
             services.AddSingleton<IKnowledgeReader, KnowledgeReader>();
 
+            // The one seam for shelling out - move-window's spec-extract/metamodel-gen steps and the
+            // SpecGenerator's on-demand `uv` invocation both go through this.
+            services.AddSingleton<IProcessRunner, SystemProcessRunner>();
+
+            services.AddSingleton<IUvProvisioner>(provider => new UvProvisioner(
+                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
+                provider.GetRequiredService<ILogger<UvProvisioner>>()));
+
             // Registered as a collection: a full run is a loop over Order, not a list of calls each
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
             services.AddSingleton<IKnowledgeGenerator, GrammarReferenceGenerator>();
             services.AddSingleton<IKnowledgeGenerator, TextualNotationGenerator>();
             services.AddSingleton<IKnowledgeGenerator, ModelLibraryGenerator>();
+            services.AddSingleton<IKnowledgeGenerator, SpecGenerator>();
             services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
 
             services.AddSingleton<IKnowledgeLayout>(_ =>

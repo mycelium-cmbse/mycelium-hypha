@@ -7,7 +7,7 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hosting
+namespace Hypha.Knowledge.Hosting
 {
     using System;
     using System.Diagnostics;
@@ -22,9 +22,10 @@ namespace Hypha.Tools.Hosting
     /// through <see cref="ILogger"/> line by line as it runs.
     /// </summary>
     /// <remarks>
-    /// Streamed rather than captured-and-printed-at-the-end: the step this exists for (specification
-    /// extraction) takes several minutes and prints nothing of its own, so a caller watching the
-    /// console needs to see it is making progress, not just that it eventually finished.
+    /// Streamed rather than captured-and-printed-at-the-end: the steps this exists for (specification
+    /// extraction, provisioning <c>uv</c>) take from several seconds to several minutes and print
+    /// nothing of their own, so a caller watching the console needs to see it is making progress, not
+    /// just that it eventually finished.
     /// </remarks>
     public sealed class SystemProcessRunner : IProcessRunner
     {

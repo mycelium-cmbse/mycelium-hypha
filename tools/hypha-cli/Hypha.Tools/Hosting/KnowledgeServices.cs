@@ -75,8 +75,6 @@ namespace Hypha.Tools.Hosting
                 builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
             });
 
-            services.AddSingleton<IProcessRunner, SystemProcessRunner>();
-
             return services.BuildServiceProvider();
         }
 

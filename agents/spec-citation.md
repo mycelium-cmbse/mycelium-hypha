@@ -24,7 +24,9 @@ clause number → `{title, pages, normative, file}`, metadata only) mapping ever
 clauses). Clause files are named by zero-padded clause number + slug (e.g. `07.04.02-concrete-syntax.md`).
 
 > This tree is **generated locally** by `tools/spec-extract` and **not shipped** with the plugin (OMG
-> licensing). If it is empty, the spec text has not been regenerated — say so rather than fabricating.
+> licensing). `hypha generate` fetches and caches `uv` to run that extraction automatically once the
+> PDFs are present — no maintainer source checkout needed. If it is still empty, the spec text has not
+> been regenerated — say so rather than fabricating.
 
 ## Clause file structure
 

@@ -7,15 +7,16 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hosting
+namespace Hypha.Knowledge.Hosting
 {
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Runs an external command and waits for it, for the one verb that has to shell out - the
-    /// spec-extract and metamodel-gen steps <c>move-window</c> drives have no in-process seam.
+    /// Runs an external command and waits for it, for the verbs that have to shell out - the
+    /// spec-extract and metamodel-gen steps <c>move-window</c> drives, and <c>uv</c> for on-demand
+    /// spec extraction, have no in-process seam.
     /// </summary>
     public interface IProcessRunner
     {

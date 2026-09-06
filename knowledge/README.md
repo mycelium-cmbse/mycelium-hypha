@@ -34,7 +34,7 @@ knowledge/
 | Output | Source | Pipeline |
 | --- | --- | --- |
 | `<tag>/metamodel/` | `sources/<tag>/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
-| `<tag>/spec/` | `sources/<tag>/specs/*.pdf` | `tools/spec-extract` (Python) — git-ignored, needs a maintainer checkout |
+| `<tag>/spec/` | `sources/<tag>/specs/*.pdf` | `tools/spec-extract` (Python), run through `uv` on demand — git-ignored |
 | `<tag>/textual-notation/` | `sources/<tag>/textual/`, grammar (`bnf/`) | `tools/knowledge-gen` (C#) |
 | `<tag>/cross-references.json` | the metamodel index + generated examples | `tools/knowledge-gen` (C#) |
 
@@ -42,9 +42,11 @@ The exact upstream source, version and commit of each input (and its license) ar
 [`sources/README.md`](../sources/README.md#provenance), so a regenerated knowledge base is traceable
 to a specific specification version.
 
-> `spec/` holds verbatim OMG specification text (OMG licensing forbids redistributing it) and needs a
-> maintainer source checkout of `tools/spec-extract` to generate even locally — every other `<tag>/`
-> subfolder is a plain `hypha generate --tag <tag>` away. Neither is committed: see `CLAUDE.md`.
+> `spec/` holds verbatim OMG specification text (OMG licensing forbids redistributing it), but like
+> every other `<tag>/` subfolder it is now a plain `hypha generate --tag <tag>` away: `SpecGenerator`
+> fetches and caches `uv`, which resolves or fetches a matching Python itself and runs
+> `tools/spec-extract` through it - no maintainer source checkout needed. Neither is committed: see
+> `CLAUDE.md`.
 
 ## Element file convention (`metamodel/elements`)
 

@@ -59,10 +59,11 @@ checkout starts from. Fetching a release writes a new `sources/<tag>/` folder; n
 committed.
 
 The OMG PDFs are downloaded by default now (`hypha fetch --tag <release>`, opt out with
-`--no-specs`) - a fully local install needs everything a plain HTTP call can get it, though *quoting*
-their text still needs a maintainer source checkout (see `tools/spec-extract/README.md`). The
-plugin's `SessionStart` hook (`Hypha.Tools.Hook`, see `tools/hypha-cli/README.md`'s "Automatic version
-check" section) still names the exact files and tagged URLs when they're missing for the default
+`--no-specs`) - a fully local install needs everything a plain HTTP call can get it. *Quoting* their
+text is `hypha generate`'s `spec` artifact (see `tools/spec-extract/README.md`), which fetches and
+caches `uv` to run it - no maintainer source checkout needed any more. The plugin's `SessionStart` hook
+(`Hypha.Tools.Hook`, see `tools/hypha-cli/README.md`'s "Automatic version check" section) still names
+the exact files and tagged URLs when they're missing for the default
 release, folded into the same message that reports newer releases.
 
 ### One uniform model, entirely local
