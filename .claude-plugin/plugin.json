@@ -27,6 +27,7 @@
         "hooks": [
           {
             "type": "command",
+            "shell": "bash",
             "command": "case \"$(uname -s)-$(uname -m)\" in Linux-*) exec \"${CLAUDE_PLUGIN_ROOT}/hooks/native/linux-x64/hypha-hook\" ;; Darwin-arm64) exec \"${CLAUDE_PLUGIN_ROOT}/hooks/native/osx-arm64/hypha-hook\" ;; Darwin-*) exec \"${CLAUDE_PLUGIN_ROOT}/hooks/native/osx-x64/hypha-hook\" ;; MINGW*|CYGWIN*|MSYS*) exec \"${CLAUDE_PLUGIN_ROOT}/hooks/native/win-x64/hypha-hook.exe\" ;; esac"
           }
         ]

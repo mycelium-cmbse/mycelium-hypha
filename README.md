@@ -42,7 +42,8 @@ mycelium-hypha/
 2. **Start a new session, or resume one** (`claude --resume`/`--continue`), so that hook actually
    runs – it doesn't fire mid-session. It quietly compares what's installed locally against what's
    offerable upstream and feeds the result into Claude's context – expect no visible output from this
-   step.
+   step. **On Windows, this hook requires [Git for Windows](https://gitforwindows.org/)** (for Git
+   Bash) – Claude Code reports a clear error naming the missing shell if it isn't installed.
 
 3. Ask it, for example, "what SysML v2 releases are available?" Claude will report that nothing is
    installed yet, name the releases available upstream, and ask which one to fetch – this is the
