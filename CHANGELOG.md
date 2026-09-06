@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-06
+
 ### Added
 - **`hypha generate`'s new `spec` artifact quotes verbatim OMG spec text without a maintainer source
   checkout** (`fixes #129`, tools `1.3.0`). `SpecGenerator` fetches and caches
