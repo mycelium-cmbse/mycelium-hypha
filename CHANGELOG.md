@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`hypha generate`'s new `spec` artifact quotes verbatim OMG spec text without a maintainer source
+  checkout** (`fixes #129`, tools `1.3.0`). `SpecGenerator` fetches and caches
+  [`uv`](https://github.com/astral-sh/uv), which resolves or fetches a matching Python itself and runs
+  `tools/spec-extract` (Python/pdfplumber) through it - no pre-existing Python or provisioned `.venv`
+  needed. A C# port of the pipeline was evaluated first (the PdfPig comparison spike, #128) and
+  rejected: even after fixing a real bug, it still fell short of the mature Python pipeline's quality,
+  and a port can at best tie Python, never beat it. `tools/spec-extract` also gained a real CLI entry
+  point (`python -m spec_extract`) alongside its existing pytest-driven maintainer flow.
+
 ## [2.0.0] - 2026-09-04
 
 ### Removed
