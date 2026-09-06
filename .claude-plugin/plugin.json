@@ -19,7 +19,7 @@
     "metamodel",
     "systems-engineering"
   ],
-  "hyphaCliVersion": "1.2.0",
+  "hyphaCliVersion": "1.3.0",
   "hooks": {
     "SessionStart": [
       {
