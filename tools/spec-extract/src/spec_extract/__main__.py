@@ -24,6 +24,7 @@ SYSML_PDF = "2a-OMG_Systems_Modeling_Language.pdf"
 def main(argv: list[str] | None = None) -> int:
     """Extracts one release's spec text; returns a process exit code."""
     args = _parse_args(argv)
+    out_root = args.out_root or args.repo_root
     specs_dir = args.repo_root / "sources" / args.tag / "specs"
 
     targets = [
@@ -42,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"no clauses extracted from {pdf.name} for {args.tag}", file=sys.stderr)
             return 1
 
-        out_dir = args.repo_root / "knowledge" / args.tag / "spec" / meta.out_subdir
+        out_dir = out_root / "knowledge" / args.tag / "spec" / meta.out_subdir
         write_clauses(clauses, out_dir)
         write_index(clauses, out_dir)
         write_index_json(clauses, out_dir)
@@ -55,8 +56,19 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         prog="python -m spec_extract",
         description="Extract one release's KerML + SysML spec text into knowledge/<tag>/spec/.",
     )
-    parser.add_argument("--repo-root", required=True, type=Path, help="the repository root")
+    parser.add_argument(
+        "--repo-root",
+        required=True,
+        type=Path,
+        help="the repository root (reads sources/<tag>/specs/ from here)",
+    )
     parser.add_argument("--tag", required=True, help="the release tag, e.g. 2026-05")
+    parser.add_argument(
+        "--out-root",
+        type=Path,
+        default=None,
+        help="where knowledge/<tag>/spec/ is written; defaults to --repo-root",
+    )
     return parser.parse_args(argv)
 
 

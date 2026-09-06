@@ -31,6 +31,7 @@ namespace Hypha.Knowledge.Tests
     public class SpecGeneratorTests
     {
         private DirectoryInfo root = null!;
+        private DirectoryInfo outputRoot = null!;
         private Mock<IKnowledgeLayout> layout = null!;
         private Mock<IUvProvisioner> uv = null!;
         private Mock<IProcessRunner> processes = null!;
@@ -39,16 +40,24 @@ namespace Hypha.Knowledge.Tests
         [SetUp]
         public void SetUp()
         {
-            this.root = new DirectoryInfo(
-                Path.Combine(Path.GetTempPath(), "hypha-spec-generator-" + Guid.NewGuid().ToString("N")));
+            var unique = Guid.NewGuid().ToString("N");
+            this.root = new DirectoryInfo(Path.Combine(Path.GetTempPath(), $"hypha-spec-generator-{unique}-in"));
             this.root.Create();
+
+            // Deliberately a *different* directory from root: SpecGenerator must honor `hypha
+            // generate --output`, not always write into the repository it reads inputs from - this is
+            // what caught the generator originally never passing --out-root at all.
+            this.outputRoot = new DirectoryInfo(
+                Path.Combine(Path.GetTempPath(), $"hypha-spec-generator-{unique}-out"));
+            this.outputRoot.Create();
 
             this.layout = new Mock<IKnowledgeLayout>();
             this.layout.SetupGet(l => l.Root).Returns(this.root);
+            this.layout.SetupGet(l => l.OutputRoot).Returns(this.outputRoot);
             this.layout.Setup(l => l.Specifications(It.IsAny<string>())).Returns(
                 (string tag) => new DirectoryInfo(Path.Combine(this.root.FullName, "sources", tag, "specs")));
             this.layout.Setup(l => l.Knowledge(It.IsAny<string>())).Returns(
-                (string tag) => new DirectoryInfo(Path.Combine(this.root.FullName, "knowledge", tag)));
+                (string tag) => new DirectoryInfo(Path.Combine(this.outputRoot.FullName, "knowledge", tag)));
 
             this.uv = new Mock<IUvProvisioner>();
             this.processes = new Mock<IProcessRunner>();
@@ -60,10 +69,13 @@ namespace Hypha.Knowledge.Tests
         [TearDown]
         public void TearDown()
         {
-            this.root.Refresh();
-            if (this.root.Exists)
+            foreach (var directory in new[] { this.root, this.outputRoot })
             {
-                this.root.Delete(recursive: true);
+                directory.Refresh();
+                if (directory.Exists)
+                {
+                    directory.Delete(recursive: true);
+                }
             }
         }
 
@@ -143,13 +155,16 @@ namespace Hypha.Knowledge.Tests
                 .Setup(p => p.RunAsync(
                     It.Is<string>(f => f == uvExe.FullName),
                     It.Is<string>(a => a.Contains("spec_extract", StringComparison.Ordinal)
-                        && a.Contains("2026-05", StringComparison.Ordinal)),
+                        && a.Contains("2026-05", StringComparison.Ordinal)
+                        && a.Contains($"--out-root \"{this.outputRoot.FullName}\"", StringComparison.Ordinal)),
                     It.IsAny<DirectoryInfo>(),
                     It.IsAny<CancellationToken>()))
                 .Callback(() =>
                 {
+                    // Simulates what the real `python -m spec_extract --out-root ...` process writes:
+                    // under the *output* root, never the input root the PDFs were read from.
                     var kerml = new DirectoryInfo(
-                        Path.Combine(this.root.FullName, "knowledge", "2026-05", "spec", "kerml"));
+                        Path.Combine(this.outputRoot.FullName, "knowledge", "2026-05", "spec", "kerml"));
                     kerml.Create();
                     File.WriteAllText(Path.Combine(kerml.FullName, "01-scope.md"), "---\n---\n");
                 })

@@ -98,7 +98,8 @@ namespace Hypha.Knowledge.Generation
             var exitCode = await this.processes.RunAsync(
                 executable.FullName,
                 $"run --project \"{specExtract.FullName}\" python -m spec_extract "
-                + $"--repo-root \"{this.layout.Root.FullName}\" --tag {tag}",
+                + $"--repo-root \"{this.layout.Root.FullName}\" --tag {tag} "
+                + $"--out-root \"{this.layout.OutputRoot.FullName}\"",
                 this.layout.Root,
                 cancellationToken);
 
