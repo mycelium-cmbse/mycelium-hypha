@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-09-06
+
+### Fixed
+- **`/overview` no longer tells users to manually download the OMG spec PDFs or manually run
+  `tools/spec-extract`** (`fixes #135`). Both are automatic now (`hypha fetch`/`hypha generate`'s `spec`
+  artifact, #129); the command's own instructions had gone stale.
+
 ## [2.1.0] - 2026-09-06
 
 ### Added
