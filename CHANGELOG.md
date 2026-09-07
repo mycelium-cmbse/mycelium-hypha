@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-09-07
+
+### Fixed
+- **The `SessionStart` hook no longer throws a raw PowerShell parse error on Windows without Git
+  Bash** (`fixes #139`). Its dispatch shim is POSIX-shell-only (`case`/`esac`, `uname`), and Claude
+  Code falls back to PowerShell for shell-form hooks when Git Bash isn't found, which can't parse
+  it. The hook now pins `"shell": "bash"`, so Claude Code either runs it under Git Bash or reports
+  a clear, dedicated "shell not found" error instead - making the project's existing Git Bash
+  dependency explicit rather than reimplementing the OS/arch dispatch in a second language. No
+  behavior change on Linux/macOS/Windows-with-Git-Bash, where bash was already the default.
+
 ## [2.1.1] - 2026-09-06
 
 ### Fixed
