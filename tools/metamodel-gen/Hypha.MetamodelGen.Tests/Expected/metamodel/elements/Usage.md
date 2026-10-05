@@ -12,7 +12,7 @@ specializedBy: [AttributeUsage, ConnectorAsUsage, OccurrenceUsage, ReferenceUsag
 
 `DefinitionAndUsage` package · concrete metaclass
 
-A Usage is a usage of a Definition.A Usage may have nestedUsages that model features that apply in the context of the owningUsage. A Usage may also have Definitions nested in it, but this has no semantic significance, other than the nested scoping resulting from the Usage being considered as a Namespace for any nested Definitions.However, if a Usage has isVariation = true, then it represents a variation point Usage. In this case, all of its members must be variant Usages, related to the Usage by VariantMembership Relationships. Rather than being features of the Usage, variant Usages model different concrete alternatives that can be chosen to fill in for the variation point Usage.
+A Usage is a usage of a Definition. A Usage may have nestedUsages that model features that apply in the context of the owningUsage. A Usage may also have Definitions nested in it, but this has no semantic significance, other than the nested scoping resulting from the Usage being considered as a Namespace for any nested Definitions. However, if a Usage has isVariation = true, then it represents a variation point Usage. In this case, all of its members must be variant Usages, related to the Usage by VariantMembership Relationships. Rather than being features of the Usage, variant Usages model different concrete alternatives that can be chosen to fill in for the variation point Usage.
 
 ## Generalizations
 
@@ -59,7 +59,7 @@ Whether this Usage is for a variation point or not. If true, then all the member
 
 `+` [Boolean](Boolean.md) · `[1..1]` · *derived*
 
-Whether this Usage may be time varying (that is, whether it is featured by the snapshots of its owningType, rather than being featured by the owningType itself). However, if isConstant is also true, then the value of the Usage is nevertheless constant over the entire duration of an instance of its owningType (that is, it has the same value on all snapshots).The property mayTimeVary redefines the KerML property Feature::isVariable, making it derived. The property isConstant is inherited from Feature.
+Whether this Usage may be time varying (that is, whether it is featured by the snapshots of its owningType, rather than being featured by the owningType itself). However, if isConstant is also true, then the value of the Usage is nevertheless constant over the entire duration of an instance of its owningType (that is, it has the same value on all snapshots). The property mayTimeVary redefines the KerML property Feature::isVariable, making it derived. The property isConstant is inherited from Feature.
 
 Redefines [isVariable](Feature.md#isvariable)
 
@@ -445,7 +445,7 @@ isReference = not isComposite
 
 ### deriveUsageMayTimeVary
 
-A Usage mayTimeVary if and only if all of the following are true<ul> <li>It has an owningType that specializes Occurrences::Occurrence (from the Kernel Semantic Library).</li> <li>It is not a portion.</li> <li>It does not specialize Links::SelfLink or Occurrences::HappensLink (from the Kernel Semantic Library).</li> <li>If isComposite = true, it does not specialize Actions::Action (from the Systems Model Library).</li></ul>
+A Usage mayTimeVary if and only if all of the following are true <ul> <li>It has an owningType that specializes Occurrences::Occurrence (from the Kernel Semantic Library).</li> <li>It is not a portion.</li> <li>It does not specialize Links::SelfLink or Occurrences::HappensLink (from the Kernel Semantic Library).</li> <li>If isComposite = true, it does not specialize Actions::Action (from the Systems Model Library). </li></ul>
 
 ```ocl
 mayTimeVary =

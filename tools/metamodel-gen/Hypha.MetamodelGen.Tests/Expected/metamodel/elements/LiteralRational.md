@@ -24,7 +24,7 @@ A LiteralRational is a LiteralExpression that provides a Rational value as a res
 
 `+` [Real](Real.md) · `[1..1]`
 
-The value whose rational approximation is the result of evaluating this LiteralRational.
+The value whose rational approximation is the result of evaluating this LiteralRational. The Real value that is the result of evaluating this Expression.
 
 
 ## Inherited features

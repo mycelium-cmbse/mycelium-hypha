@@ -24,7 +24,7 @@ A LiteralInteger is a LiteralExpression that provides an Integer value as a resu
 
 `+` [Integer](Integer.md) · `[1..1]`
 
-The Integer value that is the result of evaluating this LiteralInteger.
+The Integer value that is the result of evaluating this LiteralInteger. The Integer value that is the result of evaluating this Expression.
 
 
 ## Inherited features

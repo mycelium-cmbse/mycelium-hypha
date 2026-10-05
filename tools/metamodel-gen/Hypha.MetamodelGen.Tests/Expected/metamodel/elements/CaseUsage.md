@@ -1,44 +1,62 @@
 ---
-name: AcceptActionUsage
-package: Actions
-fully qualified name: SysML::Systems::Actions::AcceptActionUsage
+name: CaseUsage
+package: Cases
+fully qualified name: SysML::Systems::Cases::CaseUsage
 isAbstract: false
 visibility: public
-generalizes: [ActionUsage]
-specializedBy: []
+generalizes: [CalculationUsage]
+specializedBy: [AnalysisCaseUsage, UseCaseUsage, VerificationCaseUsage]
 ---
 
-# AcceptActionUsage
+# CaseUsage
 
-`Actions` package · concrete metaclass
+`Cases` package · concrete metaclass
 
-An AcceptActionUsage is an ActionUsage that specifies the acceptance of an incomingTransfer from the Occurrence given by the result of its receiverArgument Expression. (If no receiverArgument is provided, the default is the this context of the AcceptActionUsage.) The payload of the accepted Transfer is output on its payloadParameter. Which Transfers may be accepted is determined by conformance to the typing and (potentially) binding of the payloadParameter.
+A CaseUsage is a Usage of a CaseDefinition.
 
 ## Generalizations
 
-- [ActionUsage](ActionUsage.md)
+- [CalculationUsage](CalculationUsage.md)
+
+## Specializations
+
+- [AnalysisCaseUsage](AnalysisCaseUsage.md)
+- [UseCaseUsage](UseCaseUsage.md)
+- [VerificationCaseUsage](VerificationCaseUsage.md)
 
 ## Owned features
 
-### payloadArgument
+### actorParameter
 
-`+` [Expression](Expression.md) · `[0..1]` · *derived*
+`+` [PartUsage](PartUsage.md) · `[0..*]` · *derived, ordered*
 
-An Expression whose result is bound to the payload parameter of this AcceptActionUsage. If provided, the AcceptActionUsage will only accept a Transfer with exactly this payload.
+The parameters of this CaseUsage that represent actors involved in the case.
 
-### payloadParameter
+Subsets [parameter](Step.md#parameter), [usage](Usage.md#usage)
 
-`+` [ReferenceUsage](ReferenceUsage.md) · `[1..1]` · *derived*
+### caseDefinition
 
-The nestedReference of this AcceptActionUsage that redefines the payload output parameter of the base AcceptActionUsage AcceptAction from the Systems Model Library.
+`+` [CaseDefinition](CaseDefinition.md) · `[0..1]` · *derived*
 
-Subsets [nestedReference](Usage.md#nestedreference), [parameter](Step.md#parameter)
+The CaseDefinition that is the type of this CaseUsage.
 
-### receiverArgument
+Redefines [calculationDefinition](CalculationUsage.md#calculationdefinition)
 
-`+` [Expression](Expression.md) · `[0..1]` · *derived*
+### objectiveRequirement
 
-An Expression whose result is bound to the receiver input parameter of this AcceptActionUsage.
+`+` [RequirementUsage](RequirementUsage.md) · `[0..1]` · *derived, ordered*
+
+The RequirementUsage representing the objective of this CaseUsage.
+
+Subsets [usage](Usage.md#usage)
+
+### subjectParameter
+
+`+` [Usage](Usage.md) · `[1..1]` · *derived*
+
+The parameter of this CaseUsage that represents its subject.
+
+Subsets [parameter](Step.md#parameter), [usage](Usage.md#usage)
 
 
 ## Inherited features
@@ -48,6 +66,7 @@ An Expression whose result is bound to the receiver input parameter of this Acce
 | actionDefinition | [Behavior](Behavior.md) | [0..*] | [ActionUsage](ActionUsage.md) | derived, ordered |
 | aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
 | behavior | [Behavior](Behavior.md) | [0..*] | [Step](Step.md) | derived, ordered |
+| calculationDefinition | [Function](Function.md) | [0..1] | [CalculationUsage](CalculationUsage.md) | derived, ordered |
 | chainingFeature | [Feature](Feature.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | crossFeature | [Feature](Feature.md) | [0..1] | [Feature](Feature.md) | derived |
 | declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
@@ -65,6 +84,7 @@ An Expression whose result is bound to the receiver input parameter of this Acce
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureTarget | [Feature](Feature.md) | [1..1] | [Feature](Feature.md) | derived |
 | featuringType | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
+| function | [Function](Function.md) | [0..1] | [Expression](Expression.md) | derived |
 | importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | individualDefinition | [OccurrenceDefinition](OccurrenceDefinition.md) | [0..1] | [OccurrenceUsage](OccurrenceUsage.md) | derived |
 | inheritedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -80,6 +100,7 @@ An Expression whose result is bound to the receiver input parameter of this Acce
 | isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
 | isIndividual | [Boolean](Boolean.md) | [1..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
 | isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
+| isModelLevelEvaluable | [Boolean](Boolean.md) | [1..1] | [Expression](Expression.md) | derived |
 | isOrdered | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isPortion | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isReference | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) | derived |
@@ -155,6 +176,7 @@ An Expression whose result is bound to the receiver input parameter of this Acce
 | parameter | [Feature](Feature.md) | [0..*] | [Step](Step.md) | derived, ordered |
 | portionKind | [PortionKind](PortionKind.md) | [0..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
 | qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| result | [Feature](Feature.md) | [1..1] | [Expression](Expression.md) | derived |
 | shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
@@ -165,80 +187,88 @@ An Expression whose result is bound to the receiver input parameter of this Acce
 
 ## Constraints
 
-### checkAcceptActionUsageReceiverBindingConnector
+### checkCaseUsageSpecialization
 
-If the payloadArgument of an AcceptActionUsage is a TriggerInvocationExpression, then the AcceptActionusage must have an ownedFeature that is a BindingConnector between its receiver parameter and the receiver parameter of the TriggerInvocationExpression.
+A CaseUsage must directly or indirectly specialize the base CaseUsage Cases::cases from the Systems Model Library.
 
 ```ocl
-payloadArgument <> null and
-payloadArgument.oclIsKindOf(TriggerInvocationExpression) implies
-    let invocation : Expression =
-        payloadArgument.oclAsType(Expression) in
-    parameter->size() >= 2 and
-    invocation.parameter->size() >= 2 and        
-    ownedFeature->selectByKind(BindingConnector)->exists(b |
-        b.relatedFeatures->includes(parameter->at(2)) and
-        b.relatedFeatures->includes(invocation.parameter->at(2)))
+specializesFromLibrary('Cases::cases')
 ```
 
-### checkAcceptActionUsageSpecialization
+### checkCaseUsageSubcaseSpecialization
 
-An AcceptActionUsage that is not the triggerAction of a TransitionUsage must directly or indirectly specialize the ActionUsage Actions::acceptActions from the Systems Model Library.
+A composite CaseUsage whose owningType is a CaseDefinition or CaseUsage must directly or indirectly specialize the CaseUsage Cases::Case::subcases.
 
 ```ocl
-not isTriggerAction() implies
-    specializesFromLibrary('Actions::acceptActions')
+isComposite and owningType <> null and 
+    (owningType.oclIsKindOf(CaseDefinition) or
+     owningType.oclIsKindOf(CaseUsage)) implies
+    specializesFromLibrary('Cases::Case::subcases')
 ```
 
-### checkAcceptActionUsageSubactionSpecialization
+### deriveCaseUsageActorParameter
 
-A composite AcceptActionUsage that is a subaction usage, but is not the triggerAction of a TransitionUsage, must directly or indirectly specialize the ActionUsage Actions::Action::acceptSubactions from the Systems Model Library.
+The actorParameters of a CaseUsage are the ownedActorParameters of the ActorMemberships of the CaseUsage.
 
 ```ocl
-isSubactionUsage() and not isTriggerAction() implies
-    specializesFromLibrary('Actions::Action::acceptSubactions')
+actorParameter = featureMembership->
+    selectByKind(ActorMembership).
+    ownedActorParameter
 ```
 
-### checkAcceptActionUsageTriggerActionSpecialization
+### deriveCaseUsageObjectiveRequirement
 
-An AcceptActionUsage that is the triggerAction of TransitionUsage must directly or indirectly specialize the ActionUsage Actions::TransitionAction::accepter from the Systems Model Library.
+The objectiveRequirement of a CaseUsage is the RequirementUsage it owns via an <case>ObjectiveMembership, if any.</case>
 
 ```ocl
-isTriggerAction() implies
-    specializesFromLibrary('Actions::TransitionAction::accepter')
+objectiveRequirement = 
+    let objectives: OrderedSet(RequirementUsage) = 
+        featureMembership->
+            selectByKind(ObjectiveMembership).
+            ownedRequirement in
+    if objectives->isEmpty() then null
+    else objectives->first().ownedObjectiveRequirement
+    endif
 ```
 
-### deriveAcceptActionUsagePayloadArgument
+### deriveCaseUsageSubjectParameter
 
-The payloadArgument of an AcceptUsageAction is its first argument Expression.
+The subjectParameter of a CaseUsage is the ownedSubjectParameter of its SubjectMembership (if any).
 
 ```ocl
-payloadArgument = argument(1)
+subjectParameter =
+    let subjects : OrderedSet(SubjectMembership) = 
+        featureMembership->selectByKind(SubjectMembership) in
+    if subjects->isEmpty() then null
+    else subjects->first().ownedSubjectParameter
+    endif
 ```
 
-### deriveAcceptActionUsagePayloadParameter
+### validateCaseUsageOnlyOneObjective
 
-The payloadParameter of an AcceptActionUsage is its first parameter.
+A CaseUsage must have at most one featureMembership that is a ObjectiveMembership.
 
 ```ocl
-payloadParameter = 
- if parameter->isEmpty() then null
- else parameter->first() endif
+featureMembership->
+    selectByKind(ObjectiveMembership)->
+    size() <= 1
 ```
 
-### deriveAcceptActionUsageReceiverArgument
+### validateCaseUsageOnlyOneSubject
 
-The receiverArgument of an AcceptUsageAction is its second argument Expression.
+A CaseUsage must have at most one featureMembership that is a SubjectMembership.
 
 ```ocl
-receiverArgument = argument(2)
+featureMembership->
+	selectByKind(SubjectMembership)->
+	size() <= 1
 ```
 
-### validateAcceptActionUsageParameters
+### validateCaseUsageSubjectParameterPosition
 
-An AcceptUsageAction must have at least on input parameter, corresponding to its payload (even if it has no FeatureValue). (Note that the payloadParameter is an input as well as an output.)
+The subjectParameter of a CaseUsage must be its first input.
 
 ```ocl
-inputParameters()->notEmpty()
+input->notEmpty() and input->first() = subjectParameter
 ```
 

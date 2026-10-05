@@ -1,27 +1,22 @@
 ---
-name: RequirementConstraintMembership
+name: FramedConcernMembership
 package: Requirements
-fully qualified name: SysML::Systems::Requirements::RequirementConstraintMembership
+fully qualified name: SysML::Systems::Requirements::FramedConcernMembership
 isAbstract: false
 visibility: public
-generalizes: [FeatureMembership]
-specializedBy: [FramedConcernMembership, RequirementVerificationMembership]
+generalizes: [RequirementConstraintMembership]
+specializedBy: []
 ---
 
-# RequirementConstraintMembership
+# FramedConcernMembership
 
 `Requirements` package · concrete metaclass
 
-A RequirementConstraintMembership is a FeatureMembership for an assumed or required ConstraintUsage of a RequirementDefinition or RequirementUsage.
+A FramedConcernMembership is a RequirementConstraintMembership for a framed ConcernUsage of a RequirementDefinition or RequirementUsage.
 
 ## Generalizations
 
-- [FeatureMembership](FeatureMembership.md)
-
-## Specializations
-
-- [FramedConcernMembership](FramedConcernMembership.md)
-- [RequirementVerificationMembership](RequirementVerificationMembership.md)
+- [RequirementConstraintMembership](RequirementConstraintMembership.md)
 
 ## Owned features
 
@@ -29,21 +24,25 @@ A RequirementConstraintMembership is a FeatureMembership for an assumed or requi
 
 `+` [RequirementConstraintKind](RequirementConstraintKind.md) · `[1..1]`
 
-Whether the RequirementConstraintMembership is for an assumed or required ConstraintUsage.
+The kind of an FramedConcernMembership must be requirement.
 
-### ownedConstraint
+Redefines [kind](#kind)
 
-`+` [ConstraintUsage](ConstraintUsage.md) · `[1..1]` · *derived, composite*
+### ownedConcern
 
-The ConstraintUsage that is the ownedMemberFeature of this RequirementConstraintMembership.
+`+` [ConcernUsage](ConcernUsage.md) · `[1..1]` · *derived, composite*
 
-Redefines [ownedMemberFeature](FeatureMembership.md#ownedmemberfeature)
+The ConcernUsage that is the ownedConstraint of this FramedConcernMembership.
 
-### referencedConstraint
+Redefines [ownedConstraint](RequirementConstraintMembership.md#ownedconstraint)
 
-`+` [ConstraintUsage](ConstraintUsage.md) · `[1..1]` · *derived*
+### referencedConcern
 
-The ConstraintUsage that is referenced through this RequirementConstraintMembership. It is the referencedFeature of the ownedReferenceSubsetting of the ownedConstraint, if there is one, and, otherwise, the ownedConstraint itself.
+`+` [ConcernUsage](ConcernUsage.md) · `[1..1]` · *derived*
+
+The ConcernUsage that is referenced through this FramedConcernMembership. It is the referencedConstraint of the FramedConcernMembership considered as a RequirementConstraintMembership, which must be a ConcernUsage.
+
+Redefines [referencedConstraint](RequirementConstraintMembership.md#referencedconstraint)
 
 
 ## Inherited features
@@ -65,6 +64,7 @@ The ConstraintUsage that is referenced through this RequirementConstraintMembers
 | membershipOwningNamespace | [Namespace](Namespace.md) | [1..1] | [Membership](Membership.md) | derived |
 | name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
+| ownedConstraint | [ConstraintUsage](ConstraintUsage.md) | [1..1] | [RequirementConstraintMembership](RequirementConstraintMembership.md) | derived, composite |
 | ownedElement | [Element](Element.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | ownedMemberElement | [Element](Element.md) | [1..1] | [OwningMembership](OwningMembership.md) | derived, composite |
 | ownedMemberElementId | [String](String.md) | [1..1] | [OwningMembership](OwningMembership.md) | derived |
@@ -80,6 +80,7 @@ The ConstraintUsage that is referenced through this RequirementConstraintMembers
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | owningType | [Type](Type.md) | [1..1] | [FeatureMembership](FeatureMembership.md) | derived |
 | qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| referencedConstraint | [ConstraintUsage](ConstraintUsage.md) | [1..1] | [RequirementConstraintMembership](RequirementConstraintMembership.md) | derived |
 | relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
@@ -89,35 +90,11 @@ The ConstraintUsage that is referenced through this RequirementConstraintMembers
 
 ## Constraints
 
-### deriveRequirementConstraintMembershipReferencedConstraint
+### validateFramedConcernMembershipConstraintKind
 
-The referencedConstraint of a RequirementConstraintMembership is the featureTarget of the referencedFeature of the ownedReferenceSubsetting of the ownedConstraint, if there is one, and, otherwise, the ownedConstraint itself.
-
-```ocl
-referencedConstraint =
-    let referencedFeature : Feature = 
-        ownedConstraint.referencedFeatureTarget() in
-    if referencedFeature = null then ownedConstraint
-    else if referencedFeature.oclIsKindOf(ConstraintUsage) then
-        refrencedFeature.oclAsType(ConstraintUsage)
-    else null
-    endif endif
-```
-
-### validateRequirementConstraintMembershipIsComposite
-
-The ownedConstraint of a RequirementConstraintMembership must be composite.
+A FramedConcernMembership must have kind = requirement.
 
 ```ocl
-ownedConstraint.isComposite
-```
-
-### validateRequirementConstraintMembershipOwningType
-
-The owningType of a RequirementConstraintMembership must be a RequirementDefinition or a RequirementUsage.
-
-```ocl
-owningType.oclIsKindOf(RequirementDefinition) or
-owningType.oclIsKindOf(RequirementUsage)
+kind = RequirementConstraintKind::requirement
 ```
 

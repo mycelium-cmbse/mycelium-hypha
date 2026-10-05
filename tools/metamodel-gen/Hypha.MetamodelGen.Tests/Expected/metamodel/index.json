@@ -301,7 +301,7 @@
       "package": "Classifiers",
       "qualifiedName": "KerML::Core::Classifiers::Classifier",
       "isAbstract": false,
-      "summary": "A Classifier is a Type that classifies:<ul> <li>Things (in the universe) regardless of how Features relate them.",
+      "summary": "A Classifier is a Type that classifies: <ul> <li>Things (in the universe) regardless of how Features relate them.",
       "extends": [
         "Type"
       ],
@@ -1665,7 +1665,7 @@
       "package": "States",
       "qualifiedName": "SysML::Systems::States::StateDefinition",
       "isAbstract": false,
-      "summary": "A StateDefinition is the Definition of the Behavior of a system or part of a system in a certain state condition.A StateDefinition may be related to up to three…",
+      "summary": "A StateDefinition is the Definition of the Behavior of a system or part of a system in a certain state condition.",
       "extends": [
         "ActionDefinition"
       ],
@@ -1933,7 +1933,7 @@
       "package": "DefinitionAndUsage",
       "qualifiedName": "SysML::Systems::DefinitionAndUsage::Usage",
       "isAbstract": false,
-      "summary": "A Usage is a usage of a Definition.A Usage may have nestedUsages that model features that apply in the context of the owningUsage.",
+      "summary": "A Usage is a usage of a Definition.",
       "extends": [
         "Feature"
       ],

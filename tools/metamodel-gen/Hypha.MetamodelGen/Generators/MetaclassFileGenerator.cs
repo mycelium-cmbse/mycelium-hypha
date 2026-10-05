@@ -272,9 +272,9 @@ namespace Hypha.MetamodelGen.Generators
 
         /// <summary>
         /// Returns the UML visibility sigil (<c>+</c> public, <c>-</c> private, <c>#</c> protected,
-        /// <c>~</c> package).
+        /// <c>~</c> package); an unset visibility reads as public.
         /// </summary>
-        private static string QueryVisibilitySigil(VisibilityKind visibility) => visibility switch
+        private static string QueryVisibilitySigil(VisibilityKind? visibility) => visibility switch
         {
             VisibilityKind.Private => "-",
             VisibilityKind.Protected => "#",

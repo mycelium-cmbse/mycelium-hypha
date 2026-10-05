@@ -75,9 +75,13 @@ namespace Hypha.MetamodelGen.Generators
             return string.Join("::", parts);
         }
 
-        /// <summary>Returns the visibility as its lowercase name (e.g. <c>public</c>).</summary>
-        public static string VisibilityName(VisibilityKind visibility) =>
-            visibility.ToString().ToLowerInvariant();
+        /// <summary>
+        /// Returns the visibility as its lowercase name (e.g. <c>public</c>). An unset visibility (the
+        /// XMI omits the attribute) reads as <c>public</c>, the default UML 2.5.1 gives a
+        /// <c>PackageableElement</c>.
+        /// </summary>
+        public static string VisibilityName(VisibilityKind? visibility) =>
+            (visibility ?? VisibilityKind.Public).ToString().ToLowerInvariant();
 
         /// <summary>
         /// Returns the named, ordered packaged elements of type <typeparamref name="T"/> across every

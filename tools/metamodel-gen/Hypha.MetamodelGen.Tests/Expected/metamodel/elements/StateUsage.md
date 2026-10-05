@@ -12,7 +12,7 @@ specializedBy: [ExhibitStateUsage]
 
 `States` package · concrete metaclass
 
-A StateUsage is an ActionUsage that is nominally the Usage of a StateDefinition. However, other kinds of kernel Behaviors are also allowed as types, to permit use of BehaviorsA StateUsage may be related to up to three of its ownedFeatures by StateSubactionMembership Relationships, all of different kinds, corresponding to the entry, do and exit actions of the StateUsage.
+A StateUsage is an ActionUsage that is nominally the Usage of a StateDefinition. However, other kinds of kernel Behaviors are also allowed as types, to permit use of Behaviors A StateUsage may be related to up to three of its ownedFeatures by StateSubactionMembership Relationships, all of different kinds, corresponding to the entry, do and exit actions of the StateUsage.
 
 ## Generalizations
 
@@ -250,7 +250,7 @@ entryAction =
 
 ### deriveStateUsageExitAction
 
-The exitAction of a StateUsage is the action of the owned StateSubactionMembership with kind = exit.
+The exitAction of a StateUsage is the action of the owned StateSubactionMembership with kind = exit .
 
 ```ocl
 exitAction =

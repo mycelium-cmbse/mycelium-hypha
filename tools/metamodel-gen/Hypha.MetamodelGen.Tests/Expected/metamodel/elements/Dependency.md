@@ -12,7 +12,7 @@ specializedBy: []
 
 `Dependencies` package · concrete metaclass
 
-A Dependency is a Relationship that indicates that one or more client Elements require one more supplier Elements for their complete specification. In general, this means that a change to one of the supplier Elements may necessitate a change to, or re-specification of, the client Elements.Note that a Dependency is entirely a model-level Relationship, without instance-level semantics.
+A Dependency is a Relationship that indicates that one or more client Elements require one more supplier Elements for their complete specification. In general, this means that a change to one of the supplier Elements may necessitate a change to, or re-specification of, the client Elements. Note that a Dependency is entirely a model-level Relationship, without instance-level semantics.
 
 ## Generalizations
 

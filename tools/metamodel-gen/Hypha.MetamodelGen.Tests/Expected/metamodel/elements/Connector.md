@@ -1,38 +1,82 @@
 ---
-name: FeatureChainExpression
-package: Expressions
-fully qualified name: KerML::Kernel::Expressions::FeatureChainExpression
+name: Connector
+package: Connectors
+fully qualified name: KerML::Kernel::Connectors::Connector
 isAbstract: false
 visibility: public
-generalizes: [OperatorExpression]
-specializedBy: []
+generalizes: [Feature, Relationship]
+specializedBy: [BindingConnector, ConnectorAsUsage, Flow, Succession]
 ---
 
-# FeatureChainExpression
+# Connector
 
-`Expressions` package · concrete metaclass
+`Connectors` package · concrete metaclass
 
-A FeatureChainExpression is an OperatorExpression whose operator is ".", which resolves to the Function ControlFunctions::'.' from the Kernel Functions Library. It evaluates to the result of chaining the result Feature of its single argument Expression with its targetFeature.
+A Connector is a usage of Associations, with links restricted according to instances of the Type in which they are used (domain of the Connector). The associations of the Connector restrict what kinds of things might be linked. The Connector further restricts these links to be between values of Features on instances of its domain.
 
 ## Generalizations
 
-- [OperatorExpression](OperatorExpression.md)
+- [Feature](Feature.md)
+- [Relationship](Relationship.md)
+
+## Specializations
+
+- [BindingConnector](BindingConnector.md)
+- [ConnectorAsUsage](ConnectorAsUsage.md)
+- [Flow](Flow.md)
+- [Succession](Succession.md)
 
 ## Owned features
 
-### operator
+### association
 
-`+` [String](String.md) · `[1..1]`
+`+` [Association](Association.md) · `[0..*]` · *derived, ordered*
 
-Redefines [operator](#operator)
+The Associations that type the Connector.
+
+Redefines [type](Feature.md#type)
+
+### connectorEnd
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
+
+The endFeatures of a Connector, which redefine the endFeatures of the associations of the Connector. The connectorEnds determine via ReferenceSubsetting Relationships which Features are related by the Connector.
+
+Redefines [endFeature](Type.md#endfeature)
+
+### defaultFeaturingType
+
+`+` [Type](Type.md) · `[0..1]` · *derived*
+
+The innermost Type that is a common direct or indirect featuringType of the relatedFeatures, such that, if it exists and was the featuringType of this Connector, the Connector would satisfy the checkConnectorTypeFeaturing constraint.
+
+### relatedFeature
+
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
+
+The Features that are related by this Connector considered as a Relationship and that restrict the links it identifies, given by the referenced Features of the connectorEnds of the Connector.
+
+Redefines [relatedElement](Relationship.md#relatedelement)
+
+### sourceFeature
+
+`+` [Feature](Feature.md) · `[0..1]` · *derived, ordered*
+
+The source relatedFeature for this Connector. It is the first relatedFeature.
+
+Redefines [source](Relationship.md#source)
+
+Subsets [relatedFeature](#relatedfeature)
 
 ### targetFeature
 
-`+` [Feature](Feature.md) · `[1..1]` · *derived*
+`+` [Feature](Feature.md) · `[0..*]` · *derived, ordered*
 
-The Feature that is accessed by this FeatureChainExpression, which is its first non-parameter member.
+The target relatedFeatures for this Connector. This includes all the relatedFeatures other than the sourceFeature.
 
-Subsets [member](Namespace.md#member)
+Redefines [target](Relationship.md#target)
+
+Subsets [relatedFeature](#relatedfeature)
 
 
 ## Inherited features
@@ -40,8 +84,6 @@ Subsets [member](Namespace.md#member)
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
 | aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
-| argument | [Expression](Expression.md) | [0..*] | [InstantiationExpression](InstantiationExpression.md) | derived, ordered |
-| behavior | [Behavior](Behavior.md) | [0..*] | [Step](Step.md) | derived, ordered |
 | chainingFeature | [Feature](Feature.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | crossFeature | [Feature](Feature.md) | [0..1] | [Feature](Feature.md) | derived |
 | declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
@@ -57,12 +99,10 @@ Subsets [member](Namespace.md#member)
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureTarget | [Feature](Feature.md) | [1..1] | [Feature](Feature.md) | derived |
 | featuringType | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
-| function | [Function](Function.md) | [0..1] | [Expression](Expression.md) | derived |
 | importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | inheritedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
-| instantiatedType | [Type](Type.md) | [1..1] | [InstantiationExpression](InstantiationExpression.md) | derived |
 | intersectingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | isAbstract | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
 | isComposite | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
@@ -70,9 +110,9 @@ Subsets [member](Namespace.md#member)
 | isConstant | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isDerived | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isEnd | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isImplied | [Boolean](Boolean.md) | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
 | isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
-| isModelLevelEvaluable | [Boolean](Boolean.md) | [1..1] | [Expression](Expression.md) | derived |
 | isOrdered | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isPortion | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
@@ -100,6 +140,7 @@ Subsets [member](Namespace.md#member)
 | ownedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
 | ownedRedefinition | [Redefinition](Redefinition.md) | [0..*] | [Feature](Feature.md) | derived, composite |
 | ownedReferenceSubsetting | [ReferenceSubsetting](ReferenceSubsetting.md) | [0..1] | [Feature](Feature.md) | derived, composite |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
 | ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
 | ownedSpecialization | [Specialization](Specialization.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
 | ownedSubsetting | [Subsetting](Subsetting.md) | [0..*] | [Feature](Feature.md) | derived, composite |
@@ -110,81 +151,134 @@ Subsets [member](Namespace.md#member)
 | owningFeatureMembership | [FeatureMembership](FeatureMembership.md) | [0..1] | [Feature](Feature.md) | derived |
 | owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
 | owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | owningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
-| parameter | [Feature](Feature.md) | [0..*] | [Step](Step.md) | derived, ordered |
 | qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
-| result | [Feature](Feature.md) | [1..1] | [Expression](Expression.md) | derived |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
 | shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
 ## Constraints
 
-### checkFeatureChainExpressionResultSpecialization
+### checkConnectorBinaryObjectSpecialization
 
-The result parameter of a FeatureChainExpression must specialize the feature chain of the FeatureChainExpression.
+A binary Connector for an AssociationStructure must directly or indirectly specialize the base Connector Objects::binaryLinkObjects from the Kernel Semantic Library.
 
 ```ocl
-let inputParameters : Sequence(Feature) = 
-    ownedFeatures->select(direction = _'in') in
-let sourceTargetFeature : Feature = 
-    owningExpression.sourceTargetFeature() in
-sourceTargetFeature <> null and
-result.subsetsChain(inputParameters->first(), sourceTargetFeature) and
-result.owningType = self
+connectorEnds->size() = 2 and
+association->exists(oclIsKindOf(AssociationStructure)) implies
+    specializesFromLibrary('Objects::binaryLinkObjects')
 ```
 
-### checkFeatureChainExpressionSourceTargetRedefinition
+### checkConnectorBinarySpecialization
 
-The first ownedFeature of the first owned input parameter of a FeatureChainExpression must redefine its targetFeature.
+A binary Connector must directly or indirectly specialize the base Connector Links::binaryLinks from the Kernel Semantic Library.
 
 ```ocl
-let sourceTargetFeature : Feature = sourceTargetFeature() in
-sourceTargetFeature <> null and
-sourceTargetFeature.redefines(targetFeature)
+connectorEnd->size() = 2 implies
+    specializesFromLibrary('Links::binaryLinks')
 ```
 
-### checkFeatureChainExpressionTargetRedefinition
+### checkConnectorObjectSpecialization
 
-The first ownedFeature of the first owned input parameter of a FeatureChainExpression must redefine the Feature ControlFunctions::'.'::source::target from the Kernel Functions Library.
+A Connector for an AssociationStructure must directly or indirectly specialize the base Connector Objects::linkObjects from the Kernel Semantic Library.
 
 ```ocl
-let sourceTargetFeature : Feature = sourceTargetFeature() in
-sourceTargetFeature <> null and
-sourceTargetFeature.redefinesFromLibrary('ControlFunctions::\'.\'::source::target')
+association->exists(oclIsKindOf(AssociationStructure)) implies
+    specializesFromLibrary('Objects::linkObjects')
 ```
 
-### deriveFeatureChainExpressionTargetFeature
+### checkConnectorSpecialization
 
-The targetFeature of a FeatureChainExpression is the memberElement of its first ownedMembership that is not a ParameterMembership.
+A Connector must directly or indirectly specialize the base Connector Links::links from the Kernel Semantic Library.
 
 ```ocl
-targetFeature =
-    let nonParameterMemberships : Sequence(Membership) = ownedMembership->
-        reject(oclIsKindOf(ParameterMembership)) in
-    if nonParameterMemberships->isEmpty() or
-       not nonParameterMemberships->first().memberElement.oclIsKindOf(Feature)
-    then null
-    else nonParameterMemberships->first().memberElement.oclAsType(Feature)
+specializesFromLibrary('Links::links')
+```
+
+### checkConnectorTypeFeaturing
+
+Each relatedFeature of a Connector must have each featuringType of the Connector as a direct or indirect featuringType (where a Feature with no featuringType is treated as if the Classifier Base::Anything was its featuringType).
+
+```ocl
+relatedFeature->forAll(f | 
+    if featuringType->isEmpty() then f.isFeaturedWithin(null)
+    else featuringType->forAll(t | f.isFeaturedWithin(t))
+    endif)
+```
+
+### deriveConnectorDefaultFeaturingType
+
+The defaultFeaturingType of a Connector is the innermost common direct or indirect featuringType of the relatedFeatures of the Connector, so that each relatedElement is featured within the defaultFeaturingType, if such exists.
+
+```ocl
+let commonFeaturingTypes : OrderedSet(Type) = 
+    relatedFeature->closure(featuringType)->select(t | 
+        relatedFeature->forAll(f | f.isFeaturedWithin(t))
+    ) in
+let nearestCommonFeaturingTypes : OrderedSet(Type) =
+    commonFeaturingTypes->reject(t1 | 
+        commonFeaturingTypes->exists(t2 | 
+            t2 <> t1 and t2->closure(featuringType)->contains(t1)
+    )) in
+if nearestCommonFeaturingTypes->isEmpty() then null
+else nearestCommonFeaturingTypes->first()
+endif
+```
+
+### deriveConnectorRelatedFeature
+
+The relatedFeatures of a Connector are the referenced Features of its connectorEnds.
+
+```ocl
+relatedFeature = connectorEnd.ownedReferenceSubsetting->
+    select(s | s <> null).subsettedFeature
+```
+
+### deriveConnectorSourceFeature
+
+The sourceFeature of a Connector is its first relatedFeature (if any).
+
+```ocl
+sourceFeature = 
+    if relatedFeature->isEmpty() then null 
+    else relatedFeature->first() 
     endif
 ```
 
-### validateFeatureChainExpressionConformance
+### deriveConnectorTargetFeature
 
-The targetFeature of a FeatureChainExpression must be featured within the result parameter of the argument Expression of the FeatureChainExpression.
+The targetFeatures of a Connector are the relatedFeatures other than the sourceFeature.
 
 ```ocl
-argument->notEmpty() implies
-    targetFeature.isFeaturedWithin(argument->first().result)
+targetFeature =
+    if relatedFeature->size() < 2 then OrderedSet{}
+    else 
+        relatedFeature->
+            subSequence(2, relatedFeature->size())->
+            asOrderedSet()
+    endif
 ```
 
-### validateFeatureChainExpressionOperator
+### validateConnectorBinarySpecialization
 
-The operator of a FeatureChainExpression must be ".".
+If a Connector has more than two connectorEnds, then it must not specialize, directly or indirectly, the Association BinaryLink from the Kernel Semantic Library.
 
 ```ocl
-operator = '.'
+connectorEnds->size() > 2 implies
+    not specializesFromLibrary('Links::BinaryLink')
+```
+
+### validateConnectorRelatedFeatures
+
+If a Connector is concrete (not abstract), then it must have at least two relatedFeatures.
+
+```ocl
+not isAbstract implies relatedFeature->size() >= 2
 ```
 

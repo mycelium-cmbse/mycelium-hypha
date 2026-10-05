@@ -104,6 +104,7 @@ namespace Hypha.MetamodelGen.Tests
 
             return model.Packages
                 .SelectMany(package => inspector.QueryInterestingClasses(package, includeOperations: true))
+                .OfType<IClass>()
                 .DistinctBy(@class => @class.XmiId)
                 .OrderBy(@class => @class.Name, StringComparer.Ordinal)
                 .ToList();

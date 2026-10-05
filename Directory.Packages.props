@@ -22,9 +22,9 @@
     <PackageVersion Include="Spectre.Console" Version="0.57.2" />
     <PackageVersion Include="Spectre.Console.Testing" Version="0.57.2" />
     <PackageVersion Include="System.CommandLine" Version="2.0.10" />
-    <PackageVersion Include="uml4net.Extensions" Version="8.2.1" />
-    <PackageVersion Include="uml4net.Reporting" Version="8.3.0" />
-    <PackageVersion Include="uml4net.xmi" Version="8.3.0" />
+    <PackageVersion Include="uml4net.Extensions" Version="9.1.0" />
+    <PackageVersion Include="uml4net.Reporting" Version="9.1.0" />
+    <PackageVersion Include="uml4net.xmi" Version="9.1.0" />
   </ItemGroup>
 
 </Project>

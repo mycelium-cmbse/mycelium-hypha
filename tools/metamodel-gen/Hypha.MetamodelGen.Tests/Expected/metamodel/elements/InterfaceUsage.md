@@ -1,37 +1,32 @@
 ---
-name: BooleanExpression
-package: Functions
-fully qualified name: KerML::Kernel::Functions::BooleanExpression
+name: InterfaceUsage
+package: Interfaces
+fully qualified name: SysML::Systems::Interfaces::InterfaceUsage
 isAbstract: false
 visibility: public
-generalizes: [Expression]
-specializedBy: [ConstraintUsage, Invariant]
+generalizes: [ConnectionUsage]
+specializedBy: []
 ---
 
-# BooleanExpression
+# InterfaceUsage
 
-`Functions` package · concrete metaclass
+`Interfaces` package · concrete metaclass
 
-A BooleanExpression is a Boolean-valued Expression whose type is a Predicate. It represents a logical condition resulting from the evaluation of the Predicate.
+An InterfaceUsage is a Usage of an InterfaceDefinition to represent an interface connecting parts of a system through specific ports.
 
 ## Generalizations
 
-- [Expression](Expression.md)
-
-## Specializations
-
-- [ConstraintUsage](ConstraintUsage.md)
-- [Invariant](Invariant.md)
+- [ConnectionUsage](ConnectionUsage.md)
 
 ## Owned features
 
-### predicate
+### interfaceDefinition
 
-`+` [Predicate](Predicate.md) · `[0..1]` · *derived*
+`+` [InterfaceDefinition](InterfaceDefinition.md) · `[0..*]` · *derived*
 
-The Predicate that types the Expression. The Predicate that types this BooleanExpression.
+The InterfaceDefinitions that type this InterfaceUsage.
 
-Redefines [function](Expression.md#function)
+Redefines [connectionDefinition](ConnectionUsage.md#connectiondefinition)
 
 
 ## Inherited features
@@ -39,13 +34,18 @@ Redefines [function](Expression.md#function)
 | Feature | Type | Multiplicity | Owner | Modifiers |
 | --- | --- | --- | --- | --- |
 | aliasIds | [String](String.md) | [0..*] | [Element](Element.md) | ordered |
-| behavior | [Behavior](Behavior.md) | [0..*] | [Step](Step.md) | derived, ordered |
+| association | [Association](Association.md) | [0..*] | [Connector](Connector.md) | derived, ordered |
 | chainingFeature | [Feature](Feature.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
+| connectionDefinition | [AssociationStructure](AssociationStructure.md) | [0..*] | [ConnectionUsage](ConnectionUsage.md) | derived, ordered |
+| connectorEnd | [Feature](Feature.md) | [0..*] | [Connector](Connector.md) | derived, ordered |
 | crossFeature | [Feature](Feature.md) | [0..1] | [Feature](Feature.md) | derived |
 | declaredName | [String](String.md) | [0..1] | [Element](Element.md) |  |
 | declaredShortName | [String](String.md) | [0..1] | [Element](Element.md) |  |
+| defaultFeaturingType | [Type](Type.md) | [0..1] | [Connector](Connector.md) | derived |
+| definition | [Classifier](Classifier.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | differencingType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | directedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| directedUsage | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
 | direction | [FeatureDirectionKind](FeatureDirectionKind.md) | [0..1] | [Feature](Feature.md) |  |
 | documentation | [Documentation](Documentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | elementId | [String](String.md) | [1..1] | [Element](Element.md) |  |
@@ -55,8 +55,8 @@ Redefines [function](Expression.md#function)
 | featureMembership | [FeatureMembership](FeatureMembership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | featureTarget | [Feature](Feature.md) | [1..1] | [Feature](Feature.md) | derived |
 | featuringType | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
-| function | [Function](Function.md) | [0..1] | [Expression](Expression.md) | derived |
 | importedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
+| individualDefinition | [OccurrenceDefinition](OccurrenceDefinition.md) | [0..1] | [OccurrenceUsage](OccurrenceUsage.md) | derived |
 | inheritedFeature | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | inheritedMembership | [Membership](Membership.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | input | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
@@ -67,18 +67,51 @@ Redefines [function](Expression.md#function)
 | isConstant | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isDerived | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isEnd | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isImplied | [Boolean](Boolean.md) | [1..1] | [Relationship](Relationship.md) |  |
 | isImpliedIncluded | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) |  |
+| isIndividual | [Boolean](Boolean.md) | [1..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
 | isLibraryElement | [Boolean](Boolean.md) | [1..1] | [Element](Element.md) | derived |
-| isModelLevelEvaluable | [Boolean](Boolean.md) | [1..1] | [Expression](Expression.md) | derived |
 | isOrdered | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isPortion | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isReference | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) | derived |
 | isSufficient | [Boolean](Boolean.md) | [1..1] | [Type](Type.md) |  |
 | isUnique | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
 | isVariable | [Boolean](Boolean.md) | [1..1] | [Feature](Feature.md) |  |
+| isVariation | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) |  |
+| itemDefinition | [Structure](Structure.md) | [0..*] | [ItemUsage](ItemUsage.md) | derived, ordered |
+| mayTimeVary | [Boolean](Boolean.md) | [1..1] | [Usage](Usage.md) | derived |
 | member | [Element](Element.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | membership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, ordered |
 | multiplicity | [Multiplicity](Multiplicity.md) | [0..1] | [Type](Type.md) | derived |
 | name | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| nestedAction | [ActionUsage](ActionUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedAllocation | [AllocationUsage](AllocationUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedAnalysisCase | [AnalysisCaseUsage](AnalysisCaseUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedAttribute | [AttributeUsage](AttributeUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedCalculation | [CalculationUsage](CalculationUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedCase | [CaseUsage](CaseUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedConcern | [ConcernUsage](ConcernUsage.md) | [0..*] | [Usage](Usage.md) | derived |
+| nestedConnection | [ConnectorAsUsage](ConnectorAsUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedConstraint | [ConstraintUsage](ConstraintUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedEnumeration | [EnumerationUsage](EnumerationUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedFlow | [FlowUsage](FlowUsage.md) | [0..*] | [Usage](Usage.md) | derived |
+| nestedInterface | [InterfaceUsage](InterfaceUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedItem | [ItemUsage](ItemUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedMetadata | [MetadataUsage](MetadataUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedOccurrence | [OccurrenceUsage](OccurrenceUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedPart | [PartUsage](PartUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedPort | [PortUsage](PortUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedReference | [ReferenceUsage](ReferenceUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedRendering | [RenderingUsage](RenderingUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedRequirement | [RequirementUsage](RequirementUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedState | [StateUsage](StateUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedTransition | [TransitionUsage](TransitionUsage.md) | [0..*] | [Usage](Usage.md) | derived |
+| nestedUsage | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedUseCase | [UseCaseUsage](UseCaseUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedVerificationCase | [VerificationCaseUsage](VerificationCaseUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedView | [ViewUsage](ViewUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| nestedViewpoint | [ViewpointUsage](ViewpointUsage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| occurrenceDefinition | [Class](Class.md) | [0..*] | [OccurrenceUsage](OccurrenceUsage.md) | derived, ordered |
 | output | [Feature](Feature.md) | [0..*] | [Type](Type.md) | derived, ordered |
 | ownedAnnotation | [Annotation](Annotation.md) | [0..*] | [Element](Element.md) | derived, composite, ordered |
 | ownedConjugator | [Conjugation](Conjugation.md) | [0..1] | [Type](Type.md) | derived, composite |
@@ -97,6 +130,7 @@ Redefines [function](Expression.md#function)
 | ownedMembership | [Membership](Membership.md) | [0..*] | [Namespace](Namespace.md) | derived, composite, ordered |
 | ownedRedefinition | [Redefinition](Redefinition.md) | [0..*] | [Feature](Feature.md) | derived, composite |
 | ownedReferenceSubsetting | [ReferenceSubsetting](ReferenceSubsetting.md) | [0..1] | [Feature](Feature.md) | derived, composite |
+| ownedRelatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | composite, ordered |
 | ownedRelationship | [Relationship](Relationship.md) | [0..*] | [Element](Element.md) | composite, ordered |
 | ownedSpecialization | [Specialization](Specialization.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
 | ownedSubsetting | [Subsetting](Subsetting.md) | [0..*] | [Feature](Feature.md) | derived, composite |
@@ -104,26 +138,47 @@ Redefines [function](Expression.md#function)
 | ownedTyping | [FeatureTyping](FeatureTyping.md) | [0..*] | [Feature](Feature.md) | derived, composite, ordered |
 | ownedUnioning | [Unioning](Unioning.md) | [0..*] | [Type](Type.md) | derived, composite, ordered |
 | owner | [Element](Element.md) | [0..1] | [Element](Element.md) | derived |
+| owningDefinition | [Definition](Definition.md) | [0..1] | [Usage](Usage.md) | derived |
 | owningFeatureMembership | [FeatureMembership](FeatureMembership.md) | [0..1] | [Feature](Feature.md) | derived |
 | owningMembership | [OwningMembership](OwningMembership.md) | [0..1] | [Element](Element.md) | derived |
 | owningNamespace | [Namespace](Namespace.md) | [0..1] | [Element](Element.md) | derived |
+| owningRelatedElement | [Element](Element.md) | [0..1] | [Relationship](Relationship.md) |  |
 | owningRelationship | [Relationship](Relationship.md) | [0..1] | [Element](Element.md) |  |
 | owningType | [Type](Type.md) | [0..1] | [Feature](Feature.md) | derived |
-| parameter | [Feature](Feature.md) | [0..*] | [Step](Step.md) | derived, ordered |
+| owningUsage | [Usage](Usage.md) | [0..1] | [Usage](Usage.md) | derived |
+| partDefinition | [PartDefinition](PartDefinition.md) | [0..*] | [PartUsage](PartUsage.md) | derived, ordered |
+| portionKind | [PortionKind](PortionKind.md) | [0..1] | [OccurrenceUsage](OccurrenceUsage.md) |  |
 | qualifiedName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
-| result | [Feature](Feature.md) | [1..1] | [Expression](Expression.md) | derived |
+| relatedElement | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | derived, ordered |
+| relatedFeature | [Feature](Feature.md) | [0..*] | [Connector](Connector.md) | derived, ordered |
 | shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
+| source | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| sourceFeature | [Feature](Feature.md) | [0..1] | [Connector](Connector.md) | derived, ordered |
+| target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
+| targetFeature | [Feature](Feature.md) | [0..*] | [Connector](Connector.md) | derived, ordered |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
+| usage | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived, ordered |
+| variant | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived |
+| variantMembership | [VariantMembership](VariantMembership.md) | [0..*] | [Usage](Usage.md) | derived, composite |
 
 ## Constraints
 
-### checkBooleanExpressionSpecialization
+### checkInterfaceUsageBinarySpecialization
 
-A BooleanExpression must directly or indirectly specialize the base BooleanExpression Performances::booleanEvaluations from the Kernel Semantic Library.
+A binary InterfaceUsage must directly or indirectly specialize the InterfaceUsage Interfaces::binaryInterfaces from the Systems Model Library.
 
 ```ocl
-specializesFromLibrary('Performances::booleanEvaluations')
+ownedEndFeature->size() = 2 implies
+    specializesFromLibrary('Interfaces::binaryInterfaces')
+```
+
+### checkInterfaceUsageSpecialization
+
+An InterfaceUsage must directly or indirectly specialize the InterfaceUsage Interfaces::interfaces from the Systems Model Library.
+
+```ocl
+specializesFromLibrary('Interfaces::interfaces')
 ```
 

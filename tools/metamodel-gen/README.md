@@ -18,7 +18,7 @@ generators and assert on scratch output; they no longer write the committed know
 Both target **net10.0** and are part of the root solution `mycelium-hypha.sln`.
 Package restore uses the repo-local `NuGet.config` (nuget.org only).
 
-Key dependency: [`uml4net.xmi`](https://www.nuget.org/packages/uml4net.xmi) `8.2.1` (Starion Group,
+Key dependency: [`uml4net.xmi`](https://www.nuget.org/packages/uml4net.xmi) `9.1.0` (Starion Group,
 Apache-2.0), which reads UML 2.5.1 XMI via `XmiReaderBuilder.Create().Build()`.
 
 ## Inputs
