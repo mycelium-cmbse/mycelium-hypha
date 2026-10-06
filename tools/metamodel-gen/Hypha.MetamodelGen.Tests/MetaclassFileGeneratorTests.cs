@@ -62,5 +62,41 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.That(content, Does.Contain("\n# PartUsage"));
             });
         }
+
+        [Test]
+        public void Element_files_render_every_operation_with_its_body_condition()
+        {
+            var model = TestModel.Model;
+            if (model is null)
+            {
+                Assert.Ignore("No SysML model found in the fixture.");
+            }
+
+            var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
+            var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
+            var linkableTypeNames = ElementCatalog.LinkableTypeNames(model!);
+            var withBody = 0;
+
+            foreach (var metaclass in metaclasses.Where(@class => @class.OwnedOperation.Count > 0))
+            {
+                var content = this.generator.GenerateElement(metaclass, subtypeIndex, linkableTypeNames).Replace("\r\n", "\n");
+
+                Assert.That(content, Does.Contain("\n## Operations\n"), metaclass.Name);
+
+                foreach (var operation in metaclass.OwnedOperation)
+                {
+                    Assert.That(content, Does.Contain($"\n### {operation.Name}\n"), $"{metaclass.Name}::{operation.Name}");
+
+                    var body = operation.QueryBodyConditionText();
+                    if (body.Length > 0)
+                    {
+                        Assert.That(content, Does.Contain($"```ocl\n{body}\n```"), $"{metaclass.Name}::{operation.Name}");
+                        withBody++;
+                    }
+                }
+            }
+
+            Assert.That(withBody, Is.GreaterThan(0), "The fixture has no operation with a bodyCondition to check.");
+        }
     }
 }

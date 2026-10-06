@@ -319,7 +319,9 @@ namespace Hypha.MetamodelGen.Generators
                 returnParameter?.Lower ?? 0,
                 returnParameter is null ? 1 : ModelQueryExtensions.QueryUpperBound(returnParameter.Upper),
                 operation.IsQuery,
-                parameters);
+                parameters,
+                operation.QueryDocumentationText(),
+                operation.QueryBodyConditionText());
         }
 
         private static EnumerationNode BuildEnumeration(IEnumeration enumeration)

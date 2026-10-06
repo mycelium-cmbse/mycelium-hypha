@@ -179,6 +179,24 @@ Redefines [actionDefinition](ActionUsage.md#actiondefinition)
 | variant | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived |
 | variantMembership | [VariantMembership](VariantMembership.md) | [0..*] | [Usage](Usage.md) | derived, composite |
 
+## Operations
+
+### isSubstateUsage
+
+`isSubstateUsage(isParallel : Boolean [1..1]) : Boolean [1..1]`
+
+Check if this StateUsage is composite and has an owningType that is a StateDefinition or StateUsage with the given value of isParallel, but is not an entryAction, doAction, or exitAction. If so, then it represents a StateAction that is a substate or exclusiveState (for isParallel = false) of another StateAction.
+
+```ocl
+isComposite and owningType <> null and
+(owningType.oclIsKindOf(StateDefinition) and
+    owningType.oclAsType(StateDefinition).isParallel = isParallel or
+ owningType.oclIsKindOf(StateUsage) and
+    owningType.oclAsType(StateUsage).isParallel = isParallel) and
+not owningFeatureMembership.oclIsKindOf(StateSubactionMembership)
+```
+
+
 ## Constraints
 
 ### checkStateUsageExclusiveStateSpecialization

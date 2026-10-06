@@ -186,6 +186,16 @@ namespace Hypha.MetamodelGen.Generators
                 })
                 .ToList();
 
+            var operations = @class.OwnedOperation
+                .OrderBy(operation => operation.Name, StringComparer.Ordinal)
+                .Select(operation => new MetaclassOperation(
+                    operation.Name,
+                    QueryOperationSignature(operation),
+                    operation.IsQuery,
+                    operation.QueryDocumentationText(),
+                    operation.QueryBodyConditionText()))
+                .ToList();
+
             var constraints = @class.OwnedRule
                 .OrderBy(rule => rule.Name, StringComparer.Ordinal)
                 .Select(rule => new MetaclassConstraint(
@@ -206,8 +216,38 @@ namespace Hypha.MetamodelGen.Generators
                 Specializations = specializations,
                 Features = features,
                 InheritedFeatures = inheritedFeatures,
+                Operations = operations,
                 Constraints = constraints,
             };
+        }
+
+        /// <summary>
+        /// Returns the UML-style signature of an operation, e.g.
+        /// <c>namesOf(element : Element [1..1]) : String [0..*]</c>. A parameter that is not
+        /// <c>in</c> is prefixed with its direction; the return comes from the <c>return</c>
+        /// parameter, and is left out when there is none.
+        /// </summary>
+        private static string QueryOperationSignature(IOperation operation)
+        {
+            var parameters = operation.OwnedParameter
+                .Where(parameter => parameter.Direction != ParameterDirectionKind.Return)
+                .Select(parameter =>
+                {
+                    var direction = parameter.Direction == ParameterDirectionKind.In
+                        ? string.Empty
+                        : $"{parameter.Direction.ToString().ToLowerInvariant()} ";
+
+                    return $"{direction}{parameter.Name} : {parameter.Type?.Name ?? "«untyped»"} {parameter.QueryFormattedMultiplicity()}";
+                });
+
+            var returnParameter = operation.OwnedParameter
+                .FirstOrDefault(parameter => parameter.Direction == ParameterDirectionKind.Return);
+
+            var returns = returnParameter is null
+                ? string.Empty
+                : $" : {returnParameter.Type?.Name ?? "«untyped»"} {returnParameter.QueryFormattedMultiplicity()}";
+
+            return $"{operation.Name}({string.Join(", ", parameters)}){returns}";
         }
 
         /// <summary>

@@ -87,14 +87,19 @@ namespace Hypha.MetamodelGen.Generators
         string Documentation,
         string InheritedFrom);
 
-    /// <summary>An owned operation. The return is captured separately from the (non-return) parameters.</summary>
+    /// <summary>
+    /// An owned operation. The return is captured separately from the (non-return) parameters;
+    /// <see cref="Body"/> is the OCL of its <c>bodyCondition</c> (empty when it has none).
+    /// </summary>
     public sealed record OperationNode(
         string Name,
         string? ReturnType,
         int ReturnLower,
         int ReturnUpper,
         bool IsQuery,
-        IReadOnlyList<OperationParameterNode> Parameters);
+        IReadOnlyList<OperationParameterNode> Parameters,
+        string Documentation,
+        string Body);
 
     /// <summary>A single (non-return) operation parameter.</summary>
     public sealed record OperationParameterNode(

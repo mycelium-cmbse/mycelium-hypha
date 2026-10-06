@@ -96,6 +96,26 @@ Whether or not the Membership of the memberElement in the membershipOwningNamesp
 | target | [Element](Element.md) | [0..*] | [Relationship](Relationship.md) | ordered |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
+## Operations
+
+### isDistinguishableFrom
+
+`isDistinguishableFrom(other : Membership [1..1]) : Boolean [1..1]`
+
+Whether this Membership is distinguishable from a given other Membership. By default, this is true if this Membership has no memberShortName or memberName; or each of the memberShortName and memberName are different than both of those of the other Membership; or neither of the metaclasses of the memberElement of this Membership and the memberElement of the other Membership conform to the other. But this may be overridden in specializations of Membership.
+
+```ocl
+not (memberElement.oclKindOf(other.memberElement.oclType()) or
+     other.memberElement.oclKindOf(memberElement.oclType())) or
+(shortMemberName = null or
+    (shortMemberName <> other.shortMemberName and
+     shortMemberName <> other.memberName)) and
+(memberName = null or
+    (memberName <> other.shortMemberName and
+     memberName <> other.memberName)))
+```
+
+
 ## Constraints
 
 ### deriveMembershipMemberElementId

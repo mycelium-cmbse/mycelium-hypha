@@ -64,6 +64,27 @@ Subsets {{#each Subsets}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 | {{Name}} | {{{TypeMarkdown}}} | {{Multiplicity}} | [{{Owner}}]({{Owner}}.md) | {{Modifiers}} |
 {{/each}}
 {{/if}}
+{{#if Operations}}
+
+## Operations
+
+{{#each Operations}}
+### {{Name}}
+
+`{{Signature}}`{{#if IsQuery}} · *query*{{/if}}
+{{#if Documentation}}
+
+{{{Documentation}}}
+{{/if}}
+{{#if Body}}
+
+```ocl
+{{{Body}}}
+```
+{{/if}}
+
+{{/each}}
+{{/if}}
 {{#if Constraints}}
 
 ## Constraints

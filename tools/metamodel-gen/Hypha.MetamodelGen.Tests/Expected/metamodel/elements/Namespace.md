@@ -93,6 +93,169 @@ Subsets [membership](#membership), `sourceRelationship`, [ownedRelationship](Ele
 | shortName | [String](String.md) | [0..1] | [Element](Element.md) | derived |
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 
+## Operations
+
+### importedMemberships
+
+`importedMemberships(excluded : Namespace [0..*]) : Membership [0..*]`
+
+Derive the imported Memberships of this Namespace as the importedMembership of all ownedImports, excluding those Imports whose importOwningNamespace is in the excluded set, and excluding Memberships that have distinguisibility collisions with each other or with any ownedMembership.
+
+```ocl
+ownedImport.importedMemberships(excluded->including(self))
+```
+
+### membershipsOfVisibility
+
+`membershipsOfVisibility(visibility : VisibilityKind [0..1], excluded : Namespace [0..*]) : Membership [0..*]`
+
+If visibility is not null, return the Memberships of this Namespace with the given visibility, including ownedMemberships with the given visibility and Memberships imported with the given visibility. If visibility is null, return all ownedMemberships and imported Memberships regardless of visibility. When computing imported Memberships, ignore this Namespace and any Namespaces in the given excluded set.
+
+```ocl
+ownedMembership->
+    select(mem | visibility = null or mem.visibility = visibility)->
+    union(ownedImport->
+        select(imp | visibility = null or imp.visibility = visibility).
+        importedMemberships(excluded->including(self)))
+```
+
+### namesOf
+
+`namesOf(element : Element [1..1]) : String [0..*]`
+
+Return the names of the given element as it is known in this Namespace.
+
+```ocl
+let elementMemberships : Sequence(Membership) = 
+    memberships->select(memberElement = element) in
+memberships.memberShortName->
+    union(memberships.memberName)->
+    asSet()
+```
+
+### qualificationOf
+
+`qualificationOf(qualifiedName : String [1..1]) : String [0..1]`
+
+Return a string with valid KerML syntax representing the qualification part of a given qualifiedName, that is, a qualified name with all the segment names of the given name except the last. If the given qualifiedName has only one segment, then return null.
+
+```ocl
+No OCL
+```
+
+### resolve
+
+`resolve(qualifiedName : String [1..1]) : Membership [0..1]`
+
+Resolve the given qualified name to the named Membership (if any), starting with this Namespace as the local scope. The qualified name string must conform to the concrete syntax of the KerML textual notation. According to the KerML name resolution rules every qualified name will resolve to either a single Membership, or to none.
+
+```ocl
+let qualification : String = qualificationOf(qualifiedName) in
+let name : String = unqualifiedNameOf(qualifiedName) in
+if qualification = null then resolveLocal(name)
+else if qualification = '$' then  resolveGlobal(name)
+else 
+    let namespaceMembership : Membership = resolve(qualification) in
+    if namespaceMembership = null or 
+       not namespaceMembership.memberElement.oclIsKindOf(Namespace) 
+    then null
+    else 
+        namespaceMembership.memberElement.oclAsType(Namespace).
+        resolveVisible(name) 
+    endif
+endif endif
+```
+
+### resolveGlobal
+
+`resolveGlobal(qualifiedName : String [1..1]) : Membership [0..1]`
+
+Resolve the given qualified name to the named Membership (if any) in the effective global Namespace that is the outermost naming scope. The qualified name string must conform to the concrete syntax of the KerML textual notation.
+
+```ocl
+No OCL
+```
+
+### resolveLocal
+
+`resolveLocal(name : String [1..1]) : Membership [0..1]`
+
+Resolve a simple name starting with this Namespace as the local scope, and continuing with containing outer scopes as necessary. However, if this Namespace is a root Namespace, then the resolution is done directly in global scope.
+
+```ocl
+if owningNamespace = null then resolveGlobal(name)
+else
+    let memberships : Membership = membership->
+        select(memberShortName = name or memberName = name) in
+    if memberships->notEmpty() then memberships->first()
+    else owningNamespace.resolveLocal(name)
+    endif
+endif
+```
+
+### resolveVisible
+
+`resolveVisible(name : String [1..1]) : Membership [0..1]`
+
+Resolve a simple name from the visible Memberships of this Namespace.
+
+```ocl
+let memberships : Sequence(Membership) =
+    visibleMemberships(Set{}, false, false)->
+    select(memberShortName = name or memberName = name) in
+if memberships->isEmpty() then null
+else memberships->first()
+endif
+```
+
+### unqualifiedNameOf
+
+`unqualifiedNameOf(qualifiedName : String [1..1]) : String [1..1]`
+
+Return the simple name that is the last segment name of the given qualifiedName. If this segment name has the form of a KerML unrestricted name, then "unescape" it by removing the surrounding single quotes and replacing all escape sequences with the specified character.
+
+```ocl
+No OCL
+```
+
+### visibilityOf
+
+`visibilityOf(mem : Membership [1..1]) : VisibilityKind [1..1]`
+
+Returns this visibility of mem relative to this Namespace. If mem is an importedMembership, this is the visibility of its Import. Otherwise it is the visibility of the Membership itself.
+
+```ocl
+if importedMembership->includes(mem) then
+    ownedImport->
+        select(importedMemberships(Set{})->includes(mem)).
+        first().visibility
+else if memberships->includes(mem) then
+    mem.visibility
+else
+    VisibilityKind::private
+endif
+```
+
+### visibleMemberships
+
+`visibleMemberships(excluded : Namespace [0..*], isRecursive : Boolean [1..1], includeAll : Boolean [1..1]) : Membership [0..*]`
+
+If includeAll = true, then return all the Memberships of this Namespace. Otherwise, return only the publicly visible Memberships of this Namespace, including ownedMemberships that have a visibility of public and Memberships imported with a visibility of public. If isRecursive = true, also recursively include all visible Memberships of any public owned Namespaces, or, if IncludeAll = true, all Memberships of all owned Namespaces. When computing imported Memberships, ignore this Namespace and any Namespaces in the given excluded set.
+
+```ocl
+let visibleMemberships : OrderedSet(Membership) = 
+    if includeAll then membershipsOfVisibility(null, excluded)
+    else membershipsOfVisibility(VisibilityKind::public, excluded)
+    endif in
+if not isRecursive then visibleMemberships
+else visibleMemberships->union(ownedMember->
+    selectAsKind(Namespace).
+    select(includeAll or owningMembership.visibility = VisibilityKind::public)->
+    visibleMemberships(excluded->including(self), true, includeAll))
+endif
+```
+
+
 ## Constraints
 
 ### deriveNamespaceImportedMembership

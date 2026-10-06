@@ -65,6 +65,8 @@ One file per metaclass, named `<MetaclassName>.md`. Each file opens with YAML fr
 - **Inherited features** — a compact table of the effective feature set inherited from supertypes,
   each row giving the (linked) type, multiplicity, declaring owner, and modifiers, so the reader
   sees the whole feature set without walking the generalization chain;
+- **Operations** – each owned operation's signature, documentation and the OCL body of its
+  `bodyCondition`;
 - **Constraints** — the constraint intent text plus its OCL body.
 
 Enumerations and primitive types referenced as feature types get their own element files too (same

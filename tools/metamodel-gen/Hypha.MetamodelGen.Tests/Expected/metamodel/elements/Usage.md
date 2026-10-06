@@ -398,6 +398,35 @@ Subsets [ownedMembership](Namespace.md#ownedmembership)
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
+## Operations
+
+### namingFeature
+
+`namingFeature() : Feature [0..1]`
+
+If this Usage is a variant, then its naming Feature is the referencedFeature of its ownedReferenceSubsetting.
+
+```ocl
+if not owningMembership.oclIsKindOf(VariantMembership) then
+    self.oclAsType(Feature).namingFeature()
+else if ownedReferenceSubsetting = null then null
+else ownedReferenceSubsetting.referencedFeature
+endif endif
+```
+
+### referencedFeatureTarget
+
+`referencedFeatureTarget() : Feature [1..1]`
+
+If ownedReferenceSubsetting is not null, return the featureTarget of the referencedFeature of the ownedReferenceSubsetting.
+
+```ocl
+if ownedReferenceSubsetting = null then null
+else ownedReferenceSubsetting.referencedFeature.featureTarget
+endif
+```
+
+
 ## Constraints
 
 ### checkUsageVariationDefinitionSpecialization

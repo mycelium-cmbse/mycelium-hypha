@@ -256,6 +256,284 @@ Types that restrict the values of this Feature, such that the values must be ins
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
+## Operations
+
+### allRedefinedFeatures
+
+`allRedefinedFeatures() : Feature [0..*]`
+
+Return this Feature and all the Features that are directly or indirectly Redefined by this Feature.
+
+```ocl
+ownedRedefinition.redefinedFeature->
+    closure(ownedRedefinition.redefinedFeature)->
+    asOrderedSet()->prepend(self)
+```
+
+### asCartesianProduct
+
+`asCartesianProduct() : Type [0..*]`
+
+If isCartesianProduct is true, then return the list of Types whose Cartesian product can be represented by this Feature. (If isCartesianProduct is not true, the operation will still return a valid value, it will just not represent anything useful.)
+
+```ocl
+featuringType->select(t | t.owner <> self)->
+    union(featuringType->select(t | t.owner = self)->
+        selectByKind(Feature).asCartesianProduct())->
+    union(type)
+```
+
+### canAccess
+
+`canAccess(feature : Feature [1..1]) : Boolean [1..1]`
+
+A Feature can access another feature if the other feature is featured within one of the direct or indirect featuringTypes of this Feature.
+
+```ocl
+let anythingType: Element =
+    subsettingFeature.resolveGlobal('Base::Anything').memberElement in
+let allFeaturingTypes : Sequence(Type) =
+    featuringTypes->closure(t |
+        if not t.oclIsKindOf(Feature) then Sequence{}
+        else
+            let featuringTypes : OrderedSet(Type) = t.oclAsType(Feature).featuringType in
+            if featuringTypes->isEmpty() then Sequence{anythingType}
+            else featuringTypes
+            endif 
+        endif) in
+allFeaturingTypes->exists(t | feature.isFeaturedWithin(t))
+```
+
+### directionFor
+
+`directionFor(type : Type [1..1]) : FeatureDirectionKind [0..1]`
+
+Return the directionOf this Feature relative to the given type.
+
+```ocl
+type.directionOf(self)
+```
+
+### effectiveName
+
+`effectiveName() : String [0..1]`
+
+If a Feature has no declaredName or declaredShortName , then its effective name is given by the effective name of the Feature returned by the namingFeature() operation, if any.
+
+```ocl
+if declaredShortName <> null or declaredName <> null then
+    declaredName
+else
+    let namingFeature : Feature = namingFeature() in
+    if namingFeature = null then
+        null
+    else
+        namingFeature.effectiveName()
+    endif
+endif
+```
+
+### effectiveShortName
+
+`effectiveShortName() : String [0..1]`
+
+If a Feature has no declaredShortName or declaredName, then its effective shortName is given by the effective shortName of the Feature returned by the namingFeature() operation, if any.
+
+```ocl
+if declaredShortName <> null or declaredName <> null then
+    declaredShortName
+else
+    let namingFeature : Feature = namingFeature() in
+    if namingFeature = null then
+        null
+    else
+        namingFeature.effectiveShortName()
+    endif
+endif
+```
+
+### isCartesianProduct
+
+`isCartesianProduct() : Boolean [1..1]`
+
+Check whether this Feature can be used to represent a Cartesian product of Types.
+
+```ocl
+type->size() = 1 and
+featuringType.size() = 1 and
+(featuringType.first().owner = self implies
+    featuringType.first().oclIsKindOf(Feature) and
+    featuringType.first().oclAsType(Feature).isCartesianProduct())
+```
+
+### isCompatibleWith
+
+`isCompatibleWith(otherType : Type [1..1]) : Boolean [1..1]`
+
+A Feature is compatible with an otherType if it either directly or indirectly specializes the otherType or if the otherType is also a Feature and all of the following are true. <ol> <li>Neither this Feature or the otherType have any ownedFeatures.</li> <li>This Feature directly or indirectly redefines a Feature that is also directly or indirectly redefined by the otherType.</li> <li>This Feature can access the otherType. </li></ol>
+
+```ocl
+specializes(otherType) or
+    supertype.oclIsKindOf(Feature) and
+    ownedFeature->isEmpty() and
+    otherType.ownedFeature->isEmpty() and
+    ownedRedefinitions.allRedefinedFeatures()->exists(f |  
+        otherType.oclAsType(Feature).allRedefinedFeatures()->includes(f)) and
+    canAccess(otherType.oclAsType(Feature))
+```
+
+### isFeaturedWithin
+
+`isFeaturedWithin(type : Type [0..1]) : Boolean [1..1]`
+
+Return if the featuringTypes of this Feature are compatible with the given type. If type is null, then check if this Feature is explicitly or implicitly featured by Base::Anything. If this Feature has isVariable = true, then also consider it to be featured within its owningType. If this Feature is a feature chain whose first chainingFeature has isVariable = true, then also consider it to be featured within the owningType of its first chainingFeature.
+
+```ocl
+if type = null then
+    featuringType->forAll(f | f = resolveGlobal('Base::Anything').memberElement)
+else
+    featuringType->forAll(f | type.isCompatibleWith(f)) or
+    isVariable and type.specializes(owningType) or
+    chainingFeature->notEmpty() and chainingFeature->first().isVariable and
+        type.specializes(chainingFeature->first().owningType)
+endif
+```
+
+### isFeaturingType
+
+`isFeaturingType(type : Type [1..1]) : Boolean [1..1]`
+
+Return whether the given type must be a featuringType of this Feature. If this Feature has isVariable = false, then return true if the type is the owningType of the Feature. If isVariable = true, then return true if the type is a Feature representing the snapshots of the owningType of this Feature.
+
+```ocl
+owningType <> null and
+if not isVariable then type = owningType
+else if owningType = resolveGlobal('Occurrences::Occurrence').memberElement then
+    type = resolveGlobal('Occurrences::Occurrence::snapshots').memberElement 
+else 
+    type.oclIsKindOf(Feature) and
+    let feature : Feature = type.oclAsType(Feature) in
+    feature.featuringType->includes(owningType) and
+    feature.redefinesFromLibrary('Occurrences::Occurrence::snapshots')
+endif
+```
+
+### isOwnedCrossFeature
+
+`isOwnedCrossFeature() : Boolean [1..1]`
+
+Return whether this Feature is an owned cross Feature of an end Feature.
+
+```ocl
+owningNamespace <> null and 
+owningNamespace.oclIsKindOf(Feature) and 
+owningNamespace.oclAsType(Feature).ownedCrossFeature() = self
+```
+
+### namingFeature
+
+`namingFeature() : Feature [0..1]`
+
+By default, the naming Feature of a Feature is given by its first redefinedFeature of its first ownedRedefinition, if any.
+
+```ocl
+if ownedRedefinition->isEmpty() then
+    null
+else
+    ownedRedefinition->at(1).redefinedFeature
+endif
+```
+
+### ownedCrossFeature
+
+`ownedCrossFeature() : Feature [0..1]`
+
+If this Feature is an end Feature of its owningType, then return the first ownedMember of the Feature that is a Feature, but not a Multiplicity or a MetadataFeature, and whose owningMembership is not a FeatureMembership. If this exists, it is the crossFeature of the end Feature.
+
+```ocl
+if not isEnd or owningType = null then null
+else
+    let ownedMemberFeatures: Sequence(Feature) =
+        ownedMember->selectByKind(Feature)->
+            reject(oclIsKindOf(Multiplicity) or 
+                   oclIsKindOf(MetadataFeature) or
+                   oclIsKindOf(FeatureValue))->
+            reject(owningMembership.oclIsKindOf(FeatureMembership)) in
+    if ownedMemberFeatures.isEmpty() then null
+    else ownedMemberFeatures->first()
+    endif
+```
+
+### redefines
+
+`redefines(redefinedFeature : Feature [1..1]) : Boolean [1..1]`
+
+Check whether this Feature directly redefines the given redefinedFeature.
+
+```ocl
+ownedRedefinition.redefinedFeature->includes(redefinedFeature)
+```
+
+### redefinesFromLibrary
+
+`redefinesFromLibrary(libraryFeatureName : String [1..1]) : Boolean [1..1]`
+
+Check whether this Feature directly redefines the named library Feature. libraryFeatureName must conform to the syntax of a KerML qualified name and must resolve to a Feature in global scope.
+
+```ocl
+let mem: Membership = resolveGlobal(libraryFeatureName) in
+mem <> null and mem.memberElement.oclIsKindOf(Feature) and
+redefines(mem.memberElement.oclAsType(Feature))
+```
+
+### subsetsChain
+
+`subsetsChain(first : Feature [1..1], second : Feature [1..1]) : Boolean [1..1]`
+
+Check whether this Feature directly or indirectly specializes a Feature whose last two chainingFeatures are the given Features first and second.
+
+```ocl
+allSuperTypes()->selectAsKind(Feature)->
+    exists(f | let n: Integer = f.chainingFeature->size() in
+        n >= 2 and
+        f.chainingFeature->at(n-1) = first and
+        f.chainingFeature->at(n) = second)
+```
+
+### supertypes
+
+`supertypes(excludeImplied : Boolean [1..1]) : Type [0..*]`
+
+```ocl
+let supertypes : OrderedSet(Type) = 
+    self.oclAsType(Type).supertypes(excludeImplied) in
+if featureTarget = self then supertypes
+else supertypes->append(featureTarget)
+endif
+```
+
+### typingFeatures
+
+`typingFeatures() : Feature [0..*]`
+
+Return the Features used to determine the types of this Feature (other than this Feature itself). If this Feature is not conjugated, then the typingFeatures consist of all subsetted Features, except from CrossSubsetting, and the last chainingFeature (if any). If this Feature is conjugated, then the typingFeatures are only its originalType (if the originalType is a Feature). <strong>Note.</strong> CrossSubsetting is excluded from the determination of the type of a Feature in order to avoid circularity in the construction of implied CrossSubsetting relationships. The validateFeatureCrossFeatureType requires that the crossFeature of a Feature have the same type as the Feature.
+
+```ocl
+if not isConjugated then
+    let subsettedFeatures : OrderedSet(Feature) = 
+        subsetting->reject(s | s.oclIsKindOf(CrossSubsetting)).subsettedFeatures in 
+    if chainingFeature->isEmpty() or
+       subsettedFeature->includes(chainingFeature->last())
+    then subsettedFeatures
+    else subsettedFeatures->append(chainingFeature->last())
+    endif
+else if conjugator.originalType.oclIsKindOf(Feature) then
+    OrderedSet{conjugator.originalType.oclAsType(Feature)}
+else OrderedSet{}
+endif endif
+```
+
+
 ## Constraints
 
 ### checkFeatureCrossingSpecialization

@@ -118,3 +118,22 @@ An operator symbol that names a corresponding Function from one of the standard 
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
+
+## Operations
+
+### instantiatedType
+
+`instantiatedType() : Type [1..1]`
+
+The instantiatedType of an OperatorExpression is the resolution of it's operator from one of the packages BaseFunctions, DataFunctions, or ControlFunctions from the Kernel Function Library.
+
+```ocl
+let libFunctions : Sequence(Element) =
+    Sequence{'BaseFunctions', 'DataFunctions', 'ControlFunctions'}->
+    collect(ns | resolveGlobal(ns + "::'" + operator + "'").
+    memberElement) in
+if libFunctions->isEmpty() then null
+else libFunctions->first().oclAsType(Type)
+endif
+```
+

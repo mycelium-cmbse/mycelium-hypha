@@ -125,6 +125,22 @@ Redefines [ownedConjugator](Type.md#ownedconjugator)
 | variant | [Usage](Usage.md) | [0..*] | [Definition](Definition.md) | derived |
 | variantMembership | [VariantMembership](VariantMembership.md) | [0..*] | [Definition](Definition.md) | derived, composite |
 
+## Operations
+
+### effectiveName
+
+`effectiveName() : String [0..1]`
+
+If the name of the originalPortDefinition is non-empty, then return that with the character ~ prepended.
+
+```ocl
+let originalName : String = originalPortDefinition.name in
+if originalName = null then null
+else '~' + originalName
+endif
+```
+
+
 ## Constraints
 
 ### validateConjugatedPortDefinitionConjugatedPortDefinitionIsEmpty
