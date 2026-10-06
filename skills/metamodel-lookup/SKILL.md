@@ -60,6 +60,9 @@ YAML front matter: `name`, `package`, `fully qualified name` (e.g.
 - **## Inherited features** — a table (`Feature | Type | Multiplicity | Owner | Modifiers`) giving
   the **full effective inherited feature set**, with the declaring supertype in the `Owner` column.
   Read this table directly — you do **not** need to walk the generalization chain by hand.
+- **## Operations** – each owned operation's signature (e.g. `namesOf(element : Element [1..1]) :
+  String [0..*]`, *query* when it is one), its documentation, and the OCL of its `bodyCondition` (the
+  derivation it computes) in an ```ocl block.
 - **## Constraints** — each constraint's intent text plus its OCL body in an ```ocl block.
 
 Enumeration files list their literals under `## Literals`; primitive-type files carry just their
@@ -71,7 +74,8 @@ documentation.
 `allAncestors`, `allDescendants`, `directSubclasses`, and `inheritedAttributes` carrying the
 declaring type in `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper` (`-1` is
 unbounded), `isDerived`, `isComposite`, `isOrdered`, `redefines` and `subsets`; classes also carry
-`ownedOperations` and `constraints` with their OCL.
+`ownedOperations` (each with `documentation` and `body`, the OCL of its `bodyCondition`) and
+`constraints` with their OCL.
 
 It is ~8 MB, so **never read it whole** — query it. `jq` is *recommended* for this; when it is not
 installed, fall back to the markdown route described under [Procedure](#procedure), which is slower

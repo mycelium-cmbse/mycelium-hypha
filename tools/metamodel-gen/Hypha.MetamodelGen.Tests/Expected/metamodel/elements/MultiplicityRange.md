@@ -123,6 +123,48 @@ Subsets [bound](#bound)
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
+## Operations
+
+### hasBounds
+
+`hasBounds(lower : Integer [1..1], upper : UnlimitedNatural [1..1]) : Boolean [1..1]`
+
+Check whether this MultiplicityRange represents the range bounded by the given values lower and upper, presuming the lowerBound and upperBound Expressions are model-level evaluable.
+
+```ocl
+valueOf(upperBound) = upper and
+let lowerValue: UnlimitedNatural = valueOf(lowerBound) in
+(lowerValue = lower or
+ lowerValue = null and 
+    (lower = upper or 
+     lower = 0 and upper = *))
+```
+
+### valueOf
+
+`valueOf(bound : Expression [0..1]) : UnlimitedNatural [0..1]`
+
+Evaluate the given bound Expression (at model level) and return the result represented as a MOF UnlimitedNatural value.
+
+```ocl
+if bound = null or not bound.isModelLevelEvaluable then 
+    null
+else
+    let boundEval: Sequence(Element) = bound.evaluate(owningType) in
+    if boundEval->size() <> 1 then null else
+        let valueEval: Element = boundEval->at(1) in
+        if valueEval.oclIsKindOf(LiteralInfinity) then *
+        else if valueEval.oclIsKindOf(LiteralInteger) then
+            let value : Integer = 
+                valueEval.oclAsKindOf(LiteralInteger).value in
+            if value >= 0 then value else null endif
+        else null
+        endif endif
+    endif
+endif
+```
+
+
 ## Constraints
 
 ### checkMultiplicityRangeExpressionTypeFeaturing

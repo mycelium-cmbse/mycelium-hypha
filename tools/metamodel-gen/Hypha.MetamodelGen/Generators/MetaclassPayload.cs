@@ -46,6 +46,9 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>Gets the features inherited from supertypes, ordered by name.</summary>
         public required IReadOnlyList<InheritedFeature> InheritedFeatures { get; init; }
 
+        /// <summary>Gets the owned operations, ordered by name.</summary>
+        public required IReadOnlyList<MetaclassOperation> Operations { get; init; }
+
         /// <summary>Gets the owned constraints, ordered by name.</summary>
         public required IReadOnlyList<MetaclassConstraint> Constraints { get; init; }
     }

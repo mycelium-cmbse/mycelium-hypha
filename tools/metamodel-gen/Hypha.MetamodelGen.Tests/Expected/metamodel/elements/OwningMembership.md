@@ -97,6 +97,22 @@ Redefines [memberShortName](Membership.md#membershortname)
 | textualRepresentation | [TextualRepresentation](TextualRepresentation.md) | [0..*] | [Element](Element.md) | derived, ordered |
 | visibility | [VisibilityKind](VisibilityKind.md) | [1..1] | [Membership](Membership.md) |  |
 
+## Operations
+
+### path
+
+`path() : String [1..1]`
+
+If the ownedMemberElement of this OwningMembership has a non-null qualifiedName, then return the string constructed by appending to that qualifiedName the string "/owningMembership". Otherwise, return the path of the OwningMembership as specified for a Relationship in general.
+
+```ocl
+if ownedElement.qualifiedName <> null then
+    ownedElement.qualifiedName + '/owningMembership'
+else self.oclAsType(Relationship).path()
+endif
+```
+
+
 ## Constraints
 
 ### deriveOwningMembershipOwnedMemberName

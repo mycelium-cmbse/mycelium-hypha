@@ -112,6 +112,27 @@ Indicates which of the Functions from the Triggers model in the Kernel Semantic 
 | type | [Type](Type.md) | [0..*] | [Feature](Feature.md) | derived, ordered |
 | unioningType | [Type](Type.md) | [0..*] | [Type](Type.md) | derived, ordered |
 
+## Operations
+
+### instantiatedType
+
+`instantiatedType() : Type [1..1]`
+
+Return one of the Functions TriggerWhen, TriggerAt or TriggerAfter, from the Kernel Semantic Library Triggers package, depending on whether the kind of this TriggerInvocationExpression is when, at or after, respectively.
+
+```ocl
+resolveGlobal(
+    if kind = TriggerKind::when then
+        'Triggers::TriggerWhen'
+    else if kind = TriggerKind::at then
+        'Triggers::TriggerAt'
+    else
+        'Triggers::TriggerAfter'
+    endif endif
+).memberElement.oclAsType(Type)
+```
+
+
 ## Constraints
 
 ### validateTriggerInvocationExpressionAfterArgument

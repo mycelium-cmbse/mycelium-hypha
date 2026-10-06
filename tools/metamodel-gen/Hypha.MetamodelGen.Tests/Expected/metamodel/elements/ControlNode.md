@@ -147,6 +147,26 @@ A ControlNode is an ActionUsage that does not have any inherent behavior but pro
 | variant | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived |
 | variantMembership | [VariantMembership](VariantMembership.md) | [0..*] | [Usage](Usage.md) | derived, composite |
 
+## Operations
+
+### multiplicityHasBounds
+
+`multiplicityHasBounds(mult : Multiplicity [1..1], lower : Integer [1..1], upper : UnlimitedNatural [1..1]) : Boolean [1..1]`
+
+Check that the given Multiplicity has lowerBound and upperBound expressions that are model-level evaluable to the given lower and upper values.
+
+```ocl
+mult <> null and
+if mult.oclIsKindOf(MultiplicityRange) then
+    mult.oclAsType(MultiplicityRange).hasBounds(lower, upper)
+else
+    mult.allSuperTypes()->exists(
+        oclisKindOf(MultiplicityRange) and
+        oclAsType(MultiplicityRange).hasBounds(lower, upper)
+endif
+```
+
+
 ## Constraints
 
 ### checkControlNodeSpecialization

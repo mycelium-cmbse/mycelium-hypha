@@ -14,6 +14,7 @@ namespace Hypha.MetamodelGen.Generators
     using System.Globalization;
     using System.Linq;
 
+    using uml4net.Classification;
     using uml4net.CommonStructure;
     using uml4net.Values;
 
@@ -56,6 +57,20 @@ namespace Hypha.MetamodelGen.Generators
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// Extracts the textual (OCL) body of an operation: the specification of its
+        /// <c>bodyCondition</c>, a constraint the operation owns (UML 2.5.1 subsets <c>ownedRule</c>
+        /// with it), never one of its class's own rules. Being composite, uml4net holds the
+        /// <c>[0..1]</c> body condition in a container list. Returns an empty string when the operation
+        /// has no body condition.
+        /// </summary>
+        public static string QueryBodyConditionText(this IOperation operation)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+
+            return operation.BodyCondition.FirstOrDefault()?.QueryConstraintBody() ?? string.Empty;
         }
     }
 }

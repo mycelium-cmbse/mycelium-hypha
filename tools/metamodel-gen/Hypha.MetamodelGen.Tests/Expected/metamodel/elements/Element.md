@@ -145,6 +145,64 @@ The TextualRepresentations that annotate this Element.
 Subsets `annotatingElement`, [ownedElement](#ownedelement)
 
 
+## Operations
+
+### effectiveName
+
+`effectiveName() : String [0..1]`
+
+Return an effective name for this Element. By default this is the same as its declaredName.
+
+```ocl
+declaredName
+```
+
+### effectiveShortName
+
+`effectiveShortName() : String [0..1]`
+
+Return an effective shortName for this Element. By default this is the same as its declaredShortName.
+
+```ocl
+declaredShortName
+```
+
+### escapedName
+
+`escapedName() : String [0..1]`
+
+Return name, if that is not null, otherwise the shortName, if that is not null, otherwise null. If the returned value is non-null, it is returned as-is if it has the form of a basic name, or, otherwise, represented as a restricted name according to the lexical structure of the KerML textual notation (i.e., surrounded by single quote characters and with special characters escaped).
+
+### libraryNamespace
+
+`libraryNamespace() : Namespace [0..1]`
+
+By default, return the library Namespace of the owningRelationship of this Element, if it has one.
+
+```ocl
+if owningRelationship <> null then owningRelationship.libraryNamespace()
+else null endif
+```
+
+### path
+
+`path() : String [1..1]`
+
+Return a unique description of the location of this Element in the containment structure rooted in a root Namespace. If the Element has a non-null qualifiedName, then return that. Otherwise, if it has an owningRelationship, then return the string constructed by appending to the path of it's owningRelationship the character / followed by the string representation of its position in the list of ownedRelatedElements of the owningRelationship (indexed starting at 1). Otherwise, return the empty string. (Note that this operation is overridden for Relationships to use owningRelatedElement when appropriate.)
+
+```ocl
+if qualifiedName <> null then qualifiedName
+else if owningRelationship <> null then
+    owningRelationship.path() + '/' + 
+    owningRelationship.ownedRelatedElement->indexOf(self).toString()
+    -- A position index shall be converted to a decimal string representation 
+    -- consisting of only decimal digits, with no sign, leading zeros or leading 
+    -- or trailing whitespace.
+else ''
+endif endif
+```
+
+
 ## Constraints
 
 ### deriveElementDocumentation

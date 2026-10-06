@@ -23,7 +23,8 @@ KerML and SysML v2 are **combined** under one tree:
   node with its closures already computed: `allAncestors`, `allDescendants`, `directSubclasses`, and
   `inheritedAttributes` carrying `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper`
   (`-1` = unbounded), `isDerived`, `isComposite`, `isOrdered`, `redefines`, `subsets`; classes also
-  carry `ownedOperations` and `constraints` (with OCL).
+  carry `ownedOperations` (each with `documentation` and its `body` – the OCL of its `bodyCondition`)
+  and `constraints` (with OCL).
 - `knowledge/<tag>/metamodel/elements/<Name>.md` — one file per element: metaclasses, enumerations
   (`kind: enumeration`) and primitive types (`kind: primitive`). The citable surface.
 - `knowledge/<tag>/metamodel/index.md` — manifest: metaclasses by package, plus `## Enumeration types` and
@@ -44,7 +45,8 @@ Each element file carries: front matter (`name`, `package`, `fully qualified nam
 (linked); **## Owned features** (`### name`, then `` `+` [Type](Type.md) · `[0..1]` · *derived* ``,
 documentation, `Redefines`/`Subsets` links); **## Inherited features** (a table giving the *complete*
 inherited set with each feature's declaring `Owner` — read it directly, never re-walk the chain);
-**## Constraints** (intent + OCL). Enumeration files list literals under **## Literals**.
+**## Operations** (`### name`, the signature, documentation and the OCL body); **## Constraints**
+(intent + OCL). Enumeration files list literals under **## Literals**.
 
 ## How to work
 

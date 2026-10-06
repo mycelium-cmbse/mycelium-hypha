@@ -159,6 +159,19 @@ Redefines [function](Expression.md#function), [actionDefinition](ActionUsage.md#
 | variant | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived |
 | variantMembership | [VariantMembership](VariantMembership.md) | [0..*] | [Usage](Usage.md) | derived, composite |
 
+## Operations
+
+### modelLevelEvaluable
+
+`modelLevelEvaluable(visited : Feature [0..*]) : Boolean [1..1]`
+
+A CalculationUsage is not model-level evaluable.
+
+```ocl
+false
+```
+
+
 ## Constraints
 
 ### checkCalculationUsageSpecialization

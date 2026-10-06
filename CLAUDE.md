@@ -135,8 +135,9 @@ kind of test tolerates non-deterministic output.
 
 - `knowledge/metamodel/elements/<Name>.md` — one file per metaclass / enumeration / primitive: front
   matter, Generalizations/Specializations, **Owned features**, an **Inherited features** table giving
-  the *full effective* feature set (read it directly — do not re-walk the generalization chain), and
-  Constraints (OCL). `index.md` + `index.json` resolve a name → element.
+  the *full effective* feature set (read it directly — do not re-walk the generalization chain),
+  **Operations** (signature + `bodyCondition` OCL), and Constraints (OCL). `index.md` + `index.json`
+  resolve a name → element.
 - `knowledge/spec/{kerml,sysml2}/<clause>.md` — verbatim clause text + front matter
   (`clause`, `title`, `document`, `version`, `pages`, `normative`), plus `index.md` / `index.json`.
 - `knowledge/<tag>/textual-notation/grammar-{kerml,sysml,graphical}.md` — every production grouped by

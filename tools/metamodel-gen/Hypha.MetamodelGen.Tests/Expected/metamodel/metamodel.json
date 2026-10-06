@@ -2543,7 +2543,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Check if this AcceptActionUsage is the triggerAction of a TransitionUsage.",
+          "body": "owningType <> null and \nowningType.oclIsKindOf(TransitionUsage) and\nowningType.oclAsType(TransitionUsage).triggerAction->includes(self)"
         }
       ],
       "constraints": [
@@ -6083,7 +6085,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the i-th argument Expression of an ActionUsage, defined as the value Expression of the FeatureValue of the i-th owned input parameter of the ActionUsage. Return null if the ActionUsage has less than i owned input parameters or the i-th owned input parameter has no FeatureValue.",
+          "body": "if inputParameter(i) = null then null\nelse\n    let featureValue : Sequence(FeatureValue) = inputParameter(i).\n        ownedMembership->select(oclIsKindOf(FeatureValue)) in\n    if featureValue->isEmpty() then null\n    else featureValue->at(1).value\n    endif\nendif"
         },
         {
           "name": "inputParameter",
@@ -6099,7 +6103,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the i-th owned input parameter of the ActionUsage. Return null if the ActionUsage has less than i owned input parameters.",
+          "body": "if inputParameters()->size() < i then null\nelse inputParameters()->at(i)\nendif"
         },
         {
           "name": "inputParameters",
@@ -6107,7 +6113,9 @@
           "returnLower": 0,
           "returnUpper": -1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the owned input parameters of this ActionUsage.",
+          "body": "input->select(f | f.owner = self)"
         },
         {
           "name": "isSubactionUsage",
@@ -6115,7 +6123,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Check if this ActionUsage is composite and has an owningType that is an ActionDefinition or ActionUsage but is not the entryAction or exitAction of a StateDefinition or StateUsage. If so, then it represents an Action that is a subaction of another Action.",
+          "body": "isComposite and owningType <> null and\n(owningType.oclIsKindOf(ActionDefinition) or\n owningType.oclIsKindOf(ActionUsage)) and\n(owningFeatureMembership.oclIsKindOf(StateSubactionMembership) implies\n owningFeatureMembership.oclAsType(StateSubactionMembership).kind = \n    StateSubactionKind::do)"
         }
       ],
       "constraints": [
@@ -34162,7 +34172,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "A CalculationUsage is not model-level evaluable.",
+          "body": "false"
         }
       ],
       "constraints": [
@@ -46796,7 +46808,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If the name of the originalPortDefinition is non-empty, then return that with the character ~ prepended.",
+          "body": "let originalName : String = originalPortDefinition.name in\nif originalName = null then null\nelse '~' + originalName\nendif"
         }
       ],
       "constraints": [
@@ -58756,7 +58770,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "A ConstraintUsage is not model-level evaluable.",
+          "body": "false"
         },
         {
           "name": "namingFeature",
@@ -58764,7 +58780,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "The naming Feature of a ConstraintUsage that is owned by a RequirementConstraintMembership and has an ownedReferenceSubsetting is the featureTarget of the referencedFeature of that ownedReferenceSubsetting.",
+          "body": "if owningFeatureMembership <> null and\nowningFeatureMembership.oclIsKindOf(RequirementConstraintMembership) and\nownedReferenceSubsetting <> null then\n    ownedReferenceSubsetting.referencedFeature.featureTarget\nelse\n    self.oclAsType(OccurrenceUsage).namingFeature()\nendif"
         }
       ],
       "constraints": [
@@ -60138,7 +60156,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "A ConstructorExpression is model-level evaluable if all its argument Expressions are model-level evaluable.",
+          "body": "argument->forAll(modelLevelEvaluable(visited))"
         }
       ],
       "constraints": [
@@ -62185,7 +62205,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check that the given Multiplicity has lowerBound and upperBound expressions that are model-level evaluable to the given lower and upper values.",
+          "body": "mult <> null and\nif mult.oclIsKindOf(MultiplicityRange) then\n    mult.oclAsType(MultiplicityRange).hasBounds(lower, upper)\nelse\n    mult.allSuperTypes()->exists(\n        oclisKindOf(MultiplicityRange) and\n        oclAsType(MultiplicityRange).hasBounds(lower, upper)\nendif"
         }
       ],
       "constraints": [
@@ -69417,7 +69439,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return an effective name for this Element. By default this is the same as its declaredName.",
+          "body": "declaredName"
         },
         {
           "name": "effectiveShortName",
@@ -69425,7 +69449,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return an effective shortName for this Element. By default this is the same as its declaredShortName.",
+          "body": "declaredShortName"
         },
         {
           "name": "escapedName",
@@ -69433,7 +69459,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return name, if that is not null, otherwise the shortName, if that is not null, otherwise null. If the returned value is non-null, it is returned as-is if it has the form of a basic name, or, otherwise, represented as a restricted name according to the lexical structure of the KerML textual notation (i.e., surrounded by single quote characters and with special characters escaped).",
+          "body": ""
         },
         {
           "name": "libraryNamespace",
@@ -69441,7 +69469,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "By default, return the library Namespace of the owningRelationship of this Element, if it has one.",
+          "body": "if owningRelationship <> null then owningRelationship.libraryNamespace()\nelse null endif"
         },
         {
           "name": "path",
@@ -69449,7 +69479,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return a unique description of the location of this Element in the containment structure rooted in a root Namespace. If the Element has a non-null qualifiedName, then return that. Otherwise, if it has an owningRelationship, then return the string constructed by appending to the path of it's owningRelationship the character / followed by the string representation of its position in the list of ownedRelatedElements of the owningRelationship (indexed starting at 1). Otherwise, return the empty string. (Note that this operation is overridden for Relationships to use owningRelatedElement when appropriate.)",
+          "body": "if qualifiedName <> null then qualifiedName\nelse if owningRelationship <> null then\n    owningRelationship.path() + '/' + \n    owningRelationship.ownedRelatedElement->indexOf(self).toString()\n    -- A position index shall be converted to a decimal string representation \n    -- consisting of only decimal digits, with no sign, leading zeros or leading \n    -- or trailing whitespace.\nelse ''\nendif endif"
         }
       ],
       "constraints": [
@@ -79977,7 +80009,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Model-level evaluate this Expression with the given target. If the result is a LiteralBoolean, return its value. Otherwise return false.",
+          "body": "let results: Sequence(Element) = evaluate(target) in\n    result->size() = 1 and\n    results->first().oclIsKindOf(LiteralBoolean) and \n    results->first().oclAsType(LiteralBoolean).value"
         },
         {
           "name": "evaluate",
@@ -79993,7 +80027,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "If this Expression isModelLevelEvaluable, then evaluate it using the target as the context Element for resolving Feature names and testing classification. The result is a collection of Elements, which, for a fully evaluable Expression, will be a LiteralExpression or a Feature that is not an Expression.",
+          "body": "let resultExprs : Sequence(Expression) =\n    ownedFeatureMembership->\n        selectByKind(ResultExpressionMembership).\n        ownedResultExpression in\nif resultExpr->isEmpty() then Sequence{}\nelse resultExprs->first().evaluate(target)\nendif"
         },
         {
           "name": "modelLevelEvaluable",
@@ -80009,7 +80045,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Return whether this Expression is model-level evaluable. The visited parameter is used to track possible circular Feature references made from FeatureReferenceExpressions (see the redefinition of this operation for FeatureReferenceExpression). Such circular references are not allowed in model-level evaluable expressions. An Expression that is not otherwise specialized is model-level evaluable if it has no (non-implied) ownedSpecializations and all its ownedFeatures are either in parameters, the result parameter or a result Expression owned via a ResultExpressionMembership. The parameters must not have any ownedFeatures or a FeatureValue, and the result Expression must be model-level evaluable.",
+          "body": "ownedSpecialization->forAll(isImplied) and \nownedFeature->forAll(f |\n    (directionOf(f) = FeatureDirectionKind::_'in' or f = result) and\n        f.ownedFeature->isEmpty() and f.valuation = null or\n    f.owningFeatureMembership.oclIsKindOf(ResultExpressionMembership) and\n        f.oclAsType(Expression).modelLevelEvaluable(visited)"
         }
       ],
       "constraints": [
@@ -81342,7 +81380,9 @@
           "returnLower": 0,
           "returnUpper": -1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return this Feature and all the Features that are directly or indirectly Redefined by this Feature.",
+          "body": "ownedRedefinition.redefinedFeature->\n    closure(ownedRedefinition.redefinedFeature)->\n    asOrderedSet()->prepend(self)"
         },
         {
           "name": "asCartesianProduct",
@@ -81350,7 +81390,9 @@
           "returnLower": 0,
           "returnUpper": -1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If isCartesianProduct is true, then return the list of Types whose Cartesian product can be represented by this Feature. (If isCartesianProduct is not true, the operation will still return a valid value, it will just not represent anything useful.)",
+          "body": "featuringType->select(t | t.owner <> self)->\n    union(featuringType->select(t | t.owner = self)->\n        selectByKind(Feature).asCartesianProduct())->\n    union(type)"
         },
         {
           "name": "canAccess",
@@ -81366,7 +81408,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "A Feature can access another feature if the other feature is featured within one of the direct or indirect featuringTypes of this Feature.",
+          "body": "let anythingType: Element =\n    subsettingFeature.resolveGlobal('Base::Anything').memberElement in\nlet allFeaturingTypes : Sequence(Type) =\n    featuringTypes->closure(t |\n        if not t.oclIsKindOf(Feature) then Sequence{}\n        else\n            let featuringTypes : OrderedSet(Type) = t.oclAsType(Feature).featuringType in\n            if featuringTypes->isEmpty() then Sequence{anythingType}\n            else featuringTypes\n            endif \n        endif) in\nallFeaturingTypes->exists(t | feature.isFeaturedWithin(t))"
         },
         {
           "name": "directionFor",
@@ -81382,7 +81426,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the directionOf this Feature relative to the given type.",
+          "body": "type.directionOf(self)"
         },
         {
           "name": "effectiveName",
@@ -81390,7 +81436,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If a Feature has no declaredName or declaredShortName , then its effective name is given by the effective name of the Feature returned by the namingFeature() operation, if any.",
+          "body": "if declaredShortName <> null or declaredName <> null then\n    declaredName\nelse\n    let namingFeature : Feature = namingFeature() in\n    if namingFeature = null then\n        null\n    else\n        namingFeature.effectiveName()\n    endif\nendif"
         },
         {
           "name": "effectiveShortName",
@@ -81398,7 +81446,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If a Feature has no declaredShortName or declaredName, then its effective shortName is given by the effective shortName of the Feature returned by the namingFeature() operation, if any.",
+          "body": "if declaredShortName <> null or declaredName <> null then\n    declaredShortName\nelse\n    let namingFeature : Feature = namingFeature() in\n    if namingFeature = null then\n        null\n    else\n        namingFeature.effectiveShortName()\n    endif\nendif"
         },
         {
           "name": "isCartesianProduct",
@@ -81406,7 +81456,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Check whether this Feature can be used to represent a Cartesian product of Types.",
+          "body": "type->size() = 1 and\nfeaturingType.size() = 1 and\n(featuringType.first().owner = self implies\n    featuringType.first().oclIsKindOf(Feature) and\n    featuringType.first().oclAsType(Feature).isCartesianProduct())"
         },
         {
           "name": "isCompatibleWith",
@@ -81422,7 +81474,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "A Feature is compatible with an otherType if it either directly or indirectly specializes the otherType or if the otherType is also a Feature and all of the following are true. <ol> <li>Neither this Feature or the otherType have any ownedFeatures.</li> <li>This Feature directly or indirectly redefines a Feature that is also directly or indirectly redefined by the otherType.</li> <li>This Feature can access the otherType. </li></ol>",
+          "body": "specializes(otherType) or\n    supertype.oclIsKindOf(Feature) and\n    ownedFeature->isEmpty() and\n    otherType.ownedFeature->isEmpty() and\n    ownedRedefinitions.allRedefinedFeatures()->exists(f |  \n        otherType.oclAsType(Feature).allRedefinedFeatures()->includes(f)) and\n    canAccess(otherType.oclAsType(Feature))"
         },
         {
           "name": "isFeaturedWithin",
@@ -81438,7 +81492,9 @@
               "lower": 0,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return if the featuringTypes of this Feature are compatible with the given type. If type is null, then check if this Feature is explicitly or implicitly featured by Base::Anything. If this Feature has isVariable = true, then also consider it to be featured within its owningType. If this Feature is a feature chain whose first chainingFeature has isVariable = true, then also consider it to be featured within the owningType of its first chainingFeature.",
+          "body": "if type = null then\n    featuringType->forAll(f | f = resolveGlobal('Base::Anything').memberElement)\nelse\n    featuringType->forAll(f | type.isCompatibleWith(f)) or\n    isVariable and type.specializes(owningType) or\n    chainingFeature->notEmpty() and chainingFeature->first().isVariable and\n        type.specializes(chainingFeature->first().owningType)\nendif"
         },
         {
           "name": "isFeaturingType",
@@ -81454,7 +81510,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return whether the given type must be a featuringType of this Feature. If this Feature has isVariable = false, then return true if the type is the owningType of the Feature. If isVariable = true, then return true if the type is a Feature representing the snapshots of the owningType of this Feature.",
+          "body": "owningType <> null and\nif not isVariable then type = owningType\nelse if owningType = resolveGlobal('Occurrences::Occurrence').memberElement then\n    type = resolveGlobal('Occurrences::Occurrence::snapshots').memberElement \nelse \n    type.oclIsKindOf(Feature) and\n    let feature : Feature = type.oclAsType(Feature) in\n    feature.featuringType->includes(owningType) and\n    feature.redefinesFromLibrary('Occurrences::Occurrence::snapshots')\nendif"
         },
         {
           "name": "isOwnedCrossFeature",
@@ -81462,7 +81520,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return whether this Feature is an owned cross Feature of an end Feature.",
+          "body": "owningNamespace <> null and \nowningNamespace.oclIsKindOf(Feature) and \nowningNamespace.oclAsType(Feature).ownedCrossFeature() = self"
         },
         {
           "name": "namingFeature",
@@ -81470,7 +81530,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "By default, the naming Feature of a Feature is given by its first redefinedFeature of its first ownedRedefinition, if any.",
+          "body": "if ownedRedefinition->isEmpty() then\n    null\nelse\n    ownedRedefinition->at(1).redefinedFeature\nendif"
         },
         {
           "name": "ownedCrossFeature",
@@ -81478,7 +81540,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If this Feature is an end Feature of its owningType, then return the first ownedMember of the Feature that is a Feature, but not a Multiplicity or a MetadataFeature, and whose owningMembership is not a FeatureMembership. If this exists, it is the crossFeature of the end Feature.",
+          "body": "if not isEnd or owningType = null then null\nelse\n    let ownedMemberFeatures: Sequence(Feature) =\n        ownedMember->selectByKind(Feature)->\n            reject(oclIsKindOf(Multiplicity) or \n                   oclIsKindOf(MetadataFeature) or\n                   oclIsKindOf(FeatureValue))->\n            reject(owningMembership.oclIsKindOf(FeatureMembership)) in\n    if ownedMemberFeatures.isEmpty() then null\n    else ownedMemberFeatures->first()\n    endif"
         },
         {
           "name": "redefines",
@@ -81494,7 +81558,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check whether this Feature directly redefines the given redefinedFeature.",
+          "body": "ownedRedefinition.redefinedFeature->includes(redefinedFeature)"
         },
         {
           "name": "redefinesFromLibrary",
@@ -81510,7 +81576,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check whether this Feature directly redefines the named library Feature. libraryFeatureName must conform to the syntax of a KerML qualified name and must resolve to a Feature in global scope.",
+          "body": "let mem: Membership = resolveGlobal(libraryFeatureName) in\nmem <> null and mem.memberElement.oclIsKindOf(Feature) and\nredefines(mem.memberElement.oclAsType(Feature))"
         },
         {
           "name": "subsetsChain",
@@ -81533,7 +81601,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check whether this Feature directly or indirectly specializes a Feature whose last two chainingFeatures are the given Features first and second.",
+          "body": "allSuperTypes()->selectAsKind(Feature)->\n    exists(f | let n: Integer = f.chainingFeature->size() in\n        n >= 2 and\n        f.chainingFeature->at(n-1) = first and\n        f.chainingFeature->at(n) = second)"
         },
         {
           "name": "supertypes",
@@ -81549,7 +81619,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "",
+          "body": "let supertypes : OrderedSet(Type) = \n    self.oclAsType(Type).supertypes(excludeImplied) in\nif featureTarget = self then supertypes\nelse supertypes->append(featureTarget)\nendif"
         },
         {
           "name": "typingFeatures",
@@ -81557,7 +81629,9 @@
           "returnLower": 0,
           "returnUpper": -1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the Features used to determine the types of this Feature (other than this Feature itself). If this Feature is not conjugated, then the typingFeatures consist of all subsetted Features, except from CrossSubsetting, and the last chainingFeature (if any). If this Feature is conjugated, then the typingFeatures are only its originalType (if the originalType is a Feature). <strong>Note.</strong> CrossSubsetting is excluded from the determination of the type of a Feature in order to avoid circularity in the construction of implied CrossSubsetting relationships. The validateFeatureCrossFeatureType requires that the crossFeature of a Feature have the same type as the Feature.",
+          "body": "if not isConjugated then\n    let subsettedFeatures : OrderedSet(Feature) = \n        subsetting->reject(s | s.oclIsKindOf(CrossSubsetting)).subsettedFeatures in \n    if chainingFeature->isEmpty() or\n       subsettedFeature->includes(chainingFeature->last())\n    then subsettedFeatures\n    else subsettedFeatures->append(chainingFeature->last())\n    endif\nelse if conjugator.originalType.oclIsKindOf(Feature) then\n    OrderedSet{conjugator.originalType.oclAsType(Feature)}\nelse OrderedSet{}\nendif endif"
         }
       ],
       "constraints": [
@@ -83173,7 +83247,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the first ownedFeature of the first owned input parameter of this FeatureChainExpression (if any).",
+          "body": "let inputParameters : Feature = ownedFeatures->\n    select(direction = _'in') in\nif inputParameters->isEmpty() or \n   inputParameters->first().ownedFeature->isEmpty()\nthen null\nelse inputParameters->first().ownedFeature->first()\nendif"
         }
       ],
       "constraints": [
@@ -86089,7 +86165,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "First, determine a value Expression for the referent: <ul> <li>If the target Element is a Type that has a feature that is the referent or (directly or indirectly) redefines it, then the value Expression of the FeatureValue for that feature (if any).</li> <li>Else, if the referent has no featuringTypes, the value Expression of the FeatureValue for the referent (if any).</li> </ul> Then: <ul> <li>If such a value Expression exists, return the result of evaluating that Expression on the target.</li> <li>Else, if the referent is not an Expression, return the referent.</li> <li>Else return the empty sequence.</li> </ul>",
+          "body": "if not target.oclIsKindOf(Type) then Sequence{}\nelse\n    let feature: Sequence(Feature) = \n        target.oclAsType(Type).feature->select(f |\n            f.ownedRedefinition.redefinedFeature->\n                includes(referent)) in\n        if feature->notEmpty() then \n            feature.valuation.value.evaluate(target)\n        else if referent.featuringType->isEmpty() \n            then referent\n        else Sequence{} \n        endif endif\nendif"
         },
         {
           "name": "modelLevelEvaluable",
@@ -86105,7 +86183,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "A FeatureReferenceExpression is model-level evaluable if it&#39;s referent <ul> <li>conforms to the self-reference feature Anything::self;</li> <li>is an Expression that is model-level evaluable;</li> <li>has an owningType that is a Metaclass or MetadataFeature; or</li> <li>has no featuringTypes and, if it has a FeatureValue, the value Expression is model-level evaluable.</li> </ul>",
+          "body": "referent.conformsTo('Anything::self') or\nvisited->excludes(referent) and \n(referent.oclIsKindOf(Expression) and \n    referent.oclAsType(Expression).modelLevelEvaluable(visited->including(referent)) or\nreferent.owningType <> null and \n    (referent.owningType.isOclKindOf(MetaClass) or \n    referent.owningType.isOclKindOf(MetadataFeature)) or\nreferent.featuringType->isEmpty() and\n    (referent.valuation = null or \n    referent.valuation.modelLevelEvaluable(visited->including(referent))))"
         }
       ],
       "constraints": [
@@ -102361,7 +102441,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Returns Memberships that are to become importedMemberships of the importOwningNamespace. (The excluded parameter is used to handle the possibility of circular Import Relationships.)",
+          "body": ""
         }
       ],
       "constraints": [
@@ -107307,7 +107389,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the Type to act as the instantiatedType for this InstantiationExpression. By default, this is the memberElement of the first ownedMembership that is not a FeatureMembership, which must be a Type. <b>Note.</b> This operation is overridden in the subclass OperatorExpression.",
+          "body": "let members : Sequence(Element) = ownedMembership->\n    reject(oclIsKindOf(FeatureMembership)).memberElement in\nif members->isEmpty() or not members->first().oclIsKindOf(Type) then null\nelse typeMembers->first().oclAsType(Type)\nendif"
         }
       ],
       "constraints": [
@@ -115360,7 +115444,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Apply the Function that is the type of this InvocationExpression to the argument values resulting from evaluating each of the argument Expressions on the given target. If the application is not possible, then return an empty sequence.",
+          "body": ""
         },
         {
           "name": "modelLevelEvaluable",
@@ -115376,7 +115462,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "An InvocationExpression is model-level evaluable if all its argument Expressions are model-level evaluable and its function is model-level evaluable.",
+          "body": "argument->forAll(modelLevelEvaluable(visited)) and\n    function.isModelLevelEvaluable"
         }
       ],
       "constraints": [
@@ -121234,7 +121322,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "The libraryNamespace for a LibraryPackage is itself.",
+          "body": "self"
         }
       ],
       "constraints": []
@@ -123901,7 +123991,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "The model-level value of a LiteralExpression is itself.",
+          "body": "Sequence{self}"
         },
         {
           "name": "modelLevelEvaluable",
@@ -123917,7 +124009,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "A LiteralExpression is always model-level evaluable.",
+          "body": "true"
         }
       ],
       "constraints": [
@@ -131771,7 +131865,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Whether this Membership is distinguishable from a given other Membership. By default, this is true if this Membership has no memberShortName or memberName; or each of the memberShortName and memberName are different than both of those of the other Membership; or neither of the metaclasses of the memberElement of this Membership and the memberElement of the other Membership conform to the other. But this may be overridden in specializations of Membership.",
+          "body": "not (memberElement.oclKindOf(other.memberElement.oclType()) or\n     other.memberElement.oclKindOf(memberElement.oclType())) or\n(shortMemberName = null or\n    (shortMemberName <> other.shortMemberName and\n     shortMemberName <> other.memberName)) and\n(memberName = null or\n    (memberName <> other.shortMemberName and\n     memberName <> other.memberName)))"
         }
       ],
       "constraints": [
@@ -132819,7 +132915,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Returns at least the importedMembership. If isRecursive = true and the memberElement of the importedMembership is a Namespace, then Memberships are also recursively imported from that Namespace.",
+          "body": "if not isRecursive or \n   not importedElement.oclIsKindOf(Namespace) or\n   excluded->includes(importedElement)\nthen Sequence{importedMembership}\nelse importedElement.oclAsType(Namespace).\n        visibleMemberships(excluded, true, importAll)->\n        prepend(importedMembership)\nendif"
         }
       ],
       "constraints": [
@@ -137005,7 +137103,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the ownedElements of the referencedElement that are MetadataFeatures and have the referencedElement as an annotatedElement, plus a MetadataFeature whose annotatedElement is the referencedElement, whose metaclass is the reflective Metaclass corresponding to the MOF class of the referencedElement and whose ownedFeatures are bound to the values of the MOF properties of the referencedElement.",
+          "body": "referencedElement.ownedElement->\n    select(oclIsKindOf(MetadataFeature) \n        and annotatedElement->includes(referencedElement))->\n    including(metaclassFeature())"
         },
         {
           "name": "metaclassFeature",
@@ -137013,7 +137113,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return a MetadataFeature whose annotatedElement is the referencedElement, whose metaclass is the reflective Metaclass corresponding to the MOF class of the referencedElement and whose ownedFeatures are bound to the MOF properties of the referencedElement.",
+          "body": ""
         },
         {
           "name": "modelLevelEvaluable",
@@ -137029,7 +137131,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "A MetadataAccessExpression is always model-level evaluable.",
+          "body": "true"
         }
       ],
       "constraints": [
@@ -139781,7 +139885,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "If the given baseFeature is a feature of this MetadataFeature, or is directly or indirectly redefined by a feature, then return the result of evaluating the appropriate (model-level evaluable) value Expression for it (if any), with the MetadataFeature as the target.",
+          "body": "let selectedFeatures : Sequence(Feature) = feature->\n    select(closure(ownedRedefinition.redefinedFeature)->\n           includes(baseFeature)) in\nif selectedFeatures->isEmpty() then null\nelse\n    let selectedFeature : Feature = selectedFeatures->first() in\n    let featureValues : FeatureValue = selectedFeature->\n        closure(ownedRedefinition.redefinedFeature).ownedMember->\n        selectAsKind(FeatureValue) in\n    if featureValues->isEmpty() then null\n    else featureValues->first().value.evaluate(self)\n    endif"
         },
         {
           "name": "isSemantic",
@@ -139789,7 +139895,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Check if this MetadataFeature has a metaclass which is a kind of SemanticMetadata.",
+          "body": "specializesFromLibrary('Metaobjects::SemanticMetadata')"
         },
         {
           "name": "isSyntactic",
@@ -139797,7 +139905,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Check if this MetadataFeature has a metaclass that is a kind of KerML::Element (that is, it is from the reflective abstract syntax model).",
+          "body": "specializesFromLibrary('KerML::Element')"
         },
         {
           "name": "syntaxElement",
@@ -139805,7 +139915,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If this MetadataFeature reflectively represents a model element, then return the corresponding Element instance from the MOF abstract syntax representation of the model.",
+          "body": "No OCL"
         }
       ],
       "constraints": [
@@ -144420,7 +144532,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check whether this MultiplicityRange represents the range bounded by the given values lower and upper, presuming the lowerBound and upperBound Expressions are model-level evaluable.",
+          "body": "valueOf(upperBound) = upper and\nlet lowerValue: UnlimitedNatural = valueOf(lowerBound) in\n(lowerValue = lower or\n lowerValue = null and \n    (lower = upper or \n     lower = 0 and upper = *))"
         },
         {
           "name": "valueOf",
@@ -144436,7 +144550,9 @@
               "lower": 0,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Evaluate the given bound Expression (at model level) and return the result represented as a MOF UnlimitedNatural value.",
+          "body": "if bound = null or not bound.isModelLevelEvaluable then \n    null\nelse\n    let boundEval: Sequence(Element) = bound.evaluate(owningType) in\n    if boundEval->size() <> 1 then null else\n        let valueEval: Element = boundEval->at(1) in\n        if valueEval.oclIsKindOf(LiteralInfinity) then *\n        else if valueEval.oclIsKindOf(LiteralInteger) then\n            let value : Integer = \n                valueEval.oclAsKindOf(LiteralInteger).value in\n            if value >= 0 then value else null endif\n        else null\n        endif endif\n    endif\nendif"
         }
       ],
       "constraints": [
@@ -145018,7 +145134,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Derive the imported Memberships of this Namespace as the importedMembership of all ownedImports, excluding those Imports whose importOwningNamespace is in the excluded set, and excluding Memberships that have distinguisibility collisions with each other or with any ownedMembership.",
+          "body": "ownedImport.importedMemberships(excluded->including(self))"
         },
         {
           "name": "membershipsOfVisibility",
@@ -145041,7 +145159,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "If visibility is not null, return the Memberships of this Namespace with the given visibility, including ownedMemberships with the given visibility and Memberships imported with the given visibility. If visibility is null, return all ownedMemberships and imported Memberships regardless of visibility. When computing imported Memberships, ignore this Namespace and any Namespaces in the given excluded set.",
+          "body": "ownedMembership->\n    select(mem | visibility = null or mem.visibility = visibility)->\n    union(ownedImport->\n        select(imp | visibility = null or imp.visibility = visibility).\n        importedMemberships(excluded->including(self)))"
         },
         {
           "name": "namesOf",
@@ -145057,7 +145177,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the names of the given element as it is known in this Namespace.",
+          "body": "let elementMemberships : Sequence(Membership) = \n    memberships->select(memberElement = element) in\nmemberships.memberShortName->\n    union(memberships.memberName)->\n    asSet()"
         },
         {
           "name": "qualificationOf",
@@ -145073,7 +145195,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return a string with valid KerML syntax representing the qualification part of a given qualifiedName, that is, a qualified name with all the segment names of the given name except the last. If the given qualifiedName has only one segment, then return null.",
+          "body": "No OCL"
         },
         {
           "name": "resolve",
@@ -145089,7 +145213,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Resolve the given qualified name to the named Membership (if any), starting with this Namespace as the local scope. The qualified name string must conform to the concrete syntax of the KerML textual notation. According to the KerML name resolution rules every qualified name will resolve to either a single Membership, or to none.",
+          "body": "let qualification : String = qualificationOf(qualifiedName) in\nlet name : String = unqualifiedNameOf(qualifiedName) in\nif qualification = null then resolveLocal(name)\nelse if qualification = '$' then  resolveGlobal(name)\nelse \n    let namespaceMembership : Membership = resolve(qualification) in\n    if namespaceMembership = null or \n       not namespaceMembership.memberElement.oclIsKindOf(Namespace) \n    then null\n    else \n        namespaceMembership.memberElement.oclAsType(Namespace).\n        resolveVisible(name) \n    endif\nendif endif"
         },
         {
           "name": "resolveGlobal",
@@ -145105,7 +145231,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Resolve the given qualified name to the named Membership (if any) in the effective global Namespace that is the outermost naming scope. The qualified name string must conform to the concrete syntax of the KerML textual notation.",
+          "body": "No OCL"
         },
         {
           "name": "resolveLocal",
@@ -145121,7 +145249,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Resolve a simple name starting with this Namespace as the local scope, and continuing with containing outer scopes as necessary. However, if this Namespace is a root Namespace, then the resolution is done directly in global scope.",
+          "body": "if owningNamespace = null then resolveGlobal(name)\nelse\n    let memberships : Membership = membership->\n        select(memberShortName = name or memberName = name) in\n    if memberships->notEmpty() then memberships->first()\n    else owningNamespace.resolveLocal(name)\n    endif\nendif"
         },
         {
           "name": "resolveVisible",
@@ -145137,7 +145267,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Resolve a simple name from the visible Memberships of this Namespace.",
+          "body": "let memberships : Sequence(Membership) =\n    visibleMemberships(Set{}, false, false)->\n    select(memberShortName = name or memberName = name) in\nif memberships->isEmpty() then null\nelse memberships->first()\nendif"
         },
         {
           "name": "unqualifiedNameOf",
@@ -145153,7 +145285,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the simple name that is the last segment name of the given qualifiedName. If this segment name has the form of a KerML unrestricted name, then \"unescape\" it by removing the surrounding single quotes and replacing all escape sequences with the specified character.",
+          "body": "No OCL"
         },
         {
           "name": "visibilityOf",
@@ -145169,7 +145303,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Returns this visibility of mem relative to this Namespace. If mem is an importedMembership, this is the visibility of its Import. Otherwise it is the visibility of the Membership itself.",
+          "body": "if importedMembership->includes(mem) then\n    ownedImport->\n        select(importedMemberships(Set{})->includes(mem)).\n        first().visibility\nelse if memberships->includes(mem) then\n    mem.visibility\nelse\n    VisibilityKind::private\nendif"
         },
         {
           "name": "visibleMemberships",
@@ -145199,7 +145335,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "If includeAll = true, then return all the Memberships of this Namespace. Otherwise, return only the publicly visible Memberships of this Namespace, including ownedMemberships that have a visibility of public and Memberships imported with a visibility of public. If isRecursive = true, also recursively include all visible Memberships of any public owned Namespaces, or, if IncludeAll = true, all Memberships of all owned Namespaces. When computing imported Memberships, ignore this Namespace and any Namespaces in the given excluded set.",
+          "body": "let visibleMemberships : OrderedSet(Membership) = \n    if includeAll then membershipsOfVisibility(null, excluded)\n    else membershipsOfVisibility(VisibilityKind::public, excluded)\n    endif in\nif not isRecursive then visibleMemberships\nelse visibleMemberships->union(ownedMember->\n    selectAsKind(Namespace).\n    select(includeAll or owningMembership.visibility = VisibilityKind::public)->\n    visibleMemberships(excluded->including(self), true, includeAll))\nendif"
         }
       ],
       "constraints": [
@@ -146272,7 +146410,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Returns at least the visible Memberships of the importedNamespace. If isRecursive = true, then Memberships are also recursively imported from any ownedMembers of the importedNamespace that are themselves Namespaces.",
+          "body": "if excluded->includes(importedNamespace) then Sequence{}\nelse importedNamespace.visibleMemberships(excluded, isRecursive, isImportAll)"
         }
       ],
       "constraints": [
@@ -147603,7 +147743,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "The model-level value of a NullExpression is an empty sequence.",
+          "body": "Sequence{}"
         },
         {
           "name": "modelLevelEvaluable",
@@ -147619,7 +147761,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "A NullExpression is always model-level evaluable.",
+          "body": "true"
         }
       ],
       "constraints": [
@@ -153087,7 +153231,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "The instantiatedType of an OperatorExpression is the resolution of it's operator from one of the packages BaseFunctions, DataFunctions, or ControlFunctions from the Kernel Function Library.",
+          "body": "let libFunctions : Sequence(Element) =\n    Sequence{'BaseFunctions', 'DataFunctions', 'ControlFunctions'}->\n    collect(ns | resolveGlobal(ns + \"::'\" + operator + \"'\").\n    memberElement) in\nif libFunctions->isEmpty() then null\nelse libFunctions->first().oclAsType(Type)\nendif"
         }
       ],
       "constraints": []
@@ -153695,7 +153841,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If the ownedMemberElement of this OwningMembership has a non-null qualifiedName, then return the string constructed by appending to that qualifiedName the string \"/owningMembership\". Otherwise, return the path of the OwningMembership as specified for a Relationship in general.",
+          "body": "if ownedElement.qualifiedName <> null then\n    ownedElement.qualifiedName + '/owningMembership'\nelse self.oclAsType(Relationship).path()\nendif"
         }
       ],
       "constraints": [
@@ -154157,7 +154305,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Exclude Elements that do not meet all the filterConditions.",
+          "body": "self.oclAsType(Namespace).importedMemberships(excluded)->\n    select(m | self.includeAsMember(m.memberElement))"
         },
         {
           "name": "includeAsMember",
@@ -154173,7 +154323,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Determine whether the given element meets all the filterConditions.",
+          "body": "let metadataFeatures: Sequence(AnnotatingElement) = \n    element.ownedAnnotation.annotatingElement->\n        selectByKind(MetadataFeature) in\n    self.filterCondition->forAll(cond | \n        metadataFeatures->exists(elem | \n            cond.checkCondition(elem)))"
         }
       ],
       "constraints": [
@@ -154831,7 +154983,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the required value of the direction of the ownedMemberParameter. By default, this is in.",
+          "body": "FeatureDirectionKind::_'in'"
         }
       ],
       "constraints": [
@@ -161497,7 +161651,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "The naming Feature of a PerformActionUsage is its performedAction, if this is different than the PerformActionUsage. If the PerformActionUsage is its own performedAction, then the naming Feature is the same as the usual default for a Usage.",
+          "body": "if performedAction <> self then performedAction\nelse self.oclAsType(Usage).namingFeature()\nendif"
         }
       ],
       "constraints": [
@@ -169316,7 +169472,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If this ReferenceUsage is the payload parameter of a TransitionUsage, then its naming Feature is the payloadParameter of the triggerAction of that TransitionUsage (if any).",
+          "body": "if owningType <> null and owningType.oclIsKindOf(TransitionUsage) and\n    owningType.oclAsType(TransitionUsage).inputParameter(2) = self then\n    owningType.oclAsType(TransitionUsage).triggerPayloadParameter()\nelse self.oclAsType(Usage).namingFeature()\nendif"
         }
       ],
       "constraints": [
@@ -169817,7 +169975,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return whether this Relationship has either an owningRelatedElement or owningRelationship that is a library element.",
+          "body": "if owningRelatedElement <> null then owningRelatedElement.libraryNamespace()\nelse if owningRelationship <> null then owningRelationship.libraryNamespace() \nelse null endif endif"
         },
         {
           "name": "path",
@@ -169825,7 +169985,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If the owningRelationship of the Relationship is null but its owningRelatedElement is non-null, construct the path using the position of the Relationship in the list of ownedRelationships of its owningRelatedElement. Otherwise, return the path of the Relationship as specified for an Element in general.",
+          "body": "if owningRelationship = null and owningRelatedElement <> null then\n    owningRelatedElement.path() + '/' + \n    owningRelatedElement.ownedRelationship->indexOf(self).toString()\n    -- A position index shall be converted to a decimal string representation \n    -- consisting of only decimal digits, with no sign, leading zeros or leading \n    -- or trailing whitespace.\nelse self.oclAsType(Element).path()\nendif"
         }
       ],
       "constraints": [
@@ -179846,7 +180008,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "The ownedMemberParameter of a ReturnParameterMembership must have direction out. (This is a leaf operation that cannot be further redefined.)",
+          "body": "FeatureDirectionKind::out"
         }
       ],
       "constraints": [
@@ -190956,7 +191120,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check if this StateUsage is composite and has an owningType that is a StateDefinition or StateUsage with the given value of isParallel, but is not an entryAction, doAction, or exitAction. If so, then it represents a StateAction that is a substate or exclusiveState (for isParallel = false) of another StateAction.",
+          "body": "isComposite and owningType <> null and\n(owningType.oclIsKindOf(StateDefinition) and\n    owningType.oclAsType(StateDefinition).isParallel = isParallel or\n owningType.oclIsKindOf(StateUsage) and\n    owningType.oclAsType(StateUsage).isParallel = isParallel) and\nnot owningFeatureMembership.oclIsKindOf(StateSubactionMembership)"
         }
       ],
       "constraints": [
@@ -207451,7 +207617,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the Feature to be used as the source of the succession of this TransitionUsage, which is the first member of the TransitionUsage that is a Feature, that is owned by the TransitionUsage via a Membership that is not a FeatureMembership, and whose featureTarget is an ActionUsage.",
+          "body": "let features : Sequence(Feature) = ownedMembership->\n    reject(oclIsKindOf(FeatureMembership)).memberElement->\n    selectByKind(Feature)->\n    select(featureTarget.oclIsKindOf(ActionUsage)) in\nif features->isEmpty() then null\nelse features->first()\nendif"
         },
         {
           "name": "triggerPayloadParameter",
@@ -207459,7 +207627,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the payloadParameter of the triggerAction of this TransitionUsage, if it has one.",
+          "body": "if triggerAction->isEmpty() then null\nelse triggerAction->first().payloadParameter\nendif"
         }
       ],
       "constraints": [
@@ -208911,7 +209081,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return one of the Functions TriggerWhen, TriggerAt or TriggerAfter, from the Kernel Semantic Library Triggers package, depending on whether the kind of this TriggerInvocationExpression is when, at or after, respectively.",
+          "body": "resolveGlobal(\n    if kind = TriggerKind::when then\n        'Triggers::TriggerWhen'\n    else if kind = TriggerKind::at then\n        'Triggers::TriggerAt'\n    else\n        'Triggers::TriggerAfter'\n    endif endif\n).memberElement.oclAsType(Type)"
         }
       ],
       "constraints": [
@@ -209860,7 +210032,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "If the memberElement of the given membership is a Feature, then return all Features directly or indirectly redefined by the memberElement.",
+          "body": "if not membership.memberElement.oclIsType(Feature) then Set{} \nelse membership.memberElement.oclAsType(Feature).allRedefinedFeatures()\nendif"
         },
         {
           "name": "allSupertypes",
@@ -209868,7 +210042,9 @@
           "returnLower": 0,
           "returnUpper": -1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return this Type and all Types that are directly or transitively supertypes of this Type (as determined by the supertypes operation with excludeImplied = false).",
+          "body": "OrderedSet{self}->closure(supertypes(false))"
         },
         {
           "name": "directionOf",
@@ -209884,7 +210060,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "If the given feature is a feature of this Type, then return its direction relative to this Type, taking conjugation into account.",
+          "body": "directionOfExcluding(f, Set{})"
         },
         {
           "name": "directionOfExcluding",
@@ -209907,7 +210085,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Return the direction of the given feature relative to this Type, excluding a given set of Types from the search of supertypes of this Type.",
+          "body": "let excludedSelf : Set(Type) = excluded->including(self) in \nif feature.owningType = self then feature.direction\nelse\n    let directions : Sequence(FeatureDirectionKind) =\n        supertypes(false)->excluding(excludedSelf).\n        directionOfExcluding(feature, excludedSelf)->\n        select(d | d <> null) in\n    if directions->isEmpty() then null\n else\n    let direction : FeatureDirectionKind = directions->first() in\n    if not isConjugated then direction\n    else if direction = FeatureDirectionKind::_'in' then FeatureDirectionKind::out\n    else if direction = FeatureDirectionKind::out then FeatureDirectionKind::_'in'\n    else direction\n    endif endif endif   endif\nendif"
         },
         {
           "name": "inheritableMemberships",
@@ -209937,7 +210117,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return all the non-private Memberships of all the supertypes of this Type, excluding any supertypes that are this Type or are in the given set of excludedTypes. If excludeImplied = true, then also transitively exclude any supertypes from implied Specializations.",
+          "body": "let excludingSelf : Set(Type) = excludedType->including(self) in\nsupertypes(excludeImplied)->reject(t | excludingSelf->includes(t)).\n    nonPrivateMemberships(excludedNamespaces, excludingSelf, excludeImplied)"
         },
         {
           "name": "inheritedMemberships",
@@ -209967,7 +210149,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the Memberships inheritable from supertypes of this Type with redefined Features removed. When computing inheritable Memberships, exclude Imports of excludedNamespaces, Specializations of excludedTypes, and, if excludeImplied = true, all implied Specializations.",
+          "body": "removeRedefinedFeatures(\n    inheritableMemberships(excludedNamespaces, excludedTypes, excludeImplied))"
         },
         {
           "name": "isCompatibleWith",
@@ -209983,7 +210167,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "By default, this Type is compatible with an otherType if it directly or indirectly specializes the otherType.",
+          "body": "specializes(otherType)"
         },
         {
           "name": "multiplicities",
@@ -209991,7 +210177,9 @@
           "returnLower": 0,
           "returnUpper": -1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "Return the owned or inherited Multiplicities for this Type<./code>.",
+          "body": "if multiplicity <> null then OrderedSet{multiplicity}\nelse \n    ownedSpecialization.general->closure(t |\n        if t.multiplicity <> null then OrderedSet{}\n        else ownedSpecialization.general\n    )->select(multiplicity <> null).multiplicity->asOrderedSet()\nendif"
         },
         {
           "name": "nonPrivateMemberships",
@@ -210021,7 +210209,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Return the public, protected and inherited Memberships of this Type. When computing imported Memberships, exclude the given set of excludedNamespaces. When computing inherited Memberships, exclude Types in the given set of excludedTypes. If excludeImplied = true, then also exclude any supertypes from implied Specializations.",
+          "body": "let publicMemberships : OrderedSet(Membership) = \n    membershipsOfVisibility(VisibilityKind::public, excludedNamespaces) in\nlet protectedMemberships : OrderedSet(Membership) = \n    membershipsOfVisibility(VisibilityKind::protected, excludedNamespaces) in\nlet inheritedMemberships : OrderedSet(Membership) =\n    inheritedMemberships(excludedNamespaces, excludedTypes, excludeImplied) in\npublicMemberships->\n    union(protectedMemberships)->\n    union(inheritedMemberships)"
         },
         {
           "name": "removeRedefinedFeatures",
@@ -210037,7 +210227,9 @@
               "lower": 0,
               "upper": -1
             }
-          ]
+          ],
+          "documentation": "Return a subset of memberships, removing those Memberships whose memberElements are Features and for which either of the following two conditions holds: <ol> <li>The memberElement of the Membership is included in redefined Features of another Membership in memberships.</li> <li>One of the redefined Features of the Membership is a directly redefinedFeature of an ownedFeature of this Type.</li> </ol> For this purpose, the redefined Features of a Membership whose memberElement is a Feature includes the memberElement and all Features directly or indirectly redefined by the memberElement.",
+          "body": "let reducedMemberships : Sequence(Membership) =\n    memberships->reject(mem1 |\n        memberships->excluding(mem1)->\n            exists(mem2 | allRedefinedFeaturesOf(mem2)->\n                includes(mem1.memberElement))) in\nlet redefinedFeatures : Set(Feature) = \n    ownedFeature.redefinition.redefinedFeature->asSet() in\nreducedMemberships->reject(mem | allRedefinedFeaturesOf(mem)->\n    exists(feature | redefinedFeatures->includes(feature)))"
         },
         {
           "name": "specializes",
@@ -210053,7 +210245,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check whether this Type is a direct or indirect specialization of the given supertype.",
+          "body": "if isConjugated then \n    ownedConjugator.originalType.specializes(supertype)\nelse\n    allSupertypes()->includes(supertype)\nendif"
         },
         {
           "name": "specializesFromLibrary",
@@ -210069,7 +210263,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Check whether this Type is a direct or indirect specialization of the named library Type. libraryTypeName must conform to the syntax of a KerML qualified name and must resolve to a Type in global scope.",
+          "body": "let mem : Membership = resolveGlobal(libraryTypeName) in\nmem <> null and mem.memberElement.oclIsKindOf(Type) and\nspecializes(mem.memberElement.oclAsType(Type))"
         },
         {
           "name": "supertypes",
@@ -210085,7 +210281,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "If this Type is conjugated, then return just the originalType of the Conjugation. Otherwise, return the general Types from all ownedSpecializations of this type, if excludeImplied = false, or all non-implied ownedSpecializations, if excludeImplied = true.",
+          "body": "if isConjugated then Sequence{conjugator.originalType}\nelse if not excludeImplied then ownedSpecialization.general\nelse ownedSpecialization->reject(isImplied).general\nendif\nendif"
         },
         {
           "name": "visibleMemberships",
@@ -210115,7 +210313,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "The visible Memberships of a Type include inheritedMemberships.",
+          "body": "let visibleMemberships : OrderedSet(Membership) =\n    self.oclAsType(Namespace).\n        visibleMemberships(excluded, isRecursive, includeAll) in\nlet visibleInheritedMemberships : OrderedSet(Membership) = \n    inheritedMemberships(excluded->including(self), Set{}, isRecursive)->\n        select(includeAll or visibility = VisibilityKind::public) in\nvisibleMemberships->union(visibleInheritedMemberships)"
         }
       ],
       "constraints": [
@@ -213049,7 +213249,9 @@
           "returnLower": 0,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If this Usage is a variant, then its naming Feature is the referencedFeature of its ownedReferenceSubsetting.",
+          "body": "if not owningMembership.oclIsKindOf(VariantMembership) then\n    self.oclAsType(Feature).namingFeature()\nelse if ownedReferenceSubsetting = null then null\nelse ownedReferenceSubsetting.referencedFeature\nendif endif"
         },
         {
           "name": "referencedFeatureTarget",
@@ -213057,7 +213259,9 @@
           "returnLower": 1,
           "returnUpper": 1,
           "isQuery": false,
-          "parameters": []
+          "parameters": [],
+          "documentation": "If ownedReferenceSubsetting is not null, return the featureTarget of the referencedFeature of the ownedReferenceSubsetting.",
+          "body": "if ownedReferenceSubsetting = null then null\nelse ownedReferenceSubsetting.referencedFeature.featureTarget\nendif"
         }
       ],
       "constraints": [
@@ -225579,7 +225783,9 @@
               "lower": 1,
               "upper": 1
             }
-          ]
+          ],
+          "documentation": "Determine whether the given element meets all the owned and inherited viewConditions.",
+          "body": "let metadataFeatures: Sequence(AnnotatingElement) = \n    element.ownedAnnotation.annotatingElement->\n        select(oclIsKindOf(MetadataFeature)) in\nself.membership->selectByKind(ElementFilterMembership).\n    condition->forAll(cond | \n        metadataFeatures->exists(elem | \n            cond.checkCondition(elem)))"
         }
       ],
       "constraints": [

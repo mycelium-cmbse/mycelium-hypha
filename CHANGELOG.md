@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **The metamodel knowledge base now carries each operation's body OCL** (`fixes #143`). An
+  operation's `bodyCondition` is a constraint the operation owns, not one of its class's rules, so
+  the class-level constraint walk never reached it and every derivation body was dropped. Each
+  `metamodel.json` operation now has a `body` (the OCL of its `bodyCondition`, empty when it has
+  none) and its `documentation`, and element pages gain an **Operations** section with each
+  operation's signature, documentation and body. On release `2026-05` all 99 body conditions come
+  through, on the 39 metaclasses that own operations.
+
 ## [2.2.0] - 2026-10-05
 
 ### Changed

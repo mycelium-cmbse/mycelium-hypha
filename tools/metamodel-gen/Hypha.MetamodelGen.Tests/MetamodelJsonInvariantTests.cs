@@ -96,6 +96,36 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         [Test]
+        public void Every_operation_body_condition_is_carried_on_its_operation()
+        {
+            var document = ReadDocument();
+            var operations = document.Classes
+                .SelectMany(@class => @class.OwnedOperations.Select(operation => (@class.Name, operation)))
+                .ToLookup(entry => (entry.Name, entry.operation.Name), entry => entry.operation);
+
+            var withBody = 0;
+
+            foreach (var @class in MetaclassFileGenerator.QueryMetaclasses(TestModel.Model!))
+            {
+                foreach (var operation in @class.OwnedOperation)
+                {
+                    var expected = operation.QueryBodyConditionText();
+                    var actual = operations[(@class.Name, operation.Name)].Select(node => node.Body);
+
+                    Assert.That(actual, Does.Contain(expected), $"{@class.Name}::{operation.Name}");
+
+                    if (operation.BodyCondition.Count > 0)
+                    {
+                        Assert.That(expected, Is.Not.Empty, $"{@class.Name}::{operation.Name} has an empty bodyCondition");
+                        withBody++;
+                    }
+                }
+            }
+
+            Assert.That(withBody, Is.GreaterThan(0), "The fixture has no operation with a bodyCondition to check.");
+        }
+
+        [Test]
         public void Counts_match_array_lengths()
         {
             var document = ReadDocument();

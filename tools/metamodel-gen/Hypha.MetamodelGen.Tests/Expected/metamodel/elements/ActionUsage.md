@@ -166,6 +166,63 @@ Redefines [behavior](Step.md#behavior), [occurrenceDefinition](OccurrenceUsage.m
 | variant | [Usage](Usage.md) | [0..*] | [Usage](Usage.md) | derived |
 | variantMembership | [VariantMembership](VariantMembership.md) | [0..*] | [Usage](Usage.md) | derived, composite |
 
+## Operations
+
+### argument
+
+`argument(i : Integer [1..1]) : Expression [0..1]`
+
+Return the i-th argument Expression of an ActionUsage, defined as the value Expression of the FeatureValue of the i-th owned input parameter of the ActionUsage. Return null if the ActionUsage has less than i owned input parameters or the i-th owned input parameter has no FeatureValue.
+
+```ocl
+if inputParameter(i) = null then null
+else
+    let featureValue : Sequence(FeatureValue) = inputParameter(i).
+        ownedMembership->select(oclIsKindOf(FeatureValue)) in
+    if featureValue->isEmpty() then null
+    else featureValue->at(1).value
+    endif
+endif
+```
+
+### inputParameter
+
+`inputParameter(i : Integer [1..1]) : Feature [0..1]`
+
+Return the i-th owned input parameter of the ActionUsage. Return null if the ActionUsage has less than i owned input parameters.
+
+```ocl
+if inputParameters()->size() < i then null
+else inputParameters()->at(i)
+endif
+```
+
+### inputParameters
+
+`inputParameters() : Feature [0..*]`
+
+Return the owned input parameters of this ActionUsage.
+
+```ocl
+input->select(f | f.owner = self)
+```
+
+### isSubactionUsage
+
+`isSubactionUsage() : Boolean [1..1]`
+
+Check if this ActionUsage is composite and has an owningType that is an ActionDefinition or ActionUsage but is not the entryAction or exitAction of a StateDefinition or StateUsage. If so, then it represents an Action that is a subaction of another Action.
+
+```ocl
+isComposite and owningType <> null and
+(owningType.oclIsKindOf(ActionDefinition) or
+ owningType.oclIsKindOf(ActionUsage)) and
+(owningFeatureMembership.oclIsKindOf(StateSubactionMembership) implies
+ owningFeatureMembership.oclAsType(StateSubactionMembership).kind = 
+    StateSubactionKind::do)
+```
+
+
 ## Constraints
 
 ### checkActionUsageOwnedActionSpecialization
