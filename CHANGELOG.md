@@ -7,13 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-05
+
 ### Changed
-- Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.1.0`. Optional
-  `[0..1]` enumeration properties are now nullable, so an unset `visibility` reads as `public`, the
-  UML 2.5.1 default for a `PackageableElement` – the generated metamodel keeps its exact shape. The
-  only change to generated knowledge is in documentation text: every owned comment of an element is
-  now used (8.x dropped all but one), and words on adjacent source lines are kept apart (e.g.
-  `Elements. Note` instead of `Elements.Note`), which also changes three `index` summaries.
+- The `SessionStart` hook now provisions hypha tools `1.4.0` (`hyphaCliVersion`), which carries the
+  uml4net upgrade below.
+- Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.1.0` (tools
+  `1.4.0`). Optional `[0..1]` enumeration properties are now nullable, so an unset `visibility`
+  reads as `public`, the UML 2.5.1 default for a `PackageableElement` – the generated metamodel
+  keeps its exact shape. The only change to generated knowledge is in documentation text: every
+  owned comment of an element is now used (8.x dropped all but one), and words on adjacent source
+  lines are kept apart (e.g. `Elements. Note` instead of `Elements.Note`), which also changes three
+  `index` summaries.
   Grammar references, textual notation, model library and cross-references are byte-identical.
 - `ModelInspector` now selects interesting *classifiers*; the metaclass golden fixtures take its
   classes, so that set moved (8 metaclasses added, 6 orphaned golden files removed).
