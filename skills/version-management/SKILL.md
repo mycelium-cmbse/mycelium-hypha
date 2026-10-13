@@ -82,6 +82,31 @@ Refuses on the current default (switch with `hypha use` first) and on the only i
 (pass `--force` if that's really what's wanted - it leaves nothing installed). Confirm the tag with
 the user before running this; there's no undo once the files are deleted.
 
+## The Systems Modeling API is versioned separately
+
+The Systems Modeling API & Services knowledge (the PIM, the REST/HTTP PSM and the API specification
+text – see the `api-lookup` skill) is **not** part of a language release. It has its own versions,
+its own default and its own manifest (`knowledge/api/versions.json`), driven by the same verbs under
+`hypha api`:
+
+```sh
+hypha api discover                 # the API versions the upstreams offer
+hypha api list                     # what is installed, and which is the default
+hypha api fetch --tag <version>    # into sources/api/<version>/  (--no-default, --no-specs, --force)
+hypha api generate --tag <version> # into knowledge/api/<version>/
+hypha api use --tag <version>
+hypha api remove --tag <version>
+```
+
+- An API version is a tag of the upstream API-Services repository, `2025-02` or later. That
+  repository has not been tagged for every language release since, so the newest API version is
+  usually **older** than the newest language release – that is expected, not something to fix.
+- Installing, switching or removing an API version never touches an installed language release, and
+  the other way round. `hypha check` and the `SessionStart` hook report on the language releases
+  only: for the API, run `hypha api list` and `hypha api discover`.
+- The same confirmations apply: ask before fetching, confirm the version before removing, and say
+  what the default API version is afterward.
+
 ## Typical flows
 
 - **Fresh install, hook says nothing is local yet**: name the releases the hook reported, ask which
@@ -91,5 +116,8 @@ the user before running this; there's no undo once the files are deleted.
 - **User wants an older release for comparison**: `hypha discover --limit 0` to find the tag, then
   `fetch --no-default` + `generate` it so it joins what's already installed without switching away
   from the current default.
+- **User asks about the SysML v2 API and nothing is installed under `knowledge/api/`**: say so,
+  run `hypha api discover` to name what is on offer, ask which one, then `hypha api fetch` +
+  `hypha api generate` it.
 - **Cleaning up**: `hypha check` to see what's installed, confirm which tag(s) to drop, `hypha use` to
   move off any that's currently default, then `hypha remove` each.

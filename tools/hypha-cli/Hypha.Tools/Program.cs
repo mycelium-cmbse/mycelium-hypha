@@ -17,11 +17,13 @@ namespace Hypha.Tools
     using System.Reflection;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
+    using Hypha.Tools.Commands.Api;
     using Hypha.Tools.Hosting;
 
     using Microsoft.Extensions.DependencyInjection;
@@ -135,7 +137,65 @@ namespace Hypha.Tools
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(check);
 
+            root.Add(BuildApiCommand());
+
             return root;
+        }
+
+        /// <summary>
+        /// <c>hypha api</c> and its verbs: the Systems Modeling API knowledge, versioned on its own
+        /// axis and so driven by its own installer, generators and manifest.
+        /// </summary>
+        private static ApiCommand BuildApiCommand()
+        {
+            var api = new ApiCommand();
+
+            var discover = new ApiDiscoverCommand();
+            discover.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new ApiDiscoverCommand.Handler(provider.GetRequiredService<IApiDiscovery>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            api.Add(discover);
+
+            var fetch = new ApiFetchCommand();
+            fetch.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new ApiFetchCommand.Handler(provider.GetRequiredService<IApiInstaller>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            api.Add(fetch);
+
+            var generate = new ApiGenerateCommand();
+            generate.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new GenerateCommand.Handler(
+                        provider.GetServices<IApiKnowledgeGenerator>(),
+                        ApiGenerateCommand.Scope(provider.GetRequiredService<IApiLayout>()))
+                    .InvokeAsync(parseResult, cancellationToken),
+                parseResult.GetValue(ApiGenerateCommand.Output)));
+            api.Add(generate);
+
+            var list = new ApiListCommand();
+            list.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new ApiListCommand.Handler(provider.GetRequiredService<IApiLayout>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            api.Add(list);
+
+            var use = new ApiUseCommand();
+            use.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new ApiUseCommand.Handler(provider.GetRequiredService<IApiLayout>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            api.Add(use);
+
+            var remove = new ApiRemoveCommand();
+            remove.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new ApiRemoveCommand.Handler(provider.GetRequiredService<IApiRemover>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            api.Add(remove);
+
+            return api;
         }
 
         /// <summary>

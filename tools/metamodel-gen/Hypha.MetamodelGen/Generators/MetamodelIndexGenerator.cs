@@ -40,6 +40,11 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>
+        /// Gets the words the index uses for the model it describes. A metamodel unless said otherwise.
+        /// </summary>
+        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
+
+        /// <summary>
         /// Renders the index markdown for the model in <paramref name="xmiReaderResult"/>.
         /// </summary>
         /// <param name="xmiReaderResult">The deserialized metamodel.</param>
@@ -51,6 +56,7 @@ namespace Hypha.MetamodelGen.Generators
             ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
             var payload = CreatePayload(xmiReaderResult, title);
+            payload.Vocabulary = this.Vocabulary;
             var template = this.Templates[TemplateName];
 
             return template(payload);
@@ -99,7 +105,15 @@ namespace Hypha.MetamodelGen.Generators
                 .Select(primitiveType => new IndexEntry(primitiveType.Name, primitiveType.QuerySummary()))
                 .ToList();
 
-            return new MetamodelIndexPayload(title, metaclassCount, groups.Count, groups, enumerations, primitiveTypes);
+            return new MetamodelIndexPayload(title, metaclassCount, groups.Count, groups, enumerations, primitiveTypes)
+            {
+                Interfaces = ElementCatalog.Interfaces(xmiReaderResult)
+                    .Select(@interface => new IndexEntry(@interface.Name, @interface.QuerySummary()))
+                    .ToList(),
+                DataTypes = ElementCatalog.DataTypes(xmiReaderResult)
+                    .Select(dataType => new IndexEntry(dataType.Name, dataType.QuerySummary()))
+                    .ToList(),
+            };
         }
 
         /// <summary>

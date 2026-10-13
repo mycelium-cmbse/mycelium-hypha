@@ -17,6 +17,9 @@ namespace Hypha.MetamodelGen.Generators
     /// </summary>
     public sealed class PackageDiagramPayload
     {
+        /// <summary>Gets or sets the words the page uses for the model it describes.</summary>
+        public ModelVocabulary Vocabulary { get; set; } = ModelVocabulary.Metamodel;
+
         /// <summary>Gets the package name.</summary>
         public required string Package { get; init; }
 

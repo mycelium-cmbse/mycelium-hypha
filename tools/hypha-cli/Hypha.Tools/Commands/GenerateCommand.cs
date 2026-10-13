@@ -69,11 +69,32 @@ namespace Hypha.Tools.Commands
             this.Options.Add(Output);
         }
 
+        /// <summary>
+        /// What a generation run is over: which versions are installed, and how to talk about them.
+        /// </summary>
+        /// <remarks>
+        /// The loop is the same for the language releases and for the Systems Modeling API, which is
+        /// versioned on its own axis. This is what differs between them.
+        /// </remarks>
+        /// <param name="InstalledTags">The installed versions, read when the run starts.</param>
+        /// <param name="Location">Where they are installed, for the message shown when there are none.</param>
+        /// <param name="Noun">What one version is called, e.g. <c>release</c>.</param>
+        /// <param name="FetchHint">The command that installs one.</param>
+        /// <param name="Artifact">The argument naming a single artifact.</param>
+        /// <param name="Tag">The option naming the versions to generate for.</param>
+        public sealed record GenerationScope(
+            Func<IReadOnlyList<string>> InstalledTags,
+            string Location,
+            string Noun,
+            string FetchHint,
+            Argument<string?> Artifact,
+            Option<string[]> Tag);
+
         /// <summary>Runs the <see cref="GenerateCommand"/>.</summary>
         public sealed class Handler
         {
             private readonly IReadOnlyList<IKnowledgeGenerator> generators;
-            private readonly IKnowledgeLayout layout;
+            private readonly GenerationScope scope;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
@@ -89,7 +110,28 @@ namespace Hypha.Tools.Commands
                 ArgumentNullException.ThrowIfNull(layout);
 
                 this.generators = [.. generators.OrderBy(generator => generator.Order)];
-                this.layout = layout;
+                this.scope = new GenerationScope(
+                    () => layout.InstalledTags,
+                    layout.Root.FullName,
+                    "release",
+                    "hypha fetch --tag <release>",
+                    Artifact,
+                    Tag);
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Handler"/> class, for a set of generators
+            /// that is versioned on another axis than the language releases.
+            /// </summary>
+            /// <param name="generators">The generators to run, in any order.</param>
+            /// <param name="scope">What they are run over.</param>
+            public Handler(IEnumerable<IKnowledgeGenerator> generators, GenerationScope scope)
+            {
+                ArgumentNullException.ThrowIfNull(generators);
+                ArgumentNullException.ThrowIfNull(scope);
+
+                this.generators = [.. generators.OrderBy(generator => generator.Order)];
+                this.scope = scope;
             }
 
             /// <summary>Generates the requested artifacts.</summary>
@@ -102,21 +144,21 @@ namespace Hypha.Tools.Commands
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
 
-                var selected = this.Select(parseResult.GetValue(Artifact));
+                var selected = this.Select(parseResult.GetValue(this.scope.Artifact));
                 if (selected is null)
                 {
                     return 2;
                 }
 
-                var tags = parseResult.GetValue(Tag) is { Length: > 0 } requested
+                var tags = parseResult.GetValue(this.scope.Tag) is { Length: > 0 } requested
                     ? requested
-                    : [.. this.layout.InstalledTags];
+                    : [.. this.scope.InstalledTags()];
 
                 if (tags.Length == 0)
                 {
                     AnsiConsole.MarkupLine(
-                        $"[yellow]No release is installed under {Markup.Escape(this.layout.Root.FullName)}.[/]");
-                    AnsiConsole.MarkupLine("[grey]Run 'hypha fetch --tag <release>' first.[/]");
+                        $"[yellow]No {this.scope.Noun} is installed under {Markup.Escape(this.scope.Location)}.[/]");
+                    AnsiConsole.MarkupLine($"[grey]Run '{this.scope.FetchHint}' first.[/]");
 
                     return 1;
                 }
@@ -169,7 +211,7 @@ namespace Hypha.Tools.Commands
                 }
 
                 AnsiConsole.MarkupLine(
-                    $"Generated [bold]{written}[/] files across {tags.Length} release(s)"
+                    $"Generated [bold]{written}[/] files across {tags.Length} {this.scope.Noun}(s)"
                     + (skipped > 0 ? $", {skipped} artifacts skipped." : "."));
 
                 return 0;
