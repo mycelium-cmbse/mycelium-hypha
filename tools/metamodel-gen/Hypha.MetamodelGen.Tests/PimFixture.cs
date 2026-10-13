@@ -60,7 +60,7 @@ namespace Hypha.MetamodelGen.Tests
 
         /// <summary>The committed KerML fixture the PIM refers to, in the test output.</summary>
         public static string KermlPath =>
-            Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", "xmi", ApiInputs.KermlXmi);
+            Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", "xmi", "KerML_only_xmi.uml");
 
         /// <summary>
         /// Lays the fixture out under <paramref name="root"/> the way <c>hypha api fetch</c> would
