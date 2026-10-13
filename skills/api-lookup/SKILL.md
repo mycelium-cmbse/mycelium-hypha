@@ -98,7 +98,7 @@ body and each response with its body type.
 ## Cross-references
 
 `cross-references.json` is what answers "how do these line up". Never guess a mapping from a name
-when this file has it.
+when this file has it. Its shape is described by `knowledge/api-cross-references.schema.json`.
 
 ```sh
 jq '.types["Commit"]' knowledge/api/<version>/cross-references.json

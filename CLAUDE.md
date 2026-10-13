@@ -125,7 +125,7 @@ SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface th
   only match this per-repository-root layout, not the small, deliberately-committed XMI fixture under
   `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/` (see below).
 - **Committed, not per release:** `knowledge/README.md`, `knowledge/cross-references.schema.json`,
-  `knowledge/model-library.schema.json` (hand-authored, describe the shape rather than one release's
+  `knowledge/model-library.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
   `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT binary the plugin's `SessionStart` hook
   dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section) — the only
