@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **The Systems Modeling API & Services is part of the knowledge base** (`fixes #146`), as a body of
+  knowledge with a version of its own beside the language releases:
+  - **the PIM** – every type of the Platform Independent Model, in the shape of the metamodel pages:
+    attributes with multiplicity, derivation, subsetting and redefinition, the full effective
+    attribute set, and the six services with their operations. The `Data` interface and the `UUID`,
+    `IRI` and `ISO8601DateTime` data types get pages too.
+  - **the REST/HTTP PSM** – one page per API schema of the OpenAPI document, with required and
+    nullable members and whether the endpoints use it as a request or a response model, plus every
+    endpoint.
+  - **the API specification text**, clause by clause, quotable through spec citation on the same
+    terms as the KerML and SysML texts (generated locally from the PDF, never committed).
+  - **`cross-references.json`** – PIM type ↔ specification clause ↔ PSM schema, the PIM members a PSM
+    model leaves out, the PSM-only members, and the endpoint each PIM service operation maps to.
+    Every edge names the method that produced it.
+  - a new **`api-lookup`** skill, and the `spec-citation` and `version-management` skills now cover
+    the API.
+- **`hypha api discover | fetch | generate | list | use | remove`** install and manage an API version
+  independently of the language releases, in `sources/api/<version>/` and `knowledge/api/<version>/`
+  with a manifest of its own (`knowledge/api/versions.json`). An API version is a tag of
+  `Systems-Modeling/SysML-v2-API-Services` that is also a language release. The PIM model is the one
+  input no repository carries; it is fetched from the OMG document server (`ptc/25-02-29`).
+- `python -m spec_extract --api-version <version>` extracts the API specification.
+
 ### Changed
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.2.0`, which
   provides `QueryConstraintBody` and `QueryBodyConditionText` itself. The generators now use those
