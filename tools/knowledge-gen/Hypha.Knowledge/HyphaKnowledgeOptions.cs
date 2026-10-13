@@ -12,6 +12,7 @@ namespace Hypha.Knowledge
     using System;
     using System.IO;
 
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Releases;
 
     /// <summary>
@@ -44,6 +45,15 @@ namespace Hypha.Knowledge
         public Uri RawContentBaseAddress { get; set; } = Upstream.DefaultRawContentBaseAddress;
 
         /// <summary>
+        /// Where the Systems Modeling API PIM model is published. Defaults to the OMG document server.
+        /// </summary>
+        /// <remarks>
+        /// The one input that is not read from a repository at a tag: no Systems-Modeling repository
+        /// carries the PIM model.
+        /// </remarks>
+        public Uri PimAddress { get; set; } = ApiUpstream.DefaultPimAddress;
+
+        /// <summary>
         /// The folder holding <c>sources/</c> and <c>knowledge/</c>. Discovered from the running
         /// assembly when unset.
         /// </summary>
@@ -73,6 +83,7 @@ namespace Hypha.Knowledge
         {
             ArgumentNullException.ThrowIfNull(this.ApiBaseAddress);
             ArgumentNullException.ThrowIfNull(this.RawContentBaseAddress);
+            ArgumentNullException.ThrowIfNull(this.PimAddress);
             ArgumentOutOfRangeException.ThrowIfLessThan(this.MaxDownloadConcurrency, 1);
         }
     }

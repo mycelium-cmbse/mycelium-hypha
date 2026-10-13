@@ -14,6 +14,7 @@ namespace Hypha.Knowledge
     using System.Net.Http;
     using System.Net.Http.Headers;
 
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
@@ -35,6 +36,12 @@ namespace Hypha.Knowledge
     {
         /// <summary>The name of the typed client every upstream read goes through.</summary>
         public const string UpstreamClientName = "hypha-upstream";
+
+        /// <summary>
+        /// The name of the client published documents are read through. It carries no credentials: the
+        /// upstream client sends the GitHub token, which must not reach another host.
+        /// </summary>
+        public const string DocumentClientName = "hypha-documents";
 
         /// <summary>
         /// Adds everything needed to fetch a release and generate the knowledge base from it, over a
@@ -100,6 +107,22 @@ namespace Hypha.Knowledge
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
                 baseAddress,
                 options.MaxDownloadConcurrency));
+
+
+            services
+                .AddHttpClient(
+                    DocumentClientName,
+                    client => client.DefaultRequestHeaders.UserAgent.ParseAdd("mycelium-hypha"))
+                .AddStandardResilienceHandler();
+
+            // The Systems Modeling API is versioned on its own axis: its own layout, manifest and
+            // generators, over the same fetcher and commit resolver the language releases use.
+            services.AddSingleton<IApiLayout, ApiLayout>();
+            services.AddSingleton<IApiDiscovery, ApiDiscovery>();
+            services.AddSingleton<IDocumentDownloader>(provider => new HttpDocumentDownloader(
+                provider.GetRequiredService<IHttpClientFactory>().CreateClient(DocumentClientName)));
+            services.AddSingleton<IApiInstaller, ApiInstaller>();
+            services.AddSingleton<IApiRemover, ApiRemover>();
 
             services.AddSingleton<IReleaseInstaller, ReleaseInstaller>();
             services.AddSingleton<IReleaseWindowEvictor, ReleaseWindowEvictor>();

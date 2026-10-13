@@ -42,6 +42,42 @@ namespace Hypha.MetamodelGen.Generators
         /// Returns the set of element names that have a generated element file (metaclasses,
         /// enumerations and primitive types), used to decide whether a feature type can be linked.
         /// </summary>
+        /// <summary>The interfaces of <paramref name="model"/>, ordered by name.</summary>
+        /// <remarks>Empty for KerML and SysML, which declare none.</remarks>
+        public static IReadOnlyList<IInterface> Interfaces(XmiReaderResult model) =>
+            PackagedElements<IInterface>(model);
+
+        /// <summary>
+        /// The data types of <paramref name="model"/> that are neither a primitive type nor an
+        /// enumeration, ordered by name.
+        /// </summary>
+        /// <remarks>Empty for KerML and SysML, which declare none.</remarks>
+        public static IReadOnlyList<IDataType> DataTypes(XmiReaderResult model) =>
+            PackagedElements<IDataType>(model)
+                .Where(dataType => dataType is not IPrimitiveType and not IEnumeration)
+                .ToList();
+
+        /// <summary>
+        /// The names of the classifiers that realize <paramref name="interface"/>, ordered.
+        /// </summary>
+        /// <remarks>
+        /// Read from the model's realizations rather than from the classes: a realizing classifier may
+        /// live in another model - the API's <c>Data</c> is realized by the KerML <c>Element</c>.
+        /// </remarks>
+        public static IReadOnlyList<string> RealizedBy(XmiReaderResult model, IInterface @interface)
+        {
+            ArgumentNullException.ThrowIfNull(@interface);
+
+            return PackagedElements<IRealization>(model)
+                .Where(realization => realization.Supplier.Any(supplier => supplier.XmiId == @interface.XmiId))
+                .SelectMany(realization => realization.Client)
+                .Select(client => client.Name)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .ToList();
+        }
+
         public static IReadOnlySet<string> LinkableTypeNames(XmiReaderResult model)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -49,6 +85,8 @@ namespace Hypha.MetamodelGen.Generators
             return Metaclasses(model).Select(element => element.Name)
                 .Concat(Enumerations(model).Select(element => element.Name))
                 .Concat(PrimitiveTypes(model).Select(element => element.Name))
+                .Concat(Interfaces(model).Select(element => element.Name))
+                .Concat(DataTypes(model).Select(element => element.Name))
                 .ToHashSet(StringComparer.Ordinal);
         }
 
