@@ -78,3 +78,41 @@ def test_out_root_overrides_where_output_is_written(tmp_path: Path, monkeypatch:
         out_root / "knowledge" / "2026-05" / "spec" / "kerml",
         out_root / "knowledge" / "2026-05" / "spec" / "sysml2",
     ]
+
+
+def test_tag_and_api_version_cannot_be_combined(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit):
+        main(["--repo-root", str(tmp_path), "--tag", "2026-05", "--api-version", "2026-04"])
+
+
+def test_missing_api_pdf_exits_non_zero_and_names_it(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = main(["--repo-root", str(tmp_path), "--api-version", "2099-01"])
+
+    assert exit_code == 1
+    error = capsys.readouterr().err
+    assert "3-Systems_Modeling_API_and_Services.pdf" in error
+    assert str(tmp_path / "sources" / "api" / "2099-01" / "specs") in error
+
+
+def test_api_version_reads_and_writes_under_the_api_folders(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo_root = tmp_path / "repo"
+    out_root = tmp_path / "out"
+    specs_dir = repo_root / "sources" / "api" / "2026-04" / "specs"
+    specs_dir.mkdir(parents=True)
+    (specs_dir / cli.API_PDF).touch()
+    extracted: list[tuple[Path, str]] = []
+    recorded = _stub_pipeline(monkeypatch)
+    monkeypatch.setattr(
+        cli, "extract_document", lambda pdf, meta: extracted.append((pdf, meta.document)) or ["fake-clause"]
+    )
+
+    exit_code = main(
+        ["--repo-root", str(repo_root), "--api-version", "2026-04", "--out-root", str(out_root)]
+    )
+
+    assert exit_code == 0
+    assert extracted == [(specs_dir / cli.API_PDF, "SystemsModelingAPI")]
+    # One document, so no per-document subfolder - and never inside a language release's folder.
+    assert recorded == [out_root / "knowledge" / "api" / "2026-04" / "spec"]

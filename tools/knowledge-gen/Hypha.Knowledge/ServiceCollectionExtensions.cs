@@ -15,6 +15,8 @@ namespace Hypha.Knowledge
     using System.Net.Http.Headers;
 
     using Hypha.Knowledge.Api;
+    using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
@@ -123,6 +125,12 @@ namespace Hypha.Knowledge
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(DocumentClientName)));
             services.AddSingleton<IApiInstaller, ApiInstaller>();
             services.AddSingleton<IApiRemover, ApiRemover>();
+            services.AddSingleton<IOpenApiReader, OpenApiReader>();
+            services.AddSingleton<IOpenApiRenderer, OpenApiRenderer>();
+            services.AddSingleton<IApiKnowledgeGenerator, OpenApiGenerator>();
+            services.AddSingleton<IApiKnowledgeGenerator, ApiSpecGenerator>();
+            services.AddSingleton<IApiCrossReferenceBuilder, ApiCrossReferenceBuilder>();
+            services.AddSingleton<IApiKnowledgeGenerator, ApiCrossReferenceGenerator>();
 
             services.AddSingleton<IReleaseInstaller, ReleaseInstaller>();
             services.AddSingleton<IReleaseWindowEvictor, ReleaseWindowEvictor>();
