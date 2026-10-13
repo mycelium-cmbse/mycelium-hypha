@@ -554,6 +554,29 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void A_row_under_a_heading_that_names_no_pim_service_is_not_attributed_to_the_service_above()
+        {
+            var clause = new ApiClause(
+                "8.2",
+                "Hither Mapping",
+                """
+                **PIM Service REST / HTTP PSM Endpoint**
+                **ProjectService**
+                createProject POST /projects
+                **UnknownService**
+                getProjects GET /wrong
+                """);
+
+            var document = this.builder.Build("1.0", Pim, OpenApi, [clause]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(document.Operations["ProjectService.createProject"].Endpoints, Has.Count.EqualTo(1));
+                Assert.That(document.Operations["ProjectService.getProjects"].Endpoints, Is.Empty);
+            });
+        }
+
+        [Test]
         public void The_operation_identifier_is_null_when_the_openapi_document_has_no_such_endpoint()
         {
             var with = this.builder.Build("1.0", Pim, OpenApi, [EndpointMappingClause]);
