@@ -275,9 +275,12 @@ namespace Hypha.Knowledge.Api.CrossReferences
             {
                 var heading = BoldLinePattern().Match(line);
 
-                if (heading.Success && services.ContainsKey(heading.Groups["name"].Value))
+                if (heading.Success)
                 {
-                    current = heading.Groups["name"].Value;
+                    // Any bold heading ends the previous group, also one that names no PIM service:
+                    // its rows must not be attributed to the service above it.
+                    var name = heading.Groups["name"].Value;
+                    current = services.ContainsKey(name) ? name : null;
                     continue;
                 }
 
