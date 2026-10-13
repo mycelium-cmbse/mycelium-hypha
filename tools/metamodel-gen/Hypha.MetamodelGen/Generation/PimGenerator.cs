@@ -48,9 +48,6 @@ namespace Hypha.MetamodelGen.Generation
             Justification = "Fixed identifier appearing in the upstream XMI, not a configurable path.")]
         private const string PrimitiveTypesReference = "http://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi";
 
-        /// <summary>How the PIM model refers to the KerML abstract syntax.</summary>
-        private const string KermlReference = "KerML Abstract Syntax.xml";
-
         /// <summary>The title the generated index carries.</summary>
         private const string IndexTitle = "Systems Modeling API PIM";
 
@@ -98,12 +95,15 @@ namespace Hypha.MetamodelGen.Generation
 
             var model = XmiModelReader.Read(
                 pim.FullName,
-                new Dictionary<string, string>
-                {
-                    [PrimitiveTypesReference] = primitives.FullName,
-                    [KermlReference] = kerml.FullName,
-                },
+                new Dictionary<string, string> { [PrimitiveTypesReference] = primitives.FullName },
                 xmi.FullName);
+
+            // The KerML model is read so the PIM's references into it resolve - ExternalRelationship's
+            // elementEnd is a KerML Element - but it is not part of the PIM: its metaclasses belong to
+            // the language metamodel knowledge, not here. Dropping its packages keeps the names the PIM
+            // refers to while writing pages for the PIM's own types only.
+            model.Packages.RemoveAll(package =>
+                string.Equals(package.DocumentName, kerml.Name, StringComparison.OrdinalIgnoreCase));
 
             var output = this.layout.Pim(tag);
             var elements = new DirectoryInfo(Path.Combine(output.FullName, "elements"));
