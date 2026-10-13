@@ -173,6 +173,12 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>Renders the markdown (front matter, Mermaid block and element links) for a package.</summary>
+        /// <summary>
+        /// Gets the words the diagrams use for the model they describe. A metamodel unless said
+        /// otherwise.
+        /// </summary>
+        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
+
         public string GenerateDiagram(PackageDiagramPayload payload)
         {
             ArgumentNullException.ThrowIfNull(payload);
@@ -192,6 +198,7 @@ namespace Hypha.MetamodelGen.Generators
 
             foreach (var payload in CreatePayloads(model))
             {
+                payload.Vocabulary = this.Vocabulary;
                 await WriteAsync(this.GenerateDiagram(payload), diagramDirectory, $"{payload.Package}.md");
             }
         }

@@ -16,6 +16,9 @@ namespace Hypha.MetamodelGen.Generators
     /// </summary>
     public sealed class MetaclassPayload
     {
+        /// <summary>Gets or sets the words the page uses for the model it describes.</summary>
+        public ModelVocabulary Vocabulary { get; set; } = ModelVocabulary.Metamodel;
+
         /// <summary>Gets the metaclass name.</summary>
         public required string Name { get; init; }
 

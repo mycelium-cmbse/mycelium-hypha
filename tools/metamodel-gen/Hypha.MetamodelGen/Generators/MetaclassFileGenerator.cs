@@ -47,6 +47,11 @@ namespace Hypha.MetamodelGen.Generators
         /// <see cref="QueryMetaclassNames"/>) are the metaclasses that have a generated element file,
         /// so feature types pointing at them can be rendered as links.
         /// </summary>
+        /// <summary>
+        /// Gets the words the pages use for the model they describe. A metamodel unless said otherwise.
+        /// </summary>
+        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
+
         public string GenerateElement(
             IClass @class,
             IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,
@@ -57,6 +62,7 @@ namespace Hypha.MetamodelGen.Generators
             ArgumentNullException.ThrowIfNull(linkableTypeNames);
 
             var payload = CreatePayload(@class, subtypeIndex, linkableTypeNames);
+            payload.Vocabulary = this.Vocabulary;
 
             return this.Templates[TemplateName](payload);
         }
@@ -227,7 +233,7 @@ namespace Hypha.MetamodelGen.Generators
         /// <c>in</c> is prefixed with its direction; the return comes from the <c>return</c>
         /// parameter, and is left out when there is none.
         /// </summary>
-        private static string QueryOperationSignature(IOperation operation)
+        internal static string QueryOperationSignature(IOperation operation)
         {
             var parameters = operation.OwnedParameter
                 .Where(parameter => parameter.Direction != ParameterDirectionKind.Return)

@@ -11,6 +11,7 @@ namespace Hypha.MetamodelGen
 {
     using System;
 
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Generation;
     using Hypha.MetamodelGen.Generation;
 
@@ -36,6 +37,7 @@ namespace Hypha.MetamodelGen
 
             services.AddSingleton<IMetamodelModelLoader, MetamodelModelLoader>();
             services.AddSingleton<IKnowledgeGenerator, MetamodelGenerator>();
+            services.AddSingleton<IApiKnowledgeGenerator, PimGenerator>();
 
             return services;
         }

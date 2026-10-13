@@ -98,6 +98,33 @@ namespace Hypha.MetamodelGen.Generators
             var counts = new MetamodelCounts(
                 classes.Count, enumerations.Count, primitiveTypes.Count, packages.Count);
 
+            var interfaces = ElementCatalog.Interfaces(model)
+                .Select(@interface => new InterfaceNode(
+                    @interface.Name,
+                    @interface.XmiId ?? string.Empty,
+                    @interface.Namespace?.Name ?? string.Empty,
+                    ElementCatalog.FullyQualifiedName(@interface),
+                    ElementCatalog.VisibilityName(@interface.Visibility),
+                    @interface.QueryDocumentationText(),
+                    @interface.QuerySummary(),
+                    ElementCatalog.RealizedBy(model, @interface),
+                    @interface.OwnedOperation
+                        .OrderBy(operation => operation.Name, StringComparer.Ordinal)
+                        .Select(BuildOperation)
+                        .ToList()))
+                .ToList();
+
+            var dataTypes = ElementCatalog.DataTypes(model)
+                .Select(dataType => new PrimitiveTypeNode(
+                    dataType.Name,
+                    dataType.XmiId ?? string.Empty,
+                    dataType.Namespace?.Name ?? string.Empty,
+                    ElementCatalog.FullyQualifiedName(dataType),
+                    ElementCatalog.VisibilityName(dataType.Visibility),
+                    dataType.QueryDocumentationText(),
+                    dataType.QuerySummary()))
+                .ToList();
+
             return new MetamodelDocument(
                 SchemaVersion,
                 root.Name ?? string.Empty,
@@ -107,7 +134,11 @@ namespace Hypha.MetamodelGen.Generators
                 packages,
                 classes,
                 enumerations,
-                primitiveTypes);
+                primitiveTypes)
+            {
+                Interfaces = interfaces.Count > 0 ? interfaces : null,
+                DataTypes = dataTypes.Count > 0 ? dataTypes : null,
+            };
         }
 
         /// <summary>Builds the flat name → record lookup from a rich-graph document.</summary>
@@ -136,6 +167,20 @@ namespace Hypha.MetamodelGen.Generators
                 entries[primitiveType.Name] = new LookupEntry(
                     "primitiveType", primitiveType.Package, primitiveType.QualifiedName, false,
                     primitiveType.Summary, Array.Empty<string>(), $"elements/{primitiveType.Name}.md");
+            }
+
+            foreach (var @interface in document.Interfaces ?? [])
+            {
+                entries[@interface.Name] = new LookupEntry(
+                    "interface", @interface.Package, @interface.QualifiedName, false, @interface.Summary,
+                    Array.Empty<string>(), $"elements/{@interface.Name}.md");
+            }
+
+            foreach (var dataType in document.DataTypes ?? [])
+            {
+                entries[dataType.Name] = new LookupEntry(
+                    "dataType", dataType.Package, dataType.QualifiedName, false, dataType.Summary,
+                    Array.Empty<string>(), $"elements/{dataType.Name}.md");
             }
 
             return new MetamodelLookup(
