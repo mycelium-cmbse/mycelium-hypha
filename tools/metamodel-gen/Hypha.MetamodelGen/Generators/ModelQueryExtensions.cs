@@ -9,14 +9,7 @@
 
 namespace Hypha.MetamodelGen.Generators
 {
-    using System;
-    using System.Collections;
     using System.Globalization;
-    using System.Linq;
-
-    using uml4net.Classification;
-    using uml4net.CommonStructure;
-    using uml4net.Values;
 
     /// <summary>
     /// Deterministic queries over the uml4net model shared by more than one generator.
@@ -35,42 +28,6 @@ namespace Hypha.MetamodelGen.Generators
             }
 
             return rawUpper == "*" ? -1 : int.Parse(rawUpper, CultureInfo.InvariantCulture);
-        }
-
-        /// <summary>
-        /// Extracts the textual (OCL) body of a constraint specification. The specification is held in
-        /// a container; the contained opaque expression carries the body. Returns an empty string when
-        /// there is no opaque-expression body.
-        /// </summary>
-        public static string QueryConstraintBody(this IConstraint constraint)
-        {
-            ArgumentNullException.ThrowIfNull(constraint);
-
-            if (constraint.Specification is IEnumerable specifications)
-            {
-                var expression = specifications.OfType<IOpaqueExpression>().FirstOrDefault();
-
-                if (expression is not null)
-                {
-                    return string.Join("\n", expression.Body).Replace("\r\n", "\n").Trim();
-                }
-            }
-
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Extracts the textual (OCL) body of an operation: the specification of its
-        /// <c>bodyCondition</c>, a constraint the operation owns (UML 2.5.1 subsets <c>ownedRule</c>
-        /// with it), never one of its class's own rules. Being composite, uml4net holds the
-        /// <c>[0..1]</c> body condition in a container list. Returns an empty string when the operation
-        /// has no body condition.
-        /// </summary>
-        public static string QueryBodyConditionText(this IOperation operation)
-        {
-            ArgumentNullException.ThrowIfNull(operation);
-
-            return operation.BodyCondition.FirstOrDefault()?.QueryConstraintBody() ?? string.Empty;
         }
     }
 }

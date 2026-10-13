@@ -16,6 +16,8 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
+    using uml4net.Extensions;
+
     /// <summary>
     /// Tests for <see cref="MetaclassFileGenerator"/>. Running these regenerates the per-metaclass
     /// files under <c>knowledge/metamodel/elements/</c>.

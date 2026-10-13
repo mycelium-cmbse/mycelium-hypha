@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.2.0`, which
+  provides `QueryConstraintBody` and `QueryBodyConditionText` itself. The generators now use those
+  and hypha's own copies in `ModelQueryExtensions` are gone (`fixes #145`); the generated knowledge
+  is byte-identical.
+
 ### Fixed
 - **The metamodel knowledge base now carries each operation's body OCL** (`fixes #143`). An
   operation's `bodyCondition` is a constraint the operation owns, not one of its class's rules, so
