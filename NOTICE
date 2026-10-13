@@ -94,6 +94,16 @@ Systems Modeling API and Services Version 1.0 — OMG document formal/26-03-04
   Copyright © 2024 Object Management Group, Inc. and the contributing
   organizations listed in the specification.
 
+  The knowledge base generated for the Systems Modeling API is additionally
+  derived from two normative machine-readable documents of that specification,
+  neither of which is redistributed here - each is fetched onto the user's own
+  machine on request:
+    - the Platform Independent Model, OMG document ptc/25-02-29
+      (Systems-Modeling-API.xmi), from the OMG document server;
+    - the OpenAPI document of the REST/HTTP Platform Specific Model, OMG
+      document ptc/25-02-30, from Systems-Modeling/SysML-v2-API-Services
+      (Eclipse Public License 2.0).
+
 The following OMG specification license (the "USE OF SPECIFICATION — TERMS,
 CONDITIONS & NOTICES", reproduced verbatim) applies to each of the OMG
 specifications listed above:

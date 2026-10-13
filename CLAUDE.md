@@ -82,6 +82,34 @@ golden files, re-blessed with its `[Explicit]` `Bless_expected_files` tests.
   — a missing metamodel index, a clause title reaching the cross-references, a slug collision.
 - "Interesting" metaclasses are discovered via `ModelInspector`, never hardcoded.
 
+## The Systems Modeling API is a second version axis
+
+The **Systems Modeling API & Services** knowledge (PIM, REST/HTTP PSM, API specification text, and
+the cross-reference between them) is not part of a language release. Everything about it is parallel
+to the release machinery rather than folded into it:
+
+- **Layout:** `sources/api/<version>/` and `knowledge/api/<version>/`, with its own manifest
+  `knowledge/api/versions.json` and its own default (`IApiLayout`, `ApiVersionManifest`). All of it is
+  git-ignored by the same root-anchored `/sources/*/` and `/knowledge/*/` patterns.
+- **Version:** a tag of `Systems-Modeling/SysML-v2-API-Services` that is also a language release tag
+  (`ApiCatalog`), since the specification PDF and the KerML model the PIM refers to are read from the
+  language repositories at the same tag. That repository is tagged rarely, so the newest API version
+  is normally older than the newest release.
+- **Inputs:** the OpenAPI document (API-Services), the specification PDF (Release), the KerML XMI
+  (Pilot-Implementation), and the PIM XMI - the one input **not** in any repository, fetched from the
+  OMG document server (`HyphaKnowledgeOptions.PimAddress`) through a credential-free client.
+- **Generators:** `IApiKnowledgeGenerator`, the same contract as `IKnowledgeGenerator` but registered
+  as a **separate collection** - `pim` (10, in `tools/metamodel-gen`, reusing the metamodel
+  generators with `ModelVocabulary.Model`), `openapi` (20), `spec` (30), `cross-references` (40). A
+  generator registered under the wrong interface would run against the wrong kind of tag.
+- **CLI:** `hypha api discover|fetch|generate|list|use|remove`. `generate` reuses
+  `GenerateCommand.Handler` through a `GenerationScope`; `check`, `move-window` and the
+  `SessionStart` hook know only the language releases.
+- **Cross-references:** `knowledge/api/<version>/cross-references.json` carries identifiers only,
+  never clause text, and every edge names the `method` that produced it - a link the specification or
+  the OpenAPI document **states** (`mapping-table`, `type-constant`) is preferred over one matched on
+  a name (`same-name`).
+
 ## Committed vs git-ignored (and why)
 
 Nothing per-release is committed any more, for anything — not a rolling window of it, not one

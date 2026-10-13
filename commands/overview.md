@@ -9,7 +9,7 @@ Show the user the following overview of the Hypha plugin, verbatim.
 
 Hypha grounds answers about the OMG **SysML v2 / KerML** metamodel, specification, and textual
 notation in a built-in knowledge base. Just ask in natural language – the right skill is
-selected automatically. Three capabilities:
+selected automatically. Four capabilities:
 
 - **Metamodel lookup** – how a metaclass is defined: features, supertypes, subtypes, redefinitions,
   multiplicities, constraints (and enumerations / primitive types).
@@ -20,6 +20,11 @@ selected automatically. Three capabilities:
   fetched locally; see below.)
   - *"What does the SysML v2 spec say about conformance?"*
   - *"Quote the normative rule for redefinition."*
+- **API lookup** – the Systems Modeling API & Services: PIM types and service operations, the
+  REST/HTTP (OpenAPI) schemas and endpoints, and how the two line up. Versioned apart from the
+  language releases: install it with `hypha api fetch` and `hypha api generate`.
+  - *"Is `CommitReference.deleted` optional in the PIM, and is it in the response model?"*
+  - *"Which endpoint does `ProjectService.createProject` map to?"*
 - **Validation** – check SysML v2 / KerML textual notation against the grammar and metamodel, and
   explain any issues with fixes.
   - *"Is this valid SysML v2? `part def Vehicle { attribute mass : Real[2..1]; }`"*

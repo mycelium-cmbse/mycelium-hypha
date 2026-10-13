@@ -23,6 +23,17 @@ sources/
     └── textual/         SysML v2 / KerML textual-notation source material
 ```
 
+The Systems Modeling API & Services inputs sit beside the releases, under their own version:
+
+```
+sources/
+└── api/                                                                     (git-ignored, all of it)
+    └── <version>/       e.g. 2026-04
+        ├── openapi/     the OpenAPI document (the REST/HTTP PSM)
+        ├── xmi/         the PIM model, and the KerML model it refers to
+        └── specs/       the OMG API specification PDF
+```
+
 ## The tag is the version
 
 A hypha version is one **tag name that resolves in both upstreams**. The tag is the only identifier
@@ -33,6 +44,19 @@ therefore appear under several tags, which is accepted.
 The two repositories are not in lockstep, so the offerable versions are the **intersection** of their
 tags. Discovery, commit resolution and fetching live in `tools/knowledge-gen` (`Hypha.Knowledge`,
 namespace `Hypha.Knowledge.Releases`); which files make up a release is stated in `ReleaseInputs`.
+
+## The API has its own version
+
+The Systems Modeling API is not part of a language release. An **API version** is one tag of the
+API-Services repository that is also a language release tag – so its specification PDF and the KerML
+model its PIM refers to can be read from the language repositories at the same tag. The
+API-Services repository is tagged far less often, so the offerable API versions are a subset of the
+language releases, and the newest one is usually older than the newest release.
+
+`hypha api fetch --tag <version>` writes `sources/api/<version>/` and records the version in
+`knowledge/api/versions.json`, a manifest of its own: an API version is installed, made the default
+and removed independently of any language release. Which files make it up is stated in `ApiUpstream`
+and `ApiInputs` (`tools/knowledge-gen`, namespace `Hypha.Knowledge.Api`).
 
 ## Where the inputs come from
 
@@ -45,6 +69,18 @@ namespace `Hypha.Knowledge.Releases`); which files make up a release is stated i
 | Textual grammar | Release | `bnf/*.kebnf`, `*.kgbnf` | EPL-2.0, git-ignored |
 | Textual examples | Release | `kerml/`, `sysml/` | EPL-2.0, git-ignored |
 | Standard model libraries | Release | `sysml.library/**/*.sysml`, `*.kerml` | EPL-2.0, git-ignored |
+| API: OpenAPI document | API-Services | `public/docs/openapi.json` | EPL-2.0, git-ignored |
+| API: specification PDF | Release | `doc/3-Systems_Modeling_API_and_Services.pdf` | OMG, **git-ignored** |
+| API: KerML model the PIM refers to | Pilot-Implementation | `org.omg.sysml/model/KerML_only_xmi.uml` | EPL-2.0, git-ignored |
+| API: PIM model | OMG document server | `ptc/25-02-29`, `Systems-Modeling-API.xmi` | OMG, **git-ignored** |
+
+API-Services is [Systems-Modeling/SysML-v2-API-Services](https://github.com/Systems-Modeling/SysML-v2-API-Services).
+Its OpenAPI document is byte-identical to the OMG machine-readable file `ptc/25-02-30`.
+
+The **PIM model is the one input not read from a repository**: none of the Systems-Modeling
+repositories carries it, so it is fetched from
+`https://www.omg.org/spec/SystemsModelingAPI/20250201/Systems-Modeling-API.xmi`, where it is the same
+file for every API version. The manifest records its OMG document identifier instead of a commit.
 
 `PrimitiveTypes.xmi` is published by neither upstream: it is the OMG UML primitives library
 (`…/PrimitiveTypes/20161101`), referenced through a path map and identical for every release, so it
