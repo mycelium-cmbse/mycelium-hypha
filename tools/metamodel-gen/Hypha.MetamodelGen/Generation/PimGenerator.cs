@@ -13,6 +13,7 @@ namespace Hypha.MetamodelGen.Generation
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -104,6 +105,17 @@ namespace Hypha.MetamodelGen.Generation
             // refers to while writing pages for the PIM's own types only.
             model.Packages.RemoveAll(package =>
                 string.Equals(package.DocumentName, kerml.Name, StringComparison.OrdinalIgnoreCase));
+
+            // The published model carries a stray leading space on one attribute name
+            // (" externalDataEnd"). Left in, it would be a different name from the PSM member it is
+            // the same concept as, and the cross-references would report it as left out.
+            foreach (var property in ElementCatalog.Metaclasses(model).SelectMany(@class => @class.OwnedAttribute))
+            {
+                if (property.Name is { } name && name.Length != name.Trim().Length)
+                {
+                    property.Name = name.Trim();
+                }
+            }
 
             var output = this.layout.Pim(tag);
             var elements = new DirectoryInfo(Path.Combine(output.FullName, "elements"));

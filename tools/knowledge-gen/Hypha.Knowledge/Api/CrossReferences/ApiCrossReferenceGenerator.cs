@@ -109,8 +109,17 @@ namespace Hypha.Knowledge.Api.CrossReferences
 
             foreach (var entry in entries.EnumerateObject())
             {
-                var file = new FileInfo(Path.Combine(
-                    catalog.Directory!.FullName, entry.Value.GetProperty("file").GetString() ?? string.Empty));
+                // An entry that names no file, or a file that is not there, is a clause whose text
+                // cannot be read: it is left out rather than failing the whole document.
+                if (entry.Value.ValueKind != JsonValueKind.Object
+                    || !entry.Value.TryGetProperty("file", out var name)
+                    || name.ValueKind != JsonValueKind.String
+                    || string.IsNullOrWhiteSpace(name.GetString()))
+                {
+                    continue;
+                }
+
+                var file = new FileInfo(Path.Combine(catalog.Directory!.FullName, name.GetString()!));
 
                 if (!file.Exists)
                 {
@@ -119,7 +128,9 @@ namespace Hypha.Knowledge.Api.CrossReferences
 
                 clauses.Add(new ApiClause(
                     entry.Name,
-                    entry.Value.TryGetProperty("title", out var title) ? title.GetString() ?? string.Empty : string.Empty,
+                    entry.Value.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String
+                        ? title.GetString() ?? string.Empty
+                        : string.Empty,
                     await File.ReadAllTextAsync(file.FullName, cancellationToken)));
             }
 

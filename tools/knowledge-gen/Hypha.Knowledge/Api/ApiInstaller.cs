@@ -80,9 +80,11 @@ namespace Hypha.Knowledge.Api
 
             var tag = request.Tag;
 
-            if (!ReleaseTag.IsRelease(tag))
+            if (!ApiCatalog.IsOfferable(tag))
             {
-                throw new ArgumentException($"not an offerable API version: {tag}", nameof(request));
+                throw new ArgumentException(
+                    $"not an offerable API version: {tag} (the earliest is {ApiCatalog.EarliestVersion})",
+                    nameof(request));
             }
 
             StartedMessage(this.logger, tag, null);

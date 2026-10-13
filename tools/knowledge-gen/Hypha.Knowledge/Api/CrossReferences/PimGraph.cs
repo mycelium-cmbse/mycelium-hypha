@@ -25,17 +25,4 @@ namespace Hypha.Knowledge.Api.CrossReferences
         IReadOnlyList<PimNamed>? Interfaces,
         IReadOnlyList<PimNamed>? Enumerations,
         IReadOnlyList<PimNamed>? DataTypes);
-
-    /// <summary>A PIM type that is known by name only.</summary>
-    public sealed record PimNamed(string Name);
-
-    /// <summary>A PIM class.</summary>
-    public sealed record PimClass(
-        string Name,
-        IReadOnlyList<PimAttribute>? OwnedAttributes,
-        IReadOnlyList<PimAttribute>? InheritedAttributes,
-        IReadOnlyList<PimNamed>? OwnedOperations);
-
-    /// <summary>A PIM attribute; <see cref="InheritedFrom"/> is <c>null</c> when it is owned.</summary>
-    public sealed record PimAttribute(string Name, int Lower, int Upper, bool IsDerived, string? InheritedFrom);
 }

@@ -230,17 +230,7 @@ namespace Hypha.Knowledge.Api.OpenApi
                         operation.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array
                             ? tags.EnumerateArray().Select(tag => tag.GetString() ?? string.Empty).ToList()
                             : [],
-                        operation.TryGetProperty("parameters", out var parameters) && parameters.ValueKind == JsonValueKind.Array
-                            ? parameters.EnumerateArray()
-                                .Select(parameter => Resolve(parameter, components))
-                                .Select(parameter => new OpenApiParameter(
-                                    Text(parameter, "name"),
-                                    Text(parameter, "in"),
-                                    parameter.TryGetProperty("required", out var must) && must.ValueKind == JsonValueKind.True,
-                                    parameter.TryGetProperty("schema", out var schema) ? Describe(schema).Type : "any",
-                                    Text(parameter, "description")))
-                                .ToList()
-                            : [],
+                        [.. Parameters(path.Value, components), .. Parameters(operation, components)],
                         operation.TryGetProperty("requestBody", out var body) ? BodyType(Resolve(body, components)) : null,
                         operation.TryGetProperty("responses", out var responses) && responses.ValueKind == JsonValueKind.Object
                             ? responses.EnumerateObject()
@@ -255,6 +245,27 @@ namespace Hypha.Knowledge.Api.OpenApi
             }
 
             return endpoints;
+        }
+
+        /// <summary>
+        /// The parameters a path item or an operation declares. A path item's apply to every operation
+        /// on it, so an endpoint's parameters are its path's followed by its own.
+        /// </summary>
+        private static IEnumerable<OpenApiParameter> Parameters(JsonElement owner, JsonElement components)
+        {
+            if (!owner.TryGetProperty("parameters", out var parameters) || parameters.ValueKind != JsonValueKind.Array)
+            {
+                return [];
+            }
+
+            return parameters.EnumerateArray()
+                .Select(parameter => Resolve(parameter, components))
+                .Select(parameter => new OpenApiParameter(
+                    Text(parameter, "name"),
+                    Text(parameter, "in"),
+                    parameter.TryGetProperty("required", out var must) && must.ValueKind == JsonValueKind.True,
+                    parameter.TryGetProperty("schema", out var schema) ? Describe(schema).Type : "any",
+                    Text(parameter, "description")));
         }
 
         /// <summary>

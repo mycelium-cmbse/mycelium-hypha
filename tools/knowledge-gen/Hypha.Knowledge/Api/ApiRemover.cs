@@ -15,6 +15,8 @@ namespace Hypha.Knowledge.Api
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Releases;
+
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -46,6 +48,13 @@ namespace Hypha.Knowledge.Api
         public Task RemoveAsync(string tag, bool force = false, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
+
+            // The tag becomes a folder that is deleted recursively. Nothing but a version-shaped tag
+            // may get that far, whatever a hand-edited manifest says is installed.
+            if (!ReleaseTag.IsRelease(tag))
+            {
+                throw new ArgumentException($"not an API version: {tag}", nameof(tag));
+            }
 
             var path = this.layout.VersionManifest.FullName;
             var manifest = ApiVersionManifestFile.ReadIfPresent(path)

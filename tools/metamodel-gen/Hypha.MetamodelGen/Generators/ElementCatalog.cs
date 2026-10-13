@@ -38,10 +38,6 @@ namespace Hypha.MetamodelGen.Generators
         public static IReadOnlyList<IPrimitiveType> PrimitiveTypes(XmiReaderResult model) =>
             PackagedElements<IPrimitiveType>(model);
 
-        /// <summary>
-        /// Returns the set of element names that have a generated element file (metaclasses,
-        /// enumerations and primitive types), used to decide whether a feature type can be linked.
-        /// </summary>
         /// <summary>The interfaces of <paramref name="model"/>, ordered by name.</summary>
         /// <remarks>Empty for KerML and SysML, which declare none.</remarks>
         public static IReadOnlyList<IInterface> Interfaces(XmiReaderResult model) =>
@@ -78,6 +74,11 @@ namespace Hypha.MetamodelGen.Generators
                 .ToList();
         }
 
+        /// <summary>
+        /// Returns the set of element names that have a generated element file (metaclasses,
+        /// enumerations, primitive types, interfaces and data types), used to decide whether a feature
+        /// type can be linked.
+        /// </summary>
         public static IReadOnlySet<string> LinkableTypeNames(XmiReaderResult model)
         {
             ArgumentNullException.ThrowIfNull(model);

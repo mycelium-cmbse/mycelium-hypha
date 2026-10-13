@@ -55,6 +55,10 @@ namespace Hypha.Knowledge.Api.OpenApi
         public int Order => 20;
 
         /// <inheritdoc/>
+        /// <exception cref="InvalidOperationException">
+        /// The document is not readable OpenAPI, a schema name cannot be used as a page name, or two
+        /// schema names differ only by case.
+        /// </exception>
         public async Task<GenerationResult> GenerateAsync(string tag, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -72,6 +76,26 @@ namespace Hypha.Knowledge.Api.OpenApi
             }
 
             var model = this.reader.Read(await File.ReadAllTextAsync(source.FullName, cancellationToken));
+
+            // The pages land in one flat folder under the schema's own name. A name that is not a
+            // plain file name could write outside it, and two that differ only by case would be one
+            // file on a case-insensitive disk: two entries in the index, one page.
+            var paged = model.Schemas
+                .Where(schema => string.Equals(schema.Namespace, OpenApiNames.ApiNamespace, StringComparison.Ordinal))
+                .Select(schema => schema.Name)
+                .ToList();
+
+            if (paged.FirstOrDefault(name => !IsPageName(name)) is { } unusable)
+            {
+                throw new InvalidOperationException(
+                    $"schema '{unusable}' of API version {tag} cannot be used as a page name");
+            }
+
+            if (paged.Distinct(StringComparer.OrdinalIgnoreCase).Count() != paged.Count)
+            {
+                throw new InvalidOperationException(
+                    $"two schemas of API version {tag} have names that differ only by case");
+            }
 
             var output = this.layout.OpenApiKnowledge(tag);
             var schemas = new DirectoryInfo(Path.Combine(output.FullName, OpenApiRenderer.SchemasFolder));
@@ -131,5 +155,11 @@ namespace Hypha.Knowledge.Api.OpenApi
 
             return GenerationResult.Generated(written).Report(this.logger, this.Artifact, tag);
         }
+
+        /// <summary>Letters, digits, underscores, hyphens and inner dots - nothing a path could be built from.</summary>
+        private static bool IsPageName(string name) =>
+            name.Length > 0
+            && name[0] != '.'
+            && name.All(character => char.IsAsciiLetterOrDigit(character) || character is '_' or '-' or '.');
     }
 }

@@ -325,6 +325,28 @@ namespace Hypha.Knowledge.Tests
             Assert.That(second, Is.EqualTo(first));
         }
 
+        [Test]
+        public async Task A_catalog_entry_that_names_no_file_is_left_out_rather_than_failing_the_document()
+        {
+            this.SeedPim();
+
+            var catalog = this.layout.SpecificationCatalog(Tag);
+            catalog.Directory!.Create();
+            await File.WriteAllTextAsync(
+                catalog.FullName,
+                """{ "entries": { "7.1": { "title": "Project" }, "7.2": "not an entry", "7.3": { "file": 3 } } }""");
+
+            await this.generator.GenerateAsync(Tag);
+
+            var document = this.ReadDocument();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(document.Sources.Specification, Is.False);
+                Assert.That(document.Types.Values.SelectMany(type => type.Clauses), Is.Empty);
+            });
+        }
+
         private ApiCrossReferenceDocument ReadDocument() =>
             ApiJson.Read<ApiCrossReferenceDocument>(File.ReadAllText(this.layout.CrossReferences(Tag).FullName));
 

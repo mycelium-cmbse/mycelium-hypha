@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`hypha api discover | fetch | generate | list | use | remove`** install and manage an API version
   independently of the language releases, in `sources/api/<version>/` and `knowledge/api/<version>/`
   with a manifest of its own (`knowledge/api/versions.json`). An API version is a tag of
-  `Systems-Modeling/SysML-v2-API-Services` that is also a language release. The PIM model is the one
+  `Systems-Modeling/SysML-v2-API-Services` that is also a language release, `2025-02` or later. The PIM model is the one
   input no repository carries; it is fetched from the OMG document server (`ptc/25-02-29`).
 - `python -m spec_extract --api-version <version>` extracts the API specification.
 

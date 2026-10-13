@@ -27,7 +27,7 @@ Then substitute that version for `<version>` in every path below.
 
 - Answer from the **default** API version unless the user names one, and **say which one you
   answered from** – e.g. "in API version 2026-04, `Commit` ...".
-- An API version is a tag of the upstream API-Services repository. It is not the language release
+- An API version is a tag of the upstream API-Services repository, `2025-02` or later. It is not the language release
   tag in `knowledge/versions.json`, and the two do not have to match.
 - If `knowledge/api/versions.json` does not exist, nothing is installed. Say so and offer to install
   one through the `version-management` skill (`hypha api discover`, then `hypha api fetch` and
@@ -78,8 +78,8 @@ jq '.classes[] | select(.name=="Project") | .ownedAttributes[] | {name, lower, u
 
 ### PSM pages (`openapi/schemas/<Name>.md`)
 
-One page per schema **of the API itself**. The front matter gives its `kind` (`object`, `union`,
-`enumeration`) and its `role` – whether the endpoints use it in request bodies, in responses, or
+One page per schema **of the API itself**. The front matter gives its `kind` (`object`, `union` or
+`enumeration`; otherwise a plain JSON type) and its `role` – whether the endpoints use it in request bodies, in responses, or
 both. The role is computed from the endpoints, not from a `Request` suffix in the name. Then a
 **Properties** table: `Property | Type | Required | Nullable | Refers to`.
 

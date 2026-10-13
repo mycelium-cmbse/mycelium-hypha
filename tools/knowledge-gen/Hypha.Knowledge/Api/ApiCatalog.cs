@@ -21,13 +21,26 @@ namespace Hypha.Knowledge.Api
     public static class ApiCatalog
     {
         /// <summary>
-        /// The API-Services tags that are also a language release, newest first.
+        /// The earliest API version that can be offered.
         /// </summary>
         /// <remarks>
-        /// The API-Services repository is tagged far less often than the language repositories, so
-        /// this is a subset of the language releases rather than the same list. The intersection is
-        /// what makes a version installable: its specification PDF and the KerML model its PIM refers
-        /// to are read from the language repositories at the same tag.
+        /// The PIM model is one fixed OMG document (<see cref="ApiUpstream.PimDocument"/>, dated
+        /// 2025-02) rather than a file at a tag. Pairing it with an older OpenAPI document and
+        /// specification would compare a 2025 PIM against an earlier PSM, and the differences reported
+        /// would be version skew, not specification facts. Older tags also predate the files a fetch
+        /// reads: several carry no <c>openapi.json</c> at all.
+        /// </remarks>
+        public const string EarliestVersion = "2025-02";
+
+        /// <summary>
+        /// The API-Services tags that are also a language release and not older than
+        /// <see cref="EarliestVersion"/>, newest first.
+        /// </summary>
+        /// <remarks>
+        /// The API-Services repository is not tagged for every language release, so this is a subset
+        /// of the language releases rather than the same list. The intersection is what makes a
+        /// version installable: its specification PDF and the KerML model its PIM refers to are read
+        /// from the language repositories at the same tag.
         /// </remarks>
         public static IReadOnlyList<string> Available(
             IEnumerable<string> servicesTags, IEnumerable<string> releaseTags, IEnumerable<string> pilotTags)
@@ -36,7 +49,18 @@ namespace Hypha.Knowledge.Api
 
             var services = servicesTags.ToHashSet(StringComparer.Ordinal);
 
-            return ReleaseCatalog.Available(releaseTags, pilotTags).Where(services.Contains).ToList();
+            return ReleaseCatalog.Available(releaseTags, pilotTags)
+                .Where(services.Contains)
+                .Where(IsOfferable)
+                .ToList();
         }
+
+        /// <summary>
+        /// Whether <paramref name="tag"/> is release-shaped and not older than
+        /// <see cref="EarliestVersion"/>.
+        /// </summary>
+        public static bool IsOfferable(string? tag) =>
+            ReleaseTag.IsRelease(tag)
+            && ReleaseTag.SortKey(tag!).CompareTo(ReleaseTag.SortKey(EarliestVersion)) >= 0;
     }
 }

@@ -93,8 +93,10 @@ to the release machinery rather than folded into it:
   git-ignored by the same root-anchored `/sources/*/` and `/knowledge/*/` patterns.
 - **Version:** a tag of `Systems-Modeling/SysML-v2-API-Services` that is also a language release tag
   (`ApiCatalog`), since the specification PDF and the KerML model the PIM refers to are read from the
-  language repositories at the same tag. That repository is tagged rarely, so the newest API version
-  is normally older than the newest release.
+  language repositories at the same tag, and that is not older than `ApiCatalog.EarliestVersion`
+  (`2025-02`): the PIM is one fixed OMG document of that date, so an older tag would pair it with an
+  earlier PSM. API-Services has not been tagged for every release since, so the newest API version is
+  normally older than the newest release.
 - **Inputs:** the OpenAPI document (API-Services), the specification PDF (Release), the KerML XMI
   (Pilot-Implementation), and the PIM XMI - the one input **not** in any repository, fetched from the
   OMG document server (`HyphaKnowledgeOptions.PimAddress`) through a credential-free client.

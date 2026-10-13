@@ -130,8 +130,11 @@ namespace Hypha.Knowledge.Api.CrossReferences
         [GeneratedRegex(@"\*\*(?<run>[^*\n]+)\*\*")]
         private static partial Regex BoldPattern();
 
-        [GeneratedRegex(@"^\*\*(?<name>\w+)\*\*$")]
+        [GeneratedRegex(@"^\*\*(?<name>\w[\w ]*)\*\*$")]
         private static partial Regex BoldLinePattern();
+
+        [GeneratedRegex(@"^(?<pim>\w+(\.\w+)?) (?<psm>\w+( \[\d+\.\.(\d+|\*)\])?)$")]
+        private static partial Regex ModelMappingRowPattern();
 
         [GeneratedRegex(@"^(?<operation>[A-Za-z]\w*) (?<method>GET|POST|PUT|PATCH|DELETE) ?(?<path>/\S+)$")]
         private static partial Regex EndpointRowPattern();
@@ -249,16 +252,19 @@ namespace Hypha.Knowledge.Api.CrossReferences
                     continue;
                 }
 
-                // The table ends at the first line that is not a row: a blank one, or a bold caption.
-                var separator = line.IndexOf(' ', StringComparison.Ordinal);
+                // A row is two names, the second optionally with a multiplicity. The table ends at the
+                // first line that is anything else - a blank one, a caption, or the prose that follows
+                // it without a blank line in the extracted text. Being this strict is what keeps
+                // specification wording out of a document that may carry identifiers only.
+                var row = ModelMappingRowPattern().Match(line);
 
-                if (separator <= 0 || line.StartsWith("**", StringComparison.Ordinal))
+                if (!row.Success)
                 {
                     inTable = false;
                     continue;
                 }
 
-                yield return new ApiModelMappingRow(line[..separator], line[(separator + 1)..].Trim(), clause.Number);
+                yield return new ApiModelMappingRow(row.Groups["pim"].Value, row.Groups["psm"].Value, clause.Number);
             }
         }
 
@@ -278,8 +284,9 @@ namespace Hypha.Knowledge.Api.CrossReferences
                 if (heading.Success)
                 {
                     // Any bold heading ends the previous group, also one that names no PIM service:
-                    // its rows must not be attributed to the service above it.
-                    var name = heading.Groups["name"].Value;
+                    // its rows must not be attributed to the service above it. The specification sets
+                    // some service names in several words ("Project Usage Service").
+                    var name = heading.Groups["name"].Value.Replace(" ", string.Empty, StringComparison.Ordinal);
                     current = services.ContainsKey(name) ? name : null;
                     continue;
                 }
@@ -323,9 +330,13 @@ namespace Hypha.Knowledge.Api.CrossReferences
                     .Select(match => match.Groups["name"].Value.Replace(" ", string.Empty, StringComparison.Ordinal))
                     .ToHashSet(StringComparer.Ordinal);
 
+                // Each word of a bold run, and the run as one name: a figure sets several type names
+                // in one run ("DataDifference MergeResult"), while a heading may set one name in
+                // several words ("Project Usage Service").
                 this.BoldWords = BoldPattern().Matches(text)
-                    .SelectMany(match => WordPattern().Matches(match.Groups["run"].Value))
-                    .Select(word => word.Value)
+                    .SelectMany(match => WordPattern().Matches(match.Groups["run"].Value)
+                        .Select(word => word.Value)
+                        .Append(match.Groups["run"].Value.Replace(" ", string.Empty, StringComparison.Ordinal)))
                     .ToHashSet(StringComparer.Ordinal);
 
                 this.Words = WordPattern().Matches(text).Select(word => word.Value).ToHashSet(StringComparer.Ordinal);

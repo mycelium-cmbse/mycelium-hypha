@@ -98,9 +98,9 @@ hypha api use --tag <version>
 hypha api remove --tag <version>
 ```
 
-- An API version is a tag of the upstream API-Services repository. That repository is tagged far
-  less often than the language repositories, so the newest API version is usually **older** than the
-  newest language release – that is expected, not something to fix.
+- An API version is a tag of the upstream API-Services repository, `2025-02` or later. That
+  repository has not been tagged for every language release since, so the newest API version is
+  usually **older** than the newest language release – that is expected, not something to fix.
 - Installing, switching or removing an API version never touches an installed language release, and
   the other way round. `hypha check` and the `SessionStart` hook report on the language releases
   only: for the API, run `hypha api list` and `hypha api discover`.
