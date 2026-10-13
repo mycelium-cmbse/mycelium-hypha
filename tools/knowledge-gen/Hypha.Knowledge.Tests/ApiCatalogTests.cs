@@ -29,7 +29,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void Available_is_the_api_services_tags_that_are_also_a_language_release()
         {
-            // The API-Services repository is tagged far less often than the language repositories.
+            // The API-Services repository is not tagged for every language release.
             var versions = ApiCatalog.Available(["2026-04", "2025-09"], LanguageReleases, LanguageReleases);
 
             Assert.That(versions, Is.EqualTo(new[] { "2026-04", "2025-09" }));

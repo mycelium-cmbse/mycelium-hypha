@@ -49,9 +49,12 @@ namespace `Hypha.Knowledge.Releases`); which files make up a release is stated i
 
 The Systems Modeling API is not part of a language release. An **API version** is one tag of the
 API-Services repository that is also a language release tag – so its specification PDF and the KerML
-model its PIM refers to can be read from the language repositories at the same tag. The
-API-Services repository is tagged far less often, so the offerable API versions are a subset of the
-language releases, and the newest one is usually older than the newest release.
+model its PIM refers to can be read from the language repositories at the same tag. The earliest
+API version offered is `2025-02`: the PIM model is one fixed OMG document of that date (see below),
+so an older tag would pair a 2025 PIM with an earlier OpenAPI document and specification. The
+API-Services repository has not been tagged for every language release since then, so the offerable
+API versions are a subset of the language releases, and the newest one is usually older than the
+newest release.
 
 `hypha api fetch --tag <version>` writes `sources/api/<version>/` and records the version in
 `knowledge/api/versions.json`, a manifest of its own: an API version is installed, made the default

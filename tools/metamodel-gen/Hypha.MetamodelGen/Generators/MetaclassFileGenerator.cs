@@ -41,17 +41,17 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>
+        /// Gets the words the pages use for the model they describe. A metamodel unless said otherwise.
+        /// </summary>
+        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
+
+        /// <summary>
         /// Renders the element markdown for a single metaclass. The <paramref name="subtypeIndex"/>
         /// (see <see cref="BuildSubtypeIndex"/>) supplies the direct subtypes, which cannot be
         /// derived from the metaclass alone. The <paramref name="linkableTypeNames"/> (see
         /// <see cref="QueryMetaclassNames"/>) are the metaclasses that have a generated element file,
         /// so feature types pointing at them can be rendered as links.
         /// </summary>
-        /// <summary>
-        /// Gets the words the pages use for the model they describe. A metamodel unless said otherwise.
-        /// </summary>
-        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
-
         public string GenerateElement(
             IClass @class,
             IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,

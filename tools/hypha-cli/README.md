@@ -74,7 +74,7 @@ installed language release.
 
 | Verb | What it does |
 | --- | --- |
-| `hypha api discover` | Lists the API versions the upstreams offer: the API-Services tags that are also a language release. |
+| `hypha api discover` | Lists the API versions the upstreams offer: the API-Services tags that are also a language release, from `2025-02` on. |
 | `hypha api fetch --tag <version>` | Downloads that version's inputs into `sources/api/<version>/` and records it. `--no-specs`, `--force` and `--no-default` as for `hypha fetch`. |
 | `hypha api generate [artifact]` | Generates the API knowledge. Every artifact for every installed API version when nothing is narrowed; `--tag` and `--output` as for `hypha generate`. |
 | `hypha api list` | Lists the installed API versions and which one answers by default. |

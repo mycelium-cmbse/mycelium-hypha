@@ -18,7 +18,9 @@ namespace Hypha.Knowledge.Api
     public interface IApiInstaller
     {
         /// <summary>Installs the requested API version.</summary>
-        /// <exception cref="System.ArgumentException">The tag is not release-shaped.</exception>
+        /// <exception cref="System.ArgumentException">
+        /// The tag is not release-shaped, or is older than <see cref="ApiCatalog.EarliestVersion"/>.
+        /// </exception>
         Task<ApiInstallation> InstallAsync(ApiInstallRequest request, CancellationToken cancellationToken = default);
     }
 }

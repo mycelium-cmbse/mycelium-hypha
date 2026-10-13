@@ -116,7 +116,7 @@ with a version of its own, installed with `hypha api fetch --tag <version>` and
   leaves out, and which endpoint each PIM service operation maps to
 
 An API version is installed, switched and removed independently of the language releases, and the
-two do not have to match: the upstream API repository is tagged far less often.
+two do not have to match: the upstream API repository is not tagged for every language release.
 
 **Spec citation needs one more step.** Quoting the normative specification text verbatim needs the
 three OMG PDFs, plus a full source checkout to regenerate them into text – not something an installed

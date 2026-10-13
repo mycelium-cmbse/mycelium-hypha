@@ -54,7 +54,7 @@ knowledge/
 | `<tag>/cross-references.json` | the metamodel index + generated examples | `tools/knowledge-gen` (C#) |
 | `api/<version>/pim/` | `sources/api/<version>/xmi/Systems-Modeling-API.xmi` | `tools/metamodel-gen` (C# / uml4net) |
 | `api/<version>/openapi/` | `sources/api/<version>/openapi/openapi.json` | `tools/knowledge-gen` (C#) |
-| `api/<version>/spec/` | `sources/api/<version>/specs/*.pdf` | `tools/spec-extract` (Python), run through `uv` on demand — git-ignored |
+| `api/<version>/spec/` | `sources/api/<version>/specs/*.pdf` | `tools/spec-extract` (Python), run through `uv` on demand – git-ignored |
 | `api/<version>/cross-references.json` | the three API artifacts above | `tools/knowledge-gen` (C#) |
 
 The exact upstream source, version and commit of each input (and its license) are recorded in

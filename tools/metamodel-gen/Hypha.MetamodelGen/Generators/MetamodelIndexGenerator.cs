@@ -40,16 +40,16 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>
+        /// Gets the words the index uses for the model it describes. A metamodel unless said otherwise.
+        /// </summary>
+        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
+
+        /// <summary>
         /// Renders the index markdown for the model in <paramref name="xmiReaderResult"/>.
         /// </summary>
         /// <param name="xmiReaderResult">The deserialized metamodel.</param>
         /// <param name="title">The human-readable metamodel title (e.g. "SysML v2").</param>
         /// <returns>The generated index markdown.</returns>
-        /// <summary>
-        /// Gets the words the index uses for the model it describes. A metamodel unless said otherwise.
-        /// </summary>
-        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
-
         public string GenerateIndex(XmiReaderResult xmiReaderResult, string title)
         {
             ArgumentNullException.ThrowIfNull(xmiReaderResult);

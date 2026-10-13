@@ -19,6 +19,7 @@ namespace Hypha.MetamodelGen.Tests
 
     using Hypha.Knowledge;
     using Hypha.Knowledge.Api;
+    using Hypha.Knowledge.Api.CrossReferences;
     using Hypha.Knowledge.Generation;
     using Hypha.MetamodelGen.Generation;
 
@@ -607,6 +608,130 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.That(this.Read("elements/Commit.md"), Does.Not.Contain("«untyped»"));
                 Assert.That(this.Read("elements/Commit.md"), Does.Contain("\n### root\n\n`+` ").And.Contain("Element"));
                 Assert.That(this.Read("elements/Data.md"), Does.Match(@"\nrealizedBy: \[Element, Project\]\n"));
+            });
+        }
+
+        [Test]
+        public async Task The_kerml_metaclasses_the_pim_refers_to_get_no_pages_of_their_own()
+        {
+            // The KerML model is read so the references into it resolve, but its metaclasses belong to
+            // the language metamodel knowledge. Left in, every one of them would land in pim/ and be
+            // listed as a PIM type by the cross-references.
+            await this.generator.GenerateAsync(Tag);
+
+            var pim = this.layout.Pim(Tag).FullName;
+            var pages = Directory.GetFiles(Path.Combine(pim, "elements"))
+                .Select(Path.GetFileNameWithoutExtension)
+                .ToList();
+
+            using var graph = JsonDocument.Parse(File.ReadAllText(this.layout.PimGraph(Tag).FullName));
+            using var lookup = JsonDocument.Parse(this.Read("index.json"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    pages,
+                    Is.EquivalentTo(new[]
+                    {
+                        "Commit", "Data", "Project", "ProjectState", "Query", "Record", "Timestamp", "UUID",
+                        "Boolean", "Integer", "Real", "String", "UnlimitedNatural",
+                    }));
+
+                Assert.That(
+                    graph.RootElement.GetProperty("classes").EnumerateArray()
+                        .Select(@class => @class.GetProperty("name").GetString()),
+                    Is.EquivalentTo(new[] { "Commit", "Project", "Record" }));
+
+                Assert.That(
+                    lookup.RootElement.GetProperty("entries").EnumerateObject().Select(entry => entry.Name),
+                    Is.EquivalentTo(pages));
+
+                Assert.That(
+                    Directory.GetFiles(Path.Combine(pim, "diagrams")).Select(Path.GetFileNameWithoutExtension),
+                    Is.EqualTo(new[] { "ProjectDataVersioning" }));
+
+                // The name is kept, but it must not be a link to a page that does not exist.
+                Assert.That(this.Read("elements/Commit.md"), Does.Not.Contain("(Element.md)"));
+                Assert.That(this.Read("elements/Data.md"), Does.Not.Contain("(Element.md)"));
+            });
+        }
+
+        [Test]
+        public async Task The_graph_reads_back_as_the_pim_the_cross_references_join_on()
+        {
+            // The cross-references live in another project and read this file through a model of their
+            // own, in which every member is optional. A member renamed here would not fail there: the
+            // document would quietly lose its attributes, operations or types.
+            await this.generator.GenerateAsync(Tag);
+
+            var pim = ApiJson.Read<PimGraph>(File.ReadAllText(this.layout.PimGraph(Tag).FullName));
+            var project = pim.Classes!.Single(@class => @class.Name == "Project");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(pim.Classes!.Select(@class => @class.Name), Is.EquivalentTo(new[] { "Commit", "Project", "Record" }));
+                Assert.That(pim.Interfaces!.Select(type => type.Name), Is.EquivalentTo(new[] { "Data", "Query" }));
+                Assert.That(pim.DataTypes!.Select(type => type.Name), Is.EquivalentTo(new[] { "Timestamp", "UUID" }));
+                Assert.That(pim.Enumerations!.Select(type => type.Name), Is.EquivalentTo(new[] { "ProjectState" }));
+
+                Assert.That(
+                    project.OwnedAttributes!.Single(attribute => attribute.Name == "commit"),
+                    Is.EqualTo(new PimAttribute("commit", 0, -1, false, null)));
+                Assert.That(
+                    project.InheritedAttributes!.Single(attribute => attribute.Name == "label"),
+                    Has.Property(nameof(PimAttribute.IsDerived)).True
+                        .And.Property(nameof(PimAttribute.InheritedFrom)).EqualTo("Record"));
+                Assert.That(project.OwnedOperations!.Select(operation => operation.Name), Is.EqualTo(new[] { "commitAt" }));
+            });
+        }
+
+        [Test]
+        public async Task The_cross_references_built_from_the_generated_pim_list_its_types_and_operations()
+        {
+            await this.generator.GenerateAsync(Tag);
+
+            var pim = ApiJson.Read<PimGraph>(File.ReadAllText(this.layout.PimGraph(Tag).FullName));
+            var document = new ApiCrossReferenceBuilder().Build(Tag, pim, null, []);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    document.Types.ToDictionary(type => type.Key, type => type.Value.Kind),
+                    Is.EquivalentTo(new Dictionary<string, string>
+                    {
+                        ["Commit"] = "class",
+                        ["Project"] = "class",
+                        ["Record"] = "class",
+                        ["Data"] = "interface",
+                        ["Query"] = "interface",
+                        ["ProjectState"] = "enumeration",
+                        ["Timestamp"] = "dataType",
+                        ["UUID"] = "dataType",
+                    }));
+                Assert.That(document.Operations.Keys, Is.EqualTo(new[] { "Project.commitAt" }));
+            });
+        }
+
+        [Test]
+        public async Task A_stray_space_around_an_attribute_name_does_not_reach_the_pages_or_the_graph()
+        {
+            // The published model has one: name=" externalDataEnd". Left in, it is a different name
+            // from the PSM member it is the same concept as.
+            var model = this.layout.PimModel(Tag);
+            var text = File.ReadAllText(model.FullName);
+            Assert.That(text, Does.Contain("name=\"headCommit\""), "the fixture changed");
+            File.WriteAllText(model.FullName, text.Replace("name=\"headCommit\"", "name=\" headCommit \""));
+
+            await this.generator.GenerateAsync(Tag);
+
+            var pim = ApiJson.Read<PimGraph>(File.ReadAllText(this.layout.PimGraph(Tag).FullName));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(this.Read("elements/Project.md"), Does.Contain("\n### headCommit\n"));
+                Assert.That(
+                    pim.Classes!.Single(@class => @class.Name == "Project").OwnedAttributes!.Select(attribute => attribute.Name),
+                    Does.Contain("headCommit"));
             });
         }
 

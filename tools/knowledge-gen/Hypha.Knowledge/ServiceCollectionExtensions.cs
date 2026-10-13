@@ -110,7 +110,6 @@ namespace Hypha.Knowledge
                 baseAddress,
                 options.MaxDownloadConcurrency));
 
-
             services
                 .AddHttpClient(
                     DocumentClientName,
