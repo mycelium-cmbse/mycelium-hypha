@@ -15,7 +15,8 @@ inputs only) and [`sources/README.md`](../sources/README.md) for how a release i
 ```
 knowledge/
 ├── versions.json           Installed release tags + which is the default        (local, git-ignored)
-├── cross-references.schema.json, model-library.schema.json                      (committed)
+├── cross-references.schema.json, model-library.schema.json,
+│   api-cross-references.schema.json                                             (committed)
 └── <tag>/                  e.g. 2026-05                                         (local, git-ignored)
     ├── metamodel/          Combined KerML + SysML v2 metamodel (one tree)
     │   ├── index.md        Manifest: every metaclass (+ enumeration, primitive type) → its element file
