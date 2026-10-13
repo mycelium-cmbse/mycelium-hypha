@@ -153,7 +153,7 @@ namespace Hypha.Knowledge.Tests
                 Is.EqualTo(new[]
                 {
                     "sources/api/2026-04/openapi/openapi.json",
-                    "sources/api/2026-04/xmi/KerML_only_xmi.uml",
+                    "sources/api/2026-04/xmi/KerML Abstract Syntax.xml",
                     "sources/api/2026-04/xmi/Systems-Modeling-API.xmi",
                     "sources/api/2026-04/specs/3-Systems_Modeling_API_and_Services.pdf",
                 }));

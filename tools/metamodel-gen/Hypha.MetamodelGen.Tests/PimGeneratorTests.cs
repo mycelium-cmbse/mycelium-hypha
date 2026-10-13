@@ -554,8 +554,11 @@ namespace Hypha.MetamodelGen.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(api, Has.Count.EqualTo(1));
-                Assert.That(api[0], Is.InstanceOf<PimGenerator>());
+                Assert.That(api, Has.Exactly(1).InstanceOf<PimGenerator>());
+                Assert.That(
+                    api.OrderBy(candidate => candidate.Order).Select(candidate => candidate.Artifact),
+                    Is.EqualTo(new[] { "pim", "openapi", "spec", "cross-references" }),
+                    "the PIM comes first: the cross-references read what it writes");
 
                 Assert.That(language, Has.None.InstanceOf<IApiKnowledgeGenerator>());
                 Assert.That(language.Select(candidate => candidate.Artifact), Does.Not.Contain("pim"));
@@ -593,8 +596,6 @@ namespace Hypha.MetamodelGen.Tests
         }
 
         [Test]
-        [Ignore("PimGenerator's path map for 'KerML Abstract Syntax.xml' is never consulted (uml4net applies "
-                + "path maps to pathmap:// references only), so the KerML references do not resolve; see #146.")]
         public async Task A_reference_into_the_kerml_abstract_syntax_resolves_to_the_kerml_element()
         {
             // The fixture, like the published PIM, types a feature with the KerML Element and has the
