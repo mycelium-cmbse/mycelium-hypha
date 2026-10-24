@@ -13,14 +13,19 @@ namespace Hypha.Knowledge.Tests
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     using Hypha.Knowledge;
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+
+    using Moq;
 
     /// <summary>
     /// Tests for the one place a caller can vary how fetching and generation behave.
@@ -118,6 +123,95 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(provider.GetService<ILoggerFactory>(), Is.Not.Null);
                 Assert.That(provider.GetServices<IKnowledgeGenerator>().ToList(), Has.Count.EqualTo(5));
             });
+        }
+
+        [Test]
+        public void The_pim_model_is_read_from_the_omg_document_server_by_default()
+        {
+            var options = new HyphaKnowledgeOptions();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(options.PimAddress, Is.EqualTo(ApiUpstream.DefaultPimAddress));
+                Assert.That(options.PimAddress.IsAbsoluteUri, Is.True);
+                Assert.That(options.PimAddress.Scheme, Is.EqualTo(Uri.UriSchemeHttps));
+                Assert.That(options.PimAddress.AbsolutePath, Does.EndWith("/" + ApiInputs.PimModel));
+            });
+        }
+
+        [Test]
+        public void A_missing_pim_address_is_refused_at_registration()
+        {
+            // Caught while composing rather than on `hypha api fetch`, several layers away.
+            Assert.Multiple(() =>
+            {
+                Assert.Throws<ArgumentNullException>(
+                    () => new HyphaKnowledgeOptions { PimAddress = null! }.Validate());
+                Assert.Throws<ArgumentNullException>(
+                    () => new ServiceCollection().AddHyphaKnowledge(o => o.PimAddress = null!));
+            });
+        }
+
+        [Test]
+        public async Task The_pim_address_reaches_the_installer()
+        {
+            // What lets a test serve the PIM model from a stub rather than from the document server.
+            var address = new Uri("https://documents.example.invalid/pim.xmi");
+            var root = Directory.CreateDirectory(
+                Path.Combine(TestContext.CurrentContext.WorkDirectory, $"pim-address-{Guid.NewGuid():N}"));
+
+            var fetcher = new Mock<IReleaseFetcher>();
+            fetcher
+                .Setup(mock => mock.DownloadAsync(
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FileInfo>(),
+                    It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((string _, string _, string _, FileInfo destination, bool _, CancellationToken _) =>
+                    destination);
+
+            var documents = new Mock<IDocumentDownloader>();
+            documents
+                .Setup(mock => mock.DownloadAsync(
+                    It.IsAny<Uri>(), It.IsAny<FileInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Uri _, FileInfo destination, bool _, CancellationToken _) => destination);
+
+            var resolver = new Mock<ICommitResolver>();
+            resolver
+                .Setup(mock => mock.ResolveAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("abc123");
+
+            try
+            {
+                // Registered after the library's own, so these are the ones the installer is given.
+                using var provider = new ServiceCollection()
+                    .AddHyphaKnowledge(o =>
+                    {
+                        o.PimAddress = address;
+                        o.RepositoryRoot = root;
+                    })
+                    .AddSingleton(fetcher.Object)
+                    .AddSingleton(documents.Object)
+                    .AddSingleton(resolver.Object)
+                    .BuildServiceProvider();
+
+                await provider.GetRequiredService<IApiInstaller>()
+                    .InstallAsync(new ApiInstallRequest { Tag = "2026-04" });
+
+                documents.Verify(
+                    mock => mock.DownloadAsync(
+                        address, It.IsAny<FileInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                    Times.Once);
+
+                Assert.That(
+                    provider.GetRequiredService<IApiLayout>().InstalledTags, Is.EqualTo(new[] { "2026-04" }));
+            }
+            finally
+            {
+                root.Refresh();
+                if (root.Exists)
+                {
+                    root.Delete(recursive: true);
+                }
+            }
         }
     }
 }

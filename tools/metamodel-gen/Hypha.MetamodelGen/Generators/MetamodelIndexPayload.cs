@@ -58,5 +58,17 @@ namespace Hypha.MetamodelGen.Generators
 
         /// <summary>Gets the primitive types, ordered by name.</summary>
         public IReadOnlyList<IndexEntry> PrimitiveTypes { get; }
+
+        /// <summary>Gets or sets the interfaces, ordered by name. Empty for a model that has none.</summary>
+        public IReadOnlyList<IndexEntry> Interfaces { get; set; } = [];
+
+        /// <summary>
+        /// Gets or sets the data types that are neither primitive nor an enumeration, ordered by name.
+        /// Empty for a model that has none.
+        /// </summary>
+        public IReadOnlyList<IndexEntry> DataTypes { get; set; } = [];
+
+        /// <summary>Gets or sets the words the page uses for the model it describes.</summary>
+        public ModelVocabulary Vocabulary { get; set; } = ModelVocabulary.Metamodel;
     }
 }

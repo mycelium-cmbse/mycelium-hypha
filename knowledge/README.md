@@ -15,7 +15,8 @@ inputs only) and [`sources/README.md`](../sources/README.md) for how a release i
 ```
 knowledge/
 ├── versions.json           Installed release tags + which is the default        (local, git-ignored)
-├── cross-references.schema.json, model-library.schema.json                      (committed)
+├── cross-references.schema.json, model-library.schema.json,
+│   api-cross-references.schema.json                                             (committed)
 └── <tag>/                  e.g. 2026-05                                         (local, git-ignored)
     ├── metamodel/          Combined KerML + SysML v2 metamodel (one tree)
     │   ├── index.md        Manifest: every metaclass (+ enumeration, primitive type) → its element file
@@ -29,6 +30,20 @@ knowledge/
     └── cross-references.json
 ```
 
+The Systems Modeling API & Services knowledge sits beside the language releases, not inside one: it
+is versioned on its own axis, with its own manifest and default.
+
+```
+knowledge/
+└── api/                                                                         (local, git-ignored)
+    ├── versions.json       Installed API versions + which is the default
+    └── <version>/          e.g. 2026-04 – a tag of the API-Services repository
+        ├── pim/            The Platform Independent Model, in the shape of metamodel/
+        ├── openapi/        The REST/HTTP PSM: one page per API schema, every endpoint, an index
+        ├── spec/           API specification text, segmented by clause
+        └── cross-references.json   PIM type ↔ clause ↔ PSM schema, PIM operation ↔ endpoint
+```
+
 ## How it's generated
 
 | Output | Source | Pipeline |
@@ -37,6 +52,10 @@ knowledge/
 | `<tag>/spec/` | `sources/<tag>/specs/*.pdf` | `tools/spec-extract` (Python), run through `uv` on demand — git-ignored |
 | `<tag>/textual-notation/` | `sources/<tag>/textual/`, grammar (`bnf/`) | `tools/knowledge-gen` (C#) |
 | `<tag>/cross-references.json` | the metamodel index + generated examples | `tools/knowledge-gen` (C#) |
+| `api/<version>/pim/` | `sources/api/<version>/xmi/Systems-Modeling-API.xmi` | `tools/metamodel-gen` (C# / uml4net) |
+| `api/<version>/openapi/` | `sources/api/<version>/openapi/openapi.json` | `tools/knowledge-gen` (C#) |
+| `api/<version>/spec/` | `sources/api/<version>/specs/*.pdf` | `tools/spec-extract` (Python), run through `uv` on demand – git-ignored |
+| `api/<version>/cross-references.json` | the three API artifacts above | `tools/knowledge-gen` (C#) |
 
 The exact upstream source, version and commit of each input (and its license) are recorded in
 [`sources/README.md`](../sources/README.md#provenance), so a regenerated knowledge base is traceable
@@ -47,6 +66,26 @@ to a specific specification version.
 > fetches and caches `uv`, which resolves or fetches a matching Python itself and runs
 > `tools/spec-extract` through it - no maintainer source checkout needed. Neither is committed: see
 > `CLAUDE.md`.
+
+## The API knowledge (`api/<version>/`)
+
+`hypha api generate` writes it; the `api-lookup` skill reads it.
+
+- **`pim/`** has the layout and page anatomy of `metamodel/` (see below) – the PIM is a UML model
+  too. Its classes are not metaclasses, so the pages say *class*; the six services are classes whose
+  content is their operations; and it declares an interface (`Data`, with a **Realized by** list) and
+  data types (`UUID`, `IRI`, `ISO8601DateTime`), which the metamodels do not.
+- **`openapi/schemas/<Name>.md`** – one page per schema of the API itself: a `Property | Type |
+  Required | Nullable | Refers to` table, and a `role` saying whether the endpoints use it in request
+  bodies, in responses or both. The role is computed from the endpoints, not read off the name. The
+  schemas that mirror KerML / SysML metamodel elements are indexed by name in `openapi/index.json`
+  and not rendered. `openapi/endpoints.md` lists every operation.
+- **`cross-references.json`** – per PIM type: the clauses that cover it, its PSM response and request
+  schemas, each effective PIM attribute with whether the response and the request model carry it,
+  and the PSM-only members. Per PIM service operation: its clause and the endpoints the
+  specification maps it to. Every edge names the `method` that produced it, so a mapping the
+  specification states can be told from one inferred from a shared name. Like the language
+  cross-references it holds identifiers only, **never clause text**.
 
 ## Element file convention (`metamodel/elements`)
 

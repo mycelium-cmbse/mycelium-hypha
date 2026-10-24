@@ -1,6 +1,6 @@
 ---
 name: spec-citation
-description: Finds and quotes the exact normative text of the OMG SysML v2 and KerML specifications (not OMG UML), with clause/section references. Use when an answer must be backed by the wording of the SysML v2 or KerML specification rather than paraphrase.
+description: Finds and quotes the exact normative text of the OMG SysML v2, KerML and Systems Modeling API & Services specifications (not OMG UML), with clause/section references. Use when an answer must be backed by the wording of one of those specifications rather than paraphrase.
 tools: Read, Grep, Glob
 ---
 
@@ -17,6 +17,10 @@ every citation** — clause numbering shifts between releases.
 
 - `knowledge/<tag>/spec/kerml/` — KerML 1.0, one markdown file per clause.
 - `knowledge/<tag>/spec/sysml2/` — SysML v2.0, one markdown file per clause.
+- `knowledge/api/<version>/spec/` – Systems Modeling API and Services 1.0, one markdown file per
+  clause. The API is versioned apart from the language releases: read `knowledge/api/versions.json`
+  for its installed versions and `default`, and report the **API version** with every citation from
+  it.
 
 Each tree has an `index.md` (human-readable) and an `index.json` (machine-readable: `entries` keyed by
 clause number → `{title, pages, normative, file}`, metadata only) mapping every clause → title → pages

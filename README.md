@@ -20,7 +20,7 @@ mycelium-hypha is two things in one repository:
 mycelium-hypha/
 ├── .claude-plugin/   Plugin + marketplace manifests
 ├── hooks/            SessionStart hook – checks installed releases against upstream
-├── skills/           Conversational workflows (metamodel lookup, spec citation, validation, ...)
+├── skills/           Conversational workflows (metamodel lookup, API lookup, spec citation, validation, ...)
 ├── agents/           Subagents backing those skills
 ├── knowledge/        Knowledge base – fetched and generated locally, one folder per release tag
 ├── sources/          Raw OMG inputs – fetched locally, one folder per release tag
@@ -100,6 +100,24 @@ Once a release is fetched and generated, hypha answers from:
 - **cross-references** – links from each metamodel element to the specification clause, grammar
   production and worked example that treat it, so an answer can point back to *why*
 
+### The Systems Modeling API
+
+The **Systems Modeling API & Services** – the API layer of SysML v2 – is a separate body of knowledge
+with a version of its own, installed with `hypha api fetch --tag <version>` and
+`hypha api generate --tag <version>` (`hypha api discover` lists the versions on offer):
+
+- **the PIM** – every type of the Platform Independent Model with its attributes, multiplicities,
+  derivation, subsetting and redefinition, and the six services with their operations
+- **the REST/HTTP PSM** – every API schema of the OpenAPI document with its required and nullable
+  members and whether it is a request or a response model, and every endpoint
+- **the API specification text**, clause by clause, quotable on the same terms as the KerML and
+  SysML texts
+- **cross-references** – PIM type ↔ specification clause ↔ PSM schema, which PIM members a PSM model
+  leaves out, and which endpoint each PIM service operation maps to
+
+An API version is installed, switched and removed independently of the language releases, and the
+two do not have to match: the upstream API repository is not tagged for every language release.
+
 **Spec citation needs one more step.** Quoting the normative specification text verbatim needs the
 three OMG PDFs, plus a full source checkout to regenerate them into text – not something an installed
 plugin has. Without it, metamodel lookup and validation still work fully, and spec citation can still
@@ -118,6 +136,11 @@ The knowledge base comes from two upstream OMG repositories, one release tag at 
 
 - [Systems-Modeling/SysML-v2-Pilot-Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) – the metamodel XMI.
 - [Systems-Modeling/SysML-v2-Release](https://github.com/Systems-Modeling/SysML-v2-Release) – the specification PDFs, the textual-notation grammar, and the example models.
+
+The Systems Modeling API knowledge adds two more, one API version at a time:
+
+- [Systems-Modeling/SysML-v2-API-Services](https://github.com/Systems-Modeling/SysML-v2-API-Services) – the OpenAPI document of the REST/HTTP PSM.
+- The [OMG document server](https://www.omg.org/spec/SystemsModelingAPI/1.0) – the PIM model (`ptc/25-02-29`), which no repository carries.
 
 Exact upstream commits and versions are recorded in [sources/README.md](sources/README.md).
 
