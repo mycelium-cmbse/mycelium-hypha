@@ -7,12 +7,17 @@ textual-notation validation.
 
 ## What's in here
 
-mycelium-hypha is two things in one repository:
+mycelium-hypha contains three related parts:
 
 1. **The `hypha` Claude plugin** – skills and subagents that give grounded answers about KerML and
    SysML v2, backed by a knowledge base fetched and generated on your own machine, on request.
    Nothing per-release is committed to this repository.
-2. **The generation pipelines** (`tools/`) that build that knowledge base from the upstream OMG
+2. **The VS Code extension prototype** (`extensions/vscode/`) – a Marketplace-shaped extension for
+   GitHub Copilot that contributes release-status and grounded-lookup tools and manages a shared,
+   extension-global Hypha data directory. It can check, fetch and generate releases locally; it is not published to
+   the VS Code Marketplace yet. See its [user guide](extensions/vscode/README.md) or
+   [development guide](extensions/vscode/DEVELOPMENT.md).
+3. **The generation pipelines** (`tools/`) that build the knowledge base from the upstream OMG
    sources. They are not part of the installed plugin – see [Contributing](#contributing) if you
    want to work on them.
 
@@ -22,12 +27,22 @@ mycelium-hypha/
 ├── hooks/            SessionStart hook – checks installed releases against upstream
 ├── skills/           Conversational workflows (metamodel lookup, spec citation, validation, ...)
 ├── agents/           Subagents backing those skills
+├── extensions/vscode/ VS Code GitHub Copilot extension prototype
 ├── knowledge/        Knowledge base – fetched and generated locally, one folder per release tag
 ├── sources/          Raw OMG inputs – fetched locally, one folder per release tag
 └── tools/            Generation pipelines (not part of the installed plugin)
 ```
 
 ## Install
+
+### VS Code GitHub Copilot (prototype)
+
+The extension is under active development and is not yet available in the VS Code Marketplace. To
+run it from this checkout, follow the [development guide](extensions/vscode/DEVELOPMENT.md). Its
+release data is stored in VS Code extension-global storage, shared across workspaces on the same
+extension host.
+
+### Claude Code
 
 1. In Claude Code, add the marketplace and install the plugin:
 
@@ -163,4 +178,3 @@ committed any more – see #106). Regenerating for real is `hypha generate`'s jo
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=mycelium-cmbse_mycelium-hypha&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=mycelium-cmbse_mycelium-hypha)
-

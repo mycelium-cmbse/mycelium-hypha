@@ -127,7 +127,8 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<IUvProvisioner>(provider => new UvProvisioner(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                provider.GetRequiredService<ILogger<UvProvisioner>>()));
+                provider.GetRequiredService<ILogger<UvProvisioner>>(),
+                options.ToolchainCacheRoot ?? UvProvisioner.ResolveCacheRoot()));
 
             // Registered as a collection: a full run is a loop over Order, not a list of calls each
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.

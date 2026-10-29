@@ -123,6 +123,20 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task An_archive_without_uv_is_not_marked_as_verified()
+        {
+            var archive = BuildArchive(this.target, includeExecutable: false);
+            var handler = StubHandler.ForSuccessfulDownload(this.target, archive);
+            using var client = new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") };
+            var provisioner = new UvProvisioner(client, NullLogger<UvProvisioner>.Instance, this.cacheRoot);
+
+            var executable = await provisioner.EnsureAsync();
+
+            Assert.That(executable, Is.Null);
+            Assert.That(provisioner.OkMarker(UvProvisioner.PinnedVersion, this.target).Exists, Is.False);
+        }
+
+        [Test]
         public async Task A_missing_release_never_throws_and_returns_null()
         {
             using var client = new HttpClient(StubHandler.ForNotFound())
@@ -150,9 +164,9 @@ namespace Hypha.Knowledge.Tests
             Assert.That(executable, Is.Null);
         }
 
-        private static byte[] BuildArchive(string target)
+        private static byte[] BuildArchive(string target, bool includeExecutable = true)
         {
-            var executableName = UvPlatform.ExecutableName(target);
+            var executableName = includeExecutable ? UvPlatform.ExecutableName(target) : "README";
             var content = "fake uv binary"u8.ToArray();
 
             using var buffer = new MemoryStream();
@@ -171,7 +185,7 @@ namespace Hypha.Knowledge.Tests
                 using (var gzip = new GZipStream(buffer, CompressionMode.Compress, leaveOpen: true))
                 using (var writer = new TarWriter(gzip, leaveOpen: true))
                 {
-                    var entry = new PaxTarEntry(TarEntryType.RegularFile, executableName)
+                    var entry = new PaxTarEntry(TarEntryType.RegularFile, $"uv-{target}/{executableName}")
                     {
                         DataStream = new MemoryStream(content),
                     };

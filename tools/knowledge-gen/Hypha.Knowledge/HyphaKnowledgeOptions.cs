@@ -59,6 +59,9 @@ namespace Hypha.Knowledge
         /// </remarks>
         public DirectoryInfo? OutputRoot { get; set; }
 
+        /// <summary>Where managed toolchains are cached; defaults to the OS application data directory.</summary>
+        public DirectoryInfo? ToolchainCacheRoot { get; set; }
+
         /// <summary>
         /// How many files are downloaded at once.
         /// </summary>

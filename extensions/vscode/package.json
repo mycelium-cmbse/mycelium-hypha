@@ -1,0 +1,102 @@
+{
+  "name": "mycelium-hypha",
+  "displayName": "Hypha – SysML v2 and KerML",
+  "description": "Release-aware SysML v2 and KerML knowledge tools for GitHub Copilot in VS Code.",
+  "version": "0.1.0",
+  "publisher": "mycelium-cmbse",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mycelium-cmbse/mycelium-hypha"
+  },
+  "homepage": "https://github.com/mycelium-cmbse/mycelium-hypha",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "AI"
+  ],
+  "keywords": [
+    "sysml",
+    "sysml-v2",
+    "kerml",
+    "mbse"
+  ],
+  "main": "./out/extension.js",
+  "extensionKind": ["workspace"],
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": false },
+    "virtualWorkspaces": { "supported": false }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "mycelium-hypha.showReleaseStatus",
+        "title": "Hypha: Show Installed Releases"
+      },
+      {
+        "command": "mycelium-hypha.checkReleases",
+        "title": "Hypha: Check Available Releases"
+      },
+      {
+        "command": "mycelium-hypha.installRelease",
+        "title": "Hypha: Install a SysML v2 Release"
+      }
+    ],
+    "languageModelTools": [
+      {
+        "name": "mycelium-hypha_lookup_knowledge",
+        "toolReferenceName": "hyphaLookup",
+        "displayName": "Hypha Grounded Knowledge Lookup",
+        "modelDescription": "Look up SysML v2/KerML metamodel elements (e.g. PartUsage) or standard model library declarations (e.g. ScalarValues::Real) from locally generated release knowledge. Returns exact source text with release, citation URI and pagination, or matching names when ambiguous. Use before answering structural or library questions. Default release comes from Hypha global storage, independent of the workspace. Never fetches, generates, quotes normative specifications, or performs compiler validation. Follow nextLine when more source is needed and cite the release and file.",
+        "userDescription": "In Copilot Chat Agent mode, enable Hypha Grounded Knowledge Lookup in Configure Tools, then type #hyphaLookup. Example: Use #hyphaLookup to explain PartUsage from the default release's metamodel, or find ScalarValues::Real in its model library. Ask Copilot to cite the release and source. Read-only; does not fetch or generate knowledge.",
+        "canBeReferencedInPrompt": true,
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "kind": { "type": "string", "enum": ["metamodel", "model-library"] },
+            "name": { "type": "string", "description": "Exact name or search fragment. For library declarations prefer a qualified name." },
+            "tag": { "type": "string", "description": "Optional installed release; otherwise use the configured default." },
+            "startLine": { "type": "integer", "minimum": 1, "description": "1-based first line; follow nextLine to continue a source page." }
+          },
+          "required": ["kind", "name"],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "mycelium-hypha_get_release_status",
+        "toolReferenceName": "hyphaReleaseStatus",
+        "displayName": "Hypha Release Status",
+        "modelDescription": "Read-only check of the Hypha release manifest and presence of required generated artifacts in this extension's global storage, which is shared across workspaces on the same VS Code extension host. Use this before answering which SysML v2/KerML releases are recorded as installed, which is the configured default, and whether core generated data or normative specification text is present. It does not check online releases, fetch sources, or generate knowledge. If no manifest is installed, say so and do not infer an installed release.",
+        "userDescription": "In Copilot Chat Agent mode, enable Hypha Release Status in Configure Tools, then type #hyphaReleaseStatus. Example: Use #hyphaReleaseStatus to report the default release and artifact readiness. Do not fetch or generate anything. Read-only; checks locally installed releases and generated artifact presence.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(library)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "build:cli": "node ./scripts/build-cli.mjs",
+    "package": "node ./scripts/package.mjs",
+    "test:host": "node ./scripts/test-host.mjs",
+    "compile": "tsc -p . && node ./scripts/copy-runtime-assets.mjs",
+    "test": "tsc -p . && node ./scripts/copy-runtime-assets.mjs && node --test out/*.test.js",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "3.9.2",
+    "@vscode/test-electron": "^2.5.2",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "1.100.0",
+    "typescript": "^5.9.0"
+  },
+  "overrides": {
+    "@vscode/vsce": {
+      "@azure/identity": "4.13.0"
+    }
+  }
+}

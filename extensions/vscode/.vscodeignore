@@ -1,0 +1,17 @@
+.vscode/**
+.vscode-test/**
+scripts/**
+host-tests/**
+DEVELOPMENT.md
+src/**
+tsconfig.json
+**/*.ts
+**/*.map
+node_modules/**
+out/*.test.js
+out/*.test.js.map
+*.vsix
+package-lock.json
+**/__pycache__/**
+**/*.pyc
+**/*.pdf

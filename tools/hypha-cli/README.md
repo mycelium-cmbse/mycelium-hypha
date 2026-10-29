@@ -33,6 +33,11 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- generate
 Every verb accepts `--repository-root` (the folder holding `sources/` and `knowledge/`, discovered by
 walking up from the working directory when omitted), `--token`, `--log-level` and `--no-logo`.
 
+`--toolchain-cache-root <directory>` optionally selects where Hypha provisions its `uv` executable.
+Without it, the existing per-user application-data cache is used. The VS Code extension sets this
+option, `UV_CACHE_DIR` and `UV_PYTHON_INSTALL_DIR` for its child process so toolchain downloads stay
+under that extension host's global storage.
+
 | Verb | What it does |
 | --- | --- |
 | `hypha discover` | Lists the releases both upstreams offer. |

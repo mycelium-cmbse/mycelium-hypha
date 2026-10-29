@@ -61,6 +61,7 @@ namespace Hypha.Tools
                 "hypha - fetch the upstream OMG SysML v2 / KerML sources and generate the knowledge base");
 
             root.Options.Add(GlobalOptions.RepositoryRoot);
+            root.Options.Add(GlobalOptions.ToolchainCacheRoot);
             root.Options.Add(GlobalOptions.Token);
             root.Options.Add(GlobalOptions.LogLevel);
             root.Options.Add(GlobalOptions.NoLogo);

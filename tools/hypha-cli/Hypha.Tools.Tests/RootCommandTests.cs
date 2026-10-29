@@ -57,7 +57,7 @@ namespace Hypha.Tools.Tests
         public void The_global_options_reach_every_verb(string commandLine)
         {
             var parsed = this.root.Parse(
-                $"{commandLine} --repository-root . --token secret --log-level Debug --no-logo");
+                $"{commandLine} --repository-root . --toolchain-cache-root cache --token secret --log-level Debug --no-logo");
 
             Assert.Multiple(() =>
             {
@@ -65,6 +65,8 @@ namespace Hypha.Tools.Tests
                 Assert.That(parsed.GetValue(GlobalOptions.Token), Is.EqualTo("secret"));
                 Assert.That(parsed.GetValue(GlobalOptions.NoLogo), Is.True);
                 Assert.That(parsed.GetValue(GlobalOptions.RepositoryRoot), Is.Not.Null);
+                Assert.That(parsed.GetValue(GlobalOptions.ToolchainCacheRoot)?.FullName,
+                    Is.EqualTo(Path.GetFullPath("cache")));
             });
         }
 

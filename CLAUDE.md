@@ -4,14 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Two things in one repository, scoped to the **OMG SysML v2 / KerML** standards (not UML):
+Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** standards (not UML):
 
 1. The **`hypha` Claude plugin** — `.claude-plugin/`, `skills/`, `agents/`, `commands/`, `hooks/`, and
    the `knowledge/` base the plugin reads at runtime. Nothing per-release under `knowledge/` is
    committed (see "Committed vs git-ignored" below): a plugin install fetches and generates it on the
    user's own machine, on request.
-2. The **generation pipelines** in `tools/` that build `knowledge/` from upstream OMG sources in
-   `sources/`. The pipelines are not shipped with the plugin.
+2. The **VS Code extension prototype** in `extensions/vscode/` — a GitHub Copilot extension that
+   uses VS Code extension-global storage for the CLI and release knowledge, shared across workspaces
+   on the same extension host. It is not yet published to the Marketplace.
+3. The **generation pipelines** in `tools/` that build `knowledge/` from upstream OMG sources in
+   `sources/`. The pipelines are not shipped with the Claude plugin; the VS Code extension packages
+   only the specification extraction project required by the standalone CLI.
 
 ## Build & test
 

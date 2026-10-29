@@ -58,6 +58,7 @@ namespace Hypha.Tools.Hosting
                 {
                     options.RepositoryRoot = root;
                     options.OutputRoot = outputRoot;
+                    options.ToolchainCacheRoot = parseResult.GetValue(GlobalOptions.ToolchainCacheRoot);
                     options.Token = token;
                 })
                 .AddHyphaMetamodelGen();
