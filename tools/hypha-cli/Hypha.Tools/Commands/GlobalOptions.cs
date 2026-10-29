@@ -24,6 +24,14 @@ namespace Hypha.Tools.Commands
     /// </remarks>
     public static class GlobalOptions
     {
+        /// <summary>An explicit cache location for managed Python toolchains.</summary>
+        public static readonly Option<DirectoryInfo?> ToolchainCacheRoot =
+            new("--toolchain-cache-root")
+            {
+                Description = "Where managed toolchains are cached. Defaults to OS application data.",
+                Recursive = true,
+            };
+
         /// <summary>Where <c>sources/</c> and <c>knowledge/</c> live.</summary>
         public static readonly Option<DirectoryInfo?> RepositoryRoot =
             new("--repository-root", "-r")

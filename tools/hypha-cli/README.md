@@ -40,6 +40,11 @@ cached in the per-user application data folder and uv keeps its own default loca
 users on the machine share. A host that keeps everything it provisions in its own storage, such as an
 editor extension, passes this option.
 
+`--toolchain-cache-root <directory>` optionally selects where Hypha provisions its `uv` executable.
+Without it, the existing per-user application-data cache is used. The VS Code extension sets this
+option, `UV_CACHE_DIR` and `UV_PYTHON_INSTALL_DIR` for its child process so toolchain downloads stay
+under that extension host's global storage.
+
 | Verb | What it does |
 | --- | --- |
 | `hypha discover` | Lists the releases both upstreams offer. |
