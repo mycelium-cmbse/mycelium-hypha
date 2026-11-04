@@ -13,6 +13,7 @@ namespace Hypha.Tools
     using System.CommandLine;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Linq;
     using System.Net.Http;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -44,9 +45,19 @@ namespace Hypha.Tools
         /// <summary>Runs the command line application.</summary>
         public static async Task<int> Main(string[] args)
         {
-            var root = BuildRootCommand();
+            var parseResult = BuildRootCommand().Parse(args);
 
-            return await root.Parse(args).InvokeAsync();
+            // A command line that does not parse never reaches a verb, so System.CommandLine would
+            // print its help to standard output. With --json, the caller gets one error document.
+            if (parseResult.Errors.Count > 0 && args.Contains(JsonOutput.OptionName, StringComparer.Ordinal))
+            {
+                await JsonOutput.WriteErrorAsync(
+                    string.Join(" ", parseResult.Errors.Select(error => error.Message)));
+
+                return 1;
+            }
+
+            return await parseResult.InvokeAsync();
         }
 
         /// <summary>

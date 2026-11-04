@@ -79,9 +79,11 @@ as `candidates` – never as an answer, even when there is only one.
 
 A model-library page holds a whole upstream file, so its lookup starts at the declaration rather than
 at the top of the page. The declaration is found by following the qualified name down the scopes of
-the source: each enclosing name has to be declared with a body, not merely mentioned in a comment or
-used as a type (`: LengthValue`, `:> Base`), and each member is looked for directly inside the body
-of the one before it, so a member is not confused with a same-named member of another scope. When
+the source: each enclosing name has to be declared with a body and the keyword the index recorded for
+it, not merely mentioned in a comment, an import or a reference (`: LengthValue`, `:> Base`,
+`specializes Usage`), and each member is looked for directly inside the body of the one before it, so
+a member is not confused with a same-named member of another scope. `all` and a short name between
+a keyword and its name (`feature all x`, `attribute <m> mass`) are allowed. When
 the declaration cannot be found, the lookup starts at the top of the page and `declarationLine` is
 `null`.
 

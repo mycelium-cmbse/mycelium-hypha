@@ -23,8 +23,9 @@ namespace Hypha.Knowledge.Lookup
     /// source block is searched for each segment of the qualified name in turn:
     /// <list type="bullet">
     ///   <item>
-    ///     an enclosing scope is a declaration of that name that opens a body - not a mention in a
-    ///     comment, and not a type reference such as <c>: LengthValue</c> or <c>:&gt; Base</c>;
+    ///     an enclosing scope is a declaration of that name, introduced by the keyword the index
+    ///     recorded for that scope, that opens a body - not a mention in a comment, and not a
+    ///     reference such as <c>: LengthValue</c>, <c>:&gt; Base</c> or <c>specializes Usage</c>;
     ///   </item>
     ///   <item>
     ///     each segment is looked for directly inside the body the previous one opened, tracked by
@@ -33,6 +34,8 @@ namespace Hypha.Knowledge.Lookup
     ///   </item>
     ///   <item>the last segment has to follow the keyword the index recorded for it.</item>
     /// </list>
+    /// Between a keyword and its name, <c>all</c> (<c>feature all x</c>) and a short name
+    /// (<c>attribute &lt;m&gt; mass</c>) are allowed, as the declaration scanner allows them.
     /// When the nesting cannot be followed, the segments are searched for in order regardless of
     /// depth; when even that fails, the caller starts at the top of the page.
     /// </remarks>
@@ -41,17 +44,30 @@ namespace Hypha.Knowledge.Lookup
         private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(1);
 
         /// <summary>Finds the declaration.</summary>
+        /// <param name="lines">The package page.</param>
+        /// <param name="qualifiedName">The declaration's qualified name, as the index keys it.</param>
+        /// <param name="keyword">The keyword the index recorded for the declaration.</param>
+        /// <param name="keywordOf">
+        /// The keyword the index recorded for an enclosing scope, by its qualified name, or
+        /// <c>null</c> when the index does not have the scope; such a scope is matched by name.
+        /// </param>
         /// <returns>The 1-based line number, or <c>null</c> when the declaration cannot be located.</returns>
-        public static int? Find(IReadOnlyList<string> lines, string qualifiedName, string keyword)
+        public static int? Find(
+            IReadOnlyList<string> lines, string qualifiedName, string keyword, Func<string, string?> keywordOf)
         {
             ArgumentNullException.ThrowIfNull(lines);
             ArgumentException.ThrowIfNullOrWhiteSpace(qualifiedName);
             ArgumentNullException.ThrowIfNull(keyword);
+            ArgumentNullException.ThrowIfNull(keywordOf);
 
             var (first, end) = SourceBlock(lines);
             var source = Read(lines, first, end);
             var segments = qualifiedName.Split("::", StringSplitOptions.RemoveEmptyEntries);
-            var scopes = segments[..^1].Select(segment => Pattern(NamePattern(segment))).ToList();
+            var scopes = segments[..^1]
+                .Select((segment, index) => keywordOf(string.Join("::", segments[..(index + 1)])) is { } scopeKeyword
+                    ? Declared(segment, scopeKeyword)
+                    : Pattern(ScopeNamePattern(segment)))
+                .ToList();
             var member = Declared(segments[^1], keyword);
 
             var nested = FindNested(source, first, end, scopes, member);
@@ -237,12 +253,25 @@ namespace Hypha.Knowledge.Lookup
 
         private static Regex Pattern(string pattern) => new(pattern, RegexOptions.None, MatchTimeout);
 
-        /// <summary>The name preceded by the keyword that declares it, or the bare name without a keyword.</summary>
+        /// <summary>
+        /// The name preceded by the keyword that declares it - optionally with <c>all</c> or a short
+        /// name in between - or the bare name without a keyword.
+        /// </summary>
         private static Regex Declared(string name, string keyword) =>
             Pattern(
                 string.IsNullOrWhiteSpace(keyword)
                     ? NamePattern(name)
-                    : $@"(?<![\w]){KeywordPattern(keyword)}\s+{NamePattern(name)}");
+                    : $@"(?<![\w]){KeywordPattern(keyword)}\s+(?:all\s+)?(?:<[^>]*>\s*)?{NamePattern(name)}");
+
+        /// <summary>
+        /// An enclosing scope the index has no keyword for: its name, but not where a relationship
+        /// keyword (<c>specializes Usage</c>, <c>subsets x</c>, <c>import P::*</c>, ...) refers to it.
+        /// </summary>
+        private static string ScopeNamePattern(string name) =>
+            @"(?<!\b(?:specializes|subsets|redefines|references|subclassifier|subtype|subset|unions|intersects"
+            + @"|differences|conjugates|chains|crosses|disjoint\s+from|inverse\s+of|typed\s+by|defined\s+by"
+            + @"|featured\s+by|for|import|alias|of|from|to|by)\s+)"
+            + NamePattern(name);
 
         /// <summary>
         /// A name as declared: bare, or quoted when it is not a plain identifier - and not a reference

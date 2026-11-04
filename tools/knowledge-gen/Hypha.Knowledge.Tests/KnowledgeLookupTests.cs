@@ -744,6 +744,147 @@ namespace Hypha.Knowledge.Tests
                 Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("try again"));
         }
 
+        [Test]
+        public void A_declaration_written_with_all_is_found()
+        {
+            this.WriteLibrary(("P", "package"), ("P::L", "assoc"), ("P::L::source", "feature"), ("P::M::source", "feature"));
+            this.Write(
+                "model-library/packages/P.md",
+                string.Join(
+                    '\n',
+                    "```kerml",
+                    "package P {",
+                    "    assoc all L specializes BinaryLink {",
+                    "        feature all source : Occurrence;",
+                    "    }",
+                    "    assoc M {",
+                    "        feature source : Occurrence;",
+                    "    }",
+                    "}",
+                    "```",
+                    string.Empty));
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::L::source"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void A_scope_named_by_specializes_before_its_own_declaration_is_not_taken_for_it()
+        {
+            this.WriteLibrary(("P", "package"), ("P::B", "part def"), ("P::A", "part def"), ("P::A::x", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                string.Join(
+                    '\n',
+                    "```sysml",
+                    "package P {",
+                    "    part def B specializes A {",
+                    "        attribute x redefines x;",
+                    "    }",
+                    "    part def A {",
+                    "        attribute x;",
+                    "    }",
+                    "}",
+                    "```",
+                    string.Empty));
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(7));
+        }
+
+        [Test]
+        public void A_scope_the_index_does_not_have_is_still_not_taken_from_a_specializes()
+        {
+            // Only the member is indexed, so the scope is matched by name alone.
+            this.WriteLibrary(("P::A::x", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                "```sysml\npackage P {\n    part def B specializes A {\n        attribute x;\n    }\n    part def A {\n        attribute x;\n    }\n}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(7));
+        }
+
+        [Test]
+        public void A_scope_name_mentioned_without_a_body_is_not_taken_for_the_scope()
+        {
+            this.WriteLibrary(("P::A::x", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                string.Join(
+                    '\n',
+                    "```sysml",
+                    "package P {",
+                    "    private import A::*;",
+                    "    attribute x;",
+                    "    part def A {",
+                    "        attribute x;",
+                    "    }",
+                    "}",
+                    "```",
+                    string.Empty));
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void A_declaration_whose_keyword_differs_from_the_index_is_found_by_its_bare_name()
+        {
+            this.WriteLibrary(("P::x", "attribute"));
+            this.Write("model-library/packages/P.md", "```sysml\npackage P {\n    part other;\n    ref x;\n}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::x"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void A_name_that_ends_other_names_without_a_scope_boundary_is_only_a_candidate()
+        {
+            // "Usage" ends "PartUsage" and "ActionUsage", but not after "::": neither is an answer.
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Usage"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Status, Is.EqualTo(LookupStatus.Candidates));
+                Assert.That(result.Matches, Is.EqualTo(new[] { "ActionUsage", "PartUsage" }));
+            });
+        }
+
+        [Test]
+        public void A_page_that_cannot_be_read_says_to_try_again_on_unix()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Ignore("covered on Windows by locking the file");
+                return;
+            }
+
+            var page = this.PathOf("metamodel/elements/ActionUsage.md");
+            File.SetUnixFileMode(page, UnixFileMode.None);
+
+            try
+            {
+                if (File.Exists(page) && CanRead(page))
+                {
+                    Assert.Ignore("running as root, which reads any file");
+                }
+
+                Assert.That(
+                    () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "ActionUsage")),
+                    Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("try again"));
+            }
+            finally
+            {
+                File.SetUnixFileMode(page, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            }
+        }
+
         /// <summary>Records <paramref name="tags"/> as installed, the first as the default.</summary>
         internal static void Install(IKnowledgeLayout layout, params string[] tags)
         {
@@ -779,6 +920,19 @@ namespace Hypha.Knowledge.Tests
             if (!File.Exists(this.PathOf("model-library/packages/P.md")))
             {
                 this.Write("model-library/packages/P.md", "```sysml\npackage P;\n```\n");
+            }
+        }
+
+        private static bool CanRead(string path)
+        {
+            try
+            {
+                File.ReadAllBytes(path);
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
             }
         }
 

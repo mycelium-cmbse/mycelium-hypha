@@ -111,7 +111,7 @@ namespace Hypha.Knowledge.Lookup
             var lines = ReadLines(page);
 
             var declarationLine = request.Kind == KnowledgeKind.ModelLibrary
-                ? DeclarationLocator.Find(lines, entry.Key, entry.Keyword)
+                ? DeclarationLocator.Find(lines, entry.Key, entry.Keyword, KeywordsOf(entries))
                 : null;
 
             var start = request.StartLine ?? declarationLine ?? 1;
@@ -140,6 +140,19 @@ namespace Hypha.Knowledge.Lookup
                 Matches = [entry.Key],
                 TotalMatches = 1,
             };
+        }
+
+        /// <summary>The keyword the index recorded for each qualified name, for the enclosing scopes.</summary>
+        private static Func<string, string?> KeywordsOf(List<IndexEntry> entries)
+        {
+            var keywords = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            foreach (var entry in entries.Where(entry => entry.Keyword.Length > 0))
+            {
+                keywords.TryAdd(entry.Key, entry.Keyword);
+            }
+
+            return name => keywords.GetValueOrDefault(name);
         }
 
         private static (LookupStatus Status, List<IndexEntry> Matches) Resolve(
