@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Hosting
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Threading;
@@ -46,6 +47,7 @@ namespace Hypha.Knowledge.Hosting
             string fileName,
             string arguments,
             DirectoryInfo workingDirectory,
+            IReadOnlyDictionary<string, string>? environment = null,
             CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
@@ -59,6 +61,11 @@ namespace Hypha.Knowledge.Hosting
                 RedirectStandardError = true,
                 UseShellExecute = false,
             };
+
+            foreach (var (name, value) in environment ?? new Dictionary<string, string>())
+            {
+                info.Environment[name] = value;
+            }
 
             using var process = new Process { StartInfo = info, EnableRaisingEvents = true };
 

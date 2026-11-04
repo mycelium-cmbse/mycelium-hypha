@@ -34,6 +34,17 @@ namespace Hypha.Tools.Commands
                 Recursive = true,
             };
 
+        /// <summary>Where the managed toolchain (uv, its package cache and its Python) lives.</summary>
+        public static readonly Option<DirectoryInfo?> ToolchainCacheRoot =
+            new("--toolchain-cache-root")
+            {
+                Description =
+                    "Keep the managed toolchain - the uv executable, uv's package cache and the Python "
+                    + "it installs - under this folder. Without it, uv is cached in the per-user "
+                    + "application data folder and uv uses its own default locations.",
+                Recursive = true,
+            };
+
         /// <summary>A GitHub token, for the calls that read the upstreams.</summary>
         public static readonly Option<string?> Token =
             new("--token")

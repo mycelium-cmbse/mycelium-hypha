@@ -13,7 +13,6 @@ namespace Hypha.Tools.Commands
     using System.Collections.Generic;
     using System.CommandLine;
     using System.Linq;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -36,11 +35,7 @@ namespace Hypha.Tools.Commands
     {
         /// <summary>Prints machine-readable JSON instead of a table.</summary>
         public static readonly Option<bool> Json =
-            new("--json")
-            {
-                Description = "Print one line of JSON instead of a table - for scripts and the hook.",
-                DefaultValueFactory = _ => false,
-            };
+            JsonOutput.CreateOption("Print one line of JSON instead of a table - for scripts and the hook.");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CheckCommand"/> class.
@@ -84,12 +79,8 @@ namespace Hypha.Tools.Commands
 
                 if (parseResult.GetValue(Json))
                 {
-                    // Straight to the underlying writer, not AnsiConsole.Write(IRenderable): a Text
-                    // widget wraps to the console width, which would break a long line of JSON across
-                    // several lines - exactly what the hook parsing stdout as one line cannot survive.
-                    // Still goes through AnsiConsole.Console, so a test that redirects it (as
-                    // RecordedConsole does) can capture this the same way it captures everything else.
-                    await AnsiConsole.Console.Profile.Out.Writer.WriteAsync(JsonSerializer.Serialize(result));
+                    // One unwrapped line: the hook parses standard output as a single JSON document.
+                    await JsonOutput.WriteAsync(result);
 
                     return 0;
                 }

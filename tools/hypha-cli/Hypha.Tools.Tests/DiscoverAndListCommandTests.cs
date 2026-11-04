@@ -10,11 +10,10 @@
 namespace Hypha.Tools.Tests
 {
     using System.CommandLine;
-    using System.IO;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
 
@@ -97,18 +96,10 @@ namespace Hypha.Tools.Tests
         [Test]
         public async Task List_shows_the_installed_releases_and_marks_the_default()
         {
-            var layout = new Mock<IKnowledgeLayout>();
-            layout.SetupGet(mock => mock.InstalledTags).Returns(["2026-05", "2026-04"]);
-            layout.SetupGet(mock => mock.DefaultTag).Returns("2026-05");
-            layout.SetupGet(mock => mock.Root).Returns(new DirectoryInfo(Path.GetTempPath()));
-            layout.Setup(mock => mock.Xmi(It.IsAny<string>()))
-                .Returns(new DirectoryInfo(Path.GetTempPath()));
-            layout.Setup(mock => mock.TextualSources(It.IsAny<string>()))
-                .Returns(new DirectoryInfo(Path.GetTempPath()));
-
+            using var knowledge = new TemporaryKnowledge().Install("2026-05", "2026-04");
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(layout.Object)
+            var result = await new ListCommand.Handler(knowledge.Layout)
                 .InvokeAsync(this.root.Parse("list"), CancellationToken.None);
 
             Assert.Multiple(() =>
@@ -116,25 +107,85 @@ namespace Hypha.Tools.Tests
                 Assert.That(result, Is.EqualTo(0));
                 Assert.That(console.Output, Does.Contain("2026-05").And.Contains("2026-04"));
                 Assert.That(console.Output, Does.Contain("yes"));
+                Assert.That(console.Output, Does.Contain("incomplete"), "nothing has been generated yet");
             });
         }
 
         [Test]
         public async Task List_on_a_checkout_with_no_releases_points_at_fetch()
         {
-            var layout = new Mock<IKnowledgeLayout>();
-            layout.SetupGet(mock => mock.InstalledTags).Returns([]);
-            layout.SetupGet(mock => mock.Root).Returns(new DirectoryInfo(Path.GetTempPath()));
-
+            using var knowledge = new TemporaryKnowledge();
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(layout.Object)
+            var result = await new ListCommand.Handler(knowledge.Layout)
                 .InvokeAsync(this.root.Parse("list"), CancellationToken.None);
 
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.EqualTo(1));
                 Assert.That(console.Output, Does.Contain("hypha fetch"));
+            });
+        }
+
+        [Test]
+        public async Task List_json_reports_every_release_and_what_has_been_generated()
+        {
+            using var knowledge = new TemporaryKnowledge()
+                .Install("2026-09", "2026-05")
+                .Write("2026-09", "metamodel/index.json", "{}")
+                .Write("2026-09", "textual-notation/index.md", "#")
+                .Write("2026-09", "model-library/index.json", "{}")
+                .Write("2026-09", "cross-references.json", "{}");
+            using var console = new RecordedConsole();
+
+            var result = await new ListCommand.Handler(knowledge.Layout)
+                .InvokeAsync(this.root.Parse("list --json"), CancellationToken.None);
+
+            var line = console.Output.TrimEnd('\r', '\n');
+            using var document = JsonDocument.Parse(line);
+            var json = document.RootElement;
+            var newest = json.GetProperty("releases")[0];
+            var artifacts = newest.GetProperty("artifacts");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(0));
+                Assert.That(line, Does.Not.Contain("\n"), "the JSON document has to be a single line");
+
+                // Pinned: these names are what every host reads. Renaming one is a breaking change.
+                Assert.That(json.GetProperty("defaultTag").GetString(), Is.EqualTo("2026-09"));
+                Assert.That(json.GetProperty("releases").GetArrayLength(), Is.EqualTo(2));
+                Assert.That(newest.GetProperty("tag").GetString(), Is.EqualTo("2026-09"));
+                Assert.That(newest.GetProperty("isDefault").GetBoolean(), Is.True);
+                Assert.That(newest.GetProperty("sourcesFetched").GetBoolean(), Is.False);
+                Assert.That(artifacts.GetProperty("metamodel").GetBoolean(), Is.True);
+                Assert.That(artifacts.GetProperty("textualNotation").GetBoolean(), Is.True);
+                Assert.That(artifacts.GetProperty("modelLibrary").GetBoolean(), Is.True);
+                Assert.That(artifacts.GetProperty("crossReferences").GetBoolean(), Is.True);
+                Assert.That(artifacts.GetProperty("specification").GetBoolean(), Is.False);
+                Assert.That(artifacts.GetProperty("core").GetBoolean(), Is.True);
+                Assert.That(
+                    json.GetProperty("releases")[1].GetProperty("artifacts").GetProperty("core").GetBoolean(),
+                    Is.False);
+            });
+        }
+
+        [Test]
+        public async Task List_json_with_nothing_installed_is_an_empty_list_not_a_failure()
+        {
+            using var knowledge = new TemporaryKnowledge();
+            using var console = new RecordedConsole();
+
+            var result = await new ListCommand.Handler(knowledge.Layout)
+                .InvokeAsync(this.root.Parse("list --json"), CancellationToken.None);
+
+            using var document = JsonDocument.Parse(console.Output);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(0));
+                Assert.That(document.RootElement.GetProperty("defaultTag").ValueKind, Is.EqualTo(JsonValueKind.Null));
+                Assert.That(document.RootElement.GetProperty("releases").GetArrayLength(), Is.EqualTo(0));
             });
         }
 

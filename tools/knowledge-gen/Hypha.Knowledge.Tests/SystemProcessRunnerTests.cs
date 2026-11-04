@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Threading;
@@ -91,6 +92,23 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task Passes_the_given_environment_to_the_process()
+        {
+            var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
+            var (shell, arguments) = OperatingSystem.IsWindows()
+                ? ("cmd.exe", "/c exit %HYPHA_TEST_EXIT_CODE%")
+                : ("/bin/sh", "-c \"exit $HYPHA_TEST_EXIT_CODE\"");
+
+            var exitCode = await runner.RunAsync(
+                shell,
+                arguments,
+                this.workingDirectory,
+                new Dictionary<string, string> { ["HYPHA_TEST_EXIT_CODE"] = "7" });
+
+            Assert.That(exitCode, Is.EqualTo(7));
+        }
+
+        [Test]
         public async Task Streams_standard_output_through_the_logger()
         {
             var logger = new Mock<ILogger<SystemProcessRunner>>();
@@ -138,7 +156,7 @@ namespace Hypha.Knowledge.Tests
             var stopwatch = Stopwatch.StartNew();
 
             Assert.That(
-                () => runner.RunAsync(fileName, arguments, this.workingDirectory, source.Token),
+                () => runner.RunAsync(fileName, arguments, this.workingDirectory, cancellationToken: source.Token),
                 Throws.InstanceOf<OperationCanceledException>());
 
             stopwatch.Stop();

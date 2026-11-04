@@ -20,6 +20,7 @@ namespace Hypha.Tools
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
     using Hypha.Tools.Hosting;
@@ -61,6 +62,7 @@ namespace Hypha.Tools
                 "hypha - fetch the upstream OMG SysML v2 / KerML sources and generate the knowledge base");
 
             root.Options.Add(GlobalOptions.RepositoryRoot);
+            root.Options.Add(GlobalOptions.ToolchainCacheRoot);
             root.Options.Add(GlobalOptions.Token);
             root.Options.Add(GlobalOptions.LogLevel);
             root.Options.Add(GlobalOptions.NoLogo);
@@ -98,6 +100,13 @@ namespace Hypha.Tools
                         provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(list);
+
+            var lookup = new LookupCommand();
+            lookup.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new LookupCommand.Handler(provider.GetRequiredService<IKnowledgeLookup>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            root.Add(lookup);
 
             var moveWindow = new MoveWindowCommand();
             moveWindow.SetAction((parseResult, cancellationToken) => Run(
@@ -180,10 +189,13 @@ namespace Hypha.Tools
             }
         }
 
-        /// <summary>Announces which build is running, unless asked not to.</summary>
+        /// <summary>
+        /// Announces which build is running, unless asked not to - and never in front of a JSON
+        /// document, which has to be the only thing on standard output.
+        /// </summary>
         private static void Banner(ParseResult parseResult)
         {
-            if (parseResult.GetValue(GlobalOptions.NoLogo))
+            if (parseResult.GetValue(GlobalOptions.NoLogo) || JsonOutput.IsRequested(parseResult))
             {
                 return;
             }

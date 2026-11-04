@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Toolchain
 {
     using System;
+    using System.Collections.Generic;
     using System.Formats.Tar;
     using System.IO;
     using System.IO.Compression;
@@ -65,7 +66,16 @@ namespace Hypha.Knowledge.Toolchain
         /// Initializes a new instance of the <see cref="UvProvisioner"/> class with an explicit cache
         /// root, so a test never touches the real <c>%LOCALAPPDATA%</c>.
         /// </summary>
-        public UvProvisioner(HttpClient client, ILogger<UvProvisioner> logger, DirectoryInfo cacheRoot)
+        /// <param name="client">The client the release and its checksum are downloaded with.</param>
+        /// <param name="logger">The log.</param>
+        /// <param name="cacheRoot">Where the <c>uv</c> executable is cached.</param>
+        /// <param name="ownsToolchain">
+        /// <c>true</c> to also keep uv's package cache (<c>uv-cache/</c>) and the Python it installs
+        /// (<c>python/</c>) under <paramref name="cacheRoot"/>, through <see cref="Environment"/>;
+        /// <c>false</c> to leave them in uv's default, per-user locations.
+        /// </param>
+        public UvProvisioner(
+            HttpClient client, ILogger<UvProvisioner> logger, DirectoryInfo cacheRoot, bool ownsToolchain = false)
         {
             ArgumentNullException.ThrowIfNull(client);
             ArgumentNullException.ThrowIfNull(logger);
@@ -74,19 +84,35 @@ namespace Hypha.Knowledge.Toolchain
             this.client = client;
             this.logger = logger;
             this.cacheRoot = cacheRoot;
+            this.Environment = ownsToolchain
+                ? new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    [UvCacheVariable] = Path.Combine(cacheRoot.FullName, "uv-cache"),
+                    [UvPythonInstallVariable] = Path.Combine(cacheRoot.FullName, "python"),
+                }
+                : new Dictionary<string, string>(StringComparer.Ordinal);
         }
 
+        /// <summary>The variable uv reads its package cache location from.</summary>
+        public const string UvCacheVariable = "UV_CACHE_DIR";
+
+        /// <summary>The variable uv reads the location of the Pythons it installs from.</summary>
+        public const string UvPythonInstallVariable = "UV_PYTHON_INSTALL_DIR";
+
+        /// <inheritdoc/>
+        public IReadOnlyDictionary<string, string> Environment { get; }
+
         /// <summary>
-        /// Resolves the cache root via <see cref="Environment.SpecialFolder.LocalApplicationData"/> -
+        /// Resolves the cache root via <see cref="System.Environment.SpecialFolder.LocalApplicationData"/> -
         /// the same folder (and reasoning: deliberately outside any git-managed checkout) the CLI's own
         /// self-fetch hook already caches into, so this is a sibling, not a new location to document.
         /// </summary>
-        public static DirectoryInfo ResolveCacheRoot(Func<Environment.SpecialFolder, string>? getFolderPath = null)
+        public static DirectoryInfo ResolveCacheRoot(Func<System.Environment.SpecialFolder, string>? getFolderPath = null)
         {
-            getFolderPath ??= Environment.GetFolderPath;
+            getFolderPath ??= System.Environment.GetFolderPath;
 
             return new DirectoryInfo(
-                Path.Combine(getFolderPath(Environment.SpecialFolder.LocalApplicationData), CacheFolderName));
+                Path.Combine(getFolderPath(System.Environment.SpecialFolder.LocalApplicationData), CacheFolderName));
         }
 
         /// <summary><c>uv/&lt;version&gt;/&lt;target&gt;/</c> - where one uv build is cached.</summary>

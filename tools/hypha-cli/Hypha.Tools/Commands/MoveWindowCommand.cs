@@ -269,13 +269,16 @@ namespace Hypha.Tools.Commands
                     Path.Combine(this.layout.Root.FullName, "tools", "spec-extract"));
 
                 return await this.processes.RunAsync(
-                    PythonExecutable(specExtract), "-m pytest", specExtract, cancellationToken);
+                    PythonExecutable(specExtract), "-m pytest", specExtract, cancellationToken: cancellationToken);
             }
 
             private Task<int> RunDotnetTestAsync(
                 string projectPath, string filter, CancellationToken cancellationToken) =>
                 this.processes.RunAsync(
-                    "dotnet", $"test {projectPath} --filter \"{filter}\"", this.layout.Root, cancellationToken);
+                    "dotnet",
+                    $"test {projectPath} --filter \"{filter}\"",
+                    this.layout.Root,
+                    cancellationToken: cancellationToken);
 
             private static void ReportFailure(
                 MoveWindowStep step, List<MoveWindowStep> completed, string tag, string? reason = null)

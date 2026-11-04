@@ -101,6 +101,7 @@ namespace Hypha.Knowledge.Generation
                 + $"--repo-root \"{this.layout.Root.FullName}\" --tag {tag} "
                 + $"--out-root \"{this.layout.OutputRoot.FullName}\"",
                 this.layout.Root,
+                this.uv.Environment,
                 cancellationToken);
 
             if (exitCode != 0)

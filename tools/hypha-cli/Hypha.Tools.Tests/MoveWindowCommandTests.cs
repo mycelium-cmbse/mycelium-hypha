@@ -107,8 +107,8 @@ namespace Hypha.Tools.Tests
             this.processes = new Mock<IProcessRunner>();
             this.processes
                 .Setup(mock => mock.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((string fileName, string arguments, DirectoryInfo _, CancellationToken _) =>
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((string fileName, string arguments, DirectoryInfo _, IReadOnlyDictionary<string, string>? _, CancellationToken _) =>
                 {
                     if (arguments.Contains("pytest", StringComparison.Ordinal))
                     {
@@ -197,7 +197,7 @@ namespace Hypha.Tools.Tests
                 mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
             this.processes.Verify(
                 mock => mock.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -271,6 +271,7 @@ namespace Hypha.Tools.Tests
                     It.IsAny<string>(),
                     It.Is<string>(arguments => arguments.Contains("KnowledgeRegenerationTests", StringComparison.Ordinal)),
                     It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never);
         }

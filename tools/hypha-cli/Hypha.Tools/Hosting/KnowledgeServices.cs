@@ -22,6 +22,7 @@ namespace Hypha.Tools.Hosting
     using Microsoft.Extensions.Logging;
 
     using Serilog;
+    using Serilog.Events;
     using Serilog.Extensions.Logging;
 
     /// <summary>
@@ -58,9 +59,14 @@ namespace Hypha.Tools.Hosting
                 {
                     options.RepositoryRoot = root;
                     options.OutputRoot = outputRoot;
+                    options.ToolchainCacheRoot = parseResult.GetValue(GlobalOptions.ToolchainCacheRoot);
                     options.Token = token;
                 })
                 .AddHyphaMetamodelGen();
+
+            // With --json, standard output carries the JSON document and nothing else, so every log
+            // line goes to standard error instead.
+            var json = JsonOutput.IsRequested(parseResult);
 
             services.AddLogging(builder =>
             {
@@ -68,7 +74,9 @@ namespace Hypha.Tools.Hosting
 
                 var logger = new LoggerConfiguration()
                     .MinimumLevel.Is(level)
-                    .WriteTo.Console(outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                    .WriteTo.Console(
+                        outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                        standardErrorFromLevel: json ? LogEventLevel.Verbose : null)
                     .CreateLogger();
 
                 builder.AddProvider(new SerilogLoggerProvider(logger, dispose: true));

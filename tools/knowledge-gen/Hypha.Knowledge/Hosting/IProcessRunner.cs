@@ -9,6 +9,7 @@
 
 namespace Hypha.Knowledge.Hosting
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -24,11 +25,17 @@ namespace Hypha.Knowledge.Hosting
         /// <param name="fileName">The executable to run.</param>
         /// <param name="arguments">The command-line arguments, as one already-escaped string.</param>
         /// <param name="workingDirectory">Where the process runs from.</param>
+        /// <param name="environment">
+        /// Environment variables to set for the process, on top of this process's own; <c>null</c>
+        /// sets none.
+        /// </param>
+        /// <param name="cancellationToken">Stops the process, and every process it started.</param>
         /// <returns>The process's exit code.</returns>
         Task<int> RunAsync(
             string fileName,
             string arguments,
             DirectoryInfo workingDirectory,
+            IReadOnlyDictionary<string, string>? environment = null,
             CancellationToken cancellationToken = default);
     }
 }

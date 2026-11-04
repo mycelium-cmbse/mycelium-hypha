@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -107,7 +108,7 @@ namespace Hypha.Knowledge.Tests
             });
             this.processes.Verify(
                 p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -118,7 +119,7 @@ namespace Hypha.Knowledge.Tests
             this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(this.FakeUvExecutable());
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
             var result = await this.generator.GenerateAsync("2026-05");
@@ -137,7 +138,7 @@ namespace Hypha.Knowledge.Tests
             this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(this.FakeUvExecutable());
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(0);
 
             var result = await this.generator.GenerateAsync("2026-05");
@@ -158,6 +159,7 @@ namespace Hypha.Knowledge.Tests
                         && a.Contains("2026-05", StringComparison.Ordinal)
                         && a.Contains($"--out-root \"{this.outputRoot.FullName}\"", StringComparison.Ordinal)),
                     It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
                     It.IsAny<CancellationToken>()))
                 .Callback(() =>
                 {
@@ -178,6 +180,35 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(result.Written, Has.Count.EqualTo(1));
                 Assert.That(result.Written[0].Name, Is.EqualTo("01-scope.md"));
             });
+        }
+
+        [Test]
+        public async Task Runs_uv_with_the_environment_the_provisioner_gives_it()
+        {
+            this.SeedPdfs("2026-05");
+            var uvExe = this.FakeUvExecutable();
+            var environment = new Dictionary<string, string> { ["UV_CACHE_DIR"] = "cache" };
+            this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(uvExe);
+            this.uv.SetupGet(u => u.Environment).Returns(environment);
+            this.processes
+                .Setup(p => p.RunAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            await this.generator.GenerateAsync("2026-05");
+
+            this.processes.Verify(
+                p => p.RunAsync(
+                    uvExe.FullName,
+                    It.IsAny<string>(),
+                    It.IsAny<DirectoryInfo>(),
+                    environment,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         private void SeedPdfs(string tag)

@@ -9,6 +9,7 @@
 
 namespace Hypha.Knowledge.Toolchain
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -25,5 +26,12 @@ namespace Hypha.Knowledge.Toolchain
         /// <summary>Ensures <c>uv</c> is cached, downloading and verifying it if necessary.</summary>
         /// <returns>The cached executable, or <c>null</c> when it could not be provisioned.</returns>
         Task<FileInfo?> EnsureAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// The environment variables every <c>uv</c> invocation runs with, so uv's own package cache
+        /// and the Python it installs land where this provisioner was told to keep the toolchain.
+        /// Empty when uv keeps its default locations.
+        /// </summary>
+        IReadOnlyDictionary<string, string> Environment { get; }
     }
 }

@@ -19,6 +19,7 @@ namespace Hypha.Knowledge
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
@@ -125,9 +126,15 @@ namespace Hypha.Knowledge
             // SpecGenerator's on-demand `uv` invocation both go through this.
             services.AddSingleton<IProcessRunner, SystemProcessRunner>();
 
+            // An explicit toolchain root takes uv's package cache and Python with it; without one, uv
+            // keeps the per-user defaults it shares with any other uv on the machine.
             services.AddSingleton<IUvProvisioner>(provider => new UvProvisioner(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                provider.GetRequiredService<ILogger<UvProvisioner>>()));
+                provider.GetRequiredService<ILogger<UvProvisioner>>(),
+                options.ToolchainCacheRoot ?? UvProvisioner.ResolveCacheRoot(),
+                ownsToolchain: options.ToolchainCacheRoot is not null));
+
+            services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
 
             // Registered as a collection: a full run is a loop over Order, not a list of calls each
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
