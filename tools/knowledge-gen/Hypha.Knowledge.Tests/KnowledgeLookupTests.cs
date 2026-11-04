@@ -431,6 +431,319 @@ namespace Hypha.Knowledge.Tests
                 Throws.ArgumentException);
         }
 
+        [Test]
+        public void An_exact_name_wins_over_the_same_name_in_another_case()
+        {
+            this.WriteLibrary(("P::Real", "datatype"), ("P::real", "datatype"));
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::Real"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Status, Is.EqualTo(LookupStatus.Found));
+                Assert.That(result.Name, Is.EqualTo("P::Real"));
+            });
+        }
+
+        [Test]
+        public void An_exact_short_name_wins_over_one_in_another_case()
+        {
+            this.WriteLibrary(("P::Real", "datatype"), ("P::real", "datatype"));
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "Real"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Status, Is.EqualTo(LookupStatus.Found));
+                Assert.That(result.Name, Is.EqualTo("P::Real"));
+            });
+        }
+
+        [Test]
+        public void An_exact_key_wins_over_a_qualified_name_ending_in_it()
+        {
+            this.WriteLibrary(("ScalarValues", "package"), ("Other::ScalarValues", "package"));
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ScalarValues"));
+
+            Assert.That(result.Name, Is.EqualTo("ScalarValues"));
+        }
+
+        [TestCase("{ not json")]
+        [TestCase("[]")]
+        [TestCase("{}")]
+        [TestCase("{ \"declarations\": [] }")]
+        [TestCase("{ \"declarations\": { \"X\": null } }")]
+        [TestCase("{ \"declarations\": { \"X\": { \"file\": \"packages/X.md\" } } }")]
+        [TestCase("{ \"declarations\": { \"X\": { \"kind\": \"part\" } } }")]
+        [TestCase("{ \"declarations\": { \"X\": { \"kind\": \"part\", \"file\": 3 } } }")]
+        public void A_model_library_index_that_is_not_valid_asks_for_regeneration(string index)
+        {
+            this.Write("model-library/index.json", index);
+
+            Assert.That(
+                () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "X")),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("hypha generate --tag 2026-09"));
+        }
+
+        [TestCase("{}")]
+        [TestCase("{ \"entries\": [] }")]
+        [TestCase("{ \"entries\": { \"X\": \"elements/X.md\" } }")]
+        [TestCase("{ \"entries\": { \"X\": { \"kind\": \"class\" } } }")]
+        [TestCase("{ \"entries\": { \"X\": { \"kind\": \"class\", \"file\": false } } }")]
+        [TestCase("{ \"entries\": { \"X\": { \"kind\": 1, \"file\": \"elements/X.md\" } } }")]
+        public void A_metamodel_index_that_is_not_valid_asks_for_regeneration(string index)
+        {
+            this.Write("metamodel/index.json", index);
+
+            Assert.That(
+                () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "X")),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("hypha generate --tag 2026-09"));
+        }
+
+        [TestCase(0)]
+        [TestCase(-1)]
+        public void A_start_line_below_one_is_refused(int startLine)
+        {
+            Assert.That(
+                () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "PartUsage", StartLine: startLine)),
+                Throws.ArgumentException);
+        }
+
+        [Test]
+        public void The_largest_page_is_accepted()
+        {
+            var result = this.lookup.Lookup(
+                new LookupRequest(KnowledgeKind.Metamodel, "PartUsage", MaxLines: LookupRequest.LargestPage));
+
+            Assert.That(result.EndLine, Is.EqualTo(400));
+        }
+
+        [Test]
+        public void A_declaration_whose_scopes_cannot_be_followed_is_found_by_name()
+        {
+            // ISQMechanics::mass is indexed on a page that has no ISQMechanics scope at all.
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ISQMechanics::mass"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.DeclarationLine, Is.EqualTo(2));
+                Assert.That(result.Content, Does.StartWith("attribute mass;"));
+            });
+        }
+
+        [Test]
+        public void A_declaration_missing_from_its_page_starts_at_the_top()
+        {
+            this.WriteLibrary(("P::Ghost", "part"));
+            this.Write("model-library/packages/P.md", "```sysml\npackage P {\n    part Other;\n}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::Ghost"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Status, Is.EqualTo(LookupStatus.Found));
+                Assert.That(result.DeclarationLine, Is.Null);
+                Assert.That(result.StartLine, Is.EqualTo(1));
+            });
+        }
+
+        [Test]
+        public void A_member_on_the_same_line_as_its_scope_is_found()
+        {
+            this.WriteLibrary(("P::A::x", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                "```sysml\npackage P {\n    attribute x;\n    part def A { attribute x; }\n}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void A_scope_whose_brace_is_on_the_next_line_is_followed()
+        {
+            this.WriteLibrary(("P::A::x", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                "```sysml\npackage P\n{\n    attribute x;\n    part def A\n    {\n        attribute x;\n    }\n}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(7));
+        }
+
+        [Test]
+        public void Braces_in_comments_and_quoted_names_do_not_change_the_scope()
+        {
+            this.WriteLibrary(("P::A::x", "attribute"), ("P::x", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                string.Join(
+                    '\n',
+                    "```sysml",
+                    "package P {",
+                    "    part def A {",
+                    "        doc /* opens { here",
+                    "           and } there { */",
+                    "        attribute '{y}';",
+                    "        attribute x;",
+                    "    }",
+                    "    // a stray } in a comment",
+                    "    attribute x;",
+                    "}",
+                    "```",
+                    string.Empty));
+
+            var nested = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
+            var outer = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::x"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(nested.DeclarationLine, Is.EqualTo(7));
+                Assert.That(outer.DeclarationLine, Is.EqualTo(10));
+            });
+        }
+
+        [Test]
+        public void A_type_reference_or_a_comment_is_not_taken_for_an_enclosing_scope()
+        {
+            this.WriteLibrary(("P::A::x", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                string.Join(
+                    '\n',
+                    "```sysml",
+                    "package P {",
+                    "    // A { is described below",
+                    "    part p : A { attribute x; }",
+                    "    part q :> A {",
+                    "        attribute x;",
+                    "    }",
+                    "    part def A {",
+                    "        attribute x;",
+                    "    }",
+                    "}",
+                    "```",
+                    string.Empty));
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(9));
+        }
+
+        [Test]
+        public void A_quoted_declaration_name_is_found()
+        {
+            this.WriteLibrary(("P::'Real Value'", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                "```sysml\npackage P {\n    attribute other;\n    attribute 'Real Value';\n}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::'Real Value'"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void A_keyword_of_several_words_matches_across_extra_whitespace()
+        {
+            this.WriteLibrary(("P::X", "attribute def"));
+            this.Write(
+                "model-library/packages/P.md",
+                "```sysml\npackage P {\n    attribute X;\n    attribute  def X;\n}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::X"));
+
+            Assert.That(result.DeclarationLine, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void Entries_of_a_generated_metamodel_index_resolve_to_their_pages()
+        {
+            var expected = new DirectoryInfo(Path.Combine(
+                (Repository.Layout ?? throw new InvalidOperationException("not run inside the repository")).Root.FullName,
+                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "metamodel"));
+            Copy(expected, this.layout.Metamodel(Tag));
+
+            Assert.Multiple(() =>
+            {
+                foreach (var name in new[] { "ActionUsage", "Annotations::Annotation", "sysml::systems::actions::actionusage" })
+                {
+                    var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, name, MaxLines: 5));
+
+                    Assert.That(result.Status, Is.EqualTo(LookupStatus.Found), name);
+                    Assert.That(File.Exists(result.Path), Is.True, name);
+                    Assert.That(result.Content, Does.StartWith("---"), name);
+                }
+            });
+        }
+
+        [Test]
+        public void A_page_reached_through_a_linked_folder_outside_the_artifact_folder_is_refused()
+        {
+            var outside = Directory.CreateDirectory(Path.Combine(this.root.FullName, "elsewhere"));
+            File.WriteAllText(Path.Combine(outside.FullName, "Linked.md"), "outside");
+            var linked = this.PathOf("metamodel/linked");
+
+            try
+            {
+                Directory.CreateSymbolicLink(linked, outside.FullName);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                Assert.Ignore($"symbolic links cannot be created here: {exception.Message}");
+            }
+
+            this.Write(
+                "metamodel/index.json",
+                "{ \"entries\": { \"Linked\": { \"kind\": \"class\", \"file\": \"linked/Linked.md\" } } }");
+
+            Assert.That(
+                () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Linked")),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("links outside"));
+        }
+
+        [Test]
+        public void A_link_that_stays_inside_the_artifact_folder_is_followed()
+        {
+            var link = this.PathOf("metamodel/elements/Alias.md");
+
+            try
+            {
+                File.CreateSymbolicLink(link, this.PathOf("metamodel/elements/ActionUsage.md"));
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                Assert.Ignore($"symbolic links cannot be created here: {exception.Message}");
+            }
+
+            this.Write(
+                "metamodel/index.json",
+                "{ \"entries\": { \"Alias\": { \"kind\": \"class\", \"file\": \"elements/Alias.md\" } } }");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Alias"));
+
+            Assert.That(result.Content, Does.StartWith("ActionUsage line 1"));
+        }
+
+        [Test]
+        public void A_page_that_cannot_be_read_says_to_try_again()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                Assert.Ignore("only Windows refuses to read a file another handle holds exclusively");
+            }
+
+            using var held = new FileStream(
+                this.PathOf("metamodel/elements/ActionUsage.md"), FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+            Assert.That(
+                () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "ActionUsage")),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("try again"));
+        }
+
         /// <summary>Records <paramref name="tags"/> as installed, the first as the default.</summary>
         internal static void Install(IKnowledgeLayout layout, params string[] tags)
         {
@@ -442,6 +755,31 @@ namespace Hypha.Knowledge.Tests
                         new UpstreamReference(Upstream.ReleaseRepository, "abc"),
                         new UpstreamReference(Upstream.PilotRepository, "def")))),
                 layout.VersionManifest.FullName);
+        }
+
+        private static void Copy(DirectoryInfo source, DirectoryInfo destination)
+        {
+            foreach (var file in source.EnumerateFiles("*", SearchOption.AllDirectories))
+            {
+                var target = Path.Combine(destination.FullName, Path.GetRelativePath(source.FullName, file.FullName));
+                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                file.CopyTo(target, overwrite: true);
+            }
+        }
+
+        /// <summary>Replaces the model-library index with these declarations, all on <c>packages/P.md</c>.</summary>
+        private void WriteLibrary(params (string Name, string Kind)[] declarations)
+        {
+            var entries = string.Join(
+                ",\n",
+                declarations.Select(declaration =>
+                    $"\"{declaration.Name}\": {{ \"kind\": \"{declaration.Kind}\", \"file\": \"packages/P.md\", \"source\": \"P.sysml\" }}"));
+            this.Write("model-library/index.json", $"{{ \"declarations\": {{ {entries} }} }}");
+
+            if (!File.Exists(this.PathOf("model-library/packages/P.md")))
+            {
+                this.Write("model-library/packages/P.md", "```sysml\npackage P;\n```\n");
+            }
         }
 
         private static string Lines(string prefix, int count) =>

@@ -75,8 +75,19 @@ A name resolves in tiers, and the first tier with any match decides: the exact k
 then the same ignoring case, then a trailing part of the qualified name (`Real` for
 `ScalarValues::Real`, `Actions::ActionUsage`), then that ignoring case. One match is the answer;
 several are `ambiguous`. Only when no tier matches are names that merely contain the request offered,
-as `candidates` – never as an answer, even when there is only one. A model-library page holds a whole
-upstream file, so its lookup starts at the declaration rather than at the top of the page.
+as `candidates` – never as an answer, even when there is only one.
+
+A model-library page holds a whole upstream file, so its lookup starts at the declaration rather than
+at the top of the page. The declaration is found by following the qualified name down the scopes of
+the source: each enclosing name has to be declared with a body, not merely mentioned in a comment or
+used as a type (`: LengthValue`, `:> Base`), and each member is looked for directly inside the body
+of the one before it, so a member is not confused with a same-named member of another scope. When
+the declaration cannot be found, the lookup starts at the top of the page and `declarationLine` is
+`null`.
+
+An index path that leaves the release folder – absolute, through `..`, or through a symbolic link
+anywhere on the way – is refused, and so is an index that is not what the generators write; both ask
+for `hypha generate`.
 
 ### JSON output
 
@@ -86,8 +97,10 @@ upstream file, so its lookup starts at the declaration rather than at the top of
 - standard output holds exactly one line with one JSON document – no banner, no wrapping – and every
   log line goes to standard error;
 - every property of the document is always present, `null` when it has no value;
-- a failure the verb can describe is a document too, `{"error": "..."}`, with exit code 1. A lookup
-  whose name does not resolve is not a failure: it exits 0 and says so in its `status`.
+- a failure is a document too, `{"error": "..."}`, with a non-zero exit code: 1, or 130 when
+  cancelled. That includes a failure before the verb runs, such as a folder that is not a hypha
+  repository or an upstream that cannot be reached. A lookup whose name does not resolve is not a
+  failure: it exits 0 and says so in its `status`.
 
 The property names are a contract, pinned by the tests in `Hypha.Tools.Tests`; renaming one is a
 breaking change for every host that reads it.

@@ -18,8 +18,8 @@ namespace Hypha.Knowledge.Lookup
     /// </summary>
     /// <remarks>
     /// This is the <c>hypha lookup --json</c> contract. Renaming a property is a breaking change for
-    /// every host that reads it. The page properties are only present when <see cref="Status"/> is
-    /// <see cref="LookupStatus.Found"/>.
+    /// every host that reads it. Every property is always written; the page properties are
+    /// <c>null</c> unless <see cref="Status"/> is <see cref="LookupStatus.Found"/>.
     /// </remarks>
     public sealed record LookupResult
     {

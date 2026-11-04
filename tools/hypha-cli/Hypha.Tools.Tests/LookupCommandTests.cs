@@ -9,7 +9,9 @@
 
 namespace Hypha.Tools.Tests
 {
+    using System;
     using System.CommandLine;
+    using System.Linq;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -193,6 +195,115 @@ namespace Hypha.Tools.Tests
             await this.Invoke("lookup --kind model-library --name mass");
 
             Assert.That(console.Output, Does.Contain("ISQBase::mass").And.Contains("ISQMechanics::mass"));
+        }
+
+        [Test]
+        public async Task A_request_the_lookup_refuses_is_a_json_error_and_exit_code_1()
+        {
+            this.lookup
+                .Setup(mock => mock.Lookup(It.IsAny<LookupRequest>()))
+                .Throws(new ArgumentException("The start line 500 is past the end."));
+            using var console = new RecordedConsole();
+
+            var result = await this.Invoke("lookup --kind metamodel --name PartUsage --start-line 500 --json");
+
+            using var document = JsonDocument.Parse(console.Output);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(1));
+                Assert.That(
+                    document.RootElement.GetProperty("error").GetString(),
+                    Is.EqualTo("The start line 500 is past the end."));
+            });
+        }
+
+        [Test]
+        public async Task Without_json_a_lookup_that_cannot_run_prints_the_reason_and_exits_1()
+        {
+            this.lookup
+                .Setup(mock => mock.Lookup(It.IsAny<LookupRequest>()))
+                .Throws(new KnowledgeLookupException("Release 2025-01 is not installed."));
+            using var console = new RecordedConsole();
+
+            var result = await this.Invoke("lookup --kind metamodel --name PartUsage --tag 2025-01");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(1));
+                Assert.That(console.Output, Does.Contain("Release 2025-01 is not installed."));
+            });
+        }
+
+        [TestCase(LookupStatus.Found, "found")]
+        [TestCase(LookupStatus.Ambiguous, "ambiguous")]
+        [TestCase(LookupStatus.Candidates, "candidates")]
+        [TestCase(LookupStatus.NotFound, "not-found")]
+        public async Task Every_status_has_its_pinned_json_name(LookupStatus status, string expected)
+        {
+            this.lookup.Setup(mock => mock.Lookup(It.IsAny<LookupRequest>())).Returns(Found with { Status = status });
+            using var console = new RecordedConsole();
+
+            await this.Invoke("lookup --kind model-library --name Real --json");
+
+            using var document = JsonDocument.Parse(console.Output);
+            Assert.That(document.RootElement.GetProperty("status").GetString(), Is.EqualTo(expected));
+        }
+
+        [TestCase(KnowledgeKind.Metamodel, "metamodel")]
+        [TestCase(KnowledgeKind.ModelLibrary, "model-library")]
+        public async Task Every_kind_has_its_pinned_json_name(KnowledgeKind kind, string expected)
+        {
+            this.lookup.Setup(mock => mock.Lookup(It.IsAny<LookupRequest>())).Returns(Found with { Kind = kind });
+            using var console = new RecordedConsole();
+
+            await this.Invoke($"lookup --kind {expected} --name Real --json");
+
+            using var document = JsonDocument.Parse(console.Output);
+            Assert.That(document.RootElement.GetProperty("kind").GetString(), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public async Task Without_json_a_name_nothing_matches_says_so()
+        {
+            this.lookup.Setup(mock => mock.Lookup(It.IsAny<LookupRequest>())).Returns(new LookupResult
+            {
+                Release = "2026-09",
+                Kind = KnowledgeKind.Metamodel,
+                Status = LookupStatus.NotFound,
+            });
+            using var console = new RecordedConsole();
+
+            var result = await this.Invoke("lookup --kind metamodel --name Spaceship");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(0));
+                Assert.That(console.Output, Does.Contain("Nothing in the 2026-09 index matches"));
+            });
+        }
+
+        [Test]
+        public async Task Without_json_candidates_beyond_the_cap_say_how_many_more()
+        {
+            this.lookup.Setup(mock => mock.Lookup(It.IsAny<LookupRequest>())).Returns(new LookupResult
+            {
+                Release = "2026-09",
+                Kind = KnowledgeKind.Metamodel,
+                Status = LookupStatus.Candidates,
+                Matches = [.. Enumerable.Range(0, KnowledgeLookup.MaxMatches).Select(index => $"Widget{index:D2}")],
+                TotalMatches = KnowledgeLookup.MaxMatches + 5,
+            });
+            using var console = new RecordedConsole();
+
+            await this.Invoke("lookup --kind metamodel --name widget");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(console.Output, Does.Contain("Did you mean"));
+                Assert.That(console.Output, Does.Contain("Widget19"));
+                Assert.That(console.Output, Does.Contain("... and 5 more."));
+            });
         }
 
         [TestCase("lookup --name PartUsage")]

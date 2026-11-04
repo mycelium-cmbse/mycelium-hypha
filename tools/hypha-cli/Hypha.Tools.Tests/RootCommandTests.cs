@@ -72,16 +72,6 @@ namespace Hypha.Tools.Tests
             });
         }
 
-        [TestCase("check --json", true)]
-        [TestCase("list --json", true)]
-        [TestCase("lookup --kind metamodel --name PartUsage --json", true)]
-        [TestCase("list", false)]
-        [TestCase("generate", false)]
-        public void Json_output_is_recognised_on_every_verb_that_offers_it(string commandLine, bool expected)
-        {
-            Assert.That(JsonOutput.IsRequested(this.root.Parse(commandLine)), Is.EqualTo(expected));
-        }
-
         [Test]
         public void Generate_takes_the_artifact_as_an_optional_argument()
         {

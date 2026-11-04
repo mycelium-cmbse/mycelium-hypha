@@ -18,8 +18,10 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
+    using Hypha.Knowledge.Toolchain;
 
     using Microsoft.Extensions.DependencyInjection;
 
@@ -30,6 +32,45 @@ namespace Hypha.Knowledge.Tests
     [TestFixture]
     public class ServiceCollectionExtensionsTests
     {
+        [Test]
+        public void A_toolchain_cache_root_takes_uv_s_cache_and_python_with_it()
+        {
+            var toolchain = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-toolchain-" + Guid.NewGuid().ToString("N")));
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.ToolchainCacheRoot = toolchain)
+                .BuildServiceProvider();
+
+            var environment = provider.GetRequiredService<IUvProvisioner>().Environment;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    environment[UvProvisioner.UvCacheVariable],
+                    Is.EqualTo(Path.Combine(toolchain.FullName, "uv-cache")));
+                Assert.That(
+                    environment[UvProvisioner.UvPythonInstallVariable],
+                    Is.EqualTo(Path.Combine(toolchain.FullName, "python")));
+            });
+        }
+
+        [Test]
+        public void Without_a_toolchain_cache_root_uv_keeps_its_default_locations()
+        {
+            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+
+            Assert.That(provider.GetRequiredService<IUvProvisioner>().Environment, Is.Empty);
+        }
+
+        [Test]
+        public void Resolves_the_knowledge_lookup()
+        {
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.RepositoryRoot = new DirectoryInfo(Path.GetTempPath()))
+                .BuildServiceProvider();
+
+            Assert.That(provider.GetService<IKnowledgeLookup>(), Is.TypeOf<KnowledgeLookup>());
+        }
+
         [Test]
         public void Resolves_every_upstream_service()
         {

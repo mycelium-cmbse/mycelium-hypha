@@ -17,7 +17,6 @@ namespace Hypha.Knowledge.Lookup
     using System.Text.Json;
 
     using Hypha.Knowledge.Layout;
-    using Hypha.Knowledge.ModelLibrary;
 
     /// <inheritdoc cref="IKnowledgeLookup"/>
     /// <remarks>
@@ -40,11 +39,8 @@ namespace Hypha.Knowledge.Lookup
         /// <summary>The largest generated file a lookup reads.</summary>
         public const long MaxFileBytes = 64L * 1024 * 1024;
 
-        private static readonly JsonSerializerOptions ModelLibraryFormat = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-        };
+        /// <summary>How many links deep a path is followed before it is taken to be a loop.</summary>
+        private const int MaxLinkDepth = 32;
 
         private readonly IKnowledgeLayout layout;
 
@@ -183,61 +179,102 @@ namespace Hypha.Knowledge.Lookup
 
         private static IReadOnlyList<IndexEntry> ReadIndex(KnowledgeKind kind, FileInfo index, string tag)
         {
+            var text = ReadText(index);
+
             try
             {
-                var text = ReadText(index);
+                using var document = JsonDocument.Parse(text);
 
                 return kind == KnowledgeKind.ModelLibrary
-                    ? ReadModelLibraryIndex(text)
-                    : ReadMetamodelIndex(text);
+                    ? ReadModelLibraryIndex(document.RootElement)
+                    : ReadMetamodelIndex(document.RootElement);
             }
-            catch (Exception exception) when (exception is JsonException or KeyNotFoundException or InvalidOperationException
-                                                  and not KnowledgeLookupException)
+            catch (Exception exception) when (exception is JsonException or InvalidDataException)
             {
                 throw new KnowledgeLookupException(
-                    $"The {Describe(kind)} index of release {tag} is not valid. "
+                    $"The {Describe(kind)} index of release {tag} is not valid ({exception.Message}). "
                     + $"Run 'hypha generate --tag {tag}' to regenerate it.",
                     exception);
             }
         }
 
-        private static List<IndexEntry> ReadMetamodelIndex(string text)
+        /// <summary>
+        /// Reads <c>metamodel/index.json</c>: <c>entries</c>, keyed by element name, each with a
+        /// <c>file</c>, a <c>kind</c> and, for a metaclass, a <c>qualifiedName</c>.
+        /// </summary>
+        private static List<IndexEntry> ReadMetamodelIndex(JsonElement root) =>
+        [
+            .. Entries(root, "entries").Select(pair =>
+            {
+                var qualifiedName = OptionalString(pair.Value, "qualifiedName", pair.Key);
+
+                return new IndexEntry(
+                    pair.Key,
+                    qualifiedName is null ? [pair.Key] : [pair.Key, qualifiedName],
+                    OptionalString(pair.Value, "kind", pair.Key) ?? string.Empty,
+                    RequiredString(pair.Value, "file", pair.Key));
+            }),
+        ];
+
+        /// <summary>
+        /// Reads <c>model-library/index.json</c> (<c>knowledge/model-library.schema.json</c>):
+        /// <c>declarations</c>, keyed by qualified name, each with a <c>kind</c> and a <c>file</c>.
+        /// </summary>
+        private static List<IndexEntry> ReadModelLibraryIndex(JsonElement root) =>
+        [
+            .. Entries(root, "declarations").Select(pair => new IndexEntry(
+                pair.Key,
+                [pair.Key],
+                RequiredString(pair.Value, "kind", pair.Key),
+                RequiredString(pair.Value, "file", pair.Key))),
+        ];
+
+        /// <summary>The entries of an index, each checked to be an object.</summary>
+        /// <remarks>Read eagerly, so a malformed entry is reported while the document is still open.</remarks>
+        private static List<(string Key, JsonElement Value)> Entries(JsonElement root, string property)
         {
-            using var document = JsonDocument.Parse(text);
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty(property, out var entries)
+                || entries.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidDataException($"'{property}' is missing or not an object");
+            }
 
-            return
-            [
-                .. document.RootElement.GetProperty("entries").EnumerateObject().Select(entry =>
+            var found = new List<(string Key, JsonElement Value)>();
+
+            foreach (var entry in entries.EnumerateObject())
+            {
+                if (entry.Value.ValueKind != JsonValueKind.Object)
                 {
-                    var qualifiedName = entry.Value.TryGetProperty("qualifiedName", out var value)
-                        ? value.GetString()
-                        : null;
+                    throw new InvalidDataException($"entry '{entry.Name}' is not an object");
+                }
 
-                    return new IndexEntry(
-                        entry.Name,
-                        qualifiedName is null ? [entry.Name] : [entry.Name, qualifiedName],
-                        entry.Value.GetProperty("kind").GetString() ?? string.Empty,
-                        entry.Value.GetProperty("file").GetString()
-                            ?? throw new InvalidOperationException($"'{entry.Name}' has no file."));
-                }),
-            ];
+                found.Add((entry.Name, entry.Value));
+            }
+
+            return found;
         }
 
-        private static List<IndexEntry> ReadModelLibraryIndex(string text)
-        {
-            var document = JsonSerializer.Deserialize<ModelLibraryDocument>(text, ModelLibraryFormat)
-                           ?? throw new InvalidOperationException("The model-library index is empty.");
+        private static string RequiredString(JsonElement entry, string property, string key) =>
+            OptionalString(entry, property, key) is { Length: > 0 } value
+                ? value
+                : throw new InvalidDataException($"entry '{key}' has no '{property}'");
 
-            return
-            [
-                .. (document.Declarations ?? throw new InvalidOperationException("No declarations."))
-                    .Select(pair => new IndexEntry(pair.Key, [pair.Key], pair.Value.Kind, pair.Value.File)),
-            ];
+        private static string? OptionalString(JsonElement entry, string property, string key)
+        {
+            if (!entry.TryGetProperty(property, out var value) || value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return value.ValueKind == JsonValueKind.String
+                ? value.GetString()
+                : throw new InvalidDataException($"'{property}' of entry '{key}' is not a string");
         }
 
         /// <summary>
         /// Resolves an index path, refusing one that leaves the artifact's folder - directly, through
-        /// <c>..</c>, or through a symbolic link.
+        /// <c>..</c>, or through a symbolic link anywhere on the way.
         /// </summary>
         private static FileInfo ContainedFile(DirectoryInfo root, string relative, string tag)
         {
@@ -260,21 +297,60 @@ namespace Hypha.Knowledge.Lookup
                     $"The page '{relative}' of release {tag} is missing. Run 'hypha generate --tag {tag}'.");
             }
 
-            var target = file.ResolveLinkTarget(returnFinalTarget: true);
-            if (target is not null)
+            // Compared after resolving every link on both paths: a linked folder on the way is caught
+            // as well as a linked page, and a release folder that itself sits behind a link (as the
+            // temporary folder does on macOS) is not mistaken for an escape.
+            if (!IsInside(Canonical(root.FullName, tag), Canonical(file.FullName, tag)))
             {
-                var realRoot = root.ResolveLinkTarget(returnFinalTarget: true)?.FullName ?? root.FullName;
-
-                if (!IsInside(realRoot, target.FullName))
-                {
-                    throw new KnowledgeLookupException(
-                        $"The page '{relative}' of release {tag} links outside its folder.");
-                }
-
-                return new FileInfo(target.FullName);
+                throw new KnowledgeLookupException(
+                    $"The page '{relative}' of release {tag} links outside its folder.");
             }
 
             return file;
+        }
+
+        /// <summary>The path with every symbolic link or junction along it resolved.</summary>
+        private static string Canonical(string path, string tag, int depth = 0)
+        {
+            if (depth > MaxLinkDepth)
+            {
+                throw new KnowledgeLookupException(
+                    $"The knowledge of release {tag} is reached through too many links ('{path}').");
+            }
+
+            try
+            {
+                var full = Path.GetFullPath(path);
+                var root = Path.GetPathRoot(full) ?? string.Empty;
+                var current = root;
+
+                foreach (var part in full[root.Length..].Split(
+                             [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+                             StringSplitOptions.RemoveEmptyEntries))
+                {
+                    current = Path.Combine(current, part);
+
+                    FileSystemInfo info = Directory.Exists(current) ? new DirectoryInfo(current) : new FileInfo(current);
+                    if (info.LinkTarget is null)
+                    {
+                        continue;
+                    }
+
+                    var target = info.ResolveLinkTarget(returnFinalTarget: true);
+                    if (target is not null)
+                    {
+                        current = Canonical(target.FullName, tag, depth + 1);
+                    }
+                }
+
+                return current;
+            }
+            catch (IOException exception)
+            {
+                throw new KnowledgeLookupException(
+                    $"A link on the way to the knowledge of release {tag} cannot be followed: {exception.Message}",
+                    exception);
+            }
         }
 
         private static bool IsInside(string root, string path)
@@ -301,15 +377,26 @@ namespace Hypha.Knowledge.Lookup
 
         private static string ReadText(FileInfo file)
         {
-            file.Refresh();
-
-            if (file.Length > MaxFileBytes)
+            try
             {
-                throw new KnowledgeLookupException(
-                    $"'{file.Name}' is larger than the {MaxFileBytes / (1024 * 1024)} MiB a lookup reads.");
-            }
+                file.Refresh();
 
-            return File.ReadAllText(file.FullName, Encoding.UTF8);
+                if (file.Length > MaxFileBytes)
+                {
+                    throw new KnowledgeLookupException(
+                        $"'{file.Name}' is larger than the {MaxFileBytes / (1024 * 1024)} MiB a lookup reads.");
+                }
+
+                return File.ReadAllText(file.FullName, Encoding.UTF8);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Most likely 'hypha generate' rewriting the file at this moment.
+                throw new KnowledgeLookupException(
+                    $"'{file.FullName}' could not be read: {exception.Message} "
+                    + "If 'hypha generate' is running, try again once it has finished.",
+                    exception);
+            }
         }
 
         private static string Describe(KnowledgeKind kind) =>

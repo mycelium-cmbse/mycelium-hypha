@@ -24,8 +24,9 @@ namespace Hypha.Tools.Commands
     /// </summary>
     /// <remarks>
     /// Standard output carries exactly one line holding one JSON document: no banner, no log lines
-    /// (they go to standard error), no wrapping. A failure the verb can describe is a document too,
-    /// <c>{"error": "..."}</c>, with a non-zero exit code.
+    /// (they go to standard error), no wrapping. A failure is a document too,
+    /// <c>{"error": "..."}</c>, with a non-zero exit code - whether the verb reports it or
+    /// <c>Program</c> does, before or around the verb.
     /// </remarks>
     public static class JsonOutput
     {

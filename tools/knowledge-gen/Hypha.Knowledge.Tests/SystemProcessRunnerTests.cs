@@ -109,6 +109,33 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task The_given_environment_overrides_an_inherited_variable()
+        {
+            // A user may already have UV_CACHE_DIR set; the toolchain root still has to win.
+            var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
+            var (shell, arguments) = OperatingSystem.IsWindows()
+                ? ("cmd.exe", "/c exit %HYPHA_TEST_INHERITED%")
+                : ("/bin/sh", "-c \"exit $HYPHA_TEST_INHERITED\"");
+
+            Environment.SetEnvironmentVariable("HYPHA_TEST_INHERITED", "3");
+
+            try
+            {
+                var exitCode = await runner.RunAsync(
+                    shell,
+                    arguments,
+                    this.workingDirectory,
+                    new Dictionary<string, string> { ["HYPHA_TEST_INHERITED"] = "7" });
+
+                Assert.That(exitCode, Is.EqualTo(7));
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("HYPHA_TEST_INHERITED", null);
+            }
+        }
+
+        [Test]
         public async Task Streams_standard_output_through_the_logger()
         {
             var logger = new Mock<ILogger<SystemProcessRunner>>();

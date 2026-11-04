@@ -166,27 +166,47 @@ namespace Hypha.Tools
             }
             catch (OperationCanceledException)
             {
-                AnsiConsole.MarkupLine("[yellow]Cancelled.[/]");
-
-                return 130;
+                return await Fail(parseResult, 130, "Cancelled.", "yellow");
             }
             catch (InvalidOperationException exception)
             {
                 // Composition failed - almost always "this is not a hypha checkout". A stack trace
                 // would bury the one sentence that tells the user what to do about it.
-                AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}[/]");
-
-                return 1;
+                return await Fail(parseResult, 1, exception.Message);
             }
             catch (HttpRequestException exception)
             {
-                AnsiConsole.MarkupLine($"[red]The upstream could not be reached: {Markup.Escape(exception.Message)}[/]");
-                AnsiConsole.MarkupLine(
-                    "[grey]An unauthenticated GitHub API allows 60 requests an hour; set --token or "
-                    + "GITHUB_TOKEN if that is the limit you met.[/]");
-
-                return 1;
+                return await Fail(
+                    parseResult,
+                    1,
+                    $"The upstream could not be reached: {exception.Message}",
+                    hint: "An unauthenticated GitHub API allows 60 requests an hour; set --token or "
+                          + "GITHUB_TOKEN if that is the limit you met.");
             }
+        }
+
+        /// <summary>
+        /// Reports a failure: as <c>{"error": "..."}</c> when the verb was asked for JSON, so standard
+        /// output still holds one document, and as a coloured sentence otherwise.
+        /// </summary>
+        private static async Task<int> Fail(
+            ParseResult parseResult, int exitCode, string message, string colour = "red", string? hint = null)
+        {
+            if (JsonOutput.IsRequested(parseResult))
+            {
+                await JsonOutput.WriteErrorAsync(hint is null ? message : $"{message} {hint}");
+
+                return exitCode;
+            }
+
+            AnsiConsole.MarkupLine($"[{colour}]{Markup.Escape(message)}[/]");
+
+            if (hint is not null)
+            {
+                AnsiConsole.MarkupLine($"[grey]{Markup.Escape(hint)}[/]");
+            }
+
+            return exitCode;
         }
 
         /// <summary>

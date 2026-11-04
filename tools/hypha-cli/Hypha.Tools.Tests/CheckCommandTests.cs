@@ -11,6 +11,7 @@ namespace Hypha.Tools.Tests
 {
     using System.Collections.Generic;
     using System.CommandLine;
+    using System.Linq;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -67,6 +68,27 @@ namespace Hypha.Tools.Tests
                 Assert.That(parsed.DefaultTag, Is.EqualTo("2026-05"));
                 Assert.That(parsed.AvailableOnline, Has.Count.EqualTo(CheckResult.MaxAvailableOnline));
                 Assert.That(parsed.AvailableOnline[0], Is.EqualTo("2026-06"));
+            });
+        }
+
+        [Test]
+        public async Task Json_output_keeps_the_property_names_the_hook_reads()
+        {
+            using var console = new RecordedConsole();
+
+            await this.Invoke("check --json --no-logo");
+
+            // Read as a raw document rather than through CheckResult, so a renamed property fails
+            // here instead of passing on both sides of the serializer.
+            using var document = JsonDocument.Parse(console.Output);
+            var json = document.RootElement;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(json.GetProperty("installedTags")[0].GetString(), Is.EqualTo("2026-05"));
+                Assert.That(json.GetProperty("defaultTag").GetString(), Is.EqualTo("2026-05"));
+                Assert.That(json.GetProperty("availableOnline")[0].GetString(), Is.EqualTo("2026-06"));
+                Assert.That(json.EnumerateObject().Count(), Is.EqualTo(3));
             });
         }
 

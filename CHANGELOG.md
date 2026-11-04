@@ -22,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Every `--json` document (`check`, `list`, `lookup`) is one line on standard output with no banner;
-  log lines go to standard error, and a failure is written as `{"error": "..."}`.
+  log lines go to standard error, and every failure – including one before the verb runs, such as
+  cancellation or an unreachable upstream – is written as `{"error": "..."}`.
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.2.0`, which
   provides `QueryConstraintBody` and `QueryBodyConditionText` itself. The generators now use those
   and hypha's own copies in `ModelQueryExtensions` are gone (`fixes #145`); the generated knowledge
