@@ -130,6 +130,84 @@ namespace Hypha.Tools.Tests
             });
         }
 
+        [TestCase("System.Net.Http.HttpClient.hypha-upstream.LogicalHandler")]
+        [TestCase("Microsoft.Extensions.Http.DefaultHttpClientFactory")]
+        [TestCase("Polly")]
+        public void With_json_request_and_retry_chatter_is_held_to_warnings(string category)
+        {
+            // A caller that never reads standard error (the SessionStart hook) would otherwise hang
+            // once enough of these filled the pipe.
+            var (_, quiet) = Log("list --json", category, LogLevel.Information);
+            var (_, warning) = Log("list --json", category, LogLevel.Warning);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(quiet, Does.Not.Contain("a log line"));
+                Assert.That(warning, Does.Contain("a log line"));
+            });
+        }
+
+        [Test]
+        public void Without_json_request_chatter_is_still_logged()
+        {
+            var (output, _) = Log("list", "System.Net.Http.HttpClient.hypha-upstream.LogicalHandler", LogLevel.Information);
+
+            Assert.That(output, Does.Contain("a log line"));
+        }
+
+        [Test]
+        public void A_requested_log_level_above_warning_is_kept_for_the_quiet_categories()
+        {
+            var (_, error) = Log("list --json --log-level Error", "Polly", LogLevel.Warning);
+
+            Assert.That(error, Does.Not.Contain("a log line"));
+        }
+
+        [TestCase("list --json")]
+        [TestCase("lookup --kind metamodel --name X --json")]
+        public async Task A_corrupt_version_manifest_is_a_json_error(string commandLine)
+        {
+            using var knowledge = new TemporaryKnowledge();
+            Directory.CreateDirectory(knowledge.Layout.VersionManifest.DirectoryName!);
+            await File.WriteAllTextAsync(knowledge.Layout.VersionManifest.FullName, "{ not json");
+            using var console = new RecordedConsole();
+
+            var result = await Program.BuildRootCommand()
+                .Parse($"{commandLine} --repository-root \"{knowledge.Root.FullName}\"")
+                .InvokeAsync();
+
+            var lines = console.Output.TrimEnd('\r', '\n').Split('\n');
+            using var document = JsonDocument.Parse(lines[0]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(1));
+                Assert.That(lines, Has.Length.EqualTo(1));
+                Assert.That(
+                    document.RootElement.GetProperty("error").GetString(),
+                    Does.StartWith("A knowledge file could not be read"));
+            });
+        }
+
+        [Test]
+        public async Task Without_json_a_corrupt_version_manifest_is_a_sentence()
+        {
+            using var knowledge = new TemporaryKnowledge();
+            Directory.CreateDirectory(knowledge.Layout.VersionManifest.DirectoryName!);
+            await File.WriteAllTextAsync(knowledge.Layout.VersionManifest.FullName, "{ not json");
+            using var console = new RecordedConsole();
+
+            var result = await Program.BuildRootCommand()
+                .Parse($"list --no-logo --repository-root \"{knowledge.Root.FullName}\"")
+                .InvokeAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(1));
+                Assert.That(console.Output, Does.Contain("A knowledge file could not be read"));
+            });
+        }
+
         [Test]
         public void Without_json_log_lines_go_to_standard_output()
         {
@@ -220,7 +298,8 @@ namespace Hypha.Tools.Tests
         }
 
         /// <summary>Logs one line through the logging a verb runs with, capturing both console streams.</summary>
-        private static (string Output, string Error) Log(string commandLine)
+        private static (string Output, string Error) Log(
+            string commandLine, string category = "Hypha.Tools.Tests", LogLevel logLevel = LogLevel.Information)
         {
             using var knowledge = new TemporaryKnowledge();
             var parsed = Program.BuildRootCommand().Parse(
@@ -237,7 +316,7 @@ namespace Hypha.Tools.Tests
             {
                 using (var provider = KnowledgeServices.Build(parsed))
                 {
-                    provider.GetRequiredService<ILogger<JsonOutputTests>>().LogInformation("a log line");
+                    provider.GetRequiredService<ILoggerFactory>().CreateLogger(category).Log(logLevel, "a log line");
                 }
 
                 return (output.ToString(), error.ToString());

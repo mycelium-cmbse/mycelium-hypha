@@ -35,7 +35,9 @@ namespace Hypha.Knowledge.Lookup
     ///   <item>the last segment has to follow the keyword the index recorded for it.</item>
     /// </list>
     /// Between a keyword and its name, <c>all</c> (<c>feature all x</c>) and a short name
-    /// (<c>attribute &lt;m&gt; mass</c>) are allowed, as the declaration scanner allows them.
+    /// (<c>attribute &lt;m&gt; mass</c>) are allowed. The declaration scanner skips <c>all</c>; it does
+    /// not index short-named declarations today, so the short name only matters for an index that
+    /// carries them.
     /// When the nesting cannot be followed, the segments are searched for in order regardless of
     /// depth; when even that fails, the caller starts at the top of the page.
     /// </remarks>
@@ -276,12 +278,13 @@ namespace Hypha.Knowledge.Lookup
         /// <summary>
         /// A name as declared: bare, or quoted when it is not a plain identifier - and not a reference
         /// to it, which follows <c>:</c>, <c>:&gt;</c>, <c>:&gt;&gt;</c>, <c>::</c>, <c>=</c> or <c>~</c>.
+        /// A <c>&gt;</c> on its own, closing a short name (<c>&lt;m&gt; mass</c>), is not a reference.
         /// </summary>
         private static string NamePattern(string name)
         {
             var escaped = Regex.Escape(name.Trim('\''));
 
-            return $@"(?<![:>=~]\s*)(?:'{escaped}'|(?<![\w']){escaped}(?![\w']))";
+            return $@"(?<!(?::>{{0,2}}|[=~])\s*)(?:'{escaped}'|(?<![\w']){escaped}(?![\w']))";
         }
 
         /// <summary>The recorded keyword, with any run of whitespace allowed between its words.</summary>

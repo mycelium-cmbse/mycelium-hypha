@@ -769,6 +769,41 @@ namespace Hypha.Knowledge.Tests
             Assert.That(result.DeclarationLine, Is.EqualTo(4));
         }
 
+        [TestCase("attribute <m> mass : MassValue;")]
+        [TestCase("attribute <'m'> mass;")]
+        [TestCase("attribute all <m> mass;")]
+        public void A_declaration_with_a_short_name_is_found(string declaration)
+        {
+            this.WriteLibrary(("P::mass", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                $"```sysml\npackage P {{\n    attribute other : mass;\n    {declaration}\n}}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::mass"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.DeclarationLine, Is.EqualTo(4));
+                Assert.That(result.Content, Does.StartWith("    " + declaration));
+            });
+        }
+
+        [TestCase("    part p :> mass;")]
+        [TestCase("    part p :>> mass;")]
+        [TestCase("    part p = mass;")]
+        [TestCase("    part p : Q::mass;")]
+        public void A_reference_to_a_name_is_not_taken_for_its_declaration(string reference)
+        {
+            this.WriteLibrary(("P::mass", "attribute"));
+            this.Write(
+                "model-library/packages/P.md",
+                $"```sysml\npackage P {{\n{reference}\n}}\n```\n");
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::mass"));
+
+            Assert.That(result.DeclarationLine, Is.Null);
+        }
+
         [Test]
         public void A_scope_named_by_specializes_before_its_own_declaration_is_not_taken_for_it()
         {

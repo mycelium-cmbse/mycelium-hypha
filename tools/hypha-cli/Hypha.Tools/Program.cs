@@ -16,6 +16,7 @@ namespace Hypha.Tools
     using System.Linq;
     using System.Net.Http;
     using System.Reflection;
+    using System.Text.Json;
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Generation;
@@ -193,6 +194,17 @@ namespace Hypha.Tools
                     $"The upstream could not be reached: {exception.Message}",
                     hint: "An unauthenticated GitHub API allows 60 requests an hour; set --token or "
                           + "GITHUB_TOKEN if that is the limit you met.");
+            }
+            catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
+            {
+                // A file the verb reads - knowledge/versions.json most often - is corrupt, or is being
+                // rewritten by another hypha at this moment.
+                return await Fail(
+                    parseResult,
+                    1,
+                    $"A knowledge file could not be read: {exception.Message}",
+                    hint: "If another hypha command is running, try again once it has finished; "
+                          + "otherwise fetch or generate the release again.");
             }
         }
 

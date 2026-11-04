@@ -97,11 +97,14 @@ for `hypha generate`.
 `--json` document follows the same rules:
 
 - standard output holds exactly one line with one JSON document – no banner, no wrapping – and every
-  log line goes to standard error;
+  log line goes to standard error. HTTP request and retry logging is held to warnings and errors there,
+  so a caller that never reads standard error (the `SessionStart` hook) cannot fill the pipe and stall
+  the command;
 - every property of the document is always present, `null` when it has no value;
 - a failure is a document too, `{"error": "..."}`, with a non-zero exit code: 1, or 130 when
-  cancelled. That includes a failure before the verb runs, such as a folder that is not a hypha
-  repository or an upstream that cannot be reached. A lookup whose name does not resolve is not a
+  cancelled. That includes a command line that does not parse and a failure around the verb, such as
+  a folder that is not a hypha repository, an upstream that cannot be reached or a corrupt
+  `knowledge/versions.json`. A lookup whose name does not resolve is not a
   failure: it exits 0 and says so in its `status`.
 
 The property names are a contract, pinned by the tests in `Hypha.Tools.Tests`; renaming one is a
