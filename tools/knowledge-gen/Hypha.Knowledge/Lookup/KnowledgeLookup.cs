@@ -142,8 +142,8 @@ namespace Hypha.Knowledge.Lookup
             };
         }
 
-        private static (LookupStatus Status, IReadOnlyList<IndexEntry> Matches) Resolve(
-            IReadOnlyList<IndexEntry> entries, string name)
+        private static (LookupStatus Status, List<IndexEntry> Matches) Resolve(
+            List<IndexEntry> entries, string name)
         {
             var suffix = "::" + name;
 
@@ -177,7 +177,7 @@ namespace Hypha.Knowledge.Lookup
             return (candidates.Count == 0 ? LookupStatus.NotFound : LookupStatus.Candidates, candidates);
         }
 
-        private static IReadOnlyList<IndexEntry> ReadIndex(KnowledgeKind kind, FileInfo index, string tag)
+        private static List<IndexEntry> ReadIndex(KnowledgeKind kind, FileInfo index, string tag)
         {
             var text = ReadText(index);
 

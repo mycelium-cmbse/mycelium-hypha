@@ -76,7 +76,7 @@ namespace Hypha.Knowledge.Lookup
 
         /// <summary>Follows the segments down the scopes, each one directly inside the previous one.</summary>
         private static int? FindNested(
-            Source source, int first, int end, IReadOnlyList<Regex> scopes, Regex member)
+            Source source, int first, int end, List<Regex> scopes, Regex member)
         {
             var position = first;
             var depth = source.Depths[first];
@@ -139,7 +139,7 @@ namespace Hypha.Knowledge.Lookup
         /// name on its own line, the line after the brace when the brace is on a line of its own.
         /// </summary>
         /// <returns><c>null</c> when the declaration opens no body.</returns>
-        private static int? BodyStart(IReadOnlyList<string> code, int line, Match match, int end)
+        private static int? BodyStart(string[] code, int line, Match match, int end)
         {
             if (code[line].IndexOf('{', match.Index + match.Length) >= 0)
             {
@@ -179,70 +179,21 @@ namespace Hypha.Knowledge.Lookup
 
         /// <summary>
         /// The source block's lines with comments blanked out, and the brace depth at the start of
-        /// each line. Braces inside comments and quoted text do not count.
+        /// each line.
         /// </summary>
         private static Source Read(IReadOnlyList<string> lines, int first, int end)
         {
             var code = lines.ToArray();
             var depths = new int[lines.Count + 1];
-            var depth = 0;
-            var inBlockComment = false;
+            var scanner = new BraceScanner();
 
             for (var index = first; index < end; index++)
             {
-                depths[index] = depth;
-                var text = lines[index].ToCharArray();
-
-                for (var at = 0; at < text.Length; at++)
-                {
-                    var next = at + 1 < text.Length ? text[at + 1] : '\0';
-
-                    if (inBlockComment)
-                    {
-                        if (text[at] == '*' && next == '/')
-                        {
-                            inBlockComment = false;
-                            text[at + 1] = ' ';
-                        }
-
-                        text[at] = ' ';
-                        continue;
-                    }
-
-                    if (text[at] == '/' && next == '/')
-                    {
-                        Array.Fill(text, ' ', at, text.Length - at);
-                        break;
-                    }
-
-                    if (text[at] == '/' && next == '*')
-                    {
-                        inBlockComment = true;
-                        text[at] = ' ';
-                        continue;
-                    }
-
-                    if (text[at] is '\'' or '"')
-                    {
-                        var close = Array.IndexOf(text, text[at], at + 1);
-                        at = close < 0 ? text.Length : close;
-                        continue;
-                    }
-
-                    if (text[at] == '{')
-                    {
-                        depth++;
-                    }
-                    else if (text[at] == '}')
-                    {
-                        depth = Math.Max(0, depth - 1);
-                    }
-                }
-
-                code[index] = new string(text);
+                depths[index] = scanner.Depth;
+                code[index] = scanner.Scan(lines[index]);
             }
 
-            depths[end] = depth;
+            depths[end] = scanner.Depth;
 
             return new Source(code, depths);
         }
@@ -271,7 +222,7 @@ namespace Hypha.Knowledge.Lookup
             return (0, lines.Count);
         }
 
-        private static int? Search(IReadOnlyList<string> lines, int from, int end, Regex pattern)
+        private static int? Search(string[] lines, int from, int end, Regex pattern)
         {
             for (var index = from; index < end; index++)
             {
@@ -309,6 +260,85 @@ namespace Hypha.Knowledge.Lookup
             string.Join(
                 @"\s+",
                 keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Regex.Escape));
+
+        /// <summary>
+        /// Reads source lines in order, blanking out comments and counting the braces of the code
+        /// that is left. Braces inside comments and quoted text do not count; a block comment may
+        /// span lines, which is why one scanner reads a whole block.
+        /// </summary>
+        private sealed class BraceScanner
+        {
+            private bool inBlockComment;
+
+            /// <summary>The number of bodies open at the current position.</summary>
+            public int Depth { get; private set; }
+
+            /// <summary>Reads one line.</summary>
+            /// <returns>The line with its comments replaced by spaces, so columns are kept.</returns>
+            public string Scan(string line)
+            {
+                var text = line.ToCharArray();
+                var at = 0;
+
+                while (at < text.Length)
+                {
+                    at = this.inBlockComment ? this.SkipComment(text, at) : this.ScanCode(text, at);
+                }
+
+                return new string(text);
+            }
+
+            /// <summary>Blanks a block comment up to and including its end, or to the end of the line.</summary>
+            /// <returns>Where the code resumes.</returns>
+            private int SkipComment(char[] text, int at)
+            {
+                var close = new string(text).IndexOf("*/", at, StringComparison.Ordinal);
+                var stop = close < 0 ? text.Length : close + 2;
+
+                Array.Fill(text, ' ', at, stop - at);
+                this.inBlockComment = close < 0;
+
+                return stop;
+            }
+
+            /// <summary>Reads one piece of code: a comment opening, quoted text, or a single character.</summary>
+            /// <returns>The position after it.</returns>
+            private int ScanCode(char[] text, int at)
+            {
+                var character = text[at];
+                var next = at + 1 < text.Length ? text[at + 1] : '\0';
+
+                if (character == '/' && next == '/')
+                {
+                    Array.Fill(text, ' ', at, text.Length - at);
+                    return text.Length;
+                }
+
+                if (character == '/' && next == '*')
+                {
+                    Array.Fill(text, ' ', at, 2);
+                    this.inBlockComment = true;
+                    return at + 2;
+                }
+
+                if (character is '\'' or '"')
+                {
+                    var close = Array.IndexOf(text, character, at + 1);
+                    return close < 0 ? text.Length : close + 1;
+                }
+
+                if (character == '{')
+                {
+                    this.Depth++;
+                }
+                else if (character == '}')
+                {
+                    this.Depth = Math.Max(0, this.Depth - 1);
+                }
+
+                return at + 1;
+            }
+        }
 
         /// <summary>A source block read for searching.</summary>
         /// <param name="Code">Every line of the page, with comments blanked out inside the block.</param>
