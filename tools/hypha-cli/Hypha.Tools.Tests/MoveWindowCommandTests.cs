@@ -26,29 +26,27 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="MoveWindowCommand"/>: step order, failure propagation, and
-    /// that eviction only ever runs once everything ahead of it has succeeded.
-    /// </summary>
-    /// <remarks>
-    /// A real end-to-end run fetches from the network, runs multi-minute specification extraction and
-    /// deletes real release data - none of that belongs in a unit test. Every sub-step this command
-    /// drives is mocked at its own seam (<see cref="IReleaseInstaller"/>, <see cref="IKnowledgeGenerator"/>,
-    /// <see cref="IReleaseWindowEvictor"/>, <see cref="IProcessRunner"/>), the same way
-    /// <c>GenerateCommandTests</c>/<c>FetchCommandTests</c> mock theirs.
-    /// </remarks>
     [TestFixture]
     public class MoveWindowCommandTests
     {
         private RootCommand root = null!;
+
         private Mock<IReleaseInstaller> installer = null!;
+
         private Mock<IKnowledgeGenerator> generator = null!;
+
         private Mock<IKnowledgeLayout> layout = null!;
+
         private Mock<IReleaseWindowEvictor> evictor = null!;
+
         private Mock<IProcessRunner> processes = null!;
+
         private List<string> order = null!;
+
         private int specExtractExitCode;
+
         private int reblessExitCode;
+
         private int verifyExitCode;
 
         [SetUp]
@@ -64,8 +62,7 @@ namespace Hypha.Tools.Tests
 
             this.installer = new Mock<IReleaseInstaller>();
             this.installer
-                .Setup(mock => mock.InstallAsync(
-                    It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(mock => mock.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<FetchProgress>? _) =>
                 {
                     this.order.Add($"fetch:{request.Tag}");
@@ -106,9 +103,10 @@ namespace Hypha.Tools.Tests
 
             this.processes = new Mock<IProcessRunner>();
             this.processes
-                .Setup(mock => mock.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((string fileName, string arguments, DirectoryInfo _, CancellationToken _) =>
+                .Setup(mock => mock.RunAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((string fileName, string arguments, DirectoryInfo _, IReadOnlyDictionary<string, string>? _,
+                    CancellationToken _) =>
                 {
                     if (arguments.Contains("pytest", StringComparison.Ordinal))
                     {
@@ -158,8 +156,7 @@ namespace Hypha.Tools.Tests
         {
             await this.Invoke("move-window --tag 2026-06 --keep 3");
 
-            this.evictor.Verify(
-                mock => mock.EvictAsync(3, It.IsAny<CancellationToken>()), Times.Once);
+            this.evictor.Verify(mock => mock.EvictAsync(3, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestCase("0")]
@@ -193,11 +190,10 @@ namespace Hypha.Tools.Tests
                 Assert.That(console.Output, Does.Contain("the metamodel index is missing"));
             });
 
-            this.evictor.Verify(
-                mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+            this.evictor.Verify(mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
             this.processes.Verify(
-                mock => mock.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()),
+                mock => mock.RunAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -216,8 +212,7 @@ namespace Hypha.Tools.Tests
                     Is.EqualTo(new[] { "fetch:2026-06", "generate:2026-06", "extract-specifications" }));
             });
 
-            this.evictor.Verify(
-                mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+            this.evictor.Verify(mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
@@ -238,8 +233,7 @@ namespace Hypha.Tools.Tests
                     }));
             });
 
-            this.evictor.Verify(
-                mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+            this.evictor.Verify(mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
@@ -247,8 +241,7 @@ namespace Hypha.Tools.Tests
         {
             this.evictor
                 .Setup(mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new InvalidOperationException(
-                    "'2026-06' is both the default release and outside the newest 2"));
+                .ThrowsAsync(new InvalidOperationException("'2026-06' is both the default release and outside the newest 2"));
 
             using var console = new RecordedConsole();
 
@@ -270,8 +263,7 @@ namespace Hypha.Tools.Tests
                 mock => mock.RunAsync(
                     It.IsAny<string>(),
                     It.Is<string>(arguments => arguments.Contains("KnowledgeRegenerationTests", StringComparison.Ordinal)),
-                    It.IsAny<DirectoryInfo>(),
-                    It.IsAny<CancellationToken>()),
+                    It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -301,16 +293,11 @@ namespace Hypha.Tools.Tests
             source.Cancel();
 
             var handler = new MoveWindowCommand.Handler(
-                this.installer.Object,
-                [this.generator.Object],
-                this.layout.Object,
-                this.evictor.Object,
-                this.processes.Object,
+                this.installer.Object, [this.generator.Object], this.layout.Object, this.evictor.Object, this.processes.Object,
                 NullLogger<MoveWindowCommand.Handler>.Instance);
 
             this.installer
-                .Setup(mock => mock.InstallAsync(
-                    It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(mock => mock.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());
 
             Assert.That(
@@ -321,26 +308,20 @@ namespace Hypha.Tools.Tests
         private Task<int> Invoke(string commandLine)
         {
             var handler = new MoveWindowCommand.Handler(
-                this.installer.Object,
-                [this.generator.Object],
-                this.layout.Object,
-                this.evictor.Object,
-                this.processes.Object,
+                this.installer.Object, [this.generator.Object], this.layout.Object, this.evictor.Object, this.processes.Object,
                 NullLogger<MoveWindowCommand.Handler>.Instance);
 
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }
 
-        private static ReleaseInstallation Installation(ReleaseInstallRequest request) =>
-            new(
-                request.Tag,
-                [new FileInfo("KerML.uml"), new FileInfo("SysML.uml")],
-                [new FileInfo("model.sysml")],
-                [new FileInfo("KerML.pdf")],
-                new InstalledVersion(
-                    request.Tag,
-                    new UpstreamReference("Systems-Modeling/SysML-v2-Release", "abc123"),
-                    new UpstreamReference("Systems-Modeling/SysML-v2-Pilot-Implementation", "def456")),
-                new FileInfo("versions.json"));
+        private static ReleaseInstallation Installation(ReleaseInstallRequest request)
+        {
+            var release = new UpstreamReference("Systems-Modeling/SysML-v2-Release", "abc123");
+            var pilot = new UpstreamReference("Systems-Modeling/SysML-v2-Pilot-Implementation", "def456");
+
+            return new ReleaseInstallation(
+                request.Tag, [new FileInfo("KerML.uml"), new FileInfo("SysML.uml")], [new FileInfo("model.sysml")],
+                [new FileInfo("KerML.pdf")], new InstalledVersion(request.Tag, release, pilot), new FileInfo("versions.json"));
+        }
     }
 }

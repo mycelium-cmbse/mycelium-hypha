@@ -18,18 +18,51 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
+    using Hypha.Knowledge.Toolchain;
 
     using Microsoft.Extensions.DependencyInjection;
 
-    /// <summary>
-    /// Tests for the composition root - the container has to hand back working services, since the
-    /// CLI (see #81) will resolve them rather than construct them.
-    /// </summary>
     [TestFixture]
     public class ServiceCollectionExtensionsTests
     {
+        [Test]
+        public void A_toolchain_cache_root_takes_uv_s_cache_and_python_with_it()
+        {
+            var toolchain = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-toolchain-" + Guid.NewGuid().ToString("N")));
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.ToolchainCacheRoot = toolchain)
+                .BuildServiceProvider();
+
+            var environment = provider.GetRequiredService<IUvProvisioner>().Environment;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(environment[UvProvisioner.UvCacheVariable], Is.EqualTo(Path.Combine(toolchain.FullName, "uv-cache")));
+                Assert.That(environment[UvProvisioner.UvPythonInstallVariable], Is.EqualTo(Path.Combine(toolchain.FullName, "python")));
+            });
+        }
+
+        [Test]
+        public void Without_a_toolchain_cache_root_uv_keeps_its_default_locations()
+        {
+            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+
+            Assert.That(provider.GetRequiredService<IUvProvisioner>().Environment, Is.Empty);
+        }
+
+        [Test]
+        public void Resolves_the_knowledge_lookup()
+        {
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.RepositoryRoot = new DirectoryInfo(Path.GetTempPath()))
+                .BuildServiceProvider();
+
+            Assert.That(provider.GetService<IKnowledgeLookup>(), Is.TypeOf<KnowledgeLookup>());
+        }
+
         [Test]
         public void Resolves_every_upstream_service()
         {
@@ -93,8 +126,7 @@ namespace Hypha.Knowledge.Tests
                 .AddHyphaKnowledge(options => options.RepositoryRoot = root)
                 .BuildServiceProvider();
 
-            Assert.That(
-                provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
+            Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
         }
 
         [Test]
@@ -103,9 +135,7 @@ namespace Hypha.Knowledge.Tests
             // The tests run inside the repository, so the discovered root is the checkout.
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
-            Assert.That(
-                provider.GetRequiredService<IKnowledgeLayout>().Root.FullName,
-                Is.EqualTo(Repository.Layout!.Root.FullName));
+            Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(Repository.Layout!.Root.FullName));
         }
 
         [Test]
@@ -121,8 +151,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(client.BaseAddress, Is.EqualTo(Upstream.DefaultApiBaseAddress));
                 Assert.That(client.DefaultRequestHeaders.UserAgent.ToString(), Does.Contain("mycelium-hypha"));
                 Assert.That(
-                    client.DefaultRequestHeaders.Accept.Select(header => header.MediaType),
-                    Does.Contain("application/vnd.github+json"));
+                    client.DefaultRequestHeaders.Accept.Select(header => header.MediaType), Does.Contain("application/vnd.github+json"));
             });
         }
 
@@ -166,9 +195,10 @@ namespace Hypha.Knowledge.Tests
             // hand each caller its own client and give that back.
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
-            Assert.That(
-                provider.GetRequiredService<IReleaseFetcher>(),
-                Is.SameAs(provider.GetRequiredService<IReleaseFetcher>()));
+            var first = provider.GetRequiredService<IReleaseFetcher>();
+            var second = provider.GetRequiredService<IReleaseFetcher>();
+
+            Assert.That(first, Is.SameAs(second));
         }
     }
 }

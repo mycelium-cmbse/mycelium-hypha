@@ -19,26 +19,35 @@ namespace Hypha.Tools.Commands
     using Spectre.Console;
 
     /// <summary>
-    /// Lists the releases this checkout carries, according to <c>knowledge/versions.json</c>.
+    /// Lists the releases this checkout carries, according to <c>knowledge/versions.json</c>, and
+    /// which of their artifacts have been generated.
     /// </summary>
     public sealed class ListCommand : Command
     {
+        /// <summary>Prints machine-readable JSON instead of a table.</summary>
+        public static readonly Option<bool> Json =
+            JsonOutput.CreateOption("Print one line of JSON instead of a table - for editors and scripts.");
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ListCommand"/> class.
         /// </summary>
         public ListCommand()
-            : base("list", "List the installed releases and which one answers by default")
+            : base("list", "List the installed releases, the default, and what has been generated")
         {
+            this.Options.Add(Json);
         }
 
         /// <summary>Runs the <see cref="ListCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Locates the knowledge folder and reads the installed releases and the default from it.</summary>
             private readonly IKnowledgeLayout layout;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="layout">The knowledge layout whose installed releases are listed.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="layout"/> is <c>null</c>.</exception>
             public Handler(IKnowledgeLayout layout)
             {
                 ArgumentNullException.ThrowIfNull(layout);
@@ -47,43 +56,54 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Lists the installed releases.</summary>
-            /// <returns>0 when at least one release is installed, 1 when none is.</returns>
-            public Task<int> InvokeAsync(
-                ParseResult parseResult, CancellationToken cancellationToken = default)
+            /// <param name="parseResult">The parsed command line holding this verb's options.</param>
+            /// <param name="cancellationToken">Cancels the run before it starts.</param>
+            /// <returns>
+            /// 0 when at least one release is installed, 1 when none is. With <c>--json</c> always 0:
+            /// an empty list is an answer, not a failure.
+            /// </returns>
+            public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
+                ArgumentNullException.ThrowIfNull(parseResult);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var tags = this.layout.InstalledTags;
+                var releases = ReleaseStatus.ReadAll(this.layout);
 
-                if (tags.Count == 0)
+                if (parseResult.GetValue(Json))
                 {
-                    AnsiConsole.MarkupLine(
-                        $"[yellow]No release is installed under {Markup.Escape(this.layout.Root.FullName)}.[/]");
-                    AnsiConsole.MarkupLine("[grey]Run 'hypha fetch --tag <release>' to install one.[/]");
+                    await JsonOutput.WriteAsync(new ListResult(this.layout.DefaultTag, releases));
 
-                    return Task.FromResult(1);
+                    return 0;
                 }
 
-                var defaultTag = this.layout.DefaultTag;
+                if (releases.Count == 0)
+                {
+                    AnsiConsole.MarkupLine($"[yellow]No release is installed under {Markup.Escape(this.layout.Root.FullName)}.[/]");
+                    AnsiConsole.MarkupLine("[grey]Run 'hypha fetch --tag <release>' to install one.[/]");
+
+                    return 1;
+                }
 
                 var table = new Table().Border(TableBorder.Rounded);
                 table.AddColumn("release");
                 table.AddColumn("default");
                 table.AddColumn("sources fetched");
+                table.AddColumn("generated");
+                table.AddColumn("specification text");
 
-                foreach (var tag in tags)
+                foreach (var release in releases)
                 {
                     table.AddRow(
-                        Markup.Escape(tag),
-                        string.Equals(tag, defaultTag, StringComparison.Ordinal) ? "yes" : string.Empty,
-                        this.layout.Xmi(tag).Exists || this.layout.TextualSources(tag).Exists
-                            ? "yes"
-                            : "[red]no[/]");
+                        Markup.Escape(release.Tag),
+                        release.IsDefault ? "yes" : string.Empty,
+                        release.SourcesFetched ? "yes" : "[red]no[/]",
+                        release.Artifacts.Core ? "yes" : "[red]incomplete[/]",
+                        release.Artifacts.Specification ? "yes" : "[grey]no[/]");
                 }
 
                 AnsiConsole.Write(table);
 
-                return Task.FromResult(0);
+                return 0;
             }
         }
     }

@@ -19,6 +19,7 @@ namespace Hypha.Knowledge
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
@@ -45,6 +46,10 @@ namespace Hypha.Knowledge
         /// Adjusts <see cref="HyphaKnowledgeOptions"/>. Every setting has a working default, so a
         /// caller inside the repository can omit this entirely.
         /// </param>
+        /// <returns><paramref name="services"/>, so calls can be chained.</returns>
+        /// <exception cref="ArgumentException">
+        /// A setting <paramref name="configure"/> left is not usable (see <see cref="HyphaKnowledgeOptions.Validate"/>).
+        /// </exception>
         public static IServiceCollection AddHyphaKnowledge(
             this IServiceCollection services, Action<HyphaKnowledgeOptions>? configure = null)
         {
@@ -70,13 +75,11 @@ namespace Hypha.Knowledge
                 {
                     client.BaseAddress = baseAddress;
                     client.DefaultRequestHeaders.UserAgent.ParseAdd("mycelium-hypha");
-                    client.DefaultRequestHeaders.Accept.Add(
-                        new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
                     if (!string.IsNullOrWhiteSpace(credential))
                     {
-                        client.DefaultRequestHeaders.Authorization =
-                            new AuthenticationHeaderValue("Bearer", credential);
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", credential);
                     }
                 })
 
@@ -87,14 +90,10 @@ namespace Hypha.Knowledge
                 .AddStandardResilienceHandler();
 
             services.AddSingleton<IReleaseDiscovery>(provider => new ReleaseDiscovery(
-                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                options.Token,
-                null,
-                baseAddress));
+                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName), options.Token, null, baseAddress));
 
             services.AddSingleton<ICommitResolver>(provider => new CommitResolver(
-                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                baseAddress));
+                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName), baseAddress));
 
             services.AddSingleton<IReleaseFetcher>(provider => new ReleaseFetcher(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
@@ -125,9 +124,15 @@ namespace Hypha.Knowledge
             // SpecGenerator's on-demand `uv` invocation both go through this.
             services.AddSingleton<IProcessRunner, SystemProcessRunner>();
 
+            // An explicit toolchain root takes uv's package cache and Python with it; without one, uv
+            // keeps the per-user defaults it shares with any other uv on the machine.
             services.AddSingleton<IUvProvisioner>(provider => new UvProvisioner(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                provider.GetRequiredService<ILogger<UvProvisioner>>()));
+                provider.GetRequiredService<ILogger<UvProvisioner>>(),
+                options.ToolchainCacheRoot ?? UvProvisioner.ResolveCacheRoot(),
+                ownsToolchain: options.ToolchainCacheRoot is not null));
+
+            services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
 
             // Registered as a collection: a full run is a loop over Order, not a list of calls each
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
