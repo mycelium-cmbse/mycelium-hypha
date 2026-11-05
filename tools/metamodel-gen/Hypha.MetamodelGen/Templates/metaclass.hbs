@@ -10,7 +10,7 @@ specializedBy: [{{#each Specializations}}{{this}}{{#unless @last}}, {{/unless}}{
 
 # {{Name}}
 
-`{{Package}}` package · {{#if IsAbstract}}abstract metaclass{{else}}concrete metaclass{{/if}}
+`{{Package}}` package · {{#if IsAbstract}}abstract {{Vocabulary.ClassNoun}}{{else}}concrete {{Vocabulary.ClassNoun}}{{/if}}
 {{#if Documentation}}
 
 {{{Documentation}}}

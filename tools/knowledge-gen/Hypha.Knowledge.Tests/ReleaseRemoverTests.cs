@@ -125,6 +125,44 @@ namespace Hypha.Knowledge.Tests
             Assert.ThrowsAsync<ArgumentException>(() => this.remover.RemoveAsync("2026-06"));
         }
 
+        [TestCase("api")]
+        [TestCase("..")]
+        [TestCase("main")]
+        public void Removing_something_that_is_not_a_release_is_refused_whatever_the_manifest_says(string tag)
+        {
+            // The tag becomes a folder that is deleted recursively, and knowledge/api/ sits beside the
+            // release folders: a manifest that lists "api" must not be able to take every API version with it.
+            this.Seed("2026-05");
+            this.WriteManifestListing(tag);
+            var api = this.SeedApiVersion();
+            var before = File.ReadAllText(this.layout.VersionManifest.FullName);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(() => this.remover.RemoveAsync(tag, force: true), Throws.ArgumentException);
+
+                api.Refresh();
+                Assert.That(api.Exists, Is.True);
+                Assert.That(File.ReadAllText(this.layout.VersionManifest.FullName), Is.EqualTo(before));
+            });
+        }
+
+        // A manifest that lists a tag no fetch could have written: VersionManifest.Build would
+        // accept it, so it is swapped in as text, the way a hand edit would.
+        private void WriteManifestListing(string tag)
+        {
+            this.WriteManifest("2026-05", "2026-05", "2026-04");
+            var path = this.layout.VersionManifest.FullName;
+            File.WriteAllText(path, File.ReadAllText(path).Replace("\"2026-04\"", $"\"{tag}\"", StringComparison.Ordinal));
+        }
+
+        private DirectoryInfo SeedApiVersion()
+        {
+            var api = Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "knowledge", "api", "2026-04"));
+            File.WriteAllText(Path.Combine(api.FullName, "cross-references.json"), "{}");
+            return api;
+        }
+
         [Test]
         public void The_only_installed_release_is_refused_without_force()
         {

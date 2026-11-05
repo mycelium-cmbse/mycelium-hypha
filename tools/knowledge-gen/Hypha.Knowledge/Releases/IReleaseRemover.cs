@@ -31,7 +31,7 @@ namespace Hypha.Knowledge.Releases
         /// refused - it would leave nothing for any skill to answer from.
         /// </param>
         /// <exception cref="System.ArgumentException">
-        /// <paramref name="tag"/> is not installed.
+        /// <paramref name="tag"/> is not a release tag, or is not installed.
         /// </exception>
         /// <exception cref="System.InvalidOperationException">
         /// <paramref name="tag"/> is the manifest's current default (switch with <c>hypha use</c>

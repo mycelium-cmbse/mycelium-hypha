@@ -1,0 +1,39 @@
+---
+name: {{Name}}
+package: {{Package}}
+fully qualified name: {{FullyQualifiedName}}
+visibility: {{Visibility}}
+kind: interface
+realizedBy: [{{#each RealizedBy}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}]
+---
+
+# {{Name}}
+
+`{{Package}}` package · interface
+{{#if Documentation}}
+
+{{{Documentation}}}
+{{/if}}
+{{#if RealizedByMarkdown}}
+
+## Realized by
+
+{{#each RealizedByMarkdown}}
+- {{{this}}}
+{{/each}}
+{{/if}}
+{{#if Operations}}
+
+## Operations
+
+{{#each Operations}}
+### {{Name}}
+
+`{{Signature}}`{{#if IsQuery}} · *query*{{/if}}
+{{#if Documentation}}
+
+{{{Documentation}}}
+{{/if}}
+
+{{/each}}
+{{/if}}

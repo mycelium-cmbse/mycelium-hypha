@@ -10,6 +10,7 @@
 namespace Hypha.MetamodelGen.Generators
 {
     using System.Collections.Generic;
+    using System.Text.Json.Serialization;
 
     /// <summary>The serialization context for <c>metamodel.json</c>: the whole metamodel as a graph.</summary>
     /// <remarks>
@@ -25,7 +26,34 @@ namespace Hypha.MetamodelGen.Generators
         IReadOnlyList<PackageNode> Packages,
         IReadOnlyList<ClassNode> Classes,
         IReadOnlyList<EnumerationNode> Enumerations,
-        IReadOnlyList<PrimitiveTypeNode> PrimitiveTypes);
+        IReadOnlyList<PrimitiveTypeNode> PrimitiveTypes)
+    {
+        /// <summary>
+        /// Gets the interfaces, or <c>null</c> for a model that declares none - which leaves the
+        /// property out of the document, so a KerML or SysML document keeps its exact shape.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IReadOnlyList<InterfaceNode>? Interfaces { get; init; }
+
+        /// <summary>
+        /// Gets the data types that are neither primitive nor an enumeration, or <c>null</c> for a
+        /// model that declares none.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IReadOnlyList<PrimitiveTypeNode>? DataTypes { get; init; }
+    }
+
+    /// <summary>One interface, and the classifiers that realize it.</summary>
+    public sealed record InterfaceNode(
+        string Name,
+        string XmiId,
+        string Package,
+        string QualifiedName,
+        string Visibility,
+        string Documentation,
+        string Summary,
+        IReadOnlyList<string> RealizedBy,
+        IReadOnlyList<OperationNode> OwnedOperations);
 
     /// <summary>Element tallies, for quick sanity checks against the array lengths.</summary>
     public sealed record MetamodelCounts(int Classes, int Enumerations, int PrimitiveTypes, int Packages);

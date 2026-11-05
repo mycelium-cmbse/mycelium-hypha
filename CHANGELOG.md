@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The Systems Modeling API & Services is part of the knowledge base** (`fixes #146`), as a body of
+  knowledge with a version of its own beside the language releases:
+  - **the PIM** – every type of the Platform Independent Model, in the shape of the metamodel pages:
+    attributes with multiplicity, derivation, subsetting and redefinition, the full effective
+    attribute set, and the six services with their operations. The `Data` interface and the `UUID`,
+    `IRI` and `ISO8601DateTime` data types get pages too.
+  - **the REST/HTTP PSM** – one page per API schema of the OpenAPI document, with required and
+    nullable members and whether the endpoints use it as a request or a response model, plus every
+    endpoint.
+  - **the API specification text**, clause by clause, quotable through spec citation on the same
+    terms as the KerML and SysML texts (generated locally from the PDF, never committed).
+  - **`cross-references.json`** – PIM type ↔ specification clause ↔ PSM schema, the PIM members a PSM
+    model leaves out, the PSM-only members, and the endpoint each PIM service operation maps to.
+    Every edge names the method that produced it.
+  - a new **`api-lookup`** skill, and the `spec-citation` and `version-management` skills now cover
+    the API.
+- **`hypha api discover | fetch | generate | list | use | remove`** install and manage an API version
+  independently of the language releases, in `sources/api/<version>/` and `knowledge/api/<version>/`
+  with a manifest of its own (`knowledge/api/versions.json`). An API version is a tag of
+  `Systems-Modeling/SysML-v2-API-Services` that is also a language release, `2025-02` or later. The PIM model is the one
+  input no repository carries; it is fetched from the OMG document server (`ptc/25-02-29`).
+- **`hypha api list --json`** reports every installed API version, the default, and which of its
+  artifacts (PIM, OpenAPI, cross-references, specification text) have been generated, in the same
+  shape as `hypha list --json` with `versions` in place of `releases`.
+- `python -m spec_extract --api-version <version>` extracts the API specification.
 - **`hypha lookup`** resolves a metamodel or model-library name in an installed release and prints
   one page of its generated file (`fixes #153`). A name resolves exactly first, then ignoring case,
   then by a trailing part of its qualified name (`Real` for `ScalarValues::Real`); names that only
@@ -21,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   installs under one folder.
 
 ### Changed
-- Every `--json` document (`check`, `list`, `lookup`) is one line on standard output with no banner;
+- Every `--json` document (`check`, `list`, `lookup`, `api list`) is one line on standard output with no banner;
   log lines go to standard error, and every failure – including one before the verb runs, such as
   cancellation or an unreachable upstream – is written as `{"error": "..."}`.
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.2.0`, which
@@ -30,6 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is byte-identical.
 
 ### Fixed
+- **`hypha remove` refuses a tag that is not a release**, whatever `knowledge/versions.json` lists.
+  The tag names a folder that is deleted recursively, and `knowledge/api/` now sits beside the
+  release folders, so a hand-edited manifest listing `api` could otherwise remove every installed
+  API version.
 - **The metamodel knowledge base now carries each operation's body OCL** (`fixes #143`). An
   operation's `bodyCondition` is a constraint the operation owns, not one of its class's rules, so
   the class-level constraint walk never reached it and every derivation body was dropped. Each

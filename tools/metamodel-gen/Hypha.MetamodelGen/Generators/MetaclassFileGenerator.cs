@@ -41,6 +41,11 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>
+        /// Gets the words the pages use for the model they describe. A metamodel unless said otherwise.
+        /// </summary>
+        public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
+
+        /// <summary>
         /// Renders the element markdown for a single metaclass. The <paramref name="subtypeIndex"/>
         /// (see <see cref="BuildSubtypeIndex"/>) supplies the direct subtypes, which cannot be
         /// derived from the metaclass alone. The <paramref name="linkableTypeNames"/> (see
@@ -57,6 +62,7 @@ namespace Hypha.MetamodelGen.Generators
             ArgumentNullException.ThrowIfNull(linkableTypeNames);
 
             var payload = CreatePayload(@class, subtypeIndex, linkableTypeNames);
+            payload.Vocabulary = this.Vocabulary;
 
             return this.Templates[TemplateName](payload);
         }
@@ -227,7 +233,7 @@ namespace Hypha.MetamodelGen.Generators
         /// <c>in</c> is prefixed with its direction; the return comes from the <c>return</c>
         /// parameter, and is left out when there is none.
         /// </summary>
-        private static string QueryOperationSignature(IOperation operation)
+        internal static string QueryOperationSignature(IOperation operation)
         {
             var parameters = operation.OwnedParameter
                 .Where(parameter => parameter.Direction != ParameterDirectionKind.Return)

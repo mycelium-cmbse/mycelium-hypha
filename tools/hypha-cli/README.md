@@ -93,7 +93,7 @@ for `hypha generate`.
 
 ### JSON output
 
-`check`, `list` and `lookup` take `--json`, for editors, language-model tools and scripts. Every
+`check`, `list`, `lookup` and `api list` take `--json`, for editors, language-model tools and scripts. Every
 `--json` document follows the same rules:
 
 - standard output holds exactly one line with one JSON document – no banner, no wrapping – and every
@@ -122,6 +122,43 @@ installs `tools/spec-extract`'s dependencies into a managed venv on demand - so 
 pre-existing Python nor a provisioned `.venv`. Either input being unavailable (no PDFs fetched, offline
 on first `uv` provisioning) is a `Skipped` result, the same as any other generator missing its inputs;
 it never blocks the rest of a `hypha generate` run.
+
+### The Systems Modeling API: `hypha api`
+
+The Systems Modeling API & Services knowledge is versioned apart from the language releases, so it
+has the same verbs under a group of its own. They act on `sources/api/<version>/`,
+`knowledge/api/<version>/` and the manifest `knowledge/api/versions.json`, and never touch an
+installed language release.
+
+| Verb | What it does |
+| --- | --- |
+| `hypha api discover` | Lists the API versions the upstreams offer: the API-Services tags that are also a language release, from `2025-02` on. |
+| `hypha api fetch --tag <version>` | Downloads that version's inputs into `sources/api/<version>/` and records it. `--no-specs`, `--force` and `--no-default` as for `hypha fetch`. |
+| `hypha api generate [artifact]` | Generates the API knowledge. Every artifact for every installed API version when nothing is narrowed; `--tag` and `--output` as for `hypha generate`. |
+| `hypha api list [--json]` | Lists the installed API versions, which one answers by default, and which of their artifacts have been generated. `--json` prints the same shape as `hypha list --json`, with `versions` in place of `releases` and `pim`, `openApi`, `crossReferences` and `specification` as the artifacts. |
+| `hypha api use --tag <version>` | Switches the default API version. |
+| `hypha api remove --tag <version> [--force]` | Removes one installed API version, under the same rules as `hypha remove`. |
+
+```sh
+hypha api discover                          # what can be installed
+hypha api fetch --tag 2026-04               # sources/api/2026-04/{openapi,xmi,specs}
+hypha api generate                          # every artifact, every installed API version
+hypha api generate pim --tag 2026-04        # one artifact, one API version
+```
+
+The API artifacts are the `IApiKnowledgeGenerator` implementations - the same contract as
+`IKnowledgeGenerator`, registered as a separate collection so a run over the language releases never
+picks them up. Today they are `pim`, `openapi`, `spec` and `cross-references`, run in that order
+because the cross-references read what the others write. `spec` behaves as it does for a language
+release: it needs the PDF and `uv`, and is a `Skipped` result without either.
+
+A fetch reads four files from four places: the OpenAPI document from the API-Services repository,
+the specification PDF from the Release repository and the KerML model the PIM refers to from the
+Pilot-Implementation repository - all at the same tag - and the PIM model from the OMG document
+server, because no repository carries it. That last request goes through a client of its own that
+carries no credentials: `--token` is for GitHub and is never sent anywhere else.
+
+`hypha check`, `hypha move-window` and the `SessionStart` hook cover the language releases only.
 
 ### Moving the release window
 

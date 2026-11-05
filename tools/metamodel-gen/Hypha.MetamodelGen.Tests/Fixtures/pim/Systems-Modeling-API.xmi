@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A small, hand-written model in the shape of the Systems Modeling API PIM. It is synthetic: no OMG
+  content is reproduced here. It exists so the PIM generator can be exercised end to end on a model
+  that has what the KerML and SysML metamodels lack - an interface, a realization and a data type
+  that is neither primitive nor an enumeration - and that refers to the UML primitive types and to
+  the KerML abstract syntax the way the published PIM does.
+-->
+<xmi:XMI xmlns:xmi="http://www.omg.org/spec/XMI/20161101" xmlns:uml="http://www.omg.org/spec/UML/20161101">
+  <uml:Model xmi:type="uml:Model" xmi:id="_fixture_model" name="FixtureApi" URI="https://example.invalid/spec/FixtureApi/20260101">
+    <packagedElement xmi:type="uml:Package" xmi:id="_fixture_package" name="ProjectDataVersioning" visibility="public">
+      <packagedElement xmi:type="uml:Class" xmi:id="_fixture_Record" name="Record" visibility="public" isAbstract="true">
+        <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_Record_comment" annotatedElement="_fixture_Record">
+          <body>A Record is anything the service keeps under an identifier. It is the root of the fixture hierarchy.</body>
+        </ownedComment>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Record_id" name="id" visibility="public">
+          <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_Record_id_comment" annotatedElement="_fixture_Record_id">
+            <body>The identifier the Record is kept under.</body>
+          </ownedComment>
+          <type xmi:idref="_fixture_UUID"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Record_id_lower" value="1"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Record_id_upper" value="1"/>
+        </ownedAttribute>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Record_alias" name="alias" visibility="public">
+          <type href="http://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Record_alias_lower" value="0"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Record_alias_upper" value="*"/>
+        </ownedAttribute>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Record_label" name="label" visibility="public" isDerived="true" isReadOnly="true">
+          <type href="http://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi#String"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Record_label_lower" value="0"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Record_label_upper" value="1"/>
+        </ownedAttribute>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="_fixture_Project" name="Project" visibility="public">
+        <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_Project_comment" annotatedElement="_fixture_Project">
+          <body>A Project is a Record that holds a history of Commits.</body>
+        </ownedComment>
+        <generalization xmi:type="uml:Generalization" xmi:id="_fixture_Project_generalization" general="_fixture_Record"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Project_commit" name="commit" visibility="public" aggregation="composite">
+          <type xmi:idref="_fixture_Commit"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Project_commit_lower" value="0"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Project_commit_upper" value="*"/>
+        </ownedAttribute>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Project_headCommit" name="headCommit" visibility="public">
+          <type xmi:idref="_fixture_Commit"/>
+          <subsettedProperty xmi:idref="_fixture_Project_commit"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Project_headCommit_lower" value="0"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Project_headCommit_upper" value="1"/>
+        </ownedAttribute>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Project_state" name="state" visibility="public">
+          <type xmi:idref="_fixture_ProjectState"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Project_state_lower" value="1"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Project_state_upper" value="1"/>
+        </ownedAttribute>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="_fixture_Project_commitAt" name="commitAt" visibility="public" isQuery="true">
+          <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_Project_commitAt_comment" annotatedElement="_fixture_Project_commitAt">
+            <body>The Commit that was the head of the Project at the given moment.</body>
+          </ownedComment>
+          <ownedParameter xmi:type="uml:Parameter" xmi:id="_fixture_Project_commitAt_moment" name="moment" visibility="public">
+            <type xmi:idref="_fixture_Timestamp"/>
+          </ownedParameter>
+          <ownedParameter xmi:type="uml:Parameter" xmi:id="_fixture_Project_commitAt_result" name="result" visibility="public" direction="return">
+            <type xmi:idref="_fixture_Commit"/>
+          </ownedParameter>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="_fixture_Commit" name="Commit" visibility="public">
+        <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_Commit_comment" annotatedElement="_fixture_Commit">
+          <body>A Commit is a Record of one change to a Project.</body>
+        </ownedComment>
+        <generalization xmi:type="uml:Generalization" xmi:id="_fixture_Commit_generalization" general="_fixture_Record"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Commit_created" name="created" visibility="public">
+          <type xmi:idref="_fixture_Timestamp"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Commit_created_lower" value="1"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Commit_created_upper" value="1"/>
+        </ownedAttribute>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Commit_change" name="change" visibility="public">
+          <type xmi:idref="_fixture_Data"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Commit_change_lower" value="0"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Commit_change_upper" value="*"/>
+        </ownedAttribute>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="_fixture_Commit_root" name="root" visibility="public">
+          <type href="KerML Abstract Syntax.xml#_18_5_3_12e503d9_1533160651703_306405_42199"/>
+          <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_fixture_Commit_root_lower" value="0"/>
+          <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_fixture_Commit_root_upper" value="1"/>
+        </ownedAttribute>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="_fixture_ProjectState" name="ProjectState" visibility="public">
+        <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_ProjectState_comment" annotatedElement="_fixture_ProjectState">
+          <body>Whether a Project still accepts Commits.</body>
+        </ownedComment>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="_fixture_ProjectState_open" name="open"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="_fixture_ProjectState_archived" name="archived"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:DataType" xmi:id="_fixture_UUID" name="UUID" visibility="public">
+        <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_UUID_comment" annotatedElement="_fixture_UUID">
+          <body>A universally unique identifier, in its canonical textual form.</body>
+        </ownedComment>
+      </packagedElement>
+      <packagedElement xmi:type="uml:DataType" xmi:id="_fixture_Timestamp" name="Timestamp" visibility="public"/>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_fixture_Data" name="Data" visibility="public">
+        <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_Data_comment" annotatedElement="_fixture_Data">
+          <body>Data is whatever a Commit can carry a version of.</body>
+        </ownedComment>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="_fixture_Data_identity" name="identity" visibility="public" isQuery="true">
+          <ownedComment xmi:type="uml:Comment" xmi:id="_fixture_Data_identity_comment" annotatedElement="_fixture_Data_identity">
+            <body>The identifier that stays the same across the versions of the Data.</body>
+          </ownedComment>
+          <ownedParameter xmi:type="uml:Parameter" xmi:id="_fixture_Data_identity_result" name="result" visibility="public" direction="return">
+            <type xmi:idref="_fixture_UUID"/>
+          </ownedParameter>
+        </ownedOperation>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Interface" xmi:id="_fixture_Query" name="Query" visibility="public"/>
+      <packagedElement xmi:type="uml:Realization" xmi:id="_fixture_Project_realizes_Data" name="" visibility="public">
+        <client xmi:idref="_fixture_Project"/>
+        <supplier xmi:idref="_fixture_Data"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Realization" xmi:id="_fixture_Element_realizes_Data" name="" visibility="public">
+        <client href="KerML Abstract Syntax.xml#_18_5_3_12e503d9_1533160651703_306405_42199"/>
+        <supplier xmi:idref="_fixture_Data"/>
+      </packagedElement>
+    </packagedElement>
+  </uml:Model>
+</xmi:XMI>

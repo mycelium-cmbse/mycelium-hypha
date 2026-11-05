@@ -154,6 +154,13 @@ only the `knowledge/<tag>/spec/` write target moves. This is what `SpecGenerator
 `uv run` on the .NET side; `pytest` remains the maintainer-facing way to regenerate every installed
 release at once.
 
+`python -m spec_extract --repo-root <path> --api-version <version> [--out-root <path>]` is the second
+mode, mutually exclusive with `--tag`: it extracts the Systems Modeling API and Services specification
+from `sources/api/<version>/specs/3-Systems_Modeling_API_and_Services.pdf` into
+`knowledge/api/<version>/spec/`. The API is versioned apart from the language releases, so it is
+neither read from nor written into a release's folder, and being a single document it gets no
+per-document subfolder. This is what `ApiSpecGenerator` (`hypha api generate spec`) shells out to.
+
 ### Regenerating
 
 Running `pytest` with the PDFs present in `sources/<tag>/specs/` runs `test_generate.py`, which
