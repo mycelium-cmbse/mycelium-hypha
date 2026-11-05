@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a manifest of its own (`knowledge/api/versions.json`). An API version is a tag of
   `Systems-Modeling/SysML-v2-API-Services` that is also a language release, `2025-02` or later. The PIM model is the one
   input no repository carries; it is fetched from the OMG document server (`ptc/25-02-29`).
+- **`hypha api list --json`** reports every installed API version, the default, and which of its
+  artifacts (PIM, OpenAPI, cross-references, specification text) have been generated, in the same
+  shape as `hypha list --json` with `versions` in place of `releases`.
 - `python -m spec_extract --api-version <version>` extracts the API specification.
 - **`hypha lookup`** resolves a metamodel or model-library name in an installed release and prints
   one page of its generated file (`fixes #153`). A name resolves exactly first, then ignoring case,
@@ -43,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   installs under one folder.
 
 ### Changed
-- Every `--json` document (`check`, `list`, `lookup`) is one line on standard output with no banner;
+- Every `--json` document (`check`, `list`, `lookup`, `api list`) is one line on standard output with no banner;
   log lines go to standard error, and every failure – including one before the verb runs, such as
   cancellation or an unreachable upstream – is written as `{"error": "..."}`.
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.2.0`, which

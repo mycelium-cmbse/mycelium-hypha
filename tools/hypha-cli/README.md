@@ -93,7 +93,7 @@ for `hypha generate`.
 
 ### JSON output
 
-`check`, `list` and `lookup` take `--json`, for editors, language-model tools and scripts. Every
+`check`, `list`, `lookup` and `api list` take `--json`, for editors, language-model tools and scripts. Every
 `--json` document follows the same rules:
 
 - standard output holds exactly one line with one JSON document – no banner, no wrapping – and every
@@ -135,7 +135,7 @@ installed language release.
 | `hypha api discover` | Lists the API versions the upstreams offer: the API-Services tags that are also a language release, from `2025-02` on. |
 | `hypha api fetch --tag <version>` | Downloads that version's inputs into `sources/api/<version>/` and records it. `--no-specs`, `--force` and `--no-default` as for `hypha fetch`. |
 | `hypha api generate [artifact]` | Generates the API knowledge. Every artifact for every installed API version when nothing is narrowed; `--tag` and `--output` as for `hypha generate`. |
-| `hypha api list` | Lists the installed API versions and which one answers by default. |
+| `hypha api list [--json]` | Lists the installed API versions, which one answers by default, and which of their artifacts have been generated. `--json` prints the same shape as `hypha list --json`, with `versions` in place of `releases` and `pim`, `openApi`, `crossReferences` and `specification` as the artifacts. |
 | `hypha api use --tag <version>` | Switches the default API version. |
 | `hypha api remove --tag <version> [--force]` | Removes one installed API version, under the same rules as `hypha remove`. |
 

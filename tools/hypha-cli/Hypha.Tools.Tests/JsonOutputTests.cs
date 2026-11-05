@@ -25,14 +25,15 @@ namespace Hypha.Tools.Tests
     [TestFixture]
     public class JsonOutputTests
     {
-        [Test]
-        public async Task Json_output_has_no_banner_even_without_no_logo()
+        [TestCase("list --json")]
+        [TestCase("api list --json")]
+        public async Task Json_output_has_no_banner_even_without_no_logo(string commandLine)
         {
             using var knowledge = new TemporaryKnowledge().Install("2026-09");
             using var console = new RecordedConsole();
 
             var result = await Program.BuildRootCommand()
-                .Parse($"list --json --repository-root \"{knowledge.Root.FullName}\"")
+                .Parse($"{commandLine} --repository-root \"{knowledge.Root.FullName}\"")
                 .InvokeAsync();
 
             var lines = console.Output.TrimEnd('\r', '\n').Split('\n');
@@ -281,8 +282,10 @@ namespace Hypha.Tools.Tests
 
         [TestCase("check --json", true)]
         [TestCase("list --json", true)]
+        [TestCase("api list --json", true)]
         [TestCase("lookup --kind metamodel --name PartUsage --json", true)]
         [TestCase("list", false)]
+        [TestCase("api list", false)]
         [TestCase("generate", false)]
         public void Json_output_is_recognised_on_every_verb_that_offers_it(string commandLine, bool expected)
         {
