@@ -30,8 +30,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Systems-Modeling/SysML-v2-API-Services` that is also a language release, `2025-02` or later. The PIM model is the one
   input no repository carries; it is fetched from the OMG document server (`ptc/25-02-29`).
 - `python -m spec_extract --api-version <version>` extracts the API specification.
+- **`hypha lookup`** resolves a metamodel or model-library name in an installed release and prints
+  one page of its generated file (`fixes #153`). A name resolves exactly first, then ignoring case,
+  then by a trailing part of its qualified name (`Real` for `ScalarValues::Real`); names that only
+  contain the request are offered as candidates, never picked. A model-library lookup starts at the
+  declaration rather than at the top of its package page. Hosts such as an editor extension use it
+  instead of reading the generated indexes themselves.
+- **`hypha list --json`** reports every installed release, the default, and which of its artifacts
+  (metamodel, textual notation, model library, cross-references, specification text) have been
+  generated.
+- **`--toolchain-cache-root`** keeps the `uv` executable, uv's package cache and the Python it
+  installs under one folder.
 
 ### Changed
+- Every `--json` document (`check`, `list`, `lookup`) is one line on standard output with no banner;
+  log lines go to standard error, and every failure – including one before the verb runs, such as
+  cancellation or an unreachable upstream – is written as `{"error": "..."}`.
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.2.0`, which
   provides `QueryConstraintBody` and `QueryBodyConditionText` itself. The generators now use those
   and hypha's own copies in `ModelQueryExtensions` are gone (`fixes #145`); the generated knowledge

@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Threading;
@@ -22,12 +23,6 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for <see cref="SystemProcessRunner"/>: it is the one seam that shells out to a
-    /// real <see cref="Process"/>, so it is exercised against real short-lived child processes rather
-    /// than mocked - there is nothing left to fake once the process boundary itself is what is under
-    /// test.
-    /// </summary>
     [TestFixture]
     public class SystemProcessRunnerTests
     {
@@ -44,9 +39,7 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            Assert.That(
-                () => runner.RunAsync(" ", "--version", this.workingDirectory),
-                Throws.ArgumentException);
+            Assert.That(() => runner.RunAsync(" ", "--version", this.workingDirectory), Throws.ArgumentException);
         }
 
         [Test]
@@ -54,9 +47,7 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            Assert.That(
-                () => runner.RunAsync("dotnet", null!, this.workingDirectory),
-                Throws.InstanceOf<ArgumentNullException>());
+            Assert.That(() => runner.RunAsync("dotnet", null!, this.workingDirectory), Throws.InstanceOf<ArgumentNullException>());
         }
 
         [Test]
@@ -64,9 +55,7 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            Assert.That(
-                () => runner.RunAsync("dotnet", "--version", null!),
-                Throws.InstanceOf<ArgumentNullException>());
+            Assert.That(() => runner.RunAsync("dotnet", "--version", null!), Throws.InstanceOf<ArgumentNullException>());
         }
 
         [Test]
@@ -84,10 +73,47 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            var exitCode = await runner.RunAsync(
-                "dotnet", "no-such-hypha-test-command", this.workingDirectory);
+            var exitCode = await runner.RunAsync("dotnet", "no-such-hypha-test-command", this.workingDirectory);
 
             Assert.That(exitCode, Is.Not.EqualTo(0));
+        }
+
+        [Test]
+        public async Task Passes_the_given_environment_to_the_process()
+        {
+            var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
+            var (shell, arguments) = OperatingSystem.IsWindows()
+                ? ("cmd.exe", "/c exit %HYPHA_TEST_EXIT_CODE%")
+                : ("/bin/sh", "-c \"exit $HYPHA_TEST_EXIT_CODE\"");
+
+            var exitCode = await runner.RunAsync(
+                shell, arguments, this.workingDirectory, new Dictionary<string, string> { ["HYPHA_TEST_EXIT_CODE"] = "7" });
+
+            Assert.That(exitCode, Is.EqualTo(7));
+        }
+
+        [Test]
+        public async Task The_given_environment_overrides_an_inherited_variable()
+        {
+            // A user may already have UV_CACHE_DIR set; the toolchain root still has to win.
+            var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
+            var (shell, arguments) = OperatingSystem.IsWindows()
+                ? ("cmd.exe", "/c exit %HYPHA_TEST_INHERITED%")
+                : ("/bin/sh", "-c \"exit $HYPHA_TEST_INHERITED\"");
+
+            Environment.SetEnvironmentVariable("HYPHA_TEST_INHERITED", "3");
+
+            try
+            {
+                var exitCode = await runner.RunAsync(
+                    shell, arguments, this.workingDirectory, new Dictionary<string, string> { ["HYPHA_TEST_INHERITED"] = "7" });
+
+                Assert.That(exitCode, Is.EqualTo(7));
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("HYPHA_TEST_INHERITED", null);
+            }
         }
 
         [Test]
@@ -100,10 +126,7 @@ namespace Hypha.Knowledge.Tests
 
             logger.Verify(
                 mock => mock.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((value, type) => true),
-                    null,
+                    LogLevel.Information, It.IsAny<EventId>(), It.Is<It.IsAnyType>((value, type) => true), null,
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
         }
@@ -118,10 +141,7 @@ namespace Hypha.Knowledge.Tests
 
             logger.Verify(
                 mock => mock.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((value, type) => true),
-                    null,
+                    LogLevel.Warning, It.IsAny<EventId>(), It.Is<It.IsAnyType>((value, type) => true), null,
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
         }
@@ -138,7 +158,7 @@ namespace Hypha.Knowledge.Tests
             var stopwatch = Stopwatch.StartNew();
 
             Assert.That(
-                () => runner.RunAsync(fileName, arguments, this.workingDirectory, source.Token),
+                () => runner.RunAsync(fileName, arguments, this.workingDirectory, cancellationToken: source.Token),
                 Throws.InstanceOf<OperationCanceledException>());
 
             stopwatch.Stop();

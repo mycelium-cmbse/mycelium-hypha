@@ -217,3 +217,15 @@ originate from the SysML v2 release repository, Systems-Modeling/SysML-v2-Releas
 (https://github.com/Systems-Modeling/SysML-v2-Release) at commit
 9baca5908ca28b53da085de69336fde48420ea8f, licensed under the Eclipse Public
 License 2.0 (https://www.eclipse.org/legal/epl-2.0/).
+
+The test fixtures
+
+  tools/knowledge-gen/Hypha.Knowledge.Tests/Fixtures/model-library/Occurrences.kerml
+  tools/knowledge-gen/Hypha.Knowledge.Tests/Fixtures/model-library/SysML.sysml
+
+are unmodified copies of sysml.library/Kernel Libraries/Kernel Semantic Library/
+Occurrences.kerml and sysml.library/Systems Library/SysML.sysml from
+Systems-Modeling/SysML-v2-Release at commit
+9546486f49f704d1df092e3f252f4fcfbce534dd, licensed under the Eclipse Public
+License 2.0 (https://www.eclipse.org/legal/epl-2.0/). They are used by tests only
+and are not distributed with the plugin.

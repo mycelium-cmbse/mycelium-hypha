@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Hosting
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Threading;
@@ -29,11 +30,17 @@ namespace Hypha.Knowledge.Hosting
     /// </remarks>
     public sealed class SystemProcessRunner : IProcessRunner
     {
+        /// <summary>
+        /// The log the child process's output is streamed to: standard output as information, standard error as warnings.
+        /// </summary>
         private readonly ILogger<SystemProcessRunner> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SystemProcessRunner"/> class.
         /// </summary>
+        /// <param name="logger">
+        /// The log the child process's output is streamed to: standard output as information, standard error as warnings.
+        /// </param>
         public SystemProcessRunner(ILogger<SystemProcessRunner> logger)
         {
             ArgumentNullException.ThrowIfNull(logger);
@@ -42,11 +49,8 @@ namespace Hypha.Knowledge.Hosting
         }
 
         /// <inheritdoc/>
-        public async Task<int> RunAsync(
-            string fileName,
-            string arguments,
-            DirectoryInfo workingDirectory,
-            CancellationToken cancellationToken = default)
+        public async Task<int> RunAsync(string fileName, string arguments, DirectoryInfo workingDirectory,
+            IReadOnlyDictionary<string, string>? environment = null, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
             ArgumentNullException.ThrowIfNull(arguments);
@@ -59,6 +63,11 @@ namespace Hypha.Knowledge.Hosting
                 RedirectStandardError = true,
                 UseShellExecute = false,
             };
+
+            foreach (var (name, value) in environment ?? new Dictionary<string, string>())
+            {
+                info.Environment[name] = value;
+            }
 
             using var process = new Process { StartInfo = info, EnableRaisingEvents = true };
 

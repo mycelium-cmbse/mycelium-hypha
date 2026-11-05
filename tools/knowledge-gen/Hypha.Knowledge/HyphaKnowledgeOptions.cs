@@ -70,6 +70,18 @@ namespace Hypha.Knowledge
         public DirectoryInfo? OutputRoot { get; set; }
 
         /// <summary>
+        /// Where the managed toolchain lives: the <c>uv</c> executable, uv's package cache and the
+        /// Python uv installs.
+        /// </summary>
+        /// <remarks>
+        /// Unset, <c>uv</c> is cached under the per-user application data folder and uv keeps its own
+        /// default locations for its cache and Python, which other uv users on the machine share. Set,
+        /// all three move under this folder, so a host such as an editor extension can keep everything
+        /// it provisions in its own storage.
+        /// </remarks>
+        public DirectoryInfo? ToolchainCacheRoot { get; set; }
+
+        /// <summary>
         /// How many files are downloaded at once.
         /// </summary>
         /// <remarks>
@@ -79,6 +91,10 @@ namespace Hypha.Knowledge
         public int MaxDownloadConcurrency { get; set; } = 6;
 
         /// <summary>Throws when a value cannot be used, rather than failing later and further away.</summary>
+        /// <exception cref="ArgumentNullException">
+        /// <see cref="ApiBaseAddress"/> or <see cref="RawContentBaseAddress"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException"><see cref="MaxDownloadConcurrency"/> is less than 1.</exception>
         public void Validate()
         {
             ArgumentNullException.ThrowIfNull(this.ApiBaseAddress);

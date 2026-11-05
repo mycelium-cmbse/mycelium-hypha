@@ -10,6 +10,7 @@
 namespace Hypha.Tools.Hosting
 {
     using System;
+    using System.Collections.Generic;
     using System.CommandLine;
     using System.IO;
 
@@ -22,6 +23,7 @@ namespace Hypha.Tools.Hosting
     using Microsoft.Extensions.Logging;
 
     using Serilog;
+    using Serilog.Events;
     using Serilog.Extensions.Logging;
 
     /// <summary>
@@ -43,6 +45,11 @@ namespace Hypha.Tools.Hosting
         /// Where generated artifacts go; <c>null</c> writes them into the repository, which is the
         /// normal run.
         /// </param>
+        /// <returns>
+        /// A provider holding the knowledge and metamodel-generation services plus the console log; the caller owns it
+        /// and disposes it once the verb has run.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
         public static ServiceProvider Build(ParseResult parseResult, DirectoryInfo? outputRoot = null)
         {
             ArgumentNullException.ThrowIfNull(parseResult);
@@ -58,17 +65,39 @@ namespace Hypha.Tools.Hosting
                 {
                     options.RepositoryRoot = root;
                     options.OutputRoot = outputRoot;
+                    options.ToolchainCacheRoot = parseResult.GetValue(GlobalOptions.ToolchainCacheRoot);
                     options.Token = token;
                 })
                 .AddHyphaMetamodelGen();
+
+            // With --json, standard output carries the JSON document and nothing else, so every log
+            // line goes to standard error instead.
+            var json = JsonOutput.IsRequested(parseResult);
 
             services.AddLogging(builder =>
             {
                 builder.ClearProviders();
 
-                var logger = new LoggerConfiguration()
-                    .MinimumLevel.Is(level)
-                    .WriteTo.Console(outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                var configuration = new LoggerConfiguration().MinimumLevel.Is(level);
+
+                if (json)
+                {
+                    // A caller reading the JSON may never read standard error - the SessionStart hook
+                    // does not - and once that pipe's buffer fills, the next log line blocks and the
+                    // verb never exits. So under --json the chattiest categories (a line per request,
+                    // more on every retry) only report problems.
+                    var quiet = (LogEventLevel)Math.Max((int)level, (int)LogEventLevel.Warning);
+
+                    foreach (var category in QuietUnderJson)
+                    {
+                        configuration = configuration.MinimumLevel.Override(category, quiet);
+                    }
+                }
+
+                var logger = configuration
+                    .WriteTo.Console(
+                        outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                        standardErrorFromLevel: json ? LogEventLevel.Verbose : null)
                     .CreateLogger();
 
                 builder.AddProvider(new SerilogLoggerProvider(logger, dispose: true));
@@ -77,6 +106,13 @@ namespace Hypha.Tools.Hosting
 
             return services.BuildServiceProvider();
         }
+
+        /// <summary>
+        /// The log categories that write at <c>Information</c> for every HTTP request and retry, which
+        /// <c>--json</c> holds to warnings and errors.
+        /// </summary>
+        public static readonly IReadOnlyList<string> QuietUnderJson =
+            ["System.Net.Http", "Microsoft.Extensions.Http", "Polly"];
 
         /// <summary>
         /// Finds the repository by walking up from the working directory.

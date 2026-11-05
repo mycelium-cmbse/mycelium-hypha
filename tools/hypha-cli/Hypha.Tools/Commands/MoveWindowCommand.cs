@@ -62,9 +62,7 @@ namespace Hypha.Tools.Commands
         /// Initializes a new instance of the <see cref="MoveWindowCommand"/> class.
         /// </summary>
         public MoveWindowCommand()
-            : base(
-                "move-window",
-                "Fetch, regenerate and verify a release, then evict the releases that fall outside the window")
+            : base("move-window", "Fetch, regenerate and verify a release, then evict the releases that fall outside the window")
         {
             this.Options.Add(Tag);
             this.Options.Add(Keep);
@@ -73,23 +71,36 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="MoveWindowCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Fetches the release's sources, for the fetch step.</summary>
             private readonly IReleaseInstaller installer;
+
+            /// <summary>Every registered artifact generator, for the generate step.</summary>
             private readonly IReadOnlyList<IKnowledgeGenerator> generators;
+
+            /// <summary>Locates the repository root the steps run in and the knowledge they write.</summary>
             private readonly IKnowledgeLayout layout;
+
+            /// <summary>Removes the installed releases that fall outside the window, for the evict step.</summary>
             private readonly IReleaseWindowEvictor evictor;
+
+            /// <summary>Runs the <c>pytest</c> and <c>dotnet test</c> child processes.</summary>
             private readonly IProcessRunner processes;
+
+            /// <summary>Records each step as it starts and each one that fails.</summary>
             private readonly ILogger<Handler> logger;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
-            public Handler(
-                IReleaseInstaller installer,
-                IEnumerable<IKnowledgeGenerator> generators,
-                IKnowledgeLayout layout,
-                IReleaseWindowEvictor evictor,
-                IProcessRunner processes,
-                ILogger<Handler> logger)
+            /// <param name="installer">Installs the release – fetches its sources – for the fetch step.</param>
+            /// <param name="generators">The artifact generators the generate step runs; copied, so enumerated once.</param>
+            /// <param name="layout">The knowledge layout whose root must be a full source checkout.</param>
+            /// <param name="evictor">Removes the installed releases that no longer fit within <c>--keep</c>.</param>
+            /// <param name="processes">Runs the specification extraction, re-bless and verify child processes.</param>
+            /// <param name="logger">Receives the step-by-step progress of the run.</param>
+            /// <exception cref="ArgumentNullException">Any argument is <c>null</c>.</exception>
+            public Handler(IReleaseInstaller installer, IEnumerable<IKnowledgeGenerator> generators, IKnowledgeLayout layout,
+                IReleaseWindowEvictor evictor, IProcessRunner processes, ILogger<Handler> logger)
             {
                 ArgumentNullException.ThrowIfNull(installer);
                 ArgumentNullException.ThrowIfNull(generators);
@@ -107,12 +118,13 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Moves the window.</summary>
+            /// <param name="parseResult">The parsed command line holding <see cref="Tag"/> and <see cref="Keep"/>.</param>
+            /// <param name="cancellationToken">Cancels the steps that are still to run.</param>
             /// <returns>
             /// 0 once every step, including the final verification, has succeeded; 1 when a step
             /// fails; 2 when the command line or the environment is unusable before anything runs.
             /// </returns>
-            public async Task<int> InvokeAsync(
-                ParseResult parseResult, CancellationToken cancellationToken = default)
+            public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
 
@@ -154,34 +166,26 @@ namespace Hypha.Tools.Commands
                     return true;
                 }
 
-                if (!await Run(
-                        MoveWindowStep.Fetch,
-                        () => new FetchCommand.Handler(this.installer).InvokeAsync(
-                            ParseAs(new FetchCommand(), $"fetch --tag {tag}"), cancellationToken)))
+                if (!await Run(MoveWindowStep.Fetch, () => new FetchCommand.Handler(this.installer).InvokeAsync(
+                        ParseAs(new FetchCommand(), $"fetch --tag {tag}"), cancellationToken)))
                 {
                     return 1;
                 }
 
-                if (!await Run(
-                        MoveWindowStep.Generate,
-                        () => new GenerateCommand.Handler(this.generators, this.layout).InvokeAsync(
-                            ParseAs(new GenerateCommand(), $"generate --tag {tag}"), cancellationToken)))
+                if (!await Run(MoveWindowStep.Generate, () => new GenerateCommand.Handler(this.generators, this.layout).InvokeAsync(
+                        ParseAs(new GenerateCommand(), $"generate --tag {tag}"), cancellationToken)))
                 {
                     return 1;
                 }
 
-                if (!await Run(
-                        MoveWindowStep.ExtractSpecifications, () => this.RunSpecExtractAsync(cancellationToken)))
+                if (!await Run(MoveWindowStep.ExtractSpecifications, () => this.RunSpecExtractAsync(cancellationToken)))
                 {
                     return 1;
                 }
 
-                if (!await Run(
-                        MoveWindowStep.ReblessFixtures,
-                        () => this.RunDotnetTestAsync(
-                            "tools/metamodel-gen/Hypha.MetamodelGen.Tests/Hypha.MetamodelGen.Tests.csproj",
-                            "FullyQualifiedName~Bless_expected_files",
-                            cancellationToken)))
+                if (!await Run(MoveWindowStep.ReblessFixtures, () => this.RunDotnetTestAsync(
+                        "tools/metamodel-gen/Hypha.MetamodelGen.Tests/Hypha.MetamodelGen.Tests.csproj",
+                        "FullyQualifiedName~Bless_expected_files", cancellationToken)))
                 {
                     return 1;
                 }
@@ -203,12 +207,9 @@ namespace Hypha.Tools.Commands
 
                 completed.Add(MoveWindowStep.Evict);
 
-                if (!await Run(
-                        MoveWindowStep.Verify,
-                        () => this.RunDotnetTestAsync(
-                            "tools/hypha-cli/Hypha.Tools.Tests/Hypha.Tools.Tests.csproj",
-                            "FullyQualifiedName~KnowledgeRegenerationTests",
-                            cancellationToken)))
+                if (!await Run(MoveWindowStep.Verify, () => this.RunDotnetTestAsync(
+                        "tools/hypha-cli/Hypha.Tools.Tests/Hypha.Tools.Tests.csproj",
+                        "FullyQualifiedName~KnowledgeRegenerationTests", cancellationToken)))
                 {
                     if (evicted.Count > 0)
                     {
@@ -237,6 +238,9 @@ namespace Hypha.Tools.Commands
             /// Checked once, before the first step, so a missing prerequisite fails in milliseconds -
             /// not three multi-minute steps in.
             /// </remarks>
+            /// <returns>
+            /// A message naming the missing prerequisite and how to provide it, or <c>null</c> when there is none.
+            /// </returns>
             private string? PreflightProblem()
             {
                 var root = this.layout.Root;
@@ -263,22 +267,37 @@ namespace Hypha.Tools.Commands
                 return null;
             }
 
+            /// <summary>
+            /// Runs <c>tools/spec-extract</c>'s test suite through its own virtual environment, which regenerates the
+            /// git-ignored specification text from the fetched PDFs.
+            /// </summary>
+            /// <param name="cancellationToken">Cancels the child process.</param>
+            /// <returns>The exit code of <c>pytest</c>: 0 when every test passed.</returns>
             private async Task<int> RunSpecExtractAsync(CancellationToken cancellationToken)
             {
-                var specExtract = new DirectoryInfo(
-                    Path.Combine(this.layout.Root.FullName, "tools", "spec-extract"));
+                var specExtract = new DirectoryInfo(Path.Combine(this.layout.Root.FullName, "tools", "spec-extract"));
 
                 return await this.processes.RunAsync(
-                    PythonExecutable(specExtract), "-m pytest", specExtract, cancellationToken);
+                    PythonExecutable(specExtract), "-m pytest", specExtract, cancellationToken: cancellationToken);
             }
 
-            private Task<int> RunDotnetTestAsync(
-                string projectPath, string filter, CancellationToken cancellationToken) =>
+            /// <summary>Runs <c>dotnet test</c> on one test project, from the repository root.</summary>
+            /// <param name="projectPath">The test project, relative to the repository root.</param>
+            /// <param name="filter">The <c>--filter</c> expression selecting the tests to run.</param>
+            /// <param name="cancellationToken">Cancels the child process.</param>
+            /// <returns>The exit code of <c>dotnet test</c>: 0 when every selected test passed.</returns>
+            private Task<int> RunDotnetTestAsync(string projectPath, string filter, CancellationToken cancellationToken) =>
                 this.processes.RunAsync(
-                    "dotnet", $"test {projectPath} --filter \"{filter}\"", this.layout.Root, cancellationToken);
+                    "dotnet", $"test {projectPath} --filter \"{filter}\"", this.layout.Root, cancellationToken: cancellationToken);
 
-            private static void ReportFailure(
-                MoveWindowStep step, List<MoveWindowStep> completed, string tag, string? reason = null)
+            /// <summary>
+            /// Tells the user which step failed, what had already been done and that nothing is committed yet.
+            /// </summary>
+            /// <param name="step">The step that failed.</param>
+            /// <param name="completed">The steps that completed before it, in the order they ran.</param>
+            /// <param name="tag">The release the window was being moved to.</param>
+            /// <param name="reason">Why the step failed, when known; <c>null</c> when only its exit code is.</param>
+            private static void ReportFailure(MoveWindowStep step, List<MoveWindowStep> completed, string tag, string? reason = null)
             {
                 var description = MoveWindowLog.Steps.Single(entry => entry.Step == step).Description;
 
@@ -293,11 +312,23 @@ namespace Hypha.Tools.Commands
                         : "[grey]Nothing was changed - check 'git status', fix the cause, and re-run.[/]");
             }
 
+            /// <summary>The Python interpreter of <c>tools/spec-extract</c>'s virtual environment.</summary>
+            /// <param name="specExtract">The <c>tools/spec-extract</c> folder.</param>
+            /// <returns>
+            /// The path of <c>.venv/Scripts/python.exe</c> on Windows and of <c>.venv/bin/python</c> elsewhere, whether it
+            /// exists or not.
+            /// </returns>
             private static string PythonExecutable(DirectoryInfo specExtract) =>
                 OperatingSystem.IsWindows()
                     ? Path.Combine(specExtract.FullName, ".venv", "Scripts", "python.exe")
                     : Path.Combine(specExtract.FullName, ".venv", "bin", "python");
 
+            /// <summary>
+            /// Parses a command line for another verb, so this one can run that verb's handler exactly as the CLI would.
+            /// </summary>
+            /// <param name="command">A fresh instance of the verb to parse for.</param>
+            /// <param name="commandLine">The command line, starting with the verb's name.</param>
+            /// <returns>The parse result, under a root command that holds only <paramref name="command"/>.</returns>
             private static ParseResult ParseAs(Command command, string commandLine)
             {
                 var root = new RootCommand();

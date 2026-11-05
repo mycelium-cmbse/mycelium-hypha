@@ -24,21 +24,17 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.Logging.Abstractions;
 
-    /// <summary>
-    /// Tests for provisioning <c>uv</c>, against a stubbed transport and an injected cache root - no
-    /// live calls, no touching the real <c>%LOCALAPPDATA%</c>.
-    /// </summary>
     [TestFixture]
     public class UvProvisionerTests
     {
         private DirectoryInfo cacheRoot = null!;
+
         private string target = null!;
 
         [SetUp]
         public void SetUp()
         {
-            this.cacheRoot = new DirectoryInfo(
-                Path.Combine(Path.GetTempPath(), "hypha-uv-tests-" + Guid.NewGuid().ToString("N")));
+            this.cacheRoot = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-uv-tests-" + Guid.NewGuid().ToString("N")));
             this.cacheRoot.Create();
 
             // Whatever platform the test happens to run on - the stub responds to that target's asset.
@@ -57,6 +53,30 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Leaves_uv_its_default_locations_unless_it_owns_the_toolchain()
+        {
+            using var client = new HttpClient();
+            var provisioner = new UvProvisioner(client, NullLogger<UvProvisioner>.Instance, this.cacheRoot);
+
+            Assert.That(provisioner.Environment, Is.Empty);
+        }
+
+        [Test]
+        public void Keeps_uv_s_cache_and_python_under_a_toolchain_root_it_owns()
+        {
+            using var client = new HttpClient();
+            var provisioner = new UvProvisioner(client, NullLogger<UvProvisioner>.Instance, this.cacheRoot, ownsToolchain: true);
+
+            Assert.That(
+                provisioner.Environment,
+                Is.EquivalentTo(new Dictionary<string, string>
+                {
+                    [UvProvisioner.UvCacheVariable] = Path.Combine(this.cacheRoot.FullName, "uv-cache"),
+                    [UvProvisioner.UvPythonInstallVariable] = Path.Combine(this.cacheRoot.FullName, "python"),
+                }));
+        }
+
+        [Test]
         public async Task Downloads_verifies_and_caches_uv_on_first_use()
         {
             var archive = BuildArchive(this.target);
@@ -69,9 +89,7 @@ namespace Hypha.Knowledge.Tests
 
             Assert.That(executable, Is.Not.Null);
             Assert.That(executable!.Exists, Is.True);
-            Assert.That(
-                executable.FullName,
-                Is.EqualTo(provisioner.Executable(UvProvisioner.PinnedVersion, this.target).FullName));
+            Assert.That(executable.FullName, Is.EqualTo(provisioner.Executable(UvProvisioner.PinnedVersion, this.target).FullName));
             Assert.That(provisioner.OkMarker(UvProvisioner.PinnedVersion, this.target).Exists, Is.True);
         }
 
@@ -253,8 +271,7 @@ namespace Hypha.Knowledge.Tests
             private static HttpResponseMessage Json(string body) =>
                 new(HttpStatusCode.OK) { Content = new StringContent(body) };
 
-            protected override Task<HttpResponseMessage> SendAsync(
-                HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 this.Requests.Add(request.RequestUri!.ToString());
 

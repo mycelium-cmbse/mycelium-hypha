@@ -31,14 +31,22 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- generate
 ## Verbs
 
 Every verb accepts `--repository-root` (the folder holding `sources/` and `knowledge/`, discovered by
-walking up from the working directory when omitted), `--token`, `--log-level` and `--no-logo`.
+walking up from the working directory when omitted), `--toolchain-cache-root`, `--token`,
+`--log-level` and `--no-logo`.
+
+`--toolchain-cache-root <folder>` keeps the managed toolchain – the `uv` executable, uv's package
+cache (`uv-cache/`) and the Python uv installs (`python/`) – under that folder. Without it, `uv` is
+cached in the per-user application data folder and uv keeps its own default locations, which other uv
+users on the machine share. A host that keeps everything it provisions in its own storage, such as an
+editor extension, passes this option.
 
 | Verb | What it does |
 | --- | --- |
 | `hypha discover` | Lists the releases both upstreams offer. |
 | `hypha fetch --tag <release>` | Downloads that release's inputs into `sources/<tag>/` and records it in `knowledge/versions.json`. |
 | `hypha generate [artifact]` | Generates the knowledge base. Every artifact for every installed release when nothing is narrowed. |
-| `hypha list` | Lists the installed releases and which one answers by default. |
+| `hypha list [--json]` | Lists the installed releases, which one answers by default, and which of their artifacts have been generated. |
+| `hypha lookup --kind <metamodel\|model-library> --name <name> [--tag <release>] [--start-line N] [--max-lines N] [--json]` | Prints one page of a metamodel element's or model-library declaration's generated page. Read-only. |
 | `hypha move-window --tag <release> [--keep N]` | Maintainer-only: fetches, regenerates, re-extracts specifications, re-blesses the metamodel-gen fixtures, verifies, then prunes locally-installed releases beyond `--keep` (default 2). |
 | `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
 | `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
@@ -51,6 +59,56 @@ hypha generate                              # every artifact, every installed re
 hypha generate metamodel --tag 2026-05      # one artifact, one release
 hypha generate --output /tmp/knowledge      # generate without touching the repository
 ```
+
+### Looking things up
+
+`hypha lookup` resolves a name against a release's generated index and prints one page of the
+generated file, so a host never has to read the index format itself:
+
+```sh
+hypha lookup --kind metamodel --name PartUsage                 # the default release
+hypha lookup --kind model-library --name Real --tag 2026-05    # ScalarValues::Real, from its declaration
+hypha lookup --kind metamodel --name PartUsage --start-line 161
+```
+
+A name resolves in tiers, and the first tier with any match decides: the exact key or qualified name,
+then the same ignoring case, then a trailing part of the qualified name (`Real` for
+`ScalarValues::Real`, `Actions::ActionUsage`), then that ignoring case. One match is the answer;
+several are `ambiguous`. Only when no tier matches are names that merely contain the request offered,
+as `candidates` – never as an answer, even when there is only one.
+
+A model-library page holds a whole upstream file, so its lookup starts at the declaration rather than
+at the top of the page. The declaration is found by following the qualified name down the scopes of
+the source: each enclosing name has to be declared with a body and the keyword the index recorded for
+it, not merely mentioned in a comment, an import or a reference (`: LengthValue`, `:> Base`,
+`specializes Usage`), and each member is looked for directly inside the body of the one before it, so
+a member is not confused with a same-named member of another scope. `all` and a short name between
+a keyword and its name (`feature all x`, `attribute <m> mass`) are allowed. When
+the declaration cannot be found, the lookup starts at the top of the page and `declarationLine` is
+`null`.
+
+An index path that leaves the release folder – absolute, through `..`, or through a symbolic link
+anywhere on the way – is refused, and so is an index that is not what the generators write; both ask
+for `hypha generate`.
+
+### JSON output
+
+`check`, `list` and `lookup` take `--json`, for editors, language-model tools and scripts. Every
+`--json` document follows the same rules:
+
+- standard output holds exactly one line with one JSON document – no banner, no wrapping – and every
+  log line goes to standard error. HTTP request and retry logging is held to warnings and errors there,
+  so a caller that never reads standard error (the `SessionStart` hook) cannot fill the pipe and stall
+  the command;
+- every property of the document is always present, `null` when it has no value;
+- a failure is a document too, `{"error": "..."}`, with a non-zero exit code: 1, or 130 when
+  cancelled. That includes a command line that does not parse and a failure around the verb, such as
+  a folder that is not a hypha repository, an upstream that cannot be reached or a corrupt
+  `knowledge/versions.json`. A lookup whose name does not resolve is not a
+  failure: it exits 0 and says so in its `status`.
+
+The property names are a contract, pinned by the tests in `Hypha.Tools.Tests`; renaming one is a
+breaking change for every host that reads it.
 
 The artifact names are not a fixed list: they are whatever `IKnowledgeGenerator` implementations are
 registered, so `hypha generate nonsense` reports the ones that exist. Today they are `metamodel`,

@@ -104,6 +104,7 @@ namespace Hypha.Knowledge.Api
                 + $"--repo-root \"{this.repository.Root.FullName}\" --api-version {tag} "
                 + $"--out-root \"{this.repository.OutputRoot.FullName}\"",
                 this.repository.Root,
+                this.uv.Environment,
                 cancellationToken);
 
             if (exitCode != 0)

@@ -32,4 +32,10 @@
     <ProjectReference Include="..\Hypha.Knowledge\Hypha.Knowledge.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Fixtures\**\*.kerml;Fixtures\**\*.sysml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

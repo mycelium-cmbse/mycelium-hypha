@@ -13,14 +13,17 @@ namespace Hypha.Tools
     using System.CommandLine;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Linq;
     using System.Net.Http;
     using System.Reflection;
+    using System.Text.Json;
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
     using Hypha.Tools.Commands.Api;
@@ -43,11 +46,25 @@ namespace Hypha.Tools
     public static class Program
     {
         /// <summary>Runs the command line application.</summary>
+        /// <param name="args">The command line, without the program name: a verb, its options and the global ones.</param>
+        /// <returns>
+        /// The exit code of the verb that ran; 1 when a <c>--json</c> command line does not parse, after printing the
+        /// parse errors as one error document.
+        /// </returns>
         public static async Task<int> Main(string[] args)
         {
-            var root = BuildRootCommand();
+            var parseResult = BuildRootCommand().Parse(args);
 
-            return await root.Parse(args).InvokeAsync();
+            // A command line that does not parse never reaches a verb, so System.CommandLine would
+            // print its help to standard output. With --json, the caller gets one error document.
+            if (parseResult.Errors.Count > 0 && args.Contains(JsonOutput.OptionName, StringComparer.Ordinal))
+            {
+                await JsonOutput.WriteErrorAsync(string.Join(" ", parseResult.Errors.Select(error => error.Message)));
+
+                return 1;
+            }
+
+            return await parseResult.InvokeAsync();
         }
 
         /// <summary>
@@ -57,83 +74,68 @@ namespace Hypha.Tools
         /// Internal so the tests can parse against exactly the command line the tool exposes, rather
         /// than a rebuilt approximation of it.
         /// </remarks>
+        /// <returns>
+        /// The root command with the global options and every verb, each verb's action composing its services and
+        /// running its handler.
+        /// </returns>
         internal static RootCommand BuildRootCommand()
         {
-            var root = new RootCommand(
-                "hypha - fetch the upstream OMG SysML v2 / KerML sources and generate the knowledge base");
+            var root = new RootCommand("hypha - fetch the upstream OMG SysML v2 / KerML sources and generate the knowledge base");
 
             root.Options.Add(GlobalOptions.RepositoryRoot);
+            root.Options.Add(GlobalOptions.ToolchainCacheRoot);
             root.Options.Add(GlobalOptions.Token);
             root.Options.Add(GlobalOptions.LogLevel);
             root.Options.Add(GlobalOptions.NoLogo);
 
             var discover = new DiscoverCommand();
-            discover.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new DiscoverCommand.Handler(
-                        provider.GetRequiredService<IReleaseDiscovery>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+            discover.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new DiscoverCommand.Handler(provider.GetRequiredService<IReleaseDiscovery>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(discover);
 
             var fetch = new FetchCommand();
-            fetch.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new FetchCommand.Handler(
-                        provider.GetRequiredService<IReleaseInstaller>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+            fetch.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new FetchCommand.Handler(provider.GetRequiredService<IReleaseInstaller>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(fetch);
 
             var generate = new GenerateCommand();
-            generate.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new GenerateCommand.Handler(
-                        provider.GetServices<IKnowledgeGenerator>(),
-                        provider.GetRequiredService<IKnowledgeLayout>())
+            generate.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new GenerateCommand.Handler(provider.GetServices<IKnowledgeGenerator>(), provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken),
                 parseResult.GetValue(GenerateCommand.Output)));
             root.Add(generate);
 
             var list = new ListCommand();
-            list.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new ListCommand.Handler(
-                        provider.GetRequiredService<IKnowledgeLayout>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+            list.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new ListCommand.Handler(provider.GetRequiredService<IKnowledgeLayout>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(list);
 
+            var lookup = new LookupCommand();
+            lookup.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new LookupCommand.Handler(provider.GetRequiredService<IKnowledgeLookup>()).InvokeAsync(parseResult, cancellationToken)));
+            root.Add(lookup);
+
             var moveWindow = new MoveWindowCommand();
-            moveWindow.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new MoveWindowCommand.Handler(
-                        provider.GetRequiredService<IReleaseInstaller>(),
-                        provider.GetServices<IKnowledgeGenerator>(),
-                        provider.GetRequiredService<IKnowledgeLayout>(),
-                        provider.GetRequiredService<IReleaseWindowEvictor>(),
-                        provider.GetRequiredService<IProcessRunner>(),
-                        provider.GetRequiredService<ILogger<MoveWindowCommand.Handler>>())
+            moveWindow.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new MoveWindowCommand.Handler(provider.GetRequiredService<IReleaseInstaller>(), provider.GetServices<IKnowledgeGenerator>(),
+                        provider.GetRequiredService<IKnowledgeLayout>(), provider.GetRequiredService<IReleaseWindowEvictor>(),
+                        provider.GetRequiredService<IProcessRunner>(), provider.GetRequiredService<ILogger<MoveWindowCommand.Handler>>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(moveWindow);
 
             var use = new UseCommand();
-            use.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new UseCommand.Handler(provider.GetRequiredService<IKnowledgeLayout>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+            use.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new UseCommand.Handler(provider.GetRequiredService<IKnowledgeLayout>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(use);
 
             var remove = new RemoveCommand();
-            remove.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new RemoveCommand.Handler(provider.GetRequiredService<IReleaseRemover>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+            remove.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new RemoveCommand.Handler(provider.GetRequiredService<IReleaseRemover>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(remove);
 
             var check = new CheckCommand();
-            check.SetAction((parseResult, cancellationToken) => Run(
-                parseResult,
-                provider => new CheckCommand.Handler(
-                        provider.GetRequiredService<IReleaseDiscovery>(),
-                        provider.GetRequiredService<IKnowledgeLayout>())
+            check.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new CheckCommand.Handler(provider.GetRequiredService<IReleaseDiscovery>(), provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(check);
 
@@ -202,10 +204,17 @@ namespace Hypha.Tools
         /// Composes the services, runs the handler and turns the failures a user can cause into an
         /// exit code and a sentence.
         /// </summary>
+        /// <param name="parseResult">The parsed command line of the verb that runs.</param>
+        /// <param name="handler">Builds the verb's handler from the composed services and runs it.</param>
+        /// <param name="outputRoot">
+        /// Where generated artifacts go; <c>null</c> writes them into the repository. Only <c>generate</c> passes one.
+        /// </param>
+        /// <returns>
+        /// The handler's exit code; 130 when cancelled; 1 when composition fails, the upstream cannot be reached or a
+        /// knowledge file cannot be read.
+        /// </returns>
         private static async Task<int> Run(
-            ParseResult parseResult,
-            Func<IServiceProvider, Task<int>> handler,
-            DirectoryInfo? outputRoot = null)
+            ParseResult parseResult, Func<IServiceProvider, Task<int>> handler, DirectoryInfo? outputRoot = null)
         {
             Banner(parseResult);
 
@@ -217,33 +226,71 @@ namespace Hypha.Tools
             }
             catch (OperationCanceledException)
             {
-                AnsiConsole.MarkupLine("[yellow]Cancelled.[/]");
-
-                return 130;
+                return await Fail(parseResult, 130, "Cancelled.", "yellow");
             }
             catch (InvalidOperationException exception)
             {
                 // Composition failed - almost always "this is not a hypha checkout". A stack trace
                 // would bury the one sentence that tells the user what to do about it.
-                AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}[/]");
-
-                return 1;
+                return await Fail(parseResult, 1, exception.Message);
             }
             catch (HttpRequestException exception)
             {
-                AnsiConsole.MarkupLine($"[red]The upstream could not be reached: {Markup.Escape(exception.Message)}[/]");
-                AnsiConsole.MarkupLine(
-                    "[grey]An unauthenticated GitHub API allows 60 requests an hour; set --token or "
-                    + "GITHUB_TOKEN if that is the limit you met.[/]");
-
-                return 1;
+                return await Fail(parseResult, 1, $"The upstream could not be reached: {exception.Message}",
+                    hint: "An unauthenticated GitHub API allows 60 requests an hour; set --token or "
+                          + "GITHUB_TOKEN if that is the limit you met.");
+            }
+            catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
+            {
+                // A file the verb reads - knowledge/versions.json most often - is corrupt, or is being
+                // rewritten by another hypha at this moment.
+                return await Fail(parseResult, 1, $"A knowledge file could not be read: {exception.Message}",
+                    hint: "If another hypha command is running, try again once it has finished; "
+                          + "otherwise fetch or generate the release again.");
             }
         }
 
-        /// <summary>Announces which build is running, unless asked not to.</summary>
+        /// <summary>
+        /// Reports a failure: as <c>{"error": "..."}</c> when the verb was asked for JSON, so standard
+        /// output still holds one document, and as a coloured sentence otherwise.
+        /// </summary>
+        /// <param name="parseResult">The parsed command line; decides whether the failure is written as JSON.</param>
+        /// <param name="exitCode">The exit code to return.</param>
+        /// <param name="message">What went wrong, as a sentence for the user.</param>
+        /// <param name="colour">The Spectre.Console colour of <paramref name="message"/>; ignored under JSON.</param>
+        /// <param name="hint">
+        /// What the user can do about it, printed in grey on its own line; <c>null</c> when there is no hint. Under
+        /// JSON it is appended to the error message.
+        /// </param>
+        /// <returns><paramref name="exitCode"/>, unchanged, so a caller can return the result directly.</returns>
+        private static async Task<int> Fail(
+            ParseResult parseResult, int exitCode, string message, string colour = "red", string? hint = null)
+        {
+            if (JsonOutput.IsRequested(parseResult))
+            {
+                await JsonOutput.WriteErrorAsync(hint is null ? message : $"{message} {hint}");
+
+                return exitCode;
+            }
+
+            AnsiConsole.MarkupLine($"[{colour}]{Markup.Escape(message)}[/]");
+
+            if (hint is not null)
+            {
+                AnsiConsole.MarkupLine($"[grey]{Markup.Escape(hint)}[/]");
+            }
+
+            return exitCode;
+        }
+
+        /// <summary>
+        /// Announces which build is running, unless asked not to - and never in front of a JSON
+        /// document, which has to be the only thing on standard output.
+        /// </summary>
+        /// <param name="parseResult">The parsed command line; <c>--no-logo</c> or <c>--json</c> suppresses the banner.</param>
         private static void Banner(ParseResult parseResult)
         {
-            if (parseResult.GetValue(GlobalOptions.NoLogo))
+            if (parseResult.GetValue(GlobalOptions.NoLogo) || JsonOutput.IsRequested(parseResult))
             {
                 return;
             }

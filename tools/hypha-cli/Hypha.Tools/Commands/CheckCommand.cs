@@ -13,7 +13,6 @@ namespace Hypha.Tools.Commands
     using System.Collections.Generic;
     using System.CommandLine;
     using System.Linq;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -36,11 +35,7 @@ namespace Hypha.Tools.Commands
     {
         /// <summary>Prints machine-readable JSON instead of a table.</summary>
         public static readonly Option<bool> Json =
-            new("--json")
-            {
-                Description = "Print one line of JSON instead of a table - for scripts and the hook.",
-                DefaultValueFactory = _ => false,
-            };
+            JsonOutput.CreateOption("Print one line of JSON instead of a table - for scripts and the hook.");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CheckCommand"/> class.
@@ -54,12 +49,20 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="CheckCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Asks the upstream which releases can be fetched.</summary>
             private readonly IReleaseDiscovery discovery;
+
+            /// <summary>Reports which releases are installed locally and which one is the default.</summary>
             private readonly IKnowledgeLayout layout;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="discovery">Lists the releases offerable upstream, newest first.</param>
+            /// <param name="layout">The knowledge layout whose installed releases are compared against them.</param>
+            /// <exception cref="ArgumentNullException">
+            /// <paramref name="discovery"/> or <paramref name="layout"/> is <c>null</c>.
+            /// </exception>
             public Handler(IReleaseDiscovery discovery, IKnowledgeLayout layout)
             {
                 ArgumentNullException.ThrowIfNull(discovery);
@@ -70,6 +73,8 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Reports the comparison.</summary>
+            /// <param name="parseResult">The parsed command line holding this verb's options.</param>
+            /// <param name="cancellationToken">Cancels the upstream discovery.</param>
             /// <returns>0. This command never fails for want of anything to compare.</returns>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
@@ -78,18 +83,12 @@ namespace Hypha.Tools.Commands
                 var available = await this.discovery.AvailableAsync(cancellationToken);
 
                 var result = new CheckResult(
-                    this.layout.InstalledTags,
-                    this.layout.DefaultTag,
-                    [.. available.Take(CheckResult.MaxAvailableOnline)]);
+                    this.layout.InstalledTags, this.layout.DefaultTag, [.. available.Take(CheckResult.MaxAvailableOnline)]);
 
                 if (parseResult.GetValue(Json))
                 {
-                    // Straight to the underlying writer, not AnsiConsole.Write(IRenderable): a Text
-                    // widget wraps to the console width, which would break a long line of JSON across
-                    // several lines - exactly what the hook parsing stdout as one line cannot survive.
-                    // Still goes through AnsiConsole.Console, so a test that redirects it (as
-                    // RecordedConsole does) can capture this the same way it captures everything else.
-                    await AnsiConsole.Console.Profile.Out.Writer.WriteAsync(JsonSerializer.Serialize(result));
+                    // One unwrapped line: the hook parses standard output as a single JSON document.
+                    await JsonOutput.WriteAsync(result);
 
                     return 0;
                 }
@@ -99,6 +98,11 @@ namespace Hypha.Tools.Commands
                 return 0;
             }
 
+            /// <summary>
+            /// Prints the comparison for a person: one table row per installed or offerable release, newest first,
+            /// then a hint to fetch the newest upstream release when it is not installed.
+            /// </summary>
+            /// <param name="result">The comparison to print.</param>
             private static void Report(CheckResult result)
             {
                 var installed = new HashSet<string>(result.InstalledTags, StringComparer.Ordinal);

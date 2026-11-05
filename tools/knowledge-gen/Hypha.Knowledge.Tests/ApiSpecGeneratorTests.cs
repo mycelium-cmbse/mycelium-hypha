@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -141,7 +142,8 @@ namespace Hypha.Knowledge.Tests
             });
             this.processes.Verify(
                 p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -152,7 +154,8 @@ namespace Hypha.Knowledge.Tests
             this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(this.FakeUvExecutable());
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(3);
 
             var result = await this.generator.GenerateAsync("1.0");
@@ -171,7 +174,8 @@ namespace Hypha.Knowledge.Tests
             this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(this.FakeUvExecutable());
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(0);
 
             var result = await this.generator.GenerateAsync("1.0");
@@ -195,8 +199,9 @@ namespace Hypha.Knowledge.Tests
             DirectoryInfo? workingDirectory = null;
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<CancellationToken>()))
-                .Callback((string file, string args, DirectoryInfo directory, CancellationToken _) =>
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                .Callback((string file, string args, DirectoryInfo directory, IReadOnlyDictionary<string, string>? _, CancellationToken _) =>
                 {
                     fileName = file;
                     arguments = args;
@@ -236,6 +241,7 @@ namespace Hypha.Knowledge.Tests
                         && a.Contains("--api-version 1.0", StringComparison.Ordinal)
                         && a.Contains($"--out-root \"{this.outputRoot.FullName}\"", StringComparison.Ordinal)),
                     It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
                     It.IsAny<CancellationToken>()))
                 .Callback(() =>
                 {
@@ -258,6 +264,31 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     result.Written.Select(file => file.Name), Is.EquivalentTo(new[] { "01-scope.md", "index.json" }));
             });
+        }
+
+        [Test]
+        public async Task Runs_uv_with_the_environment_the_provisioner_gives_it()
+        {
+            // `--toolchain-cache-root` reaches uv only through this environment, so the API
+            // specification must be extracted with it exactly as the language specifications are.
+            this.SeedPdf("1.0");
+            var uvExe = this.FakeUvExecutable();
+            var environment = new Dictionary<string, string> { ["UV_CACHE_DIR"] = "cache" };
+            this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(uvExe);
+            this.uv.SetupGet(u => u.Environment).Returns(environment);
+            this.processes
+                .Setup(p => p.RunAsync(
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            await this.generator.GenerateAsync("1.0");
+
+            this.processes.Verify(
+                p => p.RunAsync(
+                    uvExe.FullName, It.IsAny<string>(), It.IsAny<DirectoryInfo>(), environment,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         private void SeedPdf(string tag)

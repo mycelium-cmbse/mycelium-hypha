@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Toolchain
 {
     using System;
+    using System.Collections.Generic;
     using System.Formats.Tar;
     using System.IO;
     using System.IO.Compression;
@@ -41,21 +42,30 @@ namespace Hypha.Knowledge.Toolchain
     /// </remarks>
     public sealed class UvProvisioner : IUvProvisioner
     {
+        /// <summary>The GitHub repository uv is released from, as <c>owner/name</c>.</summary>
         private const string Repository = "astral-sh/uv";
 
         /// <summary>The pinned uv release. Bumped by PR, the same way <c>hyphaCliVersion</c> is.</summary>
         /// <remarks>Public so tests can address the cache path this provisions without duplicating the value.</remarks>
         public const string PinnedVersion = "0.12.10";
 
+        /// <summary>The folder under the per-user local application data that the cache lives in.</summary>
         private const string CacheFolderName = "mycelium-hypha";
 
+        /// <summary>The client the release and its checksum are downloaded with; its base address is the GitHub API.</summary>
         private readonly HttpClient client;
+
+        /// <summary>The log, which receives every reason uv could not be provisioned.</summary>
         private readonly ILogger<UvProvisioner> logger;
+
+        /// <summary>Where the <c>uv</c> executable is cached.</summary>
         private readonly DirectoryInfo cacheRoot;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UvProvisioner"/> class.
         /// </summary>
+        /// <param name="client">The client the release and its checksum are downloaded with.</param>
+        /// <param name="logger">The log, which receives every reason uv could not be provisioned.</param>
         public UvProvisioner(HttpClient client, ILogger<UvProvisioner> logger)
             : this(client, logger, ResolveCacheRoot())
         {
@@ -65,7 +75,15 @@ namespace Hypha.Knowledge.Toolchain
         /// Initializes a new instance of the <see cref="UvProvisioner"/> class with an explicit cache
         /// root, so a test never touches the real <c>%LOCALAPPDATA%</c>.
         /// </summary>
-        public UvProvisioner(HttpClient client, ILogger<UvProvisioner> logger, DirectoryInfo cacheRoot)
+        /// <param name="client">The client the release and its checksum are downloaded with.</param>
+        /// <param name="logger">The log, which receives every reason uv could not be provisioned.</param>
+        /// <param name="cacheRoot">Where the <c>uv</c> executable is cached.</param>
+        /// <param name="ownsToolchain">
+        /// <c>true</c> to also keep uv's package cache (<c>uv-cache/</c>) and the Python it installs
+        /// (<c>python/</c>) under <paramref name="cacheRoot"/>, through <see cref="Environment"/>;
+        /// <c>false</c> to leave them in uv's default, per-user locations.
+        /// </param>
+        public UvProvisioner(HttpClient client, ILogger<UvProvisioner> logger, DirectoryInfo cacheRoot, bool ownsToolchain = false)
         {
             ArgumentNullException.ThrowIfNull(client);
             ArgumentNullException.ThrowIfNull(logger);
@@ -74,26 +92,53 @@ namespace Hypha.Knowledge.Toolchain
             this.client = client;
             this.logger = logger;
             this.cacheRoot = cacheRoot;
+            this.Environment = ownsToolchain
+                ? new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    [UvCacheVariable] = Path.Combine(cacheRoot.FullName, "uv-cache"),
+                    [UvPythonInstallVariable] = Path.Combine(cacheRoot.FullName, "python"),
+                }
+                : new Dictionary<string, string>(StringComparer.Ordinal);
         }
 
+        /// <summary>The variable uv reads its package cache location from.</summary>
+        public const string UvCacheVariable = "UV_CACHE_DIR";
+
+        /// <summary>The variable uv reads the location of the Pythons it installs from.</summary>
+        public const string UvPythonInstallVariable = "UV_PYTHON_INSTALL_DIR";
+
+        /// <inheritdoc/>
+        public IReadOnlyDictionary<string, string> Environment { get; }
+
         /// <summary>
-        /// Resolves the cache root via <see cref="Environment.SpecialFolder.LocalApplicationData"/> -
+        /// Resolves the cache root via <see cref="System.Environment.SpecialFolder.LocalApplicationData"/> -
         /// the same folder (and reasoning: deliberately outside any git-managed checkout) the CLI's own
         /// self-fetch hook already caches into, so this is a sibling, not a new location to document.
         /// </summary>
-        public static DirectoryInfo ResolveCacheRoot(Func<Environment.SpecialFolder, string>? getFolderPath = null)
+        /// <param name="getFolderPath">
+        /// Resolves a special folder to its path; <c>null</c> uses
+        /// <see cref="System.Environment.GetFolderPath(System.Environment.SpecialFolder)"/>. A test passes its own so it never
+        /// touches the real folder.
+        /// </param>
+        /// <returns>The <c>mycelium-hypha</c> folder under the per-user local application data.</returns>
+        public static DirectoryInfo ResolveCacheRoot(Func<System.Environment.SpecialFolder, string>? getFolderPath = null)
         {
-            getFolderPath ??= Environment.GetFolderPath;
+            getFolderPath ??= System.Environment.GetFolderPath;
 
-            return new DirectoryInfo(
-                Path.Combine(getFolderPath(Environment.SpecialFolder.LocalApplicationData), CacheFolderName));
+            return new DirectoryInfo(Path.Combine(getFolderPath(System.Environment.SpecialFolder.LocalApplicationData), CacheFolderName));
         }
 
         /// <summary><c>uv/&lt;version&gt;/&lt;target&gt;/</c> - where one uv build is cached.</summary>
+        /// <param name="version">The uv release, such as <see cref="PinnedVersion"/>.</param>
+        /// <param name="target">The uv release target (a Rust target triple), as <see cref="UvPlatform.CurrentTarget"/> names it.</param>
+        /// <returns>The build's folder under the cache root; it may not exist yet.</returns>
         public DirectoryInfo BinDirectory(string version, string target) =>
             new(Path.Combine(this.cacheRoot.FullName, "uv", version, target));
 
         /// <summary>The cached <c>uv</c> executable itself.</summary>
+        /// <param name="version">The uv release, such as <see cref="PinnedVersion"/>.</param>
+        /// <param name="target">The uv release target (a Rust target triple), as <see cref="UvPlatform.CurrentTarget"/> names it.</param>
+        /// <returns>The executable's path in <see cref="BinDirectory"/>; it may not exist yet.</returns>
         public FileInfo Executable(string version, string target) =>
             new(Path.Combine(this.BinDirectory(version, target).FullName, UvPlatform.ExecutableName(target)));
 
@@ -101,8 +146,10 @@ namespace Hypha.Knowledge.Toolchain
         /// Written only once the cached download's checksum has been verified - its presence is what
         /// lets a later run skip the network entirely.
         /// </summary>
-        public FileInfo OkMarker(string version, string target) =>
-            new(Path.Combine(this.BinDirectory(version, target).FullName, ".ok"));
+        /// <param name="version">The uv release, such as <see cref="PinnedVersion"/>.</param>
+        /// <param name="target">The uv release target (a Rust target triple), as <see cref="UvPlatform.CurrentTarget"/> names it.</param>
+        /// <returns>The marker's path in <see cref="BinDirectory"/>; it may not exist yet.</returns>
+        public FileInfo OkMarker(string version, string target) => new(Path.Combine(this.BinDirectory(version, target).FullName, ".ok"));
 
         /// <inheritdoc/>
         public async Task<FileInfo?> EnsureAsync(CancellationToken cancellationToken = default)
@@ -110,8 +157,7 @@ namespace Hypha.Knowledge.Toolchain
             var target = UvPlatform.CurrentTarget;
             if (target is null)
             {
-                this.logger.LogWarning(
-                    "no uv release targets this platform ({Rid})", RuntimeInformation.RuntimeIdentifier);
+                this.logger.LogWarning("no uv release targets this platform ({Rid})", RuntimeInformation.RuntimeIdentifier);
 
                 return null;
             }
@@ -184,16 +230,14 @@ namespace Hypha.Knowledge.Toolchain
 
                 // Written last, only once extraction succeeded: its presence is what IsCached trusts to
                 // skip the network on every later run.
-                await File.WriteAllTextAsync(
-                    this.OkMarker(PinnedVersion, target).FullName, expectedSha256, cancellationToken);
+                await File.WriteAllTextAsync(this.OkMarker(PinnedVersion, target).FullName, expectedSha256, cancellationToken);
 
                 executable.Refresh();
 
                 return executable.Exists ? executable : null;
             }
-            catch (Exception exception) when (
-                exception is HttpRequestException or IOException or JsonException
-                or TaskCanceledException or InvalidOperationException)
+            catch (Exception exception) when (exception is HttpRequestException or IOException or JsonException
+                                                  or TaskCanceledException or InvalidOperationException)
             {
                 this.logger.LogWarning(exception, "could not provision uv {Version}", PinnedVersion);
 
@@ -201,6 +245,10 @@ namespace Hypha.Knowledge.Toolchain
             }
         }
 
+        /// <summary>Whether a uv build is cached and was verified when it was downloaded.</summary>
+        /// <param name="version">The uv release.</param>
+        /// <param name="target">The uv release target.</param>
+        /// <returns><c>true</c> when both the executable and its <see cref="OkMarker"/> exist.</returns>
         private bool IsCached(string version, string target)
         {
             var executable = this.Executable(version, target);
@@ -213,8 +261,12 @@ namespace Hypha.Knowledge.Toolchain
         }
 
         /// <summary>uv publishes each asset's checksum as a separate, same-named ``.sha256`` asset.</summary>
-        private static (string? DownloadUrl, string? ChecksumUrl) FindAssetUrls(
-            JsonElement release, string assetName)
+        /// <param name="release">The GitHub API's release document.</param>
+        /// <param name="assetName">The archive's asset name, as <see cref="UvPlatform.AssetName"/> gives it.</param>
+        /// <returns>
+        /// The archive's and its checksum's download URLs; either is <c>null</c> when the release has no such asset.
+        /// </returns>
+        private static (string? DownloadUrl, string? ChecksumUrl) FindAssetUrls(JsonElement release, string assetName)
         {
             string? downloadUrl = null;
             string? checksumUrl = null;
@@ -237,6 +289,9 @@ namespace Hypha.Knowledge.Toolchain
         }
 
         /// <summary>Reads a `sha256sum`-format checksum file: "&lt;hex&gt; *&lt;filename&gt;".</summary>
+        /// <param name="checksumUrl">The checksum asset's download URL.</param>
+        /// <param name="cancellationToken">Cancels the download.</param>
+        /// <returns>The expected SHA-256 as hexadecimal text, or <c>null</c> when the file is empty.</returns>
         private async Task<string?> ReadChecksumAsync(string checksumUrl, CancellationToken cancellationToken)
         {
             var content = await this.client.GetStringAsync(checksumUrl, cancellationToken);
@@ -245,6 +300,10 @@ namespace Hypha.Knowledge.Toolchain
             return string.IsNullOrWhiteSpace(hex) ? null : hex;
         }
 
+        /// <summary>Checks a downloaded file against its published SHA-256.</summary>
+        /// <param name="path">The downloaded file.</param>
+        /// <param name="expectedHex">The published SHA-256, as hexadecimal text in either case.</param>
+        /// <returns><c>true</c> when the file's hash matches.</returns>
         private static bool VerifySha256(string path, string expectedHex)
         {
             using var stream = File.OpenRead(path);
@@ -254,6 +313,9 @@ namespace Hypha.Knowledge.Toolchain
         }
 
         /// <summary>Every uv release target's archive is flat (no wrapping folder) - verified live.</summary>
+        /// <param name="archivePath">The downloaded, verified archive.</param>
+        /// <param name="destination">The folder to extract into; existing files are overwritten.</param>
+        /// <param name="target">The uv release target, which decides whether the archive is a zip or a gzipped tar.</param>
         private static void Extract(string archivePath, string destination, string target)
         {
             if (UvPlatform.IsZip(target))
