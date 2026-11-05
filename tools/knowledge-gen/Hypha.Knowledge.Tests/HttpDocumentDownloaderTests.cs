@@ -19,9 +19,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Api;
 
-    /// <summary>
-    /// Tests for downloading a published document, against a stubbed transport - no live calls.
-    /// </summary>
     [TestFixture]
     public class HttpDocumentDownloaderTests
     {

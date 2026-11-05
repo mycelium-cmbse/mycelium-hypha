@@ -185,6 +185,32 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
+        public async Task A_corrupt_api_version_manifest_is_a_json_error()
+        {
+            using var knowledge = new TemporaryKnowledge();
+            var manifest = new FileInfo(Path.Combine(knowledge.Root.FullName, "knowledge", "api", "versions.json"));
+            manifest.Directory!.Create();
+            await File.WriteAllTextAsync(manifest.FullName, "{ not json");
+            using var console = new RecordedConsole();
+
+            var result = await Program.BuildRootCommand()
+                .Parse($"api list --json --repository-root \"{knowledge.Root.FullName}\"")
+                .InvokeAsync();
+
+            var lines = console.Output.TrimEnd('\r', '\n').Split('\n');
+            using var document = JsonDocument.Parse(lines[0]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(1));
+                Assert.That(lines, Has.Length.EqualTo(1));
+                Assert.That(
+                    document.RootElement.GetProperty("error").GetString(),
+                    Does.StartWith("A knowledge file could not be read"));
+            });
+        }
+
+        [Test]
         public async Task Without_json_a_corrupt_version_manifest_is_a_sentence()
         {
             using var knowledge = new TemporaryKnowledge();

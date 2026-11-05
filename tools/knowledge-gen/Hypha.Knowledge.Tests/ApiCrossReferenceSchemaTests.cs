@@ -18,16 +18,10 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Api.CrossReferences;
 
-    /// <summary>
-    /// Keeps the hand-written <c>api-cross-references.schema.json</c> honest without pulling in a
-    /// JSON-Schema validator.
-    /// </summary>
-    /// <remarks>
-    /// Checks the shape the builder actually produces against the <c>required</c> lists and the
-    /// declared <c>properties</c> of the schema, so adding a member to one and not the other fails
-    /// here - the same technique <c>CrossReferenceSchemaTests</c> uses. Every object in the schema is
-    /// closed, so a member the schema does not know would make it reject real documents.
-    /// </remarks>
+    // Checks the shape the builder actually produces against the `required` lists and the declared
+    // `properties` of the schema, so adding a member to one and not the other fails here - the same technique
+    // `CrossReferenceSchemaTests` uses. Every object in the schema is closed, so a member the schema does not
+    // know would make it reject real documents.
     [TestFixture]
     public class ApiCrossReferenceSchemaTests
     {
@@ -231,10 +225,8 @@ namespace Hypha.Knowledge.Tests
                 Is.EquivalentTo(kinds));
         }
 
-        /// <summary>
-        /// A produced object carries every member the definition requires and none it does not declare.
-        /// A subset rather than an equal set: members whose value is null are left out of the document.
-        /// </summary>
+        // A produced object carries every member the definition requires and none it does not declare. A
+        // subset rather than an equal set: members whose value is null are left out of the document.
         private void AssertMatches(JsonElement produced, string definition)
         {
             var declared = this.schema.RootElement.GetProperty("$defs").GetProperty(definition);

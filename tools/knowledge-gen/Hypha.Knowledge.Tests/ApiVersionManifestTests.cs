@@ -16,9 +16,6 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for the installed-API-versions manifest: assembly, ordering, and the file it produces.
-    /// </summary>
     [TestFixture]
     public class ApiVersionManifestTests
     {

@@ -22,10 +22,6 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the two read-only API verbs: <see cref="ApiDiscoverCommand"/> asks the
-    /// upstreams what exists, <see cref="ApiListCommand"/> reads what this checkout carries.
-    /// </summary>
     [TestFixture]
     public class ApiDiscoverAndListCommandTests
     {
@@ -267,6 +263,25 @@ namespace Hypha.Tools.Tests
                 Assert.That(document.RootElement.GetProperty("defaultTag").ValueKind, Is.EqualTo(JsonValueKind.Null));
                 Assert.That(document.RootElement.GetProperty("versions").GetArrayLength(), Is.EqualTo(0));
             });
+        }
+
+        [Test]
+        public async Task List_marks_a_version_whose_specification_text_is_extracted()
+        {
+            var layout = this.Layout("2026-04", "2026-04");
+            this.FetchSources("2026-04");
+            this.GenerateCore("2026-04");
+            this.Write("2026-04", "spec", "index.json");
+
+            using var console = new RecordedConsole();
+
+            await new ApiListCommand.Handler(layout.Object)
+                .InvokeAsync(this.root.Parse("api list"), CancellationToken.None);
+
+            Assert.That(
+                console.Output.Split('\n').Single(row => row.Contains("2026-04")).Split("yes").Length - 1,
+                Is.EqualTo(4),
+                "the default, with sources fetched, knowledge generated and specification text");
         }
 
         [Test]

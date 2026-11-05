@@ -21,18 +21,12 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.Logging.Abstractions;
 
-    /// <summary>
-    /// Tests for <see cref="ApiCrossReferenceGenerator"/> over temporary folders, with the real
-    /// builder and hand-written inputs - no network, and nothing written into the repository.
-    /// </summary>
     [TestFixture]
     public class ApiCrossReferenceGeneratorTests
     {
         private const string Tag = "1.0";
 
-        /// <summary>
-        /// An invented <c>pim/metamodel.json</c>, with members the cross-references do not read.
-        /// </summary>
+        // An invented `pim/metamodel.json`, with members the cross-references do not read.
         private const string PimJson = """
             {
               "schemaVersion": "1.0.0",
@@ -364,10 +358,8 @@ namespace Hypha.Knowledge.Tests
             File.WriteAllText(file.FullName, ApiJson.Render(ApiCrossReferenceBuilderTests.OpenApi));
         }
 
-        /// <summary>
-        /// Writes the clause catalog and one file per clause, as the specification extraction lays
-        /// them out: <c>entries</c> keyed by clause number, each naming its title and its file.
-        /// </summary>
+        // Writes the clause catalog and one file per clause, as the specification extraction lays them out:
+        // `entries` keyed by clause number, each naming its title and its file.
         private void SeedSpecification(bool reversed = false)
         {
             var folder = this.layout.SpecificationText(Tag);

@@ -14,17 +14,12 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Api.OpenApi;
 
-    /// <summary>
-    /// Tests for <see cref="OpenApiReader"/> on a small, invented OpenAPI document - no OMG file.
-    /// </summary>
     [TestFixture]
     public class OpenApiReaderTests
     {
-        /// <summary>
-        /// An invented OpenAPI 3.1 document. The schemas, their members and the paths are deliberately
-        /// declared out of name order, and one schema carries a <c>Request</c> suffix without being
-        /// used by any endpoint.
-        /// </summary>
+        // An invented OpenAPI 3.1 document. The schemas, their members and the paths are deliberately
+        // declared out of name order, and one schema carries a `Request` suffix without being used by any
+        // endpoint.
         internal const string Document = """
             {
               "openapi": "3.1.0",

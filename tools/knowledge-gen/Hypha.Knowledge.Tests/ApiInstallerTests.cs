@@ -24,15 +24,9 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="ApiInstaller"/>: what it fetches, from where, and what it
-    /// records.
-    /// </summary>
-    /// <remarks>
-    /// Nothing here touches the network. The fetcher and the document downloader are stubs that report
-    /// the file they would have written, which is enough to pin down the four sources, the flags and
-    /// the manifest merge.
-    /// </remarks>
+    // Nothing here touches the network. The fetcher and the document downloader are stubs that report the
+    // file they would have written, which is enough to pin down the four sources, the flags and the manifest
+    // merge.
     [TestFixture]
     public class ApiInstallerTests
     {

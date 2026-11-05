@@ -20,14 +20,8 @@ namespace Hypha.Tools.Tests
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands.Api;
 
-    /// <summary>
-    /// Suite of tests for <see cref="ApiUseCommand"/>.
-    /// </summary>
-    /// <remarks>
-    /// Against a real <see cref="ApiLayout"/> over a temp directory, the same style
-    /// <c>UseCommandTests</c> uses - switching the default is a direct manifest rewrite, not worth
-    /// mocking behind an interface for this alone.
-    /// </remarks>
+    // Against a real ApiLayout over a temp directory, the same style `UseCommandTests` uses - switching the
+    // default is a direct manifest rewrite, not worth mocking behind an interface for this alone.
     [TestFixture]
     public class ApiUseCommandTests
     {

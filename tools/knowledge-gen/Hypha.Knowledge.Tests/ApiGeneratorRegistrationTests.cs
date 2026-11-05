@@ -21,10 +21,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.DependencyInjection;
 
-    /// <summary>
-    /// Tests for how the composition root registers the API generators of this library: as their own
-    /// collection, in their own order, and never among the language-release generators.
-    /// </summary>
     [TestFixture]
     public class ApiGeneratorRegistrationTests
     {

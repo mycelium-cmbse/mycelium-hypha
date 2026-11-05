@@ -15,9 +15,6 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for deciding which API versions to offer. Pure - no network.
-    /// </summary>
     [TestFixture]
     public class ApiCatalogTests
     {

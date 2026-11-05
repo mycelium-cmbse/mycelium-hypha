@@ -25,11 +25,6 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Tests for <see cref="ApiSpecGenerator"/> against mocked <see cref="IApiLayout"/>,
-    /// <see cref="IKnowledgeLayout"/>, <see cref="IUvProvisioner"/> and <see cref="IProcessRunner"/> -
-    /// no network, no real <c>uv</c>.
-    /// </summary>
     [TestFixture]
     public class ApiSpecGeneratorTests
     {

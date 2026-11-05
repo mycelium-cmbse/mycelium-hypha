@@ -20,10 +20,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.Logging.Abstractions;
 
-    /// <summary>
-    /// Suite of tests for <see cref="ApiRemover"/>: removing exactly one API version, on request, under
-    /// the same rules as a language release.
-    /// </summary>
     [TestFixture]
     public class ApiRemoverTests
     {

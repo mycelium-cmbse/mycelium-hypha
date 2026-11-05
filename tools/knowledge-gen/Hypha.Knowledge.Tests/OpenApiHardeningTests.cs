@@ -20,11 +20,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.Logging.Abstractions;
 
-    /// <summary>
-    /// Suite of tests for what the OpenAPI knowledge does with a document that is unlike the published
-    /// one: parameters declared on the path rather than the operation, and schema names that cannot be
-    /// a page name.
-    /// </summary>
     [TestFixture]
     public class OpenApiHardeningTests
     {
@@ -85,6 +80,44 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     model.Endpoints.Single(endpoint => endpoint.Method == "DELETE").Parameters.Select(parameter => parameter.Name),
                     Is.EqualTo(new[] { "widgetId" }));
+            });
+        }
+
+        [Test]
+        public void An_operation_parameter_replaces_the_path_parameter_of_the_same_name_and_location()
+        {
+            // OpenAPI lets an operation override a path-level parameter; listing both would show the
+            // parameter twice on the endpoint.
+            var model = new OpenApiReader().Read(
+                """
+                {
+                  "paths": {
+                    "/widgets/{widgetId}": {
+                      "parameters": [
+                        { "name": "widgetId", "in": "path", "required": true, "description": "path", "schema": { "type": "string" } },
+                        { "name": "widgetId", "in": "query", "description": "a different location", "schema": { "type": "string" } }
+                      ],
+                      "get": {
+                        "operationId": "readWidget",
+                        "parameters": [
+                          { "name": "widgetId", "in": "path", "required": true, "description": "operation", "schema": { "type": "string" } }
+                        ]
+                      }
+                    }
+                  },
+                  "components": { "schemas": {} }
+                }
+                """);
+
+            var parameters = model.Endpoints.Single().Parameters;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    parameters.Select(parameter => (parameter.Name, parameter.In)),
+                    Is.EqualTo(new[] { ("widgetId", "query"), ("widgetId", "path") }),
+                    "the same name in another location is a different parameter");
+                Assert.That(parameters.Single(parameter => parameter.In == "path").Description, Is.EqualTo("operation"));
             });
         }
 

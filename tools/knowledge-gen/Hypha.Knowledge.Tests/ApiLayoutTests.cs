@@ -16,9 +16,6 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for where the API inputs and the knowledge generated from them live.
-    /// </summary>
     [TestFixture]
     public class ApiLayoutTests
     {

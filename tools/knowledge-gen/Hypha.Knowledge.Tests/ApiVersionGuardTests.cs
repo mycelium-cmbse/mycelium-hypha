@@ -20,14 +20,9 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for which tags may be offered, installed and removed as an API version.
-    /// </summary>
-    /// <remarks>
-    /// The PIM model is one fixed OMG document, dated 2025-02. A tag older than that would pair it with
-    /// an earlier OpenAPI document and specification, and several such tags do not carry the files a
-    /// fetch reads at all.
-    /// </remarks>
+    // The PIM model is one fixed OMG document, dated 2025-02. A tag older than that would pair it with an
+    // earlier OpenAPI document and specification, and several such tags do not carry the files a fetch reads
+    // at all.
     [TestFixture]
     public class ApiVersionGuardTests
     {

@@ -53,6 +53,14 @@ namespace Hypha.Knowledge.Releases
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
+            // The tag becomes a folder that is deleted recursively, beside sources/api/ and
+            // knowledge/api/. Nothing but a release-shaped tag may get that far, whatever a
+            // hand-edited manifest says is installed.
+            if (!ReleaseTag.IsRelease(tag))
+            {
+                throw new ArgumentException($"not a release: {tag}", nameof(tag));
+            }
+
             var path = this.layout.VersionManifest.FullName;
             var manifest = VersionManifestFile.ReadIfPresent(path)
                 ?? throw new InvalidOperationException(

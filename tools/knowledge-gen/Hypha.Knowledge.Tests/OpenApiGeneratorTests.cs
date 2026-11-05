@@ -23,10 +23,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.Logging.Abstractions;
 
-    /// <summary>
-    /// Tests for <see cref="OpenApiGenerator"/> over temporary folders, on the invented document of
-    /// <see cref="OpenApiReaderTests"/> - no network, and nothing written into the repository.
-    /// </summary>
     [TestFixture]
     public class OpenApiGeneratorTests
     {

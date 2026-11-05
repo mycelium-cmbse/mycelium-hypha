@@ -20,9 +20,6 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for <see cref="ApiRemoveCommand"/>.
-    /// </summary>
     [TestFixture]
     public class ApiRemoveCommandTests
     {

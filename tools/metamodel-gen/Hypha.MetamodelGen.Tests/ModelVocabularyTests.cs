@@ -17,15 +17,9 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests for <see cref="ModelVocabulary"/> and for the three generators that speak in it.
-    /// </summary>
-    /// <remarks>
-    /// Two things are pinned down. A generator that is not told otherwise still says <i>metaclass</i>
-    /// and <i>metamodel</i>, word for word as before - the KerML / SysML golden files depend on it.
-    /// And one told it describes an ordinary model says <i>class</i> and <i>model</i> everywhere, with
-    /// nothing else on the page changing.
-    /// </remarks>
+    // Two things are pinned down. A generator that is not told otherwise still says metaclass and metamodel,
+    // word for word as before - the KerML / SysML golden files depend on it. And one told it describes an
+    // ordinary model says class and model everywhere, with nothing else on the page changing.
     [TestFixture]
     public class ModelVocabularyTests
     {

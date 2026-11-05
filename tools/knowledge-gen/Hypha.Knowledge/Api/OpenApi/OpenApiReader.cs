@@ -230,7 +230,7 @@ namespace Hypha.Knowledge.Api.OpenApi
                         operation.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array
                             ? tags.EnumerateArray().Select(tag => tag.GetString() ?? string.Empty).ToList()
                             : [],
-                        [.. Parameters(path.Value, components), .. Parameters(operation, components)],
+                        Merged(Parameters(path.Value, components), Parameters(operation, components)),
                         operation.TryGetProperty("requestBody", out var body) ? BodyType(Resolve(body, components)) : null,
                         operation.TryGetProperty("responses", out var responses) && responses.ValueKind == JsonValueKind.Object
                             ? responses.EnumerateObject()
@@ -248,9 +248,27 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>
-        /// The parameters a path item or an operation declares. A path item's apply to every operation
-        /// on it, so an endpoint's parameters are its path's followed by its own.
+        /// An endpoint's parameters: its path's, followed by its own. A path item's parameters apply to
+        /// every operation on it, unless the operation declares one with the same name and location,
+        /// which then replaces it (OpenAPI 3.1, 4.8.10.1).
         /// </summary>
+        /// <param name="inherited">The parameters the path item declares.</param>
+        /// <param name="own">The parameters the operation declares.</param>
+        /// <returns>Every parameter once, the path's that are not overridden first.</returns>
+        private static List<OpenApiParameter> Merged(IEnumerable<OpenApiParameter> inherited, IEnumerable<OpenApiParameter> own)
+        {
+            var declared = own.ToList();
+
+            return
+            [
+                .. inherited.Where(parameter => !declared.Exists(mine =>
+                    string.Equals(mine.Name, parameter.Name, StringComparison.Ordinal)
+                    && string.Equals(mine.In, parameter.In, StringComparison.Ordinal))),
+                .. declared,
+            ];
+        }
+
+        /// <summary>The parameters a path item or an operation declares.</summary>
         private static IEnumerable<OpenApiParameter> Parameters(JsonElement owner, JsonElement components)
         {
             if (!owner.TryGetProperty("parameters", out var parameters) || parameters.ValueKind != JsonValueKind.Array)

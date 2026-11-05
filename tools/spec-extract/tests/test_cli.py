@@ -116,3 +116,36 @@ def test_api_version_reads_and_writes_under_the_api_folders(
     assert extracted == [(specs_dir / cli.API_PDF, "SystemsModelingAPI")]
     # One document, so no per-document subfolder - and never inside a language release's folder.
     assert recorded == [out_root / "knowledge" / "api" / "2026-04" / "spec"]
+
+
+@pytest.mark.parametrize(
+    ("args", "folder", "pdf", "version"),
+    [
+        (["--api-version", "2026-04"], ("sources", "api", "2026-04", "specs"), cli.API_PDF, "2026-04"),
+        (["--tag", "2026-05"], ("sources", "2026-05", "specs"), cli.KERML_PDF, "2026-05"),
+    ],
+)
+def test_no_clauses_exits_non_zero_and_names_the_pdf_and_version(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    args: list[str],
+    folder: tuple[str, ...],
+    pdf: str,
+    version: str,
+) -> None:
+    specs_dir = tmp_path.joinpath(*folder)
+    specs_dir.mkdir(parents=True)
+    for name in (cli.API_PDF, cli.KERML_PDF, cli.SYSML_PDF):
+        (specs_dir / name).touch()
+    recorded = _stub_pipeline(monkeypatch)
+    monkeypatch.setattr(cli, "extract_document", lambda pdf, meta: [])
+
+    exit_code = main(["--repo-root", str(tmp_path), *args])
+
+    assert exit_code == 1
+    error = capsys.readouterr().err
+    assert pdf in error
+    assert version in error
+    # Nothing is written for a document that yielded no clauses.
+    assert recorded == []

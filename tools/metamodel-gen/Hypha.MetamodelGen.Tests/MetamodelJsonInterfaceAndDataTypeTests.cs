@@ -16,11 +16,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests for what <see cref="MetamodelJsonGenerator"/> writes about interfaces and data types:
-    /// present, in both sidecars, for a model that declares them - and absent, property and all, for
-    /// one that does not.
-    /// </summary>
     [TestFixture]
     public class MetamodelJsonInterfaceAndDataTypeTests
     {

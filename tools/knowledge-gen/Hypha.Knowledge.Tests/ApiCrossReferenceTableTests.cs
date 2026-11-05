@@ -14,16 +14,9 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Api.CrossReferences;
 
-    /// <summary>
-    /// Suite of tests for where the <see cref="ApiCrossReferenceBuilder"/> stops reading the two
-    /// mapping tables - the edges that decide whether specification wording, or a row that belongs to
-    /// another service, ends up in the document.
-    /// </summary>
-    /// <remarks>
-    /// The extracted clause text has no blank line between a table and what follows it, so the tables
-    /// cannot be delimited by one. Uses the PIM and the PSM index of
-    /// <see cref="ApiCrossReferenceBuilderTests"/>; every clause here is invented.
-    /// </remarks>
+    // The extracted clause text has no blank line between a table and what follows it, so the tables cannot
+    // be delimited by one. Uses the PIM and the PSM index of ApiCrossReferenceBuilderTests; every clause here
+    // is invented.
     [TestFixture]
     public class ApiCrossReferenceTableTests
     {

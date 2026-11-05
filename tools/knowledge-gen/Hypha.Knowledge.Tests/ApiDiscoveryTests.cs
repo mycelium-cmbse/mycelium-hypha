@@ -19,10 +19,6 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for <see cref="ApiDiscovery"/>: which repositories it asks, and what it makes of
-    /// their answers. The tag listing itself is stubbed - no live calls.
-    /// </summary>
     [TestFixture]
     public class ApiDiscoveryTests
     {

@@ -20,10 +20,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using uml4net.SimpleClassifiers;
 
-    /// <summary>
-    /// Tests for <see cref="DataTypeFileGenerator"/>, exercised against the PIM-shaped fixture (see
-    /// <see cref="PimFixture"/>) and written to a scratch directory (see <see cref="TestOutput"/>).
-    /// </summary>
     [TestFixture]
     public class DataTypeFileGeneratorTests
     {
@@ -159,7 +155,6 @@ namespace Hypha.MetamodelGen.Tests
             return ElementCatalog.DataTypes(model!).Single(dataType => dataType.Name == name);
         }
 
-        /// <summary>An empty scratch directory of this fixture's own.</summary>
         private static DirectoryInfo Scratch(string name)
         {
             var directory = TestOutput.Directory(PimFixture.Tag, nameof(DataTypeFileGeneratorTests), name);

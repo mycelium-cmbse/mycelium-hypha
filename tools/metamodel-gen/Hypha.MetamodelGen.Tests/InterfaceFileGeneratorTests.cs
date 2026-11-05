@@ -21,10 +21,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using uml4net.SimpleClassifiers;
 
-    /// <summary>
-    /// Tests for <see cref="InterfaceFileGenerator"/>, exercised against the PIM-shaped fixture (see
-    /// <see cref="PimFixture"/>) and written to a scratch directory (see <see cref="TestOutput"/>).
-    /// </summary>
     [TestFixture]
     public class InterfaceFileGeneratorTests
     {
@@ -201,7 +197,6 @@ namespace Hypha.MetamodelGen.Tests
             return ElementCatalog.Interfaces(model!).Single(@interface => @interface.Name == name);
         }
 
-        /// <summary>An empty scratch directory of this fixture's own.</summary>
         private static DirectoryInfo Scratch(string name)
         {
             var directory = TestOutput.Directory(PimFixture.Tag, nameof(InterfaceFileGeneratorTests), name);

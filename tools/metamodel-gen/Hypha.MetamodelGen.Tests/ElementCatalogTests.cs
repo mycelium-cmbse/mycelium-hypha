@@ -16,16 +16,8 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests for the parts of <see cref="ElementCatalog"/> that only an ordinary model exercises:
-    /// its interfaces, its data types that are neither primitive nor an enumeration, and the
-    /// classifiers that realize an interface.
-    /// </summary>
-    /// <remarks>
-    /// The PIM-shaped fixture (see <see cref="PimFixture"/>) declares all three; the KerML / SysML
-    /// fixture declares none, which is the other half of the contract - nothing new may appear for
-    /// the metamodels.
-    /// </remarks>
+    // The PIM-shaped fixture (see PimFixture) declares all three; the KerML / SysML fixture declares none,
+    // which is the other half of the contract - nothing new may appear for the metamodels.
     [TestFixture]
     public class ElementCatalogTests
     {

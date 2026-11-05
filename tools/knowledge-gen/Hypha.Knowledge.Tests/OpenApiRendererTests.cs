@@ -14,10 +14,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Api.OpenApi;
 
-    /// <summary>
-    /// Tests for <see cref="OpenApiRenderer"/>, on the invented document of
-    /// <see cref="OpenApiReaderTests"/>.
-    /// </summary>
     [TestFixture]
     public class OpenApiRendererTests
     {

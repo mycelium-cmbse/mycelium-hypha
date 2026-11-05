@@ -17,10 +17,6 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Api.CrossReferences;
     using Hypha.Knowledge.Api.OpenApi;
 
-    /// <summary>
-    /// Tests for the API cross-reference join, on synthetic data - an invented PIM, an invented
-    /// REST/HTTP PSM index and invented clauses. No knowledge base and no PDF.
-    /// </summary>
     [TestFixture]
     public class ApiCrossReferenceBuilderTests
     {

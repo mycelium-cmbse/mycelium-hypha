@@ -19,21 +19,15 @@ namespace Hypha.Tools.Tests
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
     using Hypha.Tools.Commands.Api;
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="ApiGenerateCommand"/>: the same loop <c>hypha generate</c>
-    /// runs, over the API generators and the installed API versions.
-    /// </summary>
-    /// <remarks>
-    /// The loop itself is <see cref="GenerateCommand.Handler"/>'s and is covered by
-    /// <see cref="GenerateCommandTests"/>. What is pinned down here is what the
-    /// <see cref="GenerateCommand.GenerationScope"/> changes: which versions it runs for, which
-    /// argument and option it reads, and the words it reports in.
-    /// </remarks>
+    // The loop itself is GenerateCommand.Handler's and is covered by GenerateCommandTests. What is pinned
+    // down here is what the GenerateCommand.GenerationScope changes: which versions it runs for, which
+    // argument and option it reads, and the words it reports in.
     [TestFixture]
     public class ApiGenerateCommandTests
     {
@@ -362,14 +356,54 @@ namespace Hypha.Tools.Tests
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }
 
-        /// <summary>
-        /// The console output as one line: the recorded console wraps at a fixed width, and a message
-        /// that names a path can be wrapped anywhere.
-        /// </summary>
+        [Test]
+        public async Task Output_through_the_command_line_writes_into_the_output_folder_not_the_repository()
+        {
+            // Through Program, so the --output that reaches the layout is the one `api generate` declares:
+            // wiring the language verb's option instead would silently write into the checkout.
+            using var repository = new TemporaryKnowledge();
+            using var output = new TemporaryKnowledge();
+            var apiLayout = new ApiLayout(repository.Layout);
+            ApiVersionManifestFile.Write(
+                ApiVersionManifest.Build(
+                    "2026-04",
+                    [
+                        new InstalledApiVersion(
+                            "2026-04",
+                            new UpstreamReference(ApiUpstream.ServicesRepository, "abc"),
+                            new UpstreamReference(Upstream.ReleaseRepository, "def"),
+                            new UpstreamReference(Upstream.PilotRepository, "ghi"),
+                            ApiUpstream.PimDocument),
+                    ]),
+                apiLayout.VersionManifest.FullName);
+            var openApi = apiLayout.OpenApi("2026-04");
+            openApi.Directory!.Create();
+            await File.WriteAllTextAsync(openApi.FullName, """{ "paths": {}, "components": { "schemas": {} } }""");
+            using var console = new RecordedConsole();
+
+            var result = await Program.BuildRootCommand()
+                .Parse(
+                    $"api generate openapi --tag 2026-04 --output \"{output.Root.FullName}\" "
+                    + $"--repository-root \"{repository.Root.FullName}\" --no-logo")
+                .InvokeAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(0), console.Output);
+                Assert.That(
+                    new ApiLayout(output.Layout).OpenApiIndex("2026-04").Exists, Is.True,
+                    "the index belongs under --output");
+                Assert.That(
+                    apiLayout.Knowledge("2026-04").Exists, Is.False,
+                    "nothing may be generated into the repository when --output is given");
+            });
+        }
+
+        // The console output as one line: the recorded console wraps at a fixed width, and a message that
+        // names a path can be wrapped anywhere.
         private static string Unwrapped(string output) =>
             string.Join(' ', output.Split(['\r', '\n', ' '], StringSplitOptions.RemoveEmptyEntries));
 
-        /// <summary>A generator that records the order it was called in and reports one written file.</summary>
         private static Mock<T> Generator<T>(string artifact, int order, List<string> log)
             where T : class, IKnowledgeGenerator
         {

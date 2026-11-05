@@ -22,9 +22,6 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="ApiFetchCommand"/>.
-    /// </summary>
     [TestFixture]
     public class ApiFetchCommandTests
     {

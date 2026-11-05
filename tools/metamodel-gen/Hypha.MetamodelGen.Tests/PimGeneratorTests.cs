@@ -28,16 +28,9 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="PimGenerator"/>: what it writes for an installed API version,
-    /// where it writes it, and what it does with a version it cannot generate.
-    /// </summary>
-    /// <remarks>
-    /// Run end to end over the hand-written fixture (see <see cref="PimFixture"/>), laid out in a
-    /// temporary folder the way <c>hypha api fetch</c> would have left it. Nothing is read from or
-    /// written to the repository's own <c>sources/</c> and <c>knowledge/</c>, other than the shared
-    /// primitive types being copied out of it.
-    /// </remarks>
+    // Run end to end over the hand-written fixture (see PimFixture), laid out in a temporary folder the way
+    // `hypha api fetch` would have left it. Nothing is read from or written to the repository's own
+    // `sources/` and `knowledge/`, other than the shared primitive types being copied out of it.
     [TestFixture]
     public class PimGeneratorTests
     {
