@@ -85,11 +85,14 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="LookupCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Resolves the name against the release's index and reads the page.</summary>
             private readonly IKnowledgeLookup lookup;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="lookup">Resolves names in the installed releases' indexes and pages their generated source.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="lookup"/> is <c>null</c>.</exception>
             public Handler(IKnowledgeLookup lookup)
             {
                 ArgumentNullException.ThrowIfNull(lookup);
@@ -98,6 +101,8 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Looks the name up and prints the result.</summary>
+            /// <param name="parseResult">The parsed command line holding this verb's options.</param>
+            /// <param name="cancellationToken">Cancels the run before it starts.</param>
             /// <returns>
             /// 0 when the lookup ran, whatever the name resolved to - the status says that. 1 when it
             /// could not run: the release is not installed or generated, or the request is invalid.
@@ -108,12 +113,9 @@ namespace Hypha.Tools.Commands
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var json = parseResult.GetValue(Json);
-                var request = new LookupRequest(
-                    parseResult.GetValue(Kind) == "model-library" ? KnowledgeKind.ModelLibrary : KnowledgeKind.Metamodel,
-                    parseResult.GetValue(ElementName)!,
-                    parseResult.GetValue(Tag),
-                    parseResult.GetValue(StartLine),
-                    parseResult.GetValue(MaxLines));
+                var kind = parseResult.GetValue(Kind) == "model-library" ? KnowledgeKind.ModelLibrary : KnowledgeKind.Metamodel;
+                var request = new LookupRequest(kind, parseResult.GetValue(ElementName)!, parseResult.GetValue(Tag),
+                    parseResult.GetValue(StartLine), parseResult.GetValue(MaxLines));
 
                 LookupResult result;
 
@@ -147,6 +149,11 @@ namespace Hypha.Tools.Commands
                 return 0;
             }
 
+            /// <summary>
+            /// Prints a lookup result for a person: the page with a heading line when the name was found, otherwise
+            /// what the index held instead – nothing, or the candidates to choose from.
+            /// </summary>
+            /// <param name="result">The result to print; its <see cref="LookupResult.Status"/> decides the form.</param>
             private static async Task Report(LookupResult result)
             {
                 switch (result.Status)
@@ -168,8 +175,7 @@ namespace Hypha.Tools.Commands
                         return;
 
                     case LookupStatus.NotFound:
-                        AnsiConsole.MarkupLine(
-                            $"[yellow]Nothing in the {Markup.Escape(result.Release)} index matches that name.[/]");
+                        AnsiConsole.MarkupLine($"[yellow]Nothing in the {Markup.Escape(result.Release)} index matches that name.[/]");
                         return;
 
                     default:
@@ -185,8 +191,7 @@ namespace Hypha.Tools.Commands
 
                         if (result.TotalMatches > result.Matches.Count)
                         {
-                            AnsiConsole.MarkupLine(
-                                $"[grey]... and {result.TotalMatches - result.Matches.Count} more.[/]");
+                            AnsiConsole.MarkupLine($"[grey]... and {result.TotalMatches - result.Matches.Count} more.[/]");
                         }
 
                         return;

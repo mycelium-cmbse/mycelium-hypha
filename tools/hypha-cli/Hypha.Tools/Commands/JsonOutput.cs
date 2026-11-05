@@ -45,6 +45,10 @@ namespace Hypha.Tools.Commands
         };
 
         /// <summary>Creates the <c>--json</c> option for a verb.</summary>
+        /// <param name="description">The help text the verb shows for its <c>--json</c> option.</param>
+        /// <returns>
+        /// A new, non-recursive <c>--json</c> flag that defaults to <c>false</c>, for the verb to add to its options.
+        /// </returns>
         public static Option<bool> CreateOption(string description) =>
             new(OptionName)
             {
@@ -53,6 +57,12 @@ namespace Hypha.Tools.Commands
             };
 
         /// <summary>Whether the parsed verb was asked for JSON.</summary>
+        /// <param name="parseResult">The parsed command line; its innermost command is the verb that runs.</param>
+        /// <returns>
+        /// <c>true</c> when that verb declares a <c>--json</c> flag and it was set; <c>false</c> when it was not
+        /// set or the verb has no such flag.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
         public static bool IsRequested(ParseResult parseResult)
         {
             ArgumentNullException.ThrowIfNull(parseResult);
@@ -64,6 +74,8 @@ namespace Hypha.Tools.Commands
         }
 
         /// <summary>Writes one document as one line.</summary>
+        /// <typeparam name="T">The document type; its JSON property names are the contract with the host.</typeparam>
+        /// <param name="document">The document to serialize with <see cref="Format"/> to standard output.</param>
         /// <remarks>
         /// Straight to the underlying writer, not <c>AnsiConsole.Write(IRenderable)</c>: a Text widget
         /// wraps to the console width, which would break a long line of JSON across several lines.
@@ -77,6 +89,7 @@ namespace Hypha.Tools.Commands
         }
 
         /// <summary>Writes a failure as <c>{"error": "..."}</c>.</summary>
+        /// <param name="message">What went wrong, written as is as the value of <c>error</c>.</param>
         public static Task WriteErrorAsync(string message) => WriteAsync(new JsonError(message));
 
         /// <summary>The document a failed <c>--json</c> verb prints.</summary>

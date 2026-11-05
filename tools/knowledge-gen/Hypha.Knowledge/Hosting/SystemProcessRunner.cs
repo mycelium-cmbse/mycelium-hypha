@@ -30,11 +30,17 @@ namespace Hypha.Knowledge.Hosting
     /// </remarks>
     public sealed class SystemProcessRunner : IProcessRunner
     {
+        /// <summary>
+        /// The log the child process's output is streamed to: standard output as information, standard error as warnings.
+        /// </summary>
         private readonly ILogger<SystemProcessRunner> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SystemProcessRunner"/> class.
         /// </summary>
+        /// <param name="logger">
+        /// The log the child process's output is streamed to: standard output as information, standard error as warnings.
+        /// </param>
         public SystemProcessRunner(ILogger<SystemProcessRunner> logger)
         {
             ArgumentNullException.ThrowIfNull(logger);
@@ -43,12 +49,8 @@ namespace Hypha.Knowledge.Hosting
         }
 
         /// <inheritdoc/>
-        public async Task<int> RunAsync(
-            string fileName,
-            string arguments,
-            DirectoryInfo workingDirectory,
-            IReadOnlyDictionary<string, string>? environment = null,
-            CancellationToken cancellationToken = default)
+        public async Task<int> RunAsync(string fileName, string arguments, DirectoryInfo workingDirectory,
+            IReadOnlyDictionary<string, string>? environment = null, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
             ArgumentNullException.ThrowIfNull(arguments);

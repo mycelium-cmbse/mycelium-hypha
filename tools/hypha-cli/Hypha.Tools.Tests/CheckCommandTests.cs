@@ -28,11 +28,19 @@ namespace Hypha.Tools.Tests
     [TestFixture]
     public class CheckCommandTests
     {
+        /// <summary>A root command holding only <see cref="CheckCommand"/>, to parse the command lines against.</summary>
         private RootCommand root = null!;
+
+        /// <summary>Offers six releases upstream, newest first – more than <see cref="CheckResult.MaxAvailableOnline"/>.</summary>
         private Mock<IReleaseDiscovery> discovery = null!;
+
+        /// <summary>Reports <c>2026-05</c> and <c>2026-04</c> as installed, <c>2026-05</c> as the default.</summary>
         private Mock<IKnowledgeLayout> layout = null!;
+
+        /// <summary>The handler under test, over <see cref="discovery"/> and <see cref="layout"/>.</summary>
         private CheckCommand.Handler handler = null!;
 
+        /// <summary>Builds the command, the mocks and the handler afresh for each test.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -136,6 +144,9 @@ namespace Hypha.Tools.Tests
             Assert.That(result, Is.EqualTo(0));
         }
 
+        /// <summary>Parses <paramref name="commandLine"/> and runs the handler on it.</summary>
+        /// <param name="commandLine">The command line, starting with <c>check</c>.</param>
+        /// <returns>The handler's exit code.</returns>
         private async Task<int> Invoke(string commandLine)
         {
             var parsed = this.root.Parse(commandLine);

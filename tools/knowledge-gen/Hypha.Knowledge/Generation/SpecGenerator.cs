@@ -39,19 +39,32 @@ namespace Hypha.Knowledge.Generation
     /// </remarks>
     public sealed class SpecGenerator : IKnowledgeGenerator
     {
+        /// <summary>The file name of the KerML specification PDF under <c>sources/&lt;tag&gt;/specs/</c>.</summary>
         private const string KermlPdf = "1-Kernel_Modeling_Language.pdf";
+
+        /// <summary>The file name of the SysML v2 specification PDF under <c>sources/&lt;tag&gt;/specs/</c>.</summary>
         private const string SysmlPdf = "2a-OMG_Systems_Modeling_Language.pdf";
 
+        /// <summary>Where the PDFs are read from, <c>tools/spec-extract</c> is found and the clause text is written.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Provides the cached <c>uv</c> executable and the environment it runs with.</summary>
         private readonly IUvProvisioner uv;
+
+        /// <summary>Runs <c>uv</c> as a child process.</summary>
         private readonly IProcessRunner processes;
+
+        /// <summary>The log, which receives the generation's progress and the reason for a skip.</summary>
         private readonly ILogger<SpecGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpecGenerator"/> class.
         /// </summary>
-        public SpecGenerator(
-            IKnowledgeLayout layout, IUvProvisioner uv, IProcessRunner processes, ILogger<SpecGenerator> logger)
+        /// <param name="layout">Where the PDFs are read from, <c>tools/spec-extract</c> is found and the clause text is written.</param>
+        /// <param name="uv">Provides the cached <c>uv</c> executable and the environment it runs with.</param>
+        /// <param name="processes">Runs <c>uv</c> as a child process.</param>
+        /// <param name="logger">The log, which receives the generation's progress and the reason for a skip.</param>
+        public SpecGenerator(IKnowledgeLayout layout, IUvProvisioner uv, IProcessRunner processes, ILogger<SpecGenerator> logger)
         {
             this.layout = layout;
             this.uv = uv;
@@ -66,16 +79,14 @@ namespace Hypha.Knowledge.Generation
         public int Order => 37;
 
         /// <inheritdoc/>
-        public async Task<GenerationResult> GenerateAsync(
-            string tag, CancellationToken cancellationToken = default)
+        public async Task<GenerationResult> GenerateAsync(string tag, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
             GenerationLog.Started(this.logger, this.Artifact, tag);
 
             var specs = this.layout.Specifications(tag);
-            if (!File.Exists(Path.Combine(specs.FullName, KermlPdf))
-                || !File.Exists(Path.Combine(specs.FullName, SysmlPdf)))
+            if (!File.Exists(Path.Combine(specs.FullName, KermlPdf)) || !File.Exists(Path.Combine(specs.FullName, SysmlPdf)))
             {
                 return GenerationResult.Skipped(
                         $"OMG spec PDFs not present for {tag} under {specs.FullName} (git-ignored); "
@@ -111,9 +122,7 @@ namespace Hypha.Knowledge.Generation
             }
 
             var specRoot = new DirectoryInfo(Path.Combine(this.layout.Knowledge(tag).FullName, "spec"));
-            var written = specRoot.Exists
-                ? specRoot.GetFiles("*", SearchOption.AllDirectories)
-                : [];
+            var written = specRoot.Exists ? specRoot.GetFiles("*", SearchOption.AllDirectories) : [];
 
             if (written.Length == 0)
             {

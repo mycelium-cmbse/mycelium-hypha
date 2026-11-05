@@ -27,12 +27,15 @@ namespace Hypha.Knowledge.Lookup
         }
 
         /// <summary>Initializes a new instance of the <see cref="KnowledgeLookupException"/> class.</summary>
+        /// <param name="message">What went wrong and what to do about it, fit to show a user as is.</param>
         public KnowledgeLookupException(string message)
             : base(message)
         {
         }
 
         /// <summary>Initializes a new instance of the <see cref="KnowledgeLookupException"/> class.</summary>
+        /// <param name="message">What went wrong and what to do about it, fit to show a user as is.</param>
+        /// <param name="innerException">The failure that caused this one, such as a JSON or I/O error.</param>
         public KnowledgeLookupException(string message, Exception innerException)
             : base(message, innerException)
         {

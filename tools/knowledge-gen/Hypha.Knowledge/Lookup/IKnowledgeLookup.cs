@@ -21,6 +21,16 @@ namespace Hypha.Knowledge.Lookup
     public interface IKnowledgeLookup
     {
         /// <summary>Looks up a name.</summary>
+        /// <param name="request">What to look up, in which release, and which page of its source to return.</param>
+        /// <returns>
+        /// One page of the matched entry's generated source when the name resolves to exactly one entry;
+        /// otherwise the status and the names to choose from. A name that does not resolve is a normal
+        /// result, not an exception.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// The request has an empty name, a start line below 1 or past the end of the page, or a page size
+        /// outside 1 to <see cref="LookupRequest.LargestPage"/>.
+        /// </exception>
         /// <exception cref="KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its generated
         /// files are invalid.

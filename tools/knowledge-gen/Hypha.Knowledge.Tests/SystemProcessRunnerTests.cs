@@ -32,8 +32,10 @@ namespace Hypha.Knowledge.Tests
     [TestFixture]
     public class SystemProcessRunnerTests
     {
+        /// <summary>The directory every child process is started in – the system temporary folder, which always exists.</summary>
         private DirectoryInfo workingDirectory = null!;
 
+        /// <summary>Points <see cref="workingDirectory"/> at the system temporary folder.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -45,9 +47,7 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            Assert.That(
-                () => runner.RunAsync(" ", "--version", this.workingDirectory),
-                Throws.ArgumentException);
+            Assert.That(() => runner.RunAsync(" ", "--version", this.workingDirectory), Throws.ArgumentException);
         }
 
         [Test]
@@ -55,9 +55,7 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            Assert.That(
-                () => runner.RunAsync("dotnet", null!, this.workingDirectory),
-                Throws.InstanceOf<ArgumentNullException>());
+            Assert.That(() => runner.RunAsync("dotnet", null!, this.workingDirectory), Throws.InstanceOf<ArgumentNullException>());
         }
 
         [Test]
@@ -65,9 +63,7 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            Assert.That(
-                () => runner.RunAsync("dotnet", "--version", null!),
-                Throws.InstanceOf<ArgumentNullException>());
+            Assert.That(() => runner.RunAsync("dotnet", "--version", null!), Throws.InstanceOf<ArgumentNullException>());
         }
 
         [Test]
@@ -85,8 +81,7 @@ namespace Hypha.Knowledge.Tests
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
 
-            var exitCode = await runner.RunAsync(
-                "dotnet", "no-such-hypha-test-command", this.workingDirectory);
+            var exitCode = await runner.RunAsync("dotnet", "no-such-hypha-test-command", this.workingDirectory);
 
             Assert.That(exitCode, Is.Not.EqualTo(0));
         }
@@ -100,10 +95,7 @@ namespace Hypha.Knowledge.Tests
                 : ("/bin/sh", "-c \"exit $HYPHA_TEST_EXIT_CODE\"");
 
             var exitCode = await runner.RunAsync(
-                shell,
-                arguments,
-                this.workingDirectory,
-                new Dictionary<string, string> { ["HYPHA_TEST_EXIT_CODE"] = "7" });
+                shell, arguments, this.workingDirectory, new Dictionary<string, string> { ["HYPHA_TEST_EXIT_CODE"] = "7" });
 
             Assert.That(exitCode, Is.EqualTo(7));
         }
@@ -122,10 +114,7 @@ namespace Hypha.Knowledge.Tests
             try
             {
                 var exitCode = await runner.RunAsync(
-                    shell,
-                    arguments,
-                    this.workingDirectory,
-                    new Dictionary<string, string> { ["HYPHA_TEST_INHERITED"] = "7" });
+                    shell, arguments, this.workingDirectory, new Dictionary<string, string> { ["HYPHA_TEST_INHERITED"] = "7" });
 
                 Assert.That(exitCode, Is.EqualTo(7));
             }
@@ -145,10 +134,7 @@ namespace Hypha.Knowledge.Tests
 
             logger.Verify(
                 mock => mock.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((value, type) => true),
-                    null,
+                    LogLevel.Information, It.IsAny<EventId>(), It.Is<It.IsAnyType>((value, type) => true), null,
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
         }
@@ -163,10 +149,7 @@ namespace Hypha.Knowledge.Tests
 
             logger.Verify(
                 mock => mock.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((value, type) => true),
-                    null,
+                    LogLevel.Warning, It.IsAny<EventId>(), It.Is<It.IsAnyType>((value, type) => true), null,
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
         }
@@ -193,6 +176,11 @@ namespace Hypha.Knowledge.Tests
             Assert.That(stopwatch.Elapsed, Is.LessThan(TimeSpan.FromSeconds(30)));
         }
 
+        /// <summary>
+        /// Picks a command that runs for about a minute on the current platform, long enough that only a real kill
+        /// explains a cancelled run returning quickly.
+        /// </summary>
+        /// <returns>The executable to start and the arguments to start it with.</returns>
         private static (string FileName, string Arguments) LongRunningCommand() =>
             OperatingSystem.IsWindows()
                 ? ("cmd.exe", "/c ping 127.0.0.1 -n 60 > nul")

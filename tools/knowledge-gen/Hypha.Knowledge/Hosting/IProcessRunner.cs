@@ -31,11 +31,7 @@ namespace Hypha.Knowledge.Hosting
         /// </param>
         /// <param name="cancellationToken">Stops the process, and every process it started.</param>
         /// <returns>The process's exit code.</returns>
-        Task<int> RunAsync(
-            string fileName,
-            string arguments,
-            DirectoryInfo workingDirectory,
-            IReadOnlyDictionary<string, string>? environment = null,
-            CancellationToken cancellationToken = default);
+        Task<int> RunAsync(string fileName, string arguments, DirectoryInfo workingDirectory,
+            IReadOnlyDictionary<string, string>? environment = null, CancellationToken cancellationToken = default);
     }
 }

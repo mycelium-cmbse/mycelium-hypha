@@ -31,14 +31,17 @@ namespace Hypha.Knowledge.Tests
     [TestFixture]
     public class UvProvisionerTests
     {
+        /// <summary>The scratch cache root injected in place of the real <c>%LOCALAPPDATA%</c> toolchain cache.</summary>
         private DirectoryInfo cacheRoot = null!;
+
+        /// <summary>The <c>uv</c> release target of the platform the tests run on, whose asset the stubs serve.</summary>
         private string target = null!;
 
+        /// <summary>Creates an empty scratch cache root and resolves the current platform's <c>uv</c> release target.</summary>
         [SetUp]
         public void SetUp()
         {
-            this.cacheRoot = new DirectoryInfo(
-                Path.Combine(Path.GetTempPath(), "hypha-uv-tests-" + Guid.NewGuid().ToString("N")));
+            this.cacheRoot = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-uv-tests-" + Guid.NewGuid().ToString("N")));
             this.cacheRoot.Create();
 
             // Whatever platform the test happens to run on - the stub responds to that target's asset.
@@ -46,6 +49,7 @@ namespace Hypha.Knowledge.Tests
                 ?? throw new InvalidOperationException("this platform has no uv release target");
         }
 
+        /// <summary>Deletes the scratch cache root, if a test left it behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -69,8 +73,7 @@ namespace Hypha.Knowledge.Tests
         public void Keeps_uv_s_cache_and_python_under_a_toolchain_root_it_owns()
         {
             using var client = new HttpClient();
-            var provisioner = new UvProvisioner(
-                client, NullLogger<UvProvisioner>.Instance, this.cacheRoot, ownsToolchain: true);
+            var provisioner = new UvProvisioner(client, NullLogger<UvProvisioner>.Instance, this.cacheRoot, ownsToolchain: true);
 
             Assert.That(
                 provisioner.Environment,
@@ -94,9 +97,7 @@ namespace Hypha.Knowledge.Tests
 
             Assert.That(executable, Is.Not.Null);
             Assert.That(executable!.Exists, Is.True);
-            Assert.That(
-                executable.FullName,
-                Is.EqualTo(provisioner.Executable(UvProvisioner.PinnedVersion, this.target).FullName));
+            Assert.That(executable.FullName, Is.EqualTo(provisioner.Executable(UvProvisioner.PinnedVersion, this.target).FullName));
             Assert.That(provisioner.OkMarker(UvProvisioner.PinnedVersion, this.target).Exists, Is.True);
         }
 
@@ -175,6 +176,12 @@ namespace Hypha.Knowledge.Tests
             Assert.That(executable, Is.Null);
         }
 
+        /// <summary>
+        /// Builds an in-memory <c>uv</c> release archive holding a fake executable, in the format the target ships: a zip
+        /// on Windows, a gzipped tar elsewhere.
+        /// </summary>
+        /// <param name="target">The <c>uv</c> release target that decides the archive format and the executable's name.</param>
+        /// <returns>The bytes of the archive.</returns>
         private static byte[] BuildArchive(string target)
         {
             var executableName = UvPlatform.ExecutableName(target);
@@ -207,34 +214,64 @@ namespace Hypha.Knowledge.Tests
             return buffer.ToArray();
         }
 
+        /// <summary>
+        /// A stubbed HTTP transport that answers every request from a canned response function and records each
+        /// requested URI, so a test can tell whether the provisioner reached the network at all.
+        /// </summary>
         private sealed class StubHandler : HttpMessageHandler
         {
+            /// <summary>The function producing the response to each request.</summary>
             private readonly Func<HttpRequestMessage, HttpResponseMessage> respond;
 
+            /// <summary>Initializes a new instance of the <see cref="StubHandler"/> class.</summary>
+            /// <param name="respond">The function producing the response to each request.</param>
             private StubHandler(Func<HttpRequestMessage, HttpResponseMessage> respond)
             {
                 this.respond = respond;
             }
 
+            /// <summary>Gets the URI of every request received so far, in the order they arrived.</summary>
             public List<string> Requests { get; } = [];
 
+            /// <summary>Creates a handler serving the release, the archive and its matching SHA-256 checksum.</summary>
+            /// <param name="target">The <c>uv</c> release target whose asset is served.</param>
+            /// <param name="archive">The archive served as the release asset.</param>
+            /// <returns>A handler under which provisioning succeeds.</returns>
             public static StubHandler ForSuccessfulDownload(string target, byte[] archive) =>
                 ForDownload(target, archive, Convert.ToHexStringLower(SHA256.HashData(archive)));
 
+            /// <summary>Creates a handler serving the release and the archive, but a checksum that does not match it.</summary>
+            /// <param name="target">The <c>uv</c> release target whose asset is served.</param>
+            /// <param name="archive">The archive served as the release asset.</param>
+            /// <returns>A handler under which checksum verification fails.</returns>
             public static StubHandler ForCorruptedChecksum(string target, byte[] archive) =>
                 ForDownload(target, archive, new string('0', 64));
 
+            /// <summary>Creates a handler answering every request with 404 Not Found.</summary>
+            /// <returns>A handler under which the pinned release does not exist.</returns>
             public static StubHandler ForNotFound() =>
                 new(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
 
+            /// <summary>Creates a handler serving a release that lists no assets at all.</summary>
+            /// <returns>A handler under which the release exists but has no asset for the current target.</returns>
             public static StubHandler ForReleaseWithNoMatchingAsset() => new(request =>
                 request.RequestUri!.ToString().Contains("/releases/tags/", StringComparison.Ordinal)
                     ? Json("""{"assets":[]}""")
                     : new HttpResponseMessage(HttpStatusCode.NotFound));
 
+            /// <summary>Creates a handler that throws on any request, for tests in which no network call may happen.</summary>
+            /// <returns>A handler that fails the test's request instead of answering it.</returns>
             public static StubHandler ThatNeverResponds() =>
                 new(_ => throw new InvalidOperationException("no network call was expected"));
 
+            /// <summary>
+            /// Creates a handler serving the release metadata – listing the archive and its <c>.sha256</c> file – the
+            /// archive itself and the given checksum; any other URI is not found.
+            /// </summary>
+            /// <param name="target">The <c>uv</c> release target whose asset name the release lists.</param>
+            /// <param name="archive">The archive served at the archive download URL.</param>
+            /// <param name="checksumHex">The lowercase hexadecimal SHA-256 served at the checksum download URL.</param>
+            /// <returns>A handler serving that release.</returns>
             private static StubHandler ForDownload(string target, byte[] archive, string checksumHex)
             {
                 var assetName = UvPlatform.AssetName(target);
@@ -275,11 +312,17 @@ namespace Hypha.Knowledge.Tests
                 });
             }
 
+            /// <summary>Wraps a JSON body in a 200 OK response.</summary>
+            /// <param name="body">The JSON text of the response.</param>
+            /// <returns>The successful response carrying <paramref name="body"/>.</returns>
             private static HttpResponseMessage Json(string body) =>
                 new(HttpStatusCode.OK) { Content = new StringContent(body) };
 
-            protected override Task<HttpResponseMessage> SendAsync(
-                HttpRequestMessage request, CancellationToken cancellationToken)
+            /// <summary>Records the request's URI and answers it from the response function.</summary>
+            /// <param name="request">The request the provisioner sends.</param>
+            /// <param name="cancellationToken">Unused: the response is produced synchronously.</param>
+            /// <returns>A completed task carrying the canned response.</returns>
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 this.Requests.Add(request.RequestUri!.ToString());
 

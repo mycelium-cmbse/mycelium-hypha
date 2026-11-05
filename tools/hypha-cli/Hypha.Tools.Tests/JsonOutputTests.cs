@@ -113,9 +113,7 @@ namespace Hypha.Tools.Tests
             using var provider = KnowledgeServices.Build(parsed);
             var environment = provider.GetRequiredService<IUvProvisioner>().Environment;
 
-            Assert.That(
-                environment[UvProvisioner.UvCacheVariable],
-                Is.EqualTo(Path.Combine(toolchain, "uv-cache")));
+            Assert.That(environment[UvProvisioner.UvCacheVariable], Is.EqualTo(Path.Combine(toolchain, "uv-cache")));
         }
 
         [Test]
@@ -225,9 +223,7 @@ namespace Hypha.Tools.Tests
         {
             using var knowledge = new TemporaryKnowledge()
                 .Install("2026-09")
-                .Write(
-                    "2026-09",
-                    "metamodel/index.json",
+                .Write("2026-09", "metamodel/index.json",
                     "{\"entries\":{\"PartUsage\":{\"kind\":\"class\",\"file\":\"elements/PartUsage.md\"}}}")
                 .Write("2026-09", "metamodel/elements/PartUsage.md", "a\nb\n");
             using var console = new RecordedConsole();
@@ -298,12 +294,20 @@ namespace Hypha.Tools.Tests
         }
 
         /// <summary>Logs one line through the logging a verb runs with, capturing both console streams.</summary>
+        /// <param name="commandLine">
+        /// The verb's command line, without <c>--repository-root</c>, which points at a fresh temporary folder.
+        /// </param>
+        /// <param name="category">The log category the line is written under.</param>
+        /// <param name="logLevel">The level the line is written at.</param>
+        /// <returns>
+        /// Everything written to standard output and to standard error while the line was logged and the provider
+        /// disposed – empty strings when the line was filtered out.
+        /// </returns>
         private static (string Output, string Error) Log(
             string commandLine, string category = "Hypha.Tools.Tests", LogLevel logLevel = LogLevel.Information)
         {
             using var knowledge = new TemporaryKnowledge();
-            var parsed = Program.BuildRootCommand().Parse(
-                $"{commandLine} --repository-root \"{knowledge.Root.FullName}\"");
+            var parsed = Program.BuildRootCommand().Parse($"{commandLine} --repository-root \"{knowledge.Root.FullName}\"");
 
             var previousOut = Console.Out;
             var previousError = Console.Error;

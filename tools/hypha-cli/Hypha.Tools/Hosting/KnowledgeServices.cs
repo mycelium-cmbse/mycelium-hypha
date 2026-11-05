@@ -45,6 +45,11 @@ namespace Hypha.Tools.Hosting
         /// Where generated artifacts go; <c>null</c> writes them into the repository, which is the
         /// normal run.
         /// </param>
+        /// <returns>
+        /// A provider holding the knowledge and metamodel-generation services plus the console log; the caller owns it
+        /// and disposes it once the verb has run.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
         public static ServiceProvider Build(ParseResult parseResult, DirectoryInfo? outputRoot = null)
         {
             ArgumentNullException.ThrowIfNull(parseResult);

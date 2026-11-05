@@ -25,17 +25,26 @@ namespace Hypha.Knowledge.Tests
     [TestFixture]
     public class KnowledgeLookupTests
     {
+        /// <summary>The release the tests install as the default and write their knowledge under.</summary>
         private const string Tag = "2026-09";
 
+        /// <summary>The scratch repository root each test creates and deletes again.</summary>
         private DirectoryInfo root = null!;
+
+        /// <summary>The knowledge layout over <see cref="root"/>.</summary>
         private KnowledgeLayout layout = null!;
+
+        /// <summary>The lookup under test, reading through <see cref="layout"/>.</summary>
         private KnowledgeLookup lookup = null!;
 
+        /// <summary>
+        /// Creates a scratch repository root with <see cref="Tag"/> installed as the default, and writes a small
+        /// metamodel (three elements, one of them 400 lines long) and model library (three packages) into it.
+        /// </summary>
         [SetUp]
         public void SetUp()
         {
-            this.root = new DirectoryInfo(
-                Path.Combine(Path.GetTempPath(), "hypha-lookup-" + Guid.NewGuid().ToString("N")));
+            this.root = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-lookup-" + Guid.NewGuid().ToString("N")));
             this.root.Create();
             this.layout = new KnowledgeLayout(this.root);
             this.lookup = new KnowledgeLookup(this.layout);
@@ -112,6 +121,7 @@ namespace Hypha.Knowledge.Tests
             this.Write("model-library/packages/ISQBase.md", "```sysml\nattribute mass;\n```\n");
         }
 
+        /// <summary>Deletes the scratch repository root, if a test left it behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -224,8 +234,7 @@ namespace Hypha.Knowledge.Tests
         public void A_member_is_told_apart_from_a_same_named_member_of_a_nested_scope()
         {
             var outer = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ISQSpaceTime::length"));
-            var nested = this.lookup.Lookup(
-                new LookupRequest(KnowledgeKind.ModelLibrary, "ISQSpaceTime::LengthValue::length"));
+            var nested = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ISQSpaceTime::LengthValue::length"));
 
             Assert.Multiple(() =>
             {
@@ -242,8 +251,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void An_explicit_start_line_wins_over_the_declaration()
         {
-            var result = this.lookup.Lookup(
-                new LookupRequest(KnowledgeKind.ModelLibrary, "ScalarValues::Real", StartLine: 1));
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ScalarValues::Real", StartLine: 1));
 
             Assert.Multiple(() =>
             {
@@ -367,7 +375,8 @@ namespace Hypha.Knowledge.Tests
             this.Write("outside.md", "outside");
             this.Write(
                 "metamodel/index.json",
-                $"{{ \"entries\": {{ \"Escape\": {{ \"kind\": \"class\", \"file\": \"{file.Replace("\\", "\\\\", StringComparison.Ordinal)}\" }} }} }}");
+                $"{{ \"entries\": {{ \"Escape\": {{ \"kind\": \"class\", "
+                + $"\"file\": \"{file.Replace("\\", "\\\\", StringComparison.Ordinal)}\" }} }} }}");
 
             Assert.That(
                 () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Escape")),
@@ -378,9 +387,7 @@ namespace Hypha.Knowledge.Tests
         public void An_absolute_index_path_is_refused()
         {
             var absolute = this.PathOf("metamodel/elements/PartUsage.md").Replace("\\", "/", StringComparison.Ordinal);
-            this.Write(
-                "metamodel/index.json",
-                $"{{ \"entries\": {{ \"Escape\": {{ \"kind\": \"class\", \"file\": \"{absolute}\" }} }} }}");
+            this.Write("metamodel/index.json", $"{{ \"entries\": {{ \"Escape\": {{ \"kind\": \"class\", \"file\": \"{absolute}\" }} }} }}");
 
             Assert.That(
                 () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Escape")),
@@ -404,9 +411,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.Ignore($"symbolic links cannot be created here: {exception.Message}");
             }
 
-            this.Write(
-                "metamodel/index.json",
-                "{ \"entries\": { \"Link\": { \"kind\": \"class\", \"file\": \"elements/Link.md\" } } }");
+            this.Write("metamodel/index.json", "{ \"entries\": { \"Link\": { \"kind\": \"class\", \"file\": \"elements/Link.md\" } } }");
 
             Assert.That(
                 () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Link")),
@@ -426,9 +431,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void An_empty_name_is_refused()
         {
-            Assert.That(
-                () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "  ")),
-                Throws.ArgumentException);
+            Assert.That(() => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "  ")), Throws.ArgumentException);
         }
 
         [Test]
@@ -513,8 +516,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void The_largest_page_is_accepted()
         {
-            var result = this.lookup.Lookup(
-                new LookupRequest(KnowledgeKind.Metamodel, "PartUsage", MaxLines: LookupRequest.LargestPage));
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "PartUsage", MaxLines: LookupRequest.LargestPage));
 
             Assert.That(result.EndLine, Is.EqualTo(400));
         }
@@ -552,9 +554,7 @@ namespace Hypha.Knowledge.Tests
         public void A_member_on_the_same_line_as_its_scope_is_found()
         {
             this.WriteLibrary(("P::A::x", "attribute"));
-            this.Write(
-                "model-library/packages/P.md",
-                "```sysml\npackage P {\n    attribute x;\n    part def A { attribute x; }\n}\n```\n");
+            this.Write("model-library/packages/P.md", "```sysml\npackage P {\n    attribute x;\n    part def A { attribute x; }\n}\n```\n");
 
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
 
@@ -637,9 +637,7 @@ namespace Hypha.Knowledge.Tests
         public void A_quoted_declaration_name_is_found()
         {
             this.WriteLibrary(("P::'Real Value'", "attribute"));
-            this.Write(
-                "model-library/packages/P.md",
-                "```sysml\npackage P {\n    attribute other;\n    attribute 'Real Value';\n}\n```\n");
+            this.Write("model-library/packages/P.md", "```sysml\npackage P {\n    attribute other;\n    attribute 'Real Value';\n}\n```\n");
 
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::'Real Value'"));
 
@@ -650,9 +648,7 @@ namespace Hypha.Knowledge.Tests
         public void A_keyword_of_several_words_matches_across_extra_whitespace()
         {
             this.WriteLibrary(("P::X", "attribute def"));
-            this.Write(
-                "model-library/packages/P.md",
-                "```sysml\npackage P {\n    attribute X;\n    attribute  def X;\n}\n```\n");
+            this.Write("model-library/packages/P.md", "```sysml\npackage P {\n    attribute X;\n    attribute  def X;\n}\n```\n");
 
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::X"));
 
@@ -696,9 +692,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.Ignore($"symbolic links cannot be created here: {exception.Message}");
             }
 
-            this.Write(
-                "metamodel/index.json",
-                "{ \"entries\": { \"Linked\": { \"kind\": \"class\", \"file\": \"linked/Linked.md\" } } }");
+            this.Write("metamodel/index.json", "{ \"entries\": { \"Linked\": { \"kind\": \"class\", \"file\": \"linked/Linked.md\" } } }");
 
             Assert.That(
                 () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Linked")),
@@ -719,9 +713,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.Ignore($"symbolic links cannot be created here: {exception.Message}");
             }
 
-            this.Write(
-                "metamodel/index.json",
-                "{ \"entries\": { \"Alias\": { \"kind\": \"class\", \"file\": \"elements/Alias.md\" } } }");
+            this.Write("metamodel/index.json", "{ \"entries\": { \"Alias\": { \"kind\": \"class\", \"file\": \"elements/Alias.md\" } } }");
 
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "Alias"));
 
@@ -775,9 +767,7 @@ namespace Hypha.Knowledge.Tests
         public void A_declaration_with_a_short_name_is_found(string declaration)
         {
             this.WriteLibrary(("P::mass", "attribute"));
-            this.Write(
-                "model-library/packages/P.md",
-                $"```sysml\npackage P {{\n    attribute other : mass;\n    {declaration}\n}}\n```\n");
+            this.Write("model-library/packages/P.md", $"```sysml\npackage P {{\n    attribute other : mass;\n    {declaration}\n}}\n```\n");
 
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::mass"));
 
@@ -795,9 +785,7 @@ namespace Hypha.Knowledge.Tests
         public void A_reference_to_a_name_is_not_taken_for_its_declaration(string reference)
         {
             this.WriteLibrary(("P::mass", "attribute"));
-            this.Write(
-                "model-library/packages/P.md",
-                $"```sysml\npackage P {{\n{reference}\n}}\n```\n");
+            this.Write("model-library/packages/P.md", $"```sysml\npackage P {{\n{reference}\n}}\n```\n");
 
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::mass"));
 
@@ -836,7 +824,8 @@ namespace Hypha.Knowledge.Tests
             this.WriteLibrary(("P::A::x", "attribute"));
             this.Write(
                 "model-library/packages/P.md",
-                "```sysml\npackage P {\n    part def B specializes A {\n        attribute x;\n    }\n    part def A {\n        attribute x;\n    }\n}\n```\n");
+                "```sysml\npackage P {\n    part def B specializes A {\n        attribute x;\n    }\n"
+                + "    part def A {\n        attribute x;\n    }\n}\n```\n");
 
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "P::A::x"));
 
@@ -921,6 +910,8 @@ namespace Hypha.Knowledge.Tests
         }
 
         /// <summary>Records <paramref name="tags"/> as installed, the first as the default.</summary>
+        /// <param name="layout">The layout whose version manifest is (over)written.</param>
+        /// <param name="tags">The releases to record, in manifest order; the first becomes the default.</param>
         internal static void Install(IKnowledgeLayout layout, params string[] tags)
         {
             VersionManifestFile.Write(
@@ -933,6 +924,9 @@ namespace Hypha.Knowledge.Tests
                 layout.VersionManifest.FullName);
         }
 
+        /// <summary>Copies every file under a folder, recursively, keeping its relative path.</summary>
+        /// <param name="source">The folder whose files are copied.</param>
+        /// <param name="destination">The folder they are copied into, created as needed; existing files are overwritten.</param>
         private static void Copy(DirectoryInfo source, DirectoryInfo destination)
         {
             foreach (var file in source.EnumerateFiles("*", SearchOption.AllDirectories))
@@ -944,12 +938,17 @@ namespace Hypha.Knowledge.Tests
         }
 
         /// <summary>Replaces the model-library index with these declarations, all on <c>packages/P.md</c>.</summary>
+        /// <param name="declarations">
+        /// The qualified name and kind of each declaration; a minimal <c>packages/P.md</c> is written too unless a test
+        /// already wrote one.
+        /// </param>
         private void WriteLibrary(params (string Name, string Kind)[] declarations)
         {
             var entries = string.Join(
                 ",\n",
                 declarations.Select(declaration =>
-                    $"\"{declaration.Name}\": {{ \"kind\": \"{declaration.Kind}\", \"file\": \"packages/P.md\", \"source\": \"P.sysml\" }}"));
+                    $"\"{declaration.Name}\": {{ \"kind\": \"{declaration.Kind}\", "
+                    + "\"file\": \"packages/P.md\", \"source\": \"P.sysml\" }"));
             this.Write("model-library/index.json", $"{{ \"declarations\": {{ {entries} }} }}");
 
             if (!File.Exists(this.PathOf("model-library/packages/P.md")))
@@ -958,6 +957,9 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
+        /// <summary>Tells whether the current account can read a file, which a root account can despite its mode.</summary>
+        /// <param name="path">The file to try reading.</param>
+        /// <returns><see langword="true"/> when the file could be read; <see langword="false"/> when access was refused.</returns>
         private static bool CanRead(string path)
         {
             try
@@ -971,12 +973,22 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
+        /// <summary>Builds page content of numbered lines, so a test can tell exactly which lines a page returned.</summary>
+        /// <param name="prefix">The text each line starts with, before its one-based number.</param>
+        /// <param name="count">The number of lines.</param>
+        /// <returns>The lines joined by LF, with a trailing LF.</returns>
         private static string Lines(string prefix, int count) =>
             string.Join('\n', Enumerable.Range(1, count).Select(index => $"{prefix} {index}")) + "\n";
 
+        /// <summary>Resolves a path relative to the knowledge folder of <see cref="Tag"/>.</summary>
+        /// <param name="relative">The forward-slash path under <c>knowledge/&lt;tag&gt;/</c>.</param>
+        /// <returns>The full, platform-specific path.</returns>
         private string PathOf(string relative) =>
             Path.Combine(this.root.FullName, "knowledge", Tag, relative.Replace('/', Path.DirectorySeparatorChar));
 
+        /// <summary>Writes a file under the knowledge folder of <see cref="Tag"/>, creating its folder and normalizing to LF.</summary>
+        /// <param name="relative">The forward-slash path under <c>knowledge/&lt;tag&gt;/</c>.</param>
+        /// <param name="content">The file's content; CRLF line endings are written as LF, as the generators write them.</param>
         private void Write(string relative, string content)
         {
             var path = this.PathOf(relative);

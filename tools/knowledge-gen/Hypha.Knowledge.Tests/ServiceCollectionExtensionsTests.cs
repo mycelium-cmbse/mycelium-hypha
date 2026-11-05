@@ -44,12 +44,8 @@ namespace Hypha.Knowledge.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(
-                    environment[UvProvisioner.UvCacheVariable],
-                    Is.EqualTo(Path.Combine(toolchain.FullName, "uv-cache")));
-                Assert.That(
-                    environment[UvProvisioner.UvPythonInstallVariable],
-                    Is.EqualTo(Path.Combine(toolchain.FullName, "python")));
+                Assert.That(environment[UvProvisioner.UvCacheVariable], Is.EqualTo(Path.Combine(toolchain.FullName, "uv-cache")));
+                Assert.That(environment[UvProvisioner.UvPythonInstallVariable], Is.EqualTo(Path.Combine(toolchain.FullName, "python")));
             });
         }
 
@@ -134,8 +130,7 @@ namespace Hypha.Knowledge.Tests
                 .AddHyphaKnowledge(options => options.RepositoryRoot = root)
                 .BuildServiceProvider();
 
-            Assert.That(
-                provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
+            Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
         }
 
         [Test]
@@ -144,9 +139,7 @@ namespace Hypha.Knowledge.Tests
             // The tests run inside the repository, so the discovered root is the checkout.
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
-            Assert.That(
-                provider.GetRequiredService<IKnowledgeLayout>().Root.FullName,
-                Is.EqualTo(Repository.Layout!.Root.FullName));
+            Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(Repository.Layout!.Root.FullName));
         }
 
         [Test]
@@ -162,8 +155,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(client.BaseAddress, Is.EqualTo(Upstream.DefaultApiBaseAddress));
                 Assert.That(client.DefaultRequestHeaders.UserAgent.ToString(), Does.Contain("mycelium-hypha"));
                 Assert.That(
-                    client.DefaultRequestHeaders.Accept.Select(header => header.MediaType),
-                    Does.Contain("application/vnd.github+json"));
+                    client.DefaultRequestHeaders.Accept.Select(header => header.MediaType), Does.Contain("application/vnd.github+json"));
             });
         }
 
@@ -207,9 +199,10 @@ namespace Hypha.Knowledge.Tests
             // hand each caller its own client and give that back.
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
-            Assert.That(
-                provider.GetRequiredService<IReleaseFetcher>(),
-                Is.SameAs(provider.GetRequiredService<IReleaseFetcher>()));
+            var first = provider.GetRequiredService<IReleaseFetcher>();
+            var second = provider.GetRequiredService<IReleaseFetcher>();
+
+            Assert.That(first, Is.SameAs(second));
         }
     }
 }

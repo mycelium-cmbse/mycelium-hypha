@@ -40,11 +40,14 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="ListCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Locates the knowledge folder and reads the installed releases and the default from it.</summary>
             private readonly IKnowledgeLayout layout;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="layout">The knowledge layout whose installed releases are listed.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="layout"/> is <c>null</c>.</exception>
             public Handler(IKnowledgeLayout layout)
             {
                 ArgumentNullException.ThrowIfNull(layout);
@@ -53,12 +56,13 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Lists the installed releases.</summary>
+            /// <param name="parseResult">The parsed command line holding this verb's options.</param>
+            /// <param name="cancellationToken">Cancels the run before it starts.</param>
             /// <returns>
             /// 0 when at least one release is installed, 1 when none is. With <c>--json</c> always 0:
             /// an empty list is an answer, not a failure.
             /// </returns>
-            public async Task<int> InvokeAsync(
-                ParseResult parseResult, CancellationToken cancellationToken = default)
+            public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
                 cancellationToken.ThrowIfCancellationRequested();
@@ -74,8 +78,7 @@ namespace Hypha.Tools.Commands
 
                 if (releases.Count == 0)
                 {
-                    AnsiConsole.MarkupLine(
-                        $"[yellow]No release is installed under {Markup.Escape(this.layout.Root.FullName)}.[/]");
+                    AnsiConsole.MarkupLine($"[yellow]No release is installed under {Markup.Escape(this.layout.Root.FullName)}.[/]");
                     AnsiConsole.MarkupLine("[grey]Run 'hypha fetch --tag <release>' to install one.[/]");
 
                     return 1;

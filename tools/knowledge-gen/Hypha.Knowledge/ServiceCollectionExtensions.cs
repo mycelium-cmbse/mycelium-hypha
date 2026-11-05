@@ -46,6 +46,10 @@ namespace Hypha.Knowledge
         /// Adjusts <see cref="HyphaKnowledgeOptions"/>. Every setting has a working default, so a
         /// caller inside the repository can omit this entirely.
         /// </param>
+        /// <returns><paramref name="services"/>, so calls can be chained.</returns>
+        /// <exception cref="ArgumentException">
+        /// A setting <paramref name="configure"/> left is not usable (see <see cref="HyphaKnowledgeOptions.Validate"/>).
+        /// </exception>
         public static IServiceCollection AddHyphaKnowledge(
             this IServiceCollection services, Action<HyphaKnowledgeOptions>? configure = null)
         {
@@ -71,13 +75,11 @@ namespace Hypha.Knowledge
                 {
                     client.BaseAddress = baseAddress;
                     client.DefaultRequestHeaders.UserAgent.ParseAdd("mycelium-hypha");
-                    client.DefaultRequestHeaders.Accept.Add(
-                        new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
                     if (!string.IsNullOrWhiteSpace(credential))
                     {
-                        client.DefaultRequestHeaders.Authorization =
-                            new AuthenticationHeaderValue("Bearer", credential);
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", credential);
                     }
                 })
 
@@ -88,14 +90,10 @@ namespace Hypha.Knowledge
                 .AddStandardResilienceHandler();
 
             services.AddSingleton<IReleaseDiscovery>(provider => new ReleaseDiscovery(
-                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                options.Token,
-                null,
-                baseAddress));
+                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName), options.Token, null, baseAddress));
 
             services.AddSingleton<ICommitResolver>(provider => new CommitResolver(
-                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
-                baseAddress));
+                provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName), baseAddress));
 
             services.AddSingleton<IReleaseFetcher>(provider => new ReleaseFetcher(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),

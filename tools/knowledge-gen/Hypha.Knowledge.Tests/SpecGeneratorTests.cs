@@ -31,13 +31,30 @@ namespace Hypha.Knowledge.Tests
     [TestFixture]
     public class SpecGeneratorTests
     {
+        /// <summary>The scratch repository root the generator reads its specification PDFs from.</summary>
         private DirectoryInfo root = null!;
+
+        /// <summary>The separate scratch output root the generator must write the extracted text under.</summary>
         private DirectoryInfo outputRoot = null!;
+
+        /// <summary>
+        /// The mocked layout, resolving specifications under <see cref="root"/> and knowledge under <see cref="outputRoot"/>.
+        /// </summary>
         private Mock<IKnowledgeLayout> layout = null!;
+
+        /// <summary>The mocked <c>uv</c> provisioner, so no test downloads or runs the real <c>uv</c>.</summary>
         private Mock<IUvProvisioner> uv = null!;
+
+        /// <summary>The mocked process runner standing in for the <c>spec_extract</c> run.</summary>
         private Mock<IProcessRunner> processes = null!;
+
+        /// <summary>The generator under test, composed from the mocks above.</summary>
         private SpecGenerator generator = null!;
 
+        /// <summary>
+        /// Creates distinct scratch input and output roots, wires the mocked layout to them and composes the generator
+        /// under test.
+        /// </summary>
         [SetUp]
         public void SetUp()
         {
@@ -48,8 +65,7 @@ namespace Hypha.Knowledge.Tests
             // Deliberately a *different* directory from root: SpecGenerator must honor `hypha
             // generate --output`, not always write into the repository it reads inputs from - this is
             // what caught the generator originally never passing --out-root at all.
-            this.outputRoot = new DirectoryInfo(
-                Path.Combine(Path.GetTempPath(), $"hypha-spec-generator-{unique}-out"));
+            this.outputRoot = new DirectoryInfo(Path.Combine(Path.GetTempPath(), $"hypha-spec-generator-{unique}-out"));
             this.outputRoot.Create();
 
             this.layout = new Mock<IKnowledgeLayout>();
@@ -67,6 +83,7 @@ namespace Hypha.Knowledge.Tests
                 this.layout.Object, this.uv.Object, this.processes.Object, NullLogger<SpecGenerator>.Instance);
         }
 
+        /// <summary>Deletes both scratch roots, whichever of them a test left behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -108,7 +125,8 @@ namespace Hypha.Knowledge.Tests
             });
             this.processes.Verify(
                 p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -119,7 +137,8 @@ namespace Hypha.Knowledge.Tests
             this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(this.FakeUvExecutable());
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
             var result = await this.generator.GenerateAsync("2026-05");
@@ -138,7 +157,8 @@ namespace Hypha.Knowledge.Tests
             this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(this.FakeUvExecutable());
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(0);
 
             var result = await this.generator.GenerateAsync("2026-05");
@@ -158,15 +178,12 @@ namespace Hypha.Knowledge.Tests
                     It.Is<string>(a => a.Contains("spec_extract", StringComparison.Ordinal)
                         && a.Contains("2026-05", StringComparison.Ordinal)
                         && a.Contains($"--out-root \"{this.outputRoot.FullName}\"", StringComparison.Ordinal)),
-                    It.IsAny<DirectoryInfo>(),
-                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
-                    It.IsAny<CancellationToken>()))
+                    It.IsAny<DirectoryInfo>(), It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .Callback(() =>
                 {
                     // Simulates what the real `python -m spec_extract --out-root ...` process writes:
                     // under the *output* root, never the input root the PDFs were read from.
-                    var kerml = new DirectoryInfo(
-                        Path.Combine(this.outputRoot.FullName, "knowledge", "2026-05", "spec", "kerml"));
+                    var kerml = new DirectoryInfo(Path.Combine(this.outputRoot.FullName, "knowledge", "2026-05", "spec", "kerml"));
                     kerml.Create();
                     File.WriteAllText(Path.Combine(kerml.FullName, "01-scope.md"), "---\n---\n");
                 })
@@ -192,25 +209,22 @@ namespace Hypha.Knowledge.Tests
             this.uv.SetupGet(u => u.Environment).Returns(environment);
             this.processes
                 .Setup(p => p.RunAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<DirectoryInfo>(),
-                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
-                    It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
             await this.generator.GenerateAsync("2026-05");
 
             this.processes.Verify(
-                p => p.RunAsync(
-                    uvExe.FullName,
-                    It.IsAny<string>(),
-                    It.IsAny<DirectoryInfo>(),
-                    environment,
-                    It.IsAny<CancellationToken>()),
+                p => p.RunAsync(uvExe.FullName, It.IsAny<string>(), It.IsAny<DirectoryInfo>(), environment, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
+        /// <summary>
+        /// Writes stub KerML and SysML specification PDFs under the release's <c>sources/&lt;tag&gt;/specs/</c>, which is
+        /// all the generator checks before it provisions <c>uv</c>.
+        /// </summary>
+        /// <param name="tag">The release to seed the PDFs for.</param>
         private void SeedPdfs(string tag)
         {
             var specs = new DirectoryInfo(Path.Combine(this.root.FullName, "sources", tag, "specs"));
@@ -219,6 +233,8 @@ namespace Hypha.Knowledge.Tests
             File.WriteAllText(Path.Combine(specs.FullName, "2a-OMG_Systems_Modeling_Language.pdf"), "stub");
         }
 
+        /// <summary>Names a <c>uv</c> executable under the scratch root; it is never created nor run.</summary>
+        /// <returns>The would-be <c>uv</c> executable the mocked provisioner hands back.</returns>
         private FileInfo FakeUvExecutable() => new(Path.Combine(this.root.FullName, "uv.exe"));
     }
 }

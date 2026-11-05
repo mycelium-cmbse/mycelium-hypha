@@ -38,6 +38,8 @@ namespace Hypha.Knowledge.Layout
         public static readonly IReadOnlyList<string> SpecificationDocuments = ["kerml", "sysml2"];
 
         /// <summary>Reads the status of every installed release, in manifest order (newest first).</summary>
+        /// <param name="layout">Where the releases' inputs and generated knowledge live.</param>
+        /// <returns>One status per installed release; empty when none is installed.</returns>
         public static IReadOnlyList<ReleaseStatus> ReadAll(IKnowledgeLayout layout)
         {
             ArgumentNullException.ThrowIfNull(layout);
@@ -46,6 +48,9 @@ namespace Hypha.Knowledge.Layout
         }
 
         /// <summary>Reads the status of one release.</summary>
+        /// <param name="layout">Where the release's inputs and generated knowledge live.</param>
+        /// <param name="tag">The release tag; it does not have to be installed, so a missing release reads as nothing present.</param>
+        /// <returns>The release's status, read from disk now.</returns>
         public static ReleaseStatus Read(IKnowledgeLayout layout, string tag)
         {
             ArgumentNullException.ThrowIfNull(layout);
@@ -58,14 +63,14 @@ namespace Hypha.Knowledge.Layout
                 Present(layout.CrossReferences(tag)),
                 SpecificationDocuments.All(document => Present(layout.SpecificationCatalog(tag, document))));
 
-            return new ReleaseStatus(
-                tag,
-                string.Equals(tag, layout.DefaultTag, StringComparison.Ordinal),
-                layout.Xmi(tag).Exists || layout.TextualSources(tag).Exists,
-                artifacts);
+            var isDefault = string.Equals(tag, layout.DefaultTag, StringComparison.Ordinal);
+
+            return new ReleaseStatus(tag, isDefault, layout.Xmi(tag).Exists || layout.TextualSources(tag).Exists, artifacts);
         }
 
         /// <summary>An empty file is what an interrupted write leaves, so it does not count.</summary>
+        /// <param name="file">The generated file; its cached state is refreshed first.</param>
+        /// <returns><c>true</c> when the file exists and is not empty.</returns>
         private static bool Present(FileInfo file)
         {
             file.Refresh();

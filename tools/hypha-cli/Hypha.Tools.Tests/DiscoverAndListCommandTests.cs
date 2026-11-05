@@ -26,8 +26,10 @@ namespace Hypha.Tools.Tests
     [TestFixture]
     public class DiscoverAndListCommandTests
     {
+        /// <summary>A root command holding <see cref="DiscoverCommand"/> and <see cref="ListCommand"/>.</summary>
         private RootCommand root = null!;
 
+        /// <summary>Builds the root command afresh for each test.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -99,8 +101,7 @@ namespace Hypha.Tools.Tests
             using var knowledge = new TemporaryKnowledge().Install("2026-05", "2026-04");
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(knowledge.Layout)
-                .InvokeAsync(this.root.Parse("list"), CancellationToken.None);
+            var result = await new ListCommand.Handler(knowledge.Layout).InvokeAsync(this.root.Parse("list"), CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -117,8 +118,7 @@ namespace Hypha.Tools.Tests
             using var knowledge = new TemporaryKnowledge();
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(knowledge.Layout)
-                .InvokeAsync(this.root.Parse("list"), CancellationToken.None);
+            var result = await new ListCommand.Handler(knowledge.Layout).InvokeAsync(this.root.Parse("list"), CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -189,6 +189,12 @@ namespace Hypha.Tools.Tests
             });
         }
 
+        /// <summary>
+        /// Runs <see cref="DiscoverCommand"/> against an upstream that offers exactly <paramref name="available"/>.
+        /// </summary>
+        /// <param name="available">The releases the mocked discovery reports, newest first.</param>
+        /// <param name="commandLine">The command line, starting with <c>discover</c>.</param>
+        /// <returns>The handler's exit code.</returns>
         private Task<int> Discover(string[] available, string commandLine)
         {
             var discovery = new Mock<IReleaseDiscovery>();
@@ -196,8 +202,7 @@ namespace Hypha.Tools.Tests
                 .Setup(mock => mock.AvailableAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(available);
 
-            return new DiscoverCommand.Handler(discovery.Object)
-                .InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
+            return new DiscoverCommand.Handler(discovery.Object).InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }
     }
 }

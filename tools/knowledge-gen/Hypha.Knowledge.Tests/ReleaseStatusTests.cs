@@ -19,18 +19,22 @@ namespace Hypha.Knowledge.Tests
     [TestFixture]
     public class ReleaseStatusTests
     {
+        /// <summary>The scratch repository root each test creates and deletes again.</summary>
         private DirectoryInfo root = null!;
+
+        /// <summary>The knowledge layout over <see cref="root"/> that the release status is read from.</summary>
         private KnowledgeLayout layout = null!;
 
+        /// <summary>Creates an empty scratch repository root and the layout over it.</summary>
         [SetUp]
         public void SetUp()
         {
-            this.root = new DirectoryInfo(
-                Path.Combine(Path.GetTempPath(), "hypha-status-" + Guid.NewGuid().ToString("N")));
+            this.root = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-status-" + Guid.NewGuid().ToString("N")));
             this.root.Create();
             this.layout = new KnowledgeLayout(this.root);
         }
 
+        /// <summary>Deletes the scratch repository root, if a test left it behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -111,17 +115,25 @@ namespace Hypha.Knowledge.Tests
         {
             KnowledgeLookupTests.Install(this.layout, "2026-05", "2026-09");
 
-            Assert.That(
-                ReleaseStatus.ReadAll(this.layout).Select(status => status.Tag),
-                Is.EqualTo(new[] { "2026-09", "2026-05" }));
+            Assert.That(ReleaseStatus.ReadAll(this.layout).Select(status => status.Tag), Is.EqualTo(new[] { "2026-09", "2026-05" }));
         }
 
+        /// <summary>
+        /// Writes a minimal non-empty file (an empty JSON object), creating its folder first, so the release status
+        /// counts it as generated.
+        /// </summary>
+        /// <param name="file">The file to create or overwrite.</param>
         private static void Touch(FileInfo file)
         {
             file.Directory!.Create();
             File.WriteAllText(file.FullName, "{}");
         }
 
+        /// <summary>
+        /// Simulates a generated release without specification text by touching the metamodel index, the
+        /// textual-notation index, the model-library index and the cross-references.
+        /// </summary>
+        /// <param name="tag">The release whose core artifacts are created.</param>
         private void GenerateCore(string tag)
         {
             Touch(this.layout.MetamodelIndex(tag));

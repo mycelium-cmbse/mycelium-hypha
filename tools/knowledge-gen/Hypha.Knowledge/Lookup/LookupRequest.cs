@@ -22,11 +22,7 @@ namespace Hypha.Knowledge.Lookup
     /// </param>
     /// <param name="MaxLines">How many lines one page holds.</param>
     public sealed record LookupRequest(
-        KnowledgeKind Kind,
-        string Name,
-        string? Tag = null,
-        int? StartLine = null,
-        int MaxLines = LookupRequest.DefaultMaxLines)
+        KnowledgeKind Kind, string Name, string? Tag = null, int? StartLine = null, int MaxLines = LookupRequest.DefaultMaxLines)
     {
         /// <summary>The default page size: enough for most element pages without flooding a context window.</summary>
         public const int DefaultMaxLines = 160;

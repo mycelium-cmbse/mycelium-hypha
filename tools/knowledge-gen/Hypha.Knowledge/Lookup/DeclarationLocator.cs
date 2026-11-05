@@ -43,6 +43,10 @@ namespace Hypha.Knowledge.Lookup
     /// </remarks>
     internal static class DeclarationLocator
     {
+        /// <summary>
+        /// How long one regular-expression match may run before it is abandoned, so a pathological line
+        /// cannot stall a lookup.
+        /// </summary>
         private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(1);
 
         /// <summary>Finds the declaration.</summary>
@@ -54,8 +58,7 @@ namespace Hypha.Knowledge.Lookup
         /// <c>null</c> when the index does not have the scope; such a scope is matched by name.
         /// </param>
         /// <returns>The 1-based line number, or <c>null</c> when the declaration cannot be located.</returns>
-        public static int? Find(
-            IReadOnlyList<string> lines, string qualifiedName, string keyword, Func<string, string?> keywordOf)
+        public static int? Find(IReadOnlyList<string> lines, string qualifiedName, string keyword, Func<string, string?> keywordOf)
         {
             ArgumentNullException.ThrowIfNull(lines);
             ArgumentException.ThrowIfNullOrWhiteSpace(qualifiedName);
@@ -93,8 +96,16 @@ namespace Hypha.Knowledge.Lookup
         }
 
         /// <summary>Follows the segments down the scopes, each one directly inside the previous one.</summary>
-        private static int? FindNested(
-            Source source, int first, int end, List<Regex> scopes, Regex member)
+        /// <param name="source">The page's lines, read by <see cref="Read"/>.</param>
+        /// <param name="first">The 0-based index of the source block's first line.</param>
+        /// <param name="end">The 0-based index just past the source block's last line.</param>
+        /// <param name="scopes">One pattern per enclosing scope, outermost first.</param>
+        /// <param name="member">The pattern of the declaration itself, the last segment of the qualified name.</param>
+        /// <returns>
+        /// The 0-based index of the line the declaration is on, or <c>null</c> when the nesting cannot be
+        /// followed down to it.
+        /// </returns>
+        private static int? FindNested(Source source, int first, int end, List<Regex> scopes, Regex member)
         {
             var position = first;
             var depth = source.Depths[first];
@@ -126,8 +137,20 @@ namespace Hypha.Knowledge.Lookup
         }
 
         /// <summary>The next match at exactly <paramref name="depth"/>, before the scope closes.</summary>
-        private static (int Line, Match Match)? Next(
-            Source source, int position, int end, int depth, Regex pattern, bool requireBody)
+        /// <param name="source">The page's lines, read by <see cref="Read"/>.</param>
+        /// <param name="position">The 0-based index of the first line to search.</param>
+        /// <param name="end">The 0-based index just past the last line to search.</param>
+        /// <param name="depth">The brace depth a matching line has to be at.</param>
+        /// <param name="pattern">The pattern to match a line's code against.</param>
+        /// <param name="requireBody">
+        /// <c>true</c> to accept only a match that opens a body (an enclosing scope); <c>false</c> to accept
+        /// any match (the declaration itself).
+        /// </param>
+        /// <returns>
+        /// The 0-based index of the matching line and the match on it, or <c>null</c> when the scope closes,
+        /// or the block ends, first.
+        /// </returns>
+        private static (int Line, Match Match)? Next(Source source, int position, int end, int depth, Regex pattern, bool requireBody)
         {
             for (var line = position; line < end; line++)
             {
@@ -156,7 +179,13 @@ namespace Hypha.Knowledge.Lookup
         /// The first line of the body a declaration opens: the next line when the brace follows the
         /// name on its own line, the line after the brace when the brace is on a line of its own.
         /// </summary>
-        /// <returns><c>null</c> when the declaration opens no body.</returns>
+        /// <param name="code">The page's lines, with comments blanked out.</param>
+        /// <param name="line">The 0-based index of the line the declaration is on.</param>
+        /// <param name="match">The declaration's match on that line; the brace is looked for after it.</param>
+        /// <param name="end">The 0-based index just past the source block's last line.</param>
+        /// <returns>
+        /// The 0-based index of the body's first line, or <c>null</c> when the declaration opens no body.
+        /// </returns>
         private static int? BodyStart(string[] code, int line, Match match, int end)
         {
             if (code[line].IndexOf('{', match.Index + match.Length) >= 0)
@@ -179,6 +208,10 @@ namespace Hypha.Knowledge.Lookup
         }
 
         /// <summary>Whether the remaining segments appear, in order, in one line's text.</summary>
+        /// <param name="text">The text that follows the opening brace of the last scope found.</param>
+        /// <param name="scopes">The patterns of the enclosing scopes not found yet, outermost first.</param>
+        /// <param name="member">The pattern of the declaration itself.</param>
+        /// <returns><c>true</c> when every remaining scope and then the declaration match, in that order.</returns>
         private static bool Inline(string text, IEnumerable<Regex> scopes, Regex member)
         {
             foreach (var scope in scopes)
@@ -199,6 +232,13 @@ namespace Hypha.Knowledge.Lookup
         /// The source block's lines with comments blanked out, and the brace depth at the start of
         /// each line.
         /// </summary>
+        /// <param name="lines">The package page.</param>
+        /// <param name="first">The 0-based index of the source block's first line.</param>
+        /// <param name="end">The 0-based index just past the source block's last line.</param>
+        /// <returns>
+        /// Every line of the page, those inside the block with comments blanked out, and the brace depth at
+        /// the start of each line of the block and just after it.
+        /// </returns>
         private static Source Read(IReadOnlyList<string> lines, int first, int end)
         {
             var code = lines.ToArray();
@@ -217,6 +257,11 @@ namespace Hypha.Knowledge.Lookup
         }
 
         /// <summary>The lines between the page's first code fence and its closing fence.</summary>
+        /// <param name="lines">The package page.</param>
+        /// <returns>
+        /// The 0-based index of the block's first line and the index just past its last one, or the whole
+        /// page when it has no closed fence.
+        /// </returns>
         private static (int First, int End) SourceBlock(IReadOnlyList<string> lines)
         {
             var open = -1;
@@ -240,6 +285,12 @@ namespace Hypha.Knowledge.Lookup
             return (0, lines.Count);
         }
 
+        /// <summary>The first line in a range that matches a pattern, regardless of brace depth.</summary>
+        /// <param name="lines">The page's lines, with comments blanked out.</param>
+        /// <param name="from">The 0-based index of the first line to search.</param>
+        /// <param name="end">The 0-based index just past the last line to search.</param>
+        /// <param name="pattern">The pattern to look for.</param>
+        /// <returns>The 0-based index of the first matching line, or <c>null</c> when none matches.</returns>
         private static int? Search(string[] lines, int from, int end, Regex pattern)
         {
             for (var index = from; index < end; index++)
@@ -253,12 +304,20 @@ namespace Hypha.Knowledge.Lookup
             return null;
         }
 
+        /// <summary>Compiles a pattern with the <see cref="MatchTimeout"/> every match here is bounded by.</summary>
+        /// <param name="pattern">The regular expression.</param>
+        /// <returns>The compiled expression.</returns>
         private static Regex Pattern(string pattern) => new(pattern, RegexOptions.None, MatchTimeout);
 
         /// <summary>
         /// The name preceded by the keyword that declares it - optionally with <c>all</c> or a short
         /// name in between - or the bare name without a keyword.
         /// </summary>
+        /// <param name="name">The declared name, quoted or not.</param>
+        /// <param name="keyword">
+        /// The keyword the index recorded for the declaration; empty or whitespace to match the bare name.
+        /// </param>
+        /// <returns>The compiled pattern.</returns>
         private static Regex Declared(string name, string keyword) =>
             Pattern(
                 string.IsNullOrWhiteSpace(keyword)
@@ -269,6 +328,8 @@ namespace Hypha.Knowledge.Lookup
         /// An enclosing scope the index has no keyword for: its name, but not where a relationship
         /// keyword (<c>specializes Usage</c>, <c>subsets x</c>, <c>import P::*</c>, ...) refers to it.
         /// </summary>
+        /// <param name="name">The scope's name, quoted or not.</param>
+        /// <returns>The pattern's source text.</returns>
         private static string ScopeNamePattern(string name) =>
             @"(?<!\b(?:specializes|subsets|redefines|references|subclassifier|subtype|subset|unions|intersects"
             + @"|differences|conjugates|chains|crosses|disjoint\s+from|inverse\s+of|typed\s+by|defined\s+by"
@@ -280,6 +341,8 @@ namespace Hypha.Knowledge.Lookup
         /// to it, which follows <c>:</c>, <c>:&gt;</c>, <c>:&gt;&gt;</c>, <c>::</c>, <c>=</c> or <c>~</c>.
         /// A <c>&gt;</c> on its own, closing a short name (<c>&lt;m&gt; mass</c>), is not a reference.
         /// </summary>
+        /// <param name="name">The name, quoted or not; surrounding single quotes are removed before escaping.</param>
+        /// <returns>The pattern's source text.</returns>
         private static string NamePattern(string name)
         {
             var escaped = Regex.Escape(name.Trim('\''));
@@ -288,10 +351,10 @@ namespace Hypha.Knowledge.Lookup
         }
 
         /// <summary>The recorded keyword, with any run of whitespace allowed between its words.</summary>
+        /// <param name="keyword">The keyword the index recorded, such as <c>attribute</c> or <c>part def</c>.</param>
+        /// <returns>The pattern's source text.</returns>
         private static string KeywordPattern(string keyword) =>
-            string.Join(
-                @"\s+",
-                keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Regex.Escape));
+            string.Join(@"\s+", keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Regex.Escape));
 
         /// <summary>
         /// Reads source lines in order, blanking out comments and counting the braces of the code
@@ -300,12 +363,14 @@ namespace Hypha.Knowledge.Lookup
         /// </summary>
         private sealed class BraceScanner
         {
+            /// <summary>Whether the scanner is inside a block comment that an earlier line opened.</summary>
             private bool inBlockComment;
 
             /// <summary>The number of bodies open at the current position.</summary>
             public int Depth { get; private set; }
 
             /// <summary>Reads one line.</summary>
+            /// <param name="line">The next line of the source block.</param>
             /// <returns>The line with its comments replaced by spaces, so columns are kept.</returns>
             public string Scan(string line)
             {
@@ -321,6 +386,8 @@ namespace Hypha.Knowledge.Lookup
             }
 
             /// <summary>Blanks a block comment up to and including its end, or to the end of the line.</summary>
+            /// <param name="text">The line's characters, blanked in place.</param>
+            /// <param name="at">The 0-based position inside the comment to start from.</param>
             /// <returns>Where the code resumes.</returns>
             private int SkipComment(char[] text, int at)
             {
@@ -334,6 +401,8 @@ namespace Hypha.Knowledge.Lookup
             }
 
             /// <summary>Reads one piece of code: a comment opening, quoted text, or a single character.</summary>
+            /// <param name="text">The line's characters; a comment opening is blanked in place.</param>
+            /// <param name="at">The 0-based position of the character to read.</param>
             /// <returns>The position after it.</returns>
             private int ScanCode(char[] text, int at)
             {

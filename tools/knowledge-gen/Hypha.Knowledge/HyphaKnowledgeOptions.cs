@@ -81,6 +81,10 @@ namespace Hypha.Knowledge
         public int MaxDownloadConcurrency { get; set; } = 6;
 
         /// <summary>Throws when a value cannot be used, rather than failing later and further away.</summary>
+        /// <exception cref="ArgumentNullException">
+        /// <see cref="ApiBaseAddress"/> or <see cref="RawContentBaseAddress"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException"><see cref="MaxDownloadConcurrency"/> is less than 1.</exception>
         public void Validate()
         {
             ArgumentNullException.ThrowIfNull(this.ApiBaseAddress);

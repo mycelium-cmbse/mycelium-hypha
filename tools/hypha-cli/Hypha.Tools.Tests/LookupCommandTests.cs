@@ -28,6 +28,9 @@ namespace Hypha.Tools.Tests
     [TestFixture]
     public class LookupCommandTests
     {
+        /// <summary>
+        /// A model-library hit with every property set, so the JSON contract test sees each one with a value.
+        /// </summary>
         private static readonly LookupResult Found = new()
         {
             Release = "2026-09",
@@ -45,9 +48,13 @@ namespace Hypha.Tools.Tests
             TotalMatches = 1,
         };
 
+        /// <summary>A root command holding only <see cref="LookupCommand"/>, to parse the command lines against.</summary>
         private RootCommand root = null!;
+
+        /// <summary>The lookup the handler under test calls; each test sets up what it returns or throws.</summary>
         private Mock<IKnowledgeLookup> lookup = null!;
 
+        /// <summary>Builds the command and a fresh, unconfigured lookup mock for each test.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -61,11 +68,9 @@ namespace Hypha.Tools.Tests
         {
             this.lookup.Setup(mock => mock.Lookup(It.IsAny<LookupRequest>())).Returns(Found);
 
-            await this.Invoke(
-                "lookup --kind model-library --name Real --tag 2026-09 --start-line 5 --max-lines 20 --json");
+            await this.Invoke("lookup --kind model-library --name Real --tag 2026-09 --start-line 5 --max-lines 20 --json");
 
-            this.lookup.Verify(mock => mock.Lookup(
-                new LookupRequest(KnowledgeKind.ModelLibrary, "Real", "2026-09", 5, 20)));
+            this.lookup.Verify(mock => mock.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "Real", "2026-09", 5, 20)));
         }
 
         [Test]
@@ -314,8 +319,10 @@ namespace Hypha.Tools.Tests
             Assert.That(this.root.Parse(commandLine).Errors, Is.Not.Empty);
         }
 
+        /// <summary>Parses <paramref name="commandLine"/> and runs a handler over <see cref="lookup"/> on it.</summary>
+        /// <param name="commandLine">The command line, starting with <c>lookup</c>.</param>
+        /// <returns>The handler's exit code.</returns>
         private Task<int> Invoke(string commandLine) =>
-            new LookupCommand.Handler(this.lookup.Object)
-                .InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
+            new LookupCommand.Handler(this.lookup.Object).InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
     }
 }
