@@ -55,6 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is byte-identical.
 
 ### Fixed
+- **`hypha remove` refuses a tag that is not a release**, whatever `knowledge/versions.json` lists.
+  The tag names a folder that is deleted recursively, and `knowledge/api/` now sits beside the
+  release folders, so a hand-edited manifest listing `api` could otherwise remove every installed
+  API version.
 - **The metamodel knowledge base now carries each operation's body OCL** (`fixes #143`). An
   operation's `bodyCondition` is a constraint the operation owns, not one of its class's rules, so
   the class-level constraint walk never reached it and every derivation body was dropped. Each
