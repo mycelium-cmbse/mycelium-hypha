@@ -15,16 +15,11 @@ namespace Hypha.Tools.Tests
 
     using Hypha.Tools.Commands;
 
-    /// <summary>
-    /// Suite of tests for the command line the tool exposes.
-    /// </summary>
     [TestFixture]
     public class RootCommandTests
     {
-        /// <summary>The root command exactly as the tool builds it, with every verb and global option.</summary>
         private RootCommand root = null!;
 
-        /// <summary>Builds the root command afresh for each test.</summary>
         [SetUp]
         public void SetUp() => this.root = Program.BuildRootCommand();
 

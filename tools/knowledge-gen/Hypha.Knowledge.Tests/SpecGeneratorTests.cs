@@ -24,37 +24,21 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Tests for <see cref="SpecGenerator"/> against mocked <see cref="IKnowledgeLayout"/>,
-    /// <see cref="IUvProvisioner"/> and <see cref="IProcessRunner"/> - no network, no real <c>uv</c>.
-    /// </summary>
     [TestFixture]
     public class SpecGeneratorTests
     {
-        /// <summary>The scratch repository root the generator reads its specification PDFs from.</summary>
         private DirectoryInfo root = null!;
 
-        /// <summary>The separate scratch output root the generator must write the extracted text under.</summary>
         private DirectoryInfo outputRoot = null!;
 
-        /// <summary>
-        /// The mocked layout, resolving specifications under <see cref="root"/> and knowledge under <see cref="outputRoot"/>.
-        /// </summary>
         private Mock<IKnowledgeLayout> layout = null!;
 
-        /// <summary>The mocked <c>uv</c> provisioner, so no test downloads or runs the real <c>uv</c>.</summary>
         private Mock<IUvProvisioner> uv = null!;
 
-        /// <summary>The mocked process runner standing in for the <c>spec_extract</c> run.</summary>
         private Mock<IProcessRunner> processes = null!;
 
-        /// <summary>The generator under test, composed from the mocks above.</summary>
         private SpecGenerator generator = null!;
 
-        /// <summary>
-        /// Creates distinct scratch input and output roots, wires the mocked layout to them and composes the generator
-        /// under test.
-        /// </summary>
         [SetUp]
         public void SetUp()
         {
@@ -83,7 +67,6 @@ namespace Hypha.Knowledge.Tests
                 this.layout.Object, this.uv.Object, this.processes.Object, NullLogger<SpecGenerator>.Instance);
         }
 
-        /// <summary>Deletes both scratch roots, whichever of them a test left behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -220,11 +203,6 @@ namespace Hypha.Knowledge.Tests
                 Times.Once);
         }
 
-        /// <summary>
-        /// Writes stub KerML and SysML specification PDFs under the release's <c>sources/&lt;tag&gt;/specs/</c>, which is
-        /// all the generator checks before it provisions <c>uv</c>.
-        /// </summary>
-        /// <param name="tag">The release to seed the PDFs for.</param>
         private void SeedPdfs(string tag)
         {
             var specs = new DirectoryInfo(Path.Combine(this.root.FullName, "sources", tag, "specs"));
@@ -233,8 +211,6 @@ namespace Hypha.Knowledge.Tests
             File.WriteAllText(Path.Combine(specs.FullName, "2a-OMG_Systems_Modeling_Language.pdf"), "stub");
         }
 
-        /// <summary>Names a <c>uv</c> executable under the scratch root; it is never created nor run.</summary>
-        /// <returns>The would-be <c>uv</c> executable the mocked provisioner hands back.</returns>
         private FileInfo FakeUvExecutable() => new(Path.Combine(this.root.FullName, "uv.exe"));
     }
 }

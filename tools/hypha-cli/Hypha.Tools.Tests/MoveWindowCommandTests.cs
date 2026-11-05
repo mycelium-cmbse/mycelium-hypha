@@ -26,54 +26,29 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="MoveWindowCommand"/>: step order, failure propagation, and
-    /// that eviction only ever runs once everything ahead of it has succeeded.
-    /// </summary>
-    /// <remarks>
-    /// A real end-to-end run fetches from the network, runs multi-minute specification extraction and
-    /// deletes real release data - none of that belongs in a unit test. Every sub-step this command
-    /// drives is mocked at its own seam (<see cref="IReleaseInstaller"/>, <see cref="IKnowledgeGenerator"/>,
-    /// <see cref="IReleaseWindowEvictor"/>, <see cref="IProcessRunner"/>), the same way
-    /// <c>GenerateCommandTests</c>/<c>FetchCommandTests</c> mock theirs.
-    /// </remarks>
     [TestFixture]
     public class MoveWindowCommandTests
     {
-        /// <summary>A root command holding only <see cref="MoveWindowCommand"/>, to parse the command lines against.</summary>
         private RootCommand root = null!;
 
-        /// <summary>Records <c>fetch:&lt;tag&gt;</c> in <see cref="order"/> and reports a successful installation.</summary>
         private Mock<IReleaseInstaller> installer = null!;
 
-        /// <summary>The one metamodel generator; records <c>generate:&lt;tag&gt;</c> and reports a generated file.</summary>
         private Mock<IKnowledgeGenerator> generator = null!;
 
-        /// <summary>Points at the real repository checkout, so the pre-flight checks pass.</summary>
         private Mock<IKnowledgeLayout> layout = null!;
 
-        /// <summary>Records <c>evict:&lt;keep&gt;</c> and evicts nothing.</summary>
         private Mock<IReleaseWindowEvictor> evictor = null!;
 
-        /// <summary>
-        /// Stands in for the <c>pytest</c> and <c>dotnet test</c> child processes: records which step ran and returns
-        /// that step's exit code field; throws on any other command line.
-        /// </summary>
         private Mock<IProcessRunner> processes = null!;
 
-        /// <summary>The steps in the order the mocks saw them run.</summary>
         private List<string> order = null!;
 
-        /// <summary>The exit code the specification-extraction step returns; 0 unless a test sets it.</summary>
         private int specExtractExitCode;
 
-        /// <summary>The exit code the fixture re-bless step returns; 0 unless a test sets it.</summary>
         private int reblessExitCode;
 
-        /// <summary>The exit code the final verification step returns; 0 unless a test sets it.</summary>
         private int verifyExitCode;
 
-        /// <summary>Builds the command and mocks for a run in which every step succeeds.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -330,9 +305,6 @@ namespace Hypha.Tools.Tests
                 Throws.InstanceOf<OperationCanceledException>());
         }
 
-        /// <summary>Parses <paramref name="commandLine"/> and runs a handler over the fixture's mocks on it.</summary>
-        /// <param name="commandLine">The command line, starting with <c>move-window</c>.</param>
-        /// <returns>The handler's exit code.</returns>
         private Task<int> Invoke(string commandLine)
         {
             var handler = new MoveWindowCommand.Handler(
@@ -342,9 +314,6 @@ namespace Hypha.Tools.Tests
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }
 
-        /// <summary>A successful installation of the requested release, with placeholder files that are never read.</summary>
-        /// <param name="request">The request the mocked installer received.</param>
-        /// <returns>An installation of <paramref name="request"/>'s release, recorded against fixed upstream commits.</returns>
         private static ReleaseInstallation Installation(ReleaseInstallRequest request)
         {
             var release = new UpstreamReference("Systems-Modeling/SysML-v2-Release", "abc123");

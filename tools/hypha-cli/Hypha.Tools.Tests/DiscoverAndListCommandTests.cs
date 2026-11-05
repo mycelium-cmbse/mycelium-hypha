@@ -19,17 +19,11 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the two read-only verbs: <see cref="DiscoverCommand"/> asks the upstreams
-    /// what exists, <see cref="ListCommand"/> reads what this checkout carries.
-    /// </summary>
     [TestFixture]
     public class DiscoverAndListCommandTests
     {
-        /// <summary>A root command holding <see cref="DiscoverCommand"/> and <see cref="ListCommand"/>.</summary>
         private RootCommand root = null!;
 
-        /// <summary>Builds the root command afresh for each test.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -189,12 +183,6 @@ namespace Hypha.Tools.Tests
             });
         }
 
-        /// <summary>
-        /// Runs <see cref="DiscoverCommand"/> against an upstream that offers exactly <paramref name="available"/>.
-        /// </summary>
-        /// <param name="available">The releases the mocked discovery reports, newest first.</param>
-        /// <param name="commandLine">The command line, starting with <c>discover</c>.</param>
-        /// <returns>The handler's exit code.</returns>
         private Task<int> Discover(string[] available, string commandLine)
         {
             var discovery = new Mock<IReleaseDiscovery>();

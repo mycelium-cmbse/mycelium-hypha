@@ -20,27 +20,13 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.ModelLibrary;
 
-    /// <summary>
-    /// <see cref="KnowledgeLookup"/> against real standard-library files, laid out the way
-    /// <c>hypha generate</c> lays them out: declarations from <see cref="DeclarationScanner"/>, the page
-    /// from <see cref="ModelLibraryRenderer"/>.
-    /// </summary>
-    /// <remarks>
-    /// The fixtures are two unmodified files of Systems-Modeling/SysML-v2-Release (EPL-2.0, see
-    /// NOTICE), chosen because synthetic pages missed what they contain: <c>feature all x</c> and
-    /// <c>assoc all X</c> (Occurrences.kerml), and members whose enclosing name is also used in
-    /// <c>specializes</c> before its own declaration (SysML.sysml).
-    /// </remarks>
     [TestFixture]
     public class ModelLibraryLookupFixtureTests
     {
-        /// <summary>The release the fixture files are installed and generated as.</summary>
         private const string Tag = "2026-09";
 
-        /// <summary>SysML surface forms the fixture uses; generation reads them from the grammar.</summary>
         private static readonly string[] SurfaceForms = ["metadata def", "attribute", "item", "ref"];
 
-        /// <summary>The KerML / SysML reserved words the scanner must not take for a declared name.</summary>
         private static readonly string[] Reserved =
         [
             "def", "abstract", "about", "alias", "all", "and", "as", "assign", "assoc", "behavior", "binding",
@@ -58,16 +44,12 @@ namespace Hypha.Knowledge.Tests
             "ref", "item", "port",
         ];
 
-        /// <summary>The scratch repository root the fixture's model-library knowledge is generated into.</summary>
         private DirectoryInfo root = null!;
 
-        /// <summary>The knowledge layout over <see cref="root"/>.</summary>
         private KnowledgeLayout layout = null!;
 
-        /// <summary>The lookup under test, reading through <see cref="layout"/>.</summary>
         private KnowledgeLookup lookup = null!;
 
-        /// <summary>Creates a scratch repository root with <see cref="Tag"/> installed, and the lookup over it.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -78,7 +60,6 @@ namespace Hypha.Knowledge.Tests
             KnowledgeLookupTests.Install(this.layout, Tag);
         }
 
-        /// <summary>Deletes the scratch repository root, if a test left it behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -140,13 +121,6 @@ namespace Hypha.Knowledge.Tests
             Assert.That(result.Content!.Trim(), Is.EqualTo(Source("SysML.sysml")[442].Trim()));
         }
 
-        /// <summary>
-        /// Tells whether a source line declares the given declaration: its kind's keywords, then (after an optional
-        /// <c>all</c> and short name) its simple name, quoted or not, as a whole word.
-        /// </summary>
-        /// <param name="line">The source line the lookup returned as the declaration's line.</param>
-        /// <param name="declaration">The declaration the line is expected to declare.</param>
-        /// <returns><see langword="true"/> when the line declares that kind and name; otherwise <see langword="false"/>.</returns>
         private static bool Declares(string line, LibraryDeclaration declaration)
         {
             var keyword = string.Join(@"\s+", declaration.Kind.Split(' ').Select(Regex.Escape));
@@ -155,25 +129,12 @@ namespace Hypha.Knowledge.Tests
             return Regex.IsMatch(line, $@"(?<![\w]){keyword}\s+(?:all\s+)?(?:<[^>]*>\s*)?'?{name}'?(?![\w])");
         }
 
-        /// <summary>Reads a fixture file as LF-normalized lines, so a test can index a known line of it.</summary>
-        /// <param name="file">The fixture file's name under <c>Fixtures/model-library/</c>.</param>
-        /// <returns>The file's lines, zero-based.</returns>
         private static string[] Source(string file) =>
             File.ReadAllText(Fixture(file)).Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
 
-        /// <summary>Resolves a fixture file copied next to the test assembly.</summary>
-        /// <param name="file">The fixture file's name under <c>Fixtures/model-library/</c>.</param>
-        /// <returns>The fixture file's full path.</returns>
         private static string Fixture(string file) =>
             Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", "model-library", file);
 
-        /// <summary>Writes the page and the index the generators would write; returns the unique declarations.</summary>
-        /// <param name="file">The fixture file to scan and render, under <c>Fixtures/model-library/</c>.</param>
-        /// <param name="language">The language the fixture is written in, <c>KerML</c> or <c>SysML</c>, as the page names it.</param>
-        /// <returns>
-        /// The declarations whose qualified name is unique in the file – the only ones the index records, since a
-        /// duplicated name cannot be looked up unambiguously.
-        /// </returns>
         private List<LibraryDeclaration> Generate(string file, string language)
         {
             var text = File.ReadAllText(Fixture(file)).Replace("\r\n", "\n", StringComparison.Ordinal);

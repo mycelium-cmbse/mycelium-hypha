@@ -15,17 +15,13 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Layout;
 
-    /// <summary>Suite of tests for <see cref="ReleaseStatus"/>.</summary>
     [TestFixture]
     public class ReleaseStatusTests
     {
-        /// <summary>The scratch repository root each test creates and deletes again.</summary>
         private DirectoryInfo root = null!;
 
-        /// <summary>The knowledge layout over <see cref="root"/> that the release status is read from.</summary>
         private KnowledgeLayout layout = null!;
 
-        /// <summary>Creates an empty scratch repository root and the layout over it.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -34,7 +30,6 @@ namespace Hypha.Knowledge.Tests
             this.layout = new KnowledgeLayout(this.root);
         }
 
-        /// <summary>Deletes the scratch repository root, if a test left it behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -118,22 +113,12 @@ namespace Hypha.Knowledge.Tests
             Assert.That(ReleaseStatus.ReadAll(this.layout).Select(status => status.Tag), Is.EqualTo(new[] { "2026-09", "2026-05" }));
         }
 
-        /// <summary>
-        /// Writes a minimal non-empty file (an empty JSON object), creating its folder first, so the release status
-        /// counts it as generated.
-        /// </summary>
-        /// <param name="file">The file to create or overwrite.</param>
         private static void Touch(FileInfo file)
         {
             file.Directory!.Create();
             File.WriteAllText(file.FullName, "{}");
         }
 
-        /// <summary>
-        /// Simulates a generated release without specification text by touching the metamodel index, the
-        /// textual-notation index, the model-library index and the cross-references.
-        /// </summary>
-        /// <param name="tag">The release whose core artifacts are created.</param>
         private void GenerateCore(string tag)
         {
             Touch(this.layout.MetamodelIndex(tag));

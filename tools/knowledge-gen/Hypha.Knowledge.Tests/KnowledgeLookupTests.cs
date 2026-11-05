@@ -18,29 +18,17 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Suite of tests for <see cref="KnowledgeLookup"/>, against a small release written to a
-    /// temporary folder in the shape the generators write.
-    /// </summary>
     [TestFixture]
     public class KnowledgeLookupTests
     {
-        /// <summary>The release the tests install as the default and write their knowledge under.</summary>
         private const string Tag = "2026-09";
 
-        /// <summary>The scratch repository root each test creates and deletes again.</summary>
         private DirectoryInfo root = null!;
 
-        /// <summary>The knowledge layout over <see cref="root"/>.</summary>
         private KnowledgeLayout layout = null!;
 
-        /// <summary>The lookup under test, reading through <see cref="layout"/>.</summary>
         private KnowledgeLookup lookup = null!;
 
-        /// <summary>
-        /// Creates a scratch repository root with <see cref="Tag"/> installed as the default, and writes a small
-        /// metamodel (three elements, one of them 400 lines long) and model library (three packages) into it.
-        /// </summary>
         [SetUp]
         public void SetUp()
         {
@@ -121,7 +109,6 @@ namespace Hypha.Knowledge.Tests
             this.Write("model-library/packages/ISQBase.md", "```sysml\nattribute mass;\n```\n");
         }
 
-        /// <summary>Deletes the scratch repository root, if a test left it behind.</summary>
         [TearDown]
         public void TearDown()
         {
@@ -909,9 +896,6 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
-        /// <summary>Records <paramref name="tags"/> as installed, the first as the default.</summary>
-        /// <param name="layout">The layout whose version manifest is (over)written.</param>
-        /// <param name="tags">The releases to record, in manifest order; the first becomes the default.</param>
         internal static void Install(IKnowledgeLayout layout, params string[] tags)
         {
             VersionManifestFile.Write(
@@ -924,9 +908,6 @@ namespace Hypha.Knowledge.Tests
                 layout.VersionManifest.FullName);
         }
 
-        /// <summary>Copies every file under a folder, recursively, keeping its relative path.</summary>
-        /// <param name="source">The folder whose files are copied.</param>
-        /// <param name="destination">The folder they are copied into, created as needed; existing files are overwritten.</param>
         private static void Copy(DirectoryInfo source, DirectoryInfo destination)
         {
             foreach (var file in source.EnumerateFiles("*", SearchOption.AllDirectories))
@@ -937,11 +918,6 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
-        /// <summary>Replaces the model-library index with these declarations, all on <c>packages/P.md</c>.</summary>
-        /// <param name="declarations">
-        /// The qualified name and kind of each declaration; a minimal <c>packages/P.md</c> is written too unless a test
-        /// already wrote one.
-        /// </param>
         private void WriteLibrary(params (string Name, string Kind)[] declarations)
         {
             var entries = string.Join(
@@ -957,9 +933,6 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
-        /// <summary>Tells whether the current account can read a file, which a root account can despite its mode.</summary>
-        /// <param name="path">The file to try reading.</param>
-        /// <returns><see langword="true"/> when the file could be read; <see langword="false"/> when access was refused.</returns>
         private static bool CanRead(string path)
         {
             try
@@ -973,22 +946,12 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
-        /// <summary>Builds page content of numbered lines, so a test can tell exactly which lines a page returned.</summary>
-        /// <param name="prefix">The text each line starts with, before its one-based number.</param>
-        /// <param name="count">The number of lines.</param>
-        /// <returns>The lines joined by LF, with a trailing LF.</returns>
         private static string Lines(string prefix, int count) =>
             string.Join('\n', Enumerable.Range(1, count).Select(index => $"{prefix} {index}")) + "\n";
 
-        /// <summary>Resolves a path relative to the knowledge folder of <see cref="Tag"/>.</summary>
-        /// <param name="relative">The forward-slash path under <c>knowledge/&lt;tag&gt;/</c>.</param>
-        /// <returns>The full, platform-specific path.</returns>
         private string PathOf(string relative) =>
             Path.Combine(this.root.FullName, "knowledge", Tag, relative.Replace('/', Path.DirectorySeparatorChar));
 
-        /// <summary>Writes a file under the knowledge folder of <see cref="Tag"/>, creating its folder and normalizing to LF.</summary>
-        /// <param name="relative">The forward-slash path under <c>knowledge/&lt;tag&gt;/</c>.</param>
-        /// <param name="content">The file's content; CRLF line endings are written as LF, as the generators write them.</param>
         private void Write(string relative, string content)
         {
             var path = this.PathOf(relative);

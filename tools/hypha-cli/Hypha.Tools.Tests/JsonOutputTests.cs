@@ -22,10 +22,6 @@ namespace Hypha.Tools.Tests
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
-    /// <summary>
-    /// The <c>--json</c> contract, exercised through <see cref="Program.BuildRootCommand"/> - the
-    /// command line a host really runs - rather than a handler on its own.
-    /// </summary>
     [TestFixture]
     public class JsonOutputTests
     {
@@ -293,16 +289,6 @@ namespace Hypha.Tools.Tests
             Assert.That(JsonOutput.IsRequested(Program.BuildRootCommand().Parse(commandLine)), Is.EqualTo(expected));
         }
 
-        /// <summary>Logs one line through the logging a verb runs with, capturing both console streams.</summary>
-        /// <param name="commandLine">
-        /// The verb's command line, without <c>--repository-root</c>, which points at a fresh temporary folder.
-        /// </param>
-        /// <param name="category">The log category the line is written under.</param>
-        /// <param name="logLevel">The level the line is written at.</param>
-        /// <returns>
-        /// Everything written to standard output and to standard error while the line was logged and the provider
-        /// disposed – empty strings when the line was filtered out.
-        /// </returns>
         private static (string Output, string Error) Log(
             string commandLine, string category = "Hypha.Tools.Tests", LogLevel logLevel = LogLevel.Information)
         {

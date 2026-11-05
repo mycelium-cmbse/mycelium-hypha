@@ -25,10 +25,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.DependencyInjection;
 
-    /// <summary>
-    /// Tests for the composition root - the container has to hand back working services, since the
-    /// CLI (see #81) will resolve them rather than construct them.
-    /// </summary>
     [TestFixture]
     public class ServiceCollectionExtensionsTests
     {

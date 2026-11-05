@@ -23,19 +23,11 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for <see cref="SystemProcessRunner"/>: it is the one seam that shells out to a
-    /// real <see cref="Process"/>, so it is exercised against real short-lived child processes rather
-    /// than mocked - there is nothing left to fake once the process boundary itself is what is under
-    /// test.
-    /// </summary>
     [TestFixture]
     public class SystemProcessRunnerTests
     {
-        /// <summary>The directory every child process is started in – the system temporary folder, which always exists.</summary>
         private DirectoryInfo workingDirectory = null!;
 
-        /// <summary>Points <see cref="workingDirectory"/> at the system temporary folder.</summary>
         [SetUp]
         public void SetUp()
         {
@@ -176,11 +168,6 @@ namespace Hypha.Knowledge.Tests
             Assert.That(stopwatch.Elapsed, Is.LessThan(TimeSpan.FromSeconds(30)));
         }
 
-        /// <summary>
-        /// Picks a command that runs for about a minute on the current platform, long enough that only a real kill
-        /// explains a cancelled run returning quickly.
-        /// </summary>
-        /// <returns>The executable to start and the arguments to start it with.</returns>
         private static (string FileName, string Arguments) LongRunningCommand() =>
             OperatingSystem.IsWindows()
                 ? ("cmd.exe", "/c ping 127.0.0.1 -n 60 > nul")
