@@ -1,6 +1,15 @@
 import { access, cp, mkdir } from "node:fs/promises";
 import path from "node:path";
 
+/**
+ * Copies bundled, release-independent generation inputs into extension-global storage.
+ *
+ * Check every required bundled input before creating storage directories, so a
+ * package missing an asset cannot leave partially provisioned storage behind.
+ * @param extensionPath Root folder of the installed extension.
+ * @param storagePath Extension-global storage directory.
+ * @throws If a required bundled input is missing or cannot be copied.
+ */
 export async function provisionRuntimeAssets(
   extensionPath: string,
   storagePath: string

@@ -9,8 +9,9 @@ extension. It contributes release-management commands and two GitHub Copilot too
 - **Hypha Grounded Knowledge Lookup** (`#hyphaLookup`) reads generated metamodel elements and
   standard-library declarations, returning release-qualified source citations and paginated text.
 
-The extension is not yet published to the Marketplace. Switching and removing releases are not yet
-exposed as extension commands. Lookups are not compiler validation or normative specification searches.
+The extension is not yet published to the Marketplace. Release status and knowledge lookup are read
+from the bundled CLI's JSON commands; the TypeScript host owns VS Code interaction, not the release
+manifest or generated-file layout. Lookups are not compiler validation or normative specification searches.
 
 ## Shared runtime and data
 
@@ -39,10 +40,15 @@ The CLI always receives this root explicitly; nothing is written into the modeli
 
 The package includes the shared primitives input, specification-extraction code and license notices,
 but **no specification PDFs, extracted normative text or per-release knowledge**. After explicit user
-confirmation, **Hypha: Install a SysML v2 Release** fetches upstream inputs, makes the release the
-default and generates knowledge locally. First specification extraction may download checksum-verified
-`uv`, a matching Python and Python dependencies. Cancellation or an unavailable toolchain can leave
-partial data; status reports presence rather than treating a manifest entry as proof of completion.
+confirmation, **Hypha: Install a SysML v2 Release** fetches upstream inputs and generates knowledge
+locally, then makes the release the default only after generation succeeds. First specification
+extraction may download checksum-verified `uv`, a matching Python and Python dependencies. Cancellation
+or an unavailable toolchain can leave partial data; status reports presence rather than treating a
+manifest entry as proof of completion. Cancellation terminates the CLI process tree.
+
+**Hypha: Change Default Release** selects another installed release. **Hypha: Remove a Release**
+removes a selected release after confirmation; change the default first when removing the current
+default. Release mutations are serialized within the extension host.
 
 ## Build and package
 
@@ -58,6 +64,7 @@ npm run package -- linux-x64       # produces hypha-linux-x64.vsix
 Other package targets are `win32-x64`, `darwin-x64` and `darwin-arm64`.
 Set `DOTNET` to an absolute SDK executable if `dotnet` is not on `PATH`.
 The package command builds the CLI and extension and includes the required runtime assets.
+The repository CI runs `npm test` and packages the Linux x64 extension.
 Development-only packaging dependencies currently have four moderate npm audit advisories;
 `npm audit --omit=dev` is clean and no Node dependencies ship in the VSIX.
 

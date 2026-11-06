@@ -27,8 +27,8 @@ supported.
    install .NET, Python, a separate CLI or an Agent Plugin.
 2. Open the Command Palette (**Ctrl+Shift+P**, or **Cmd+Shift+P** on macOS) and run
    **Hypha: Install a SysML v2 Release**.
-3. Choose a release and confirm the download and generation. This makes it the default release.
-   The first installation needs internet access and may take several minutes.
+3. Choose a release and confirm the download and generation. It becomes the default only after
+  generation succeeds. The first installation needs internet access and may take several minutes.
 4. Run **Hypha: Show Installed Releases** to check readiness. Installation progress and the data
    location appear in the **Hypha** output channel.
 
@@ -78,7 +78,9 @@ Run these commands from the Command Palette:
 | Command | Purpose |
 | --- | --- |
 | **Hypha: Check Available Releases** | Compare installed releases with upstream releases without downloading release inputs or generating knowledge. |
-| **Hypha: Install a SysML v2 Release** | After confirmation, fetch a release, make it the default and generate its knowledge locally. |
+| **Hypha: Install a SysML v2 Release** | After confirmation, fetch and generate a release, then make it the default if generation succeeds. |
+| **Hypha: Change Default Release** | Choose a different installed release as the default. |
+| **Hypha: Remove a Release** | Confirm and remove one release's fetched inputs and generated knowledge from this extension host. |
 | **Hypha: Show Installed Releases** | Show installed releases, the default, artifact readiness and the data location. |
 
 ## Your knowledge stays available across workspaces
@@ -91,9 +93,9 @@ Windows, WSL, SSH hosts and other machines have separate storage; releases are n
 between them. You can find the storage location with **Hypha: Show Installed Releases**.
 
 **Uninstalling and stored data:** Uninstalling Hypha may leave downloaded releases, generated
-knowledge and runtime caches on disk. Reinstalling can reuse this data. Hypha currently provides no
-command to remove releases or clear all stored data. Use **Hypha: Show Installed Releases** to find
-the data location.
+knowledge and runtime caches on disk. Reinstalling can reuse this data. Hypha can remove individual
+releases, but provides no command to clear all stored data. Use **Hypha: Show Installed Releases** to
+find the data location.
 
 The extension contains its runtime and extraction code, but no release knowledge, specification PDFs
 or extracted specification text. With your confirmation, installation downloads upstream inputs and
@@ -119,8 +121,6 @@ not a full integrity check.
 - Lookups provide source-backed knowledge, not compiler validation of your models.
 - The lookup tool reads metamodel and model-library sources; it does not search or quote normative
   specification text, even when that text is installed.
-- Switching the default without installation and removing releases are not yet exposed as extension
-  commands.
 - Package targets are Windows x64, Linux x64 and macOS x64/arm64. End-to-end validation has currently
   been completed on Linux/WSL.
 

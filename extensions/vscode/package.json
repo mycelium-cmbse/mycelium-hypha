@@ -41,6 +41,14 @@
       {
         "command": "mycelium-hypha.installRelease",
         "title": "Hypha: Install a SysML v2 Release"
+      },
+      {
+        "command": "mycelium-hypha.useRelease",
+        "title": "Hypha: Change Default Release"
+      },
+      {
+        "command": "mycelium-hypha.removeRelease",
+        "title": "Hypha: Remove a Release"
       }
     ],
     "languageModelTools": [
@@ -84,7 +92,7 @@
     "package": "node ./scripts/package.mjs",
     "test:host": "node ./scripts/test-host.mjs",
     "compile": "tsc -p . && node ./scripts/copy-runtime-assets.mjs",
-    "test": "tsc -p . && node ./scripts/copy-runtime-assets.mjs && node --test out/*.test.js",
+    "test": "node ./scripts/clean-output.mjs && tsc -p . && node ./scripts/copy-runtime-assets.mjs && node --test out/*.test.js",
     "vscode:prepublish": "npm run compile"
   },
   "devDependencies": {

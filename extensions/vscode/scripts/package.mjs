@@ -6,6 +6,10 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const target = process.argv[2] ?? `${process.platform}-${process.arch}`;
+const clean = spawnSync(process.execPath, [path.join(root, "scripts/clean-output.mjs")], { stdio: "inherit" });
+if (clean.error || clean.status !== 0) {
+  throw clean.error ?? new Error("Cleaning the previous extension build failed.");
+}
 const build = spawnSync(process.execPath, [path.join(root, "scripts/build-cli.mjs"), target], { stdio: "inherit" });
 if (build.error || build.status !== 0) {
   throw build.error ?? new Error("Building the bundled CLI failed.");
@@ -32,7 +36,7 @@ if (listing.error || listing.status !== 0) {
 }
 const files = listing.stdout.trim().split(/\r?\n/);
 const required = [
-  "out/extension.js", "out/knowledge.js", "out/cli/target.json",
+  "out/extension.js", "out/cli.js", "out/cli/target.json",
   `out/cli/${target.startsWith("win32-") ? "hypha.exe" : "hypha"}`,
   "out/resources/sources/PrimitiveTypes.xmi",
   "out/resources/spec-extract/pyproject.toml", "out/resources/spec-extract/uv.lock",

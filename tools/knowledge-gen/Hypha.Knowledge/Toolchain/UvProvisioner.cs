@@ -325,7 +325,7 @@ namespace Hypha.Knowledge.Toolchain
             return string.Equals(actual, expectedHex, StringComparison.OrdinalIgnoreCase);
         }
 
-    /// <summary>Extracts uv's platform archive, which may contain a platform-named wrapper folder.</summary>
+        /// <summary>Extracts uv's platform archive, which may contain a platform-named wrapper folder.</summary>
         /// <param name="archivePath">The downloaded, verified archive.</param>
         /// <param name="destination">The folder to extract into; existing files are overwritten.</param>
         /// <param name="target">The uv release target, which decides whether the archive is a zip or a gzipped tar.</param>
