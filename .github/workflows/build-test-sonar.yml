@@ -10,6 +10,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  vscode-extension:
+    name: VS Code Extension
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: extensions/vscode/package-lock.json
+
+      - uses: actions/setup-dotnet@v5.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install extension dependencies
+        working-directory: extensions/vscode
+        run: npm ci
+
+      - name: Test extension
+        working-directory: extensions/vscode
+        run: npm test
+
+      - name: Package Linux x64 extension
+        working-directory: extensions/vscode
+        run: npm run package -- linux-x64
+
+      - name: Smoke-test installed VSIX
+        working-directory: extensions/vscode
+        run: xvfb-run -a npm run test:host
+
   build:
     name: Build & Test & SonarQube
     runs-on: ubuntu-latest

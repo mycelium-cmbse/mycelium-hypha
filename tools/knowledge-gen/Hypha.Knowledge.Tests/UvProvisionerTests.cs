@@ -76,10 +76,11 @@ namespace Hypha.Knowledge.Tests
                 }));
         }
 
-        [Test]
-        public async Task Downloads_verifies_and_caches_uv_on_first_use()
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Downloads_verifies_and_caches_uv_on_first_use(bool wrapped)
         {
-            var archive = BuildArchive(this.target);
+            var archive = BuildArchive(this.target, wrapped: wrapped);
             var handler = StubHandler.ForSuccessfulDownload(this.target, archive);
             using var client = new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") };
 
@@ -91,6 +92,23 @@ namespace Hypha.Knowledge.Tests
             Assert.That(executable!.Exists, Is.True);
             Assert.That(executable.FullName, Is.EqualTo(provisioner.Executable(UvProvisioner.PinnedVersion, this.target).FullName));
             Assert.That(provisioner.OkMarker(UvProvisioner.PinnedVersion, this.target).Exists, Is.True);
+        }
+
+        [Test]
+        public async Task Flat_executable_wins_when_the_archive_contains_both_layouts()
+        {
+            var archive = BuildArchive(this.target, includeBothLayouts: true);
+            var handler = StubHandler.ForSuccessfulDownload(this.target, archive);
+            using var client = new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") };
+            var provisioner = new UvProvisioner(client, NullLogger<UvProvisioner>.Instance, this.cacheRoot);
+
+            var executable = await provisioner.EnsureAsync();
+
+            Assert.That(
+                executable!.FullName,
+                Is.EqualTo(Path.Combine(
+                    provisioner.BinDirectory(UvProvisioner.PinnedVersion, this.target).FullName,
+                    UvPlatform.ExecutableName(this.target))));
         }
 
         [Test]
@@ -141,6 +159,20 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task An_archive_without_uv_is_not_marked_as_verified()
+        {
+            var archive = BuildArchive(this.target, includeExecutable: false);
+            var handler = StubHandler.ForSuccessfulDownload(this.target, archive);
+            using var client = new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") };
+            var provisioner = new UvProvisioner(client, NullLogger<UvProvisioner>.Instance, this.cacheRoot);
+
+            var executable = await provisioner.EnsureAsync();
+
+            Assert.That(executable, Is.Null);
+            Assert.That(provisioner.OkMarker(UvProvisioner.PinnedVersion, this.target).Exists, Is.False);
+        }
+
+        [Test]
         public async Task A_missing_release_never_throws_and_returns_null()
         {
             using var client = new HttpClient(StubHandler.ForNotFound())
@@ -168,10 +200,17 @@ namespace Hypha.Knowledge.Tests
             Assert.That(executable, Is.Null);
         }
 
-        private static byte[] BuildArchive(string target)
+        private static byte[] BuildArchive(
+            string target,
+            bool includeExecutable = true,
+            bool wrapped = true,
+            bool includeBothLayouts = false)
         {
-            var executableName = UvPlatform.ExecutableName(target);
+            var executableName = includeExecutable ? UvPlatform.ExecutableName(target) : "README";
             var content = "fake uv binary"u8.ToArray();
+            var names = includeBothLayouts
+                ? new[] { executableName, $"uv-{target}/{executableName}" }
+                : new[] { wrapped ? $"uv-{target}/{executableName}" : executableName };
 
             using var buffer = new MemoryStream();
 
@@ -179,9 +218,12 @@ namespace Hypha.Knowledge.Tests
             {
                 using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
                 {
-                    var entry = zip.CreateEntry(executableName);
-                    using var entryStream = entry.Open();
-                    entryStream.Write(content);
+                    foreach (var name in names)
+                    {
+                        var entry = zip.CreateEntry(name);
+                        using var entryStream = entry.Open();
+                        entryStream.Write(content);
+                    }
                 }
             }
             else
@@ -189,11 +231,14 @@ namespace Hypha.Knowledge.Tests
                 using (var gzip = new GZipStream(buffer, CompressionMode.Compress, leaveOpen: true))
                 using (var writer = new TarWriter(gzip, leaveOpen: true))
                 {
-                    var entry = new PaxTarEntry(TarEntryType.RegularFile, executableName)
+                    foreach (var name in names)
                     {
-                        DataStream = new MemoryStream(content),
-                    };
-                    writer.WriteEntry(entry);
+                        var entry = new PaxTarEntry(TarEntryType.RegularFile, name)
+                        {
+                            DataStream = new MemoryStream(content),
+                        };
+                        writer.WriteEntry(entry);
+                    }
                 }
             }
 

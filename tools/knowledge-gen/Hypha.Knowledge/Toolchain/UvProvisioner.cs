@@ -139,8 +139,15 @@ namespace Hypha.Knowledge.Toolchain
         /// <param name="version">The uv release, such as <see cref="PinnedVersion"/>.</param>
         /// <param name="target">The uv release target (a Rust target triple), as <see cref="UvPlatform.CurrentTarget"/> names it.</param>
         /// <returns>The executable's path in <see cref="BinDirectory"/>; it may not exist yet.</returns>
-        public FileInfo Executable(string version, string target) =>
-            new(Path.Combine(this.BinDirectory(version, target).FullName, UvPlatform.ExecutableName(target)));
+        public FileInfo Executable(string version, string target)
+        {
+            var directory = this.BinDirectory(version, target).FullName;
+            var executableName = UvPlatform.ExecutableName(target);
+            var flat = Path.Combine(directory, executableName);
+            var wrapped = Path.Combine(directory, $"uv-{target}", executableName);
+
+            return new FileInfo(File.Exists(flat) || !File.Exists(wrapped) ? flat : wrapped);
+        }
 
         /// <summary>
         /// Written only once the cached download's checksum has been verified - its presence is what
@@ -214,6 +221,12 @@ namespace Hypha.Knowledge.Toolchain
 
                 Extract(archivePath, binDirectory.FullName, target);
                 File.Delete(archivePath);
+                executable = this.Executable(PinnedVersion, target);
+                if (!executable.Exists)
+                {
+                    this.logger.LogWarning("uv {Version} archive did not contain the expected executable", PinnedVersion);
+                    return null;
+                }
 
                 if (!OperatingSystem.IsWindows())
                 {
@@ -312,7 +325,7 @@ namespace Hypha.Knowledge.Toolchain
             return string.Equals(actual, expectedHex, StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>Every uv release target's archive is flat (no wrapping folder) - verified live.</summary>
+        /// <summary>Extracts uv's platform archive, which may contain a platform-named wrapper folder.</summary>
         /// <param name="archivePath">The downloaded, verified archive.</param>
         /// <param name="destination">The folder to extract into; existing files are overwritten.</param>
         /// <param name="target">The uv release target, which decides whether the archive is a zip or a gzipped tar.</param>

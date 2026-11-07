@@ -18,9 +18,9 @@ namespace Hypha.Knowledge.Toolchain
     /// <remarks>
     /// <c>uv</c> publishes Rust target-triple asset names (e.g. <c>uv-x86_64-pc-windows-msvc.zip</c>),
     /// not .NET runtime identifiers - there is no shared convention with the rest of this repository's
-    /// own release assets to reuse here, so this is a small, independent map. Verified against a live
-    /// <c>astral-sh/uv</c> release listing: every target ships a flat archive (the executables sit at
-    /// the archive root, no wrapping folder) and a companion <c>&lt;asset&gt;.sha256</c> asset.
+    /// own release assets to reuse here, so this is a small, independent map. Every supported target
+    /// has a companion <c>&lt;asset&gt;.sha256</c> asset. Archive contents may be flat or wrapped in a
+    /// platform-named directory.
     /// </remarks>
     public static class UvPlatform
     {
