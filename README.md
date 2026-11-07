@@ -1,9 +1,10 @@
 # mycelium-hypha
 
 Hypha is the AI agent of the Mycelium ecosystem, a connecting filament between engineers and the
-SysML v2 specification. It is packaged as a Claude plugin with skills and subagents for KerML / SysML
-v2 metamodel lookup, standard model library lookup, normative spec citation, and SysML v2
-textual-notation validation.
+SysML v2 specification. It is packaged as a Claude Code plugin with skills and subagents for KerML /
+SysML v2 metamodel lookup, standard model library lookup, Systems Modeling API lookup, normative spec
+citation, and SysML v2 textual-notation validation; as a VS Code extension for GitHub Copilot; and as
+the `hypha` command-line tool both are built on.
 
 ## What's in here
 
@@ -12,14 +13,17 @@ mycelium-hypha contains three related parts:
 1. **The `hypha` Claude plugin** – skills and subagents that give grounded answers about KerML and
    SysML v2, backed by a knowledge base fetched and generated on your own machine, on request.
    Nothing per-release is committed to this repository.
-2. **The VS Code extension prototype** (`extensions/vscode/`) – a Marketplace-shaped extension for
-   GitHub Copilot that contributes release-status and grounded-lookup tools and manages a shared,
-   extension-global Hypha data directory. It can check, fetch and generate releases locally; it is not published to
-   the VS Code Marketplace yet. See its [user guide](extensions/vscode/README.md) or
+2. **The VS Code extension** (`extensions/vscode/`) – an extension for GitHub Copilot that
+   contributes release-status and grounded-lookup tools and manages a shared, extension-global Hypha
+   data directory. It can check, fetch and generate releases locally. It is a preview, published on
+   the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha)
+   as a pre-release for Linux x64 and arm64. See its [user guide](extensions/vscode/README.md) or
    [development guide](extensions/vscode/DEVELOPMENT.md).
 3. **The generation pipelines** (`tools/`) that build the knowledge base from the upstream OMG
-   sources. They are not part of the installed plugin – see [Contributing](#contributing) if you
-   want to work on them.
+   sources, driven by the `hypha` command-line tool, which is published on
+   [NuGet](https://www.nuget.org/packages/Hypha.Tools) and as self-contained executables. The
+   pipelines are not part of the installed plugin – see [Contributing](#contributing) if you want to
+   work on them.
 
 ```
 mycelium-hypha/
@@ -27,7 +31,7 @@ mycelium-hypha/
 ├── hooks/            SessionStart hook – checks installed releases against upstream
 ├── skills/           Conversational workflows (metamodel lookup, API lookup, spec citation, validation, ...)
 ├── agents/           Subagents backing those skills
-├── extensions/vscode/ VS Code GitHub Copilot extension prototype
+├── extensions/vscode/ VS Code GitHub Copilot extension
 ├── knowledge/        Knowledge base – fetched and generated locally, one folder per release tag
 ├── sources/          Raw OMG inputs – fetched locally, one folder per release tag
 └── tools/            Generation pipelines (not part of the installed plugin)
@@ -35,12 +39,25 @@ mycelium-hypha/
 
 ## Install
 
-### VS Code GitHub Copilot (prototype)
+### VS Code GitHub Copilot (preview)
 
-The extension is under active development and is not yet available in the VS Code Marketplace. To
-run it from this checkout, follow the [development guide](extensions/vscode/DEVELOPMENT.md). Its
-release data is stored in VS Code extension-global storage, shared across workspaces on the same
-extension host.
+Install **Hypha – SysML v2 and KerML** from the Extensions view, or from its
+[Marketplace page](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha).
+It is published as a pre-release for Linux x64 and arm64, which also covers WSL and SSH remotes;
+on other platforms, build a VSIX with the [development guide](extensions/vscode/DEVELOPMENT.md).
+Its release data is stored in VS Code extension-global storage, shared across workspaces on the same
+extension host. See its [user guide](extensions/vscode/README.md).
+
+### Command line
+
+```sh
+dotnet tool install --global Hypha.Tools
+```
+
+[`Hypha.Tools`](https://www.nuget.org/packages/Hypha.Tools) needs the .NET 10 SDK; without it,
+download the self-contained executable for your platform from the
+[releases](https://github.com/mycelium-cmbse/mycelium-hypha/releases). See
+[tools/hypha-cli](tools/hypha-cli/README.md) for every verb.
 
 ### Claude Code
 
@@ -133,10 +150,13 @@ with a version of its own, installed with `hypha api fetch --tag <version>` and
 An API version is installed, switched and removed independently of the language releases, and the
 two do not have to match: the upstream API repository is not tagged for every language release.
 
-**Spec citation needs one more step.** Quoting the normative specification text verbatim needs the
-three OMG PDFs, plus a full source checkout to regenerate them into text – not something an installed
-plugin has. Without it, metamodel lookup and validation still work fully, and spec citation can still
-name the governing clause, just not quote the text itself.
+**Spec citation needs the specification text generated locally.** Quoting the normative
+specification text verbatim needs the OMG PDFs, which `hypha fetch` downloads by default, and the
+`spec` artifact, which `hypha generate` builds from them. The first time, it downloads
+[`uv`](https://github.com/astral-sh/uv), which provides the Python the extraction needs, so this
+needs network access once but no Python or source checkout of your own. Without the specification
+text, metamodel lookup and validation still work fully, and spec citation can still name the
+governing clause, just not quote the text itself.
 
 ### Provenance
 

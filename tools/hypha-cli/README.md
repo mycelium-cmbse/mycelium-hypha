@@ -16,7 +16,7 @@ Two deliveries, from one codebase. Pick whichever matches what you already have:
 
 | You have | Install |
 | --- | --- |
-| the .NET 10 SDK | `dotnet tool install --global Hypha.Tools` |
+| the .NET 10 SDK | `dotnet tool install --global Hypha.Tools` ([nuget.org](https://www.nuget.org/packages/Hypha.Tools)) |
 | no toolchain at all | download the self-contained archive for your platform from the [releases](https://github.com/mycelium-cmbse/mycelium-hypha/releases) |
 
 The self-contained build bundles the .NET runtime, so nothing else needs installing. It is larger

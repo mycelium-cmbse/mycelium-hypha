@@ -17,14 +17,31 @@
     <ToolCommandName>hypha</ToolCommandName>
     <Title>hypha</Title>
     <Description>
-      Fetches the upstream OMG SysML v2 / KerML sources and generates the hypha knowledge base from
-      them.
+      Fetches the upstream OMG SysML v2 / KerML sources and the Systems Modeling API, generates a local
+      knowledge base from them – metamodel, textual notation, model library, specification text and
+      cross-references – and looks names up in it, with JSON output for editors and language-model
+      tools.
     </Description>
-    <PackageTags>SysML KerML OMG MBSE knowledge-base</PackageTags>
+    <PackageTags>sysml sysml-v2 kerml omg mbse systems-modeling-api knowledge-base cli dotnet-tool</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Authors>Starion Group S.A.</Authors>
     <Company>Starion Group S.A.</Company>
+    <Copyright>Copyright 2026 Starion Group S.A.</Copyright>
+    <PackageProjectUrl>https://github.com/mycelium-cmbse/mycelium-hypha</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mycelium-cmbse/mycelium-hypha</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- release.yml passes -p:Version, so this points at the GitHub release of the version being packed. -->
+    <PackageReleaseNotes>https://github.com/mycelium-cmbse/mycelium-hypha/releases/tag/tools-v$(Version)</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup Label="Package files">
+    <None Update="README.md" Pack="true" PackagePath="\" />
+    <!-- The Mycelium icon, shared with the VS Code extension. -->
+    <None Include="..\..\..\extensions\vscode\icon.png" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
 
   <PropertyGroup Label="Publish">
     <!-- Self-contained publishing is the no-SDK delivery. NativeAOT is deliberately not attempted:
