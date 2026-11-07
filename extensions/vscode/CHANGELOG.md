@@ -9,7 +9,7 @@ odd minor number are Marketplace pre-releases; an even minor number marks a rele
 
 ## [0.1.1] – pre-release
 
-Bundles hypha tools `1.5.0`.
+Bundles hypha tools `1.5.1`.
 
 ### Added
 - Published for **Windows x64**, validated end to end on Windows 11: installing a release, the
