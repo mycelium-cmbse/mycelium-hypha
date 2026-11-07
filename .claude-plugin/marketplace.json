@@ -14,9 +14,9 @@
       "source": {
         "source": "github",
         "repo": "mycelium-cmbse/mycelium-hypha",
-        "ref": "v2.2.0"
+        "ref": "v2.3.0"
       },
-      "description": "SysML v2 agent: KerML/SysML v2 metamodel lookup, normative spec citation, and textual-notation validation."
+      "description": "SysML v2 agent: KerML/SysML v2 metamodel and model library lookup, Systems Modeling API lookup, normative spec citation, and textual-notation validation."
     }
   ]
 }

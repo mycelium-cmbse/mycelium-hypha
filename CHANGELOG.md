@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-11-07
+
 ### Added
 - **The Systems Modeling API & Services is part of the knowledge base** (`fixes #146`), as a body of
   knowledge with a version of its own beside the language releases:
@@ -62,8 +64,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Specification PDFs and extracted text are never packaged; they are downloaded and generated
     locally. End-to-end validation has been done on Linux/WSL; the Windows and macOS packages build
     but are not yet validated end to end.
+  - `HYPHA_CLI_VERSION` sets the version the bundled CLI reports, so a VSIX built for publication
+    names the hypha tools release it carries; any other build reports `0.0.0-dev`.
 
 ### Changed
+- The `SessionStart` hook now provisions hypha tools `1.5.0` (`hyphaCliVersion`), which carries the
+  CLI changes in this release.
 - Every `--json` document (`check`, `list`, `lookup`, `api list`) is one line on standard output with no banner;
   log lines go to standard error, and every failure – including one before the verb runs, such as
   cancellation or an unreachable upstream – is written as `{"error": "..."}`.
