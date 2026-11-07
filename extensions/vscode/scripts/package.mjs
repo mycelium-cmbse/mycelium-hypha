@@ -54,4 +54,8 @@ const built = JSON.parse(await readFile(path.join(root, "out/cli/target.json"), 
 if (built.target !== target) {
   throw new Error(`CLI target ${built.target} does not match VSIX target ${target}.`);
 }
-console.log(`Validated ${files.length} package inputs for ${target}.`);
+const expectedVersion = process.env.HYPHA_CLI_VERSION || "0.0.0-dev";
+if (built.version !== expectedVersion) {
+  throw new Error(`CLI version ${built.version} does not match the requested ${expectedVersion}.`);
+}
+console.log(`Validated ${files.length} package inputs for ${target} with hypha CLI ${built.version}.`);

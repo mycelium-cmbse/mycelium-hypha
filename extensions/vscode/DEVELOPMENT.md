@@ -63,6 +63,10 @@ npm run package -- linux-x64       # produces hypha-linux-x64.vsix
 
 Other package targets are `win32-x64`, `darwin-x64` and `darwin-arm64`.
 Set `DOTNET` to an absolute SDK executable if `dotnet` is not on `PATH`.
+Set `HYPHA_CLI_VERSION` to the hypha tools release a VSIX is built from (for example `1.5.0`) when
+it is meant for publication; the bundled CLI then reports that version (`hypha --version` prints
+it with the source commit, e.g. `1.5.0+f4c0548…`). Without it the CLI is marked as a development
+build, `0.0.0-dev`.
 The package command builds the CLI and extension and includes the required runtime assets.
 The repository CI runs `npm test`, packages the Linux x64 extension and smoke-tests the installed VSIX.
 Development-only packaging dependencies currently have four moderate npm audit advisories;
