@@ -104,8 +104,9 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Install extension dependencies
+        # No dependency's install scripts run in the job that can publish; packaging needs none.
         working-directory: extensions/vscode
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Test extension
         working-directory: extensions/vscode
