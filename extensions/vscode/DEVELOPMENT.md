@@ -59,9 +59,10 @@ npm ci
 npm test
 npm run build:cli                  # current host; required before F5 installation tests
 npm run package -- linux-x64       # produces hypha-linux-x64.vsix
+npm run package -- linux-x64 --pre-release   # the same, marked as a Marketplace pre-release
 ```
 
-Other package targets are `win32-x64`, `darwin-x64` and `darwin-arm64`.
+Other package targets are `linux-arm64`, `win32-x64`, `darwin-x64` and `darwin-arm64`.
 Set `DOTNET` to an absolute SDK executable if `dotnet` is not on `PATH`.
 Set `HYPHA_CLI_VERSION` to the hypha tools release a VSIX is built from (for example `1.5.0`) when
 it is meant for publication; the bundled CLI then reports that version (`hypha --version` prints
@@ -69,8 +70,30 @@ it with the source commit, e.g. `1.5.0+f4c0548…`). Without it the CLI is marke
 build, `0.0.0-dev`.
 The package command builds the CLI and extension and includes the required runtime assets.
 The repository CI runs `npm test`, packages the Linux x64 extension and smoke-tests the installed VSIX.
-Development-only packaging dependencies currently have four moderate npm audit advisories;
-`npm audit --omit=dev` is clean and no Node dependencies ship in the VSIX.
+Development-only packaging dependencies currently have five moderate npm audit advisories, all in
+`@vscode/vsce`'s own dependency tree; `npm audit --omit=dev` is clean and no Node dependencies ship
+in the VSIX.
+
+## Publish to the Marketplace
+
+The extension is published under the `mycelium-cmbse` publisher by the **Publish VS Code
+extension** workflow (`.github/workflows/publish-vscode.yml`), started by hand from the Actions tab.
+It uses Marketplace **Trusted Publishing**: GitHub Actions proves its identity through OIDC
+(`vsce publish --oidc`, vsce 4.1.0 or later), so no Marketplace token is stored anywhere.
+
+- The publisher's Trusted Publishing policy names the repository owner `mycelium-cmbse`, the
+  repository `mycelium-hypha`, the workflow `publish-vscode.yml` and the environment
+  `vscode-marketplace`. Renaming the workflow file or the environment breaks publishing until the
+  policy is updated.
+- The `vscode-marketplace` GitHub environment is where approval is enforced: give it required
+  reviewers, so a run waits for a maintainer before anything is published.
+- The run takes the hypha tools version the bundled CLI is labelled with (`cli-version`), the
+  targets (default `linux-x64 linux-arm64`) and whether to publish a pre-release (default yes). It
+  refuses to publish when `tools/` differs from the `tools-v<cli-version>` tag, so the bundled CLI is
+  always exactly that release.
+- The extension version comes from `package.json`. The Marketplace accepts only
+  `major.minor.patch`, never the same version twice, and by convention an odd minor for
+  pre-releases and an even minor for releases.
 
 For development, open this folder and press **F5** after compiling and building the CLI.
 For packaged validation, use **Extensions: Install from VSIX…** in the intended host. In a WSL window,

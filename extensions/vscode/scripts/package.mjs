@@ -5,7 +5,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const target = process.argv[2] ?? `${process.platform}-${process.arch}`;
+// Usage: package.mjs [target] [--pre-release]. The Marketplace reads the pre-release flag from the
+// VSIX itself, so it has to be set here rather than when publishing.
+const args = process.argv.slice(2);
+const preRelease = args.includes("--pre-release");
+const unknown = args.filter(arg => arg.startsWith("--") && arg !== "--pre-release");
+if (unknown.length > 0) {
+  throw new Error(`Unknown option(s): ${unknown.join(" ")}`);
+}
+const target = args.find(arg => !arg.startsWith("--")) ?? `${process.platform}-${process.arch}`;
 const clean = spawnSync(process.execPath, [path.join(root, "scripts/clean-output.mjs")], { stdio: "inherit" });
 if (clean.error || clean.status !== 0) {
   throw clean.error ?? new Error("Cleaning the previous extension build failed.");
@@ -20,7 +28,8 @@ for (const name of ["LICENSE", "NOTICE"]) {
 }
 const vsce = require.resolve("@vscode/vsce/vsce");
 const result = spawnSync(process.execPath, [
-  vsce, "package", "--target", target, "--out", path.join(root, `hypha-${target}.vsix`)
+  vsce, "package", "--target", target, "--out", path.join(root, `hypha-${target}.vsix`),
+  ...(preRelease ? ["--pre-release"] : [])
 ], { cwd: root, stdio: "inherit" });
 if (result.error || result.status !== 0) {
   throw result.error ?? new Error("VSIX packaging failed.");
@@ -37,7 +46,7 @@ const required = [
   `out/cli/${target.startsWith("win32-") ? "hypha.exe" : "hypha"}`,
   "out/resources/sources/PrimitiveTypes.xmi",
   "out/resources/spec-extract/pyproject.toml", "out/resources/spec-extract/uv.lock",
-  "out/resources/spec-extract/src/spec_extract/__main__.py", "LICENSE", "NOTICE"
+  "out/resources/spec-extract/src/spec_extract/__main__.py", "LICENSE", "NOTICE", "icon.png", "CHANGELOG.md"
 ];
 for (const file of required) {
   if (!files.includes(file)) {
@@ -58,4 +67,5 @@ const expectedVersion = process.env.HYPHA_CLI_VERSION || "0.0.0-dev";
 if (built.version !== expectedVersion) {
   throw new Error(`CLI version ${built.version} does not match the requested ${expectedVersion}.`);
 }
-console.log(`Validated ${files.length} package inputs for ${target} with hypha CLI ${built.version}.`);
+console.log(`Validated ${files.length} package inputs for ${target}${preRelease ? " (pre-release)" : ""} ` +
+  `with hypha CLI ${built.version}.`);
