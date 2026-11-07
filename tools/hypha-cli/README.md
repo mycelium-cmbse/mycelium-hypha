@@ -169,11 +169,11 @@ regression fixture, unrelated to the release just fetched - see CLAUDE.md's "Com
 git-ignored") → prune whatever falls outside the local `--keep` count → verify the result regenerates
 self-consistently. `--keep` (default 2) is just how many releases stay installed locally; whichever
 fall outside it have their `sources/<tag>/` and `knowledge/<tag>/` deleted **immediately**, in the
-same run — nothing is left for later manual cleanup. Nothing is committed automatically, and nothing
-per-release is committed at all (see CLAUDE.md) — the deletions only ever touch the local, git-ignored
+same run – nothing is left for later manual cleanup. Nothing is committed automatically, and nothing
+per-release is committed at all (see CLAUDE.md) – the deletions only ever touch the local, git-ignored
 `sources/`/`knowledge/` folders.
 
-It reports which step it is on as it goes and can take several minutes — specification extraction is
+It reports which step it is on as it goes and can take several minutes – specification extraction is
 the dominant cost. Unlike every other verb, **it needs a full source checkout with the .NET SDK and a
 provisioned `tools/spec-extract/.venv`** (`python -m venv .venv && pip install -e .[dev]`, from
 `tools/spec-extract/`): its re-bless and verify steps shell out to `dotnet test`, and specification
