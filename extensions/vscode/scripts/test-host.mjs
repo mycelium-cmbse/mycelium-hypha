@@ -1,4 +1,5 @@
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdtemp, mkdir, readdir, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,6 +8,28 @@ import { spawnSync } from "node:child_process";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const target = `${process.platform}-${process.arch}`;
+
+/**
+ * Finds the `cli.js` a Windows VS Code installation runs extension commands with. Archives up to
+ * 1.144 keep it at `resources/app/out/` next to `Code.exe`; from 1.145 it sits under a folder named
+ * after the build's commit (`<commit>/resources/app/out/cli.js`).
+ */
+async function windowsCliScript(executable) {
+  const installation = path.dirname(executable);
+  const relative = path.join("resources", "app", "out", "cli.js");
+  const candidates = [path.join(installation, relative)];
+  for (const entry of await readdir(installation, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      candidates.push(path.join(installation, entry.name, relative));
+    }
+  }
+  const script = candidates.find(candidate => existsSync(candidate));
+  if (!script) {
+    throw new Error(`No ${relative} found in ${installation} or a folder directly below it.`);
+  }
+  return script;
+}
+
 const temporary = await mkdtemp(path.join(os.tmpdir(), "hypha-vsix-host-"));
 try {
   const userData = path.join(temporary, "user-data");
@@ -31,7 +54,7 @@ try {
   // The Linux launcher redirects to the current remote host when this is set.
   const { VSCODE_IPC_HOOK_CLI: _remoteCliHook, ...installationEnv } = process.env;
   const installation = process.platform === "win32"
-    ? spawnSync(executable, [path.resolve(path.dirname(cli), "../resources/app/out/cli.js"), ...installArgs], {
+    ? spawnSync(executable, [await windowsCliScript(executable), ...installArgs], {
       encoding: "utf8", env: { ...installationEnv, ELECTRON_RUN_AS_NODE: "1" }
     })
     : spawnSync(cli, installArgs, {
