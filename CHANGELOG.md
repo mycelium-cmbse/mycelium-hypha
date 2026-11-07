@@ -8,11 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The VS Code extension is on the Visual Studio Marketplace** (`refs #155`), as a preview
+  pre-release under the `mycelium-cmbse` publisher: version `0.1.0` for Linux x64 and arm64.
+  - The **Publish VS Code extension** workflow (`.github/workflows/publish-vscode.yml`), started by
+    hand, packages each target and publishes it through Marketplace Trusted Publishing
+    (`vsce publish --oidc`), so no Marketplace token is stored. A run waits for approval in the
+    `vscode-marketplace` environment, and refuses to publish unless `tools/` matches the
+    `tools-v<cli-version>` tag the bundled CLI is labelled with.
+  - The extension has an icon, the Preview flag and a changelog of its own; `package.mjs` takes
+    `--pre-release`, and `linux-arm64` is a package target. `@vscode/vsce` is 4.1.0, the first
+    version with `--oidc`.
 - **The VS Code extension for Windows x64** (`fixes #157`), validated end to end on Windows 11 and
   published with extension version `0.1.1` beside Linux x64 and arm64. CI now packages and
   smoke-tests the Windows VSIX too, against VS Code stable and against 1.100.0.
 
+### Changed
+- **`Hypha.Tools` on nuget.org has a proper package page** (`fixes #160`): a package readme, the
+  Mycelium icon, project and repository URLs, copyright, release notes that link to the
+  `tools-v<version>` GitHub release, and a description and tags that cover the Systems Modeling API,
+  `lookup` and the JSON output. The repository README adds the command-line install from NuGet.
+- CI and the publish workflow install the extension's dependencies with `npm ci --ignore-scripts`,
+  so no dependency install script runs in a job that can publish.
+
 ### Fixed
+- The repository README no longer says spec citation needs a source checkout: since the uv-based
+  specification generation, `hypha generate` builds the text itself.
 - The extension's installed-VSIX smoke test finds VS Code's `cli.js` on Windows from 1.145 on, which
   keeps it under a folder named after the build's commit; it now asks the installation's own
   launcher (`bin/code.cmd`) for the path, and looks in both known layouts when it cannot.
