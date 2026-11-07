@@ -44,6 +44,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   generated.
 - **`--toolchain-cache-root`** keeps the `uv` executable, uv's package cache and the Python it
   installs under one folder.
+- **A VS Code extension for GitHub Copilot** (`extensions/vscode/`, `fixes #151`), a preview that is
+  not yet on the Marketplace. A platform-specific VSIX bundles a self-contained `hypha` CLI, so
+  nothing has to be installed by hand: on first use the CLI downloads `uv`, which provides the Python
+  that specification extraction needs.
+  - **Commands** – *Show Installed Releases*, *Check Available Releases*, *Install a SysML v2
+    Release*, *Change Default Release* and *Remove a Release*. Installing asks for consent first,
+    reports progress and can be cancelled; a release becomes the default only once it has been
+    generated.
+  - **Copilot tools** – `#hyphaReleaseStatus` reports the installed releases and which of their
+    artifacts are present; `#hyphaLookup` resolves a metamodel or model-library name through
+    `hypha lookup` and answers with a release-qualified source link, the candidates when a name is
+    ambiguous, and one page at a time.
+  - Releases, generated knowledge and the toolchain live in the extension's global storage, shared by
+    every workspace on the same host. A lock file in that storage keeps two VS Code windows from
+    changing releases at the same time.
+  - Specification PDFs and extracted text are never packaged; they are downloaded and generated
+    locally. End-to-end validation has been done on Linux/WSL; the Windows and macOS packages build
+    but are not yet validated end to end.
 
 ### Changed
 - Every `--json` document (`check`, `list`, `lookup`, `api list`) is one line on standard output with no banner;
@@ -55,6 +73,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is byte-identical.
 
 ### Fixed
+- **`uv` is found in a wrapped archive.** The Linux and macOS `uv` archives keep the executable in a
+  `uv-<target>/` folder, which the provisioner did not look in, so specification generation could not
+  start there. Both the flat and the wrapped layout are now found, and an archive without the
+  executable is no longer marked as verified.
 - **`hypha remove` refuses a tag that is not a release**, whatever `knowledge/versions.json` lists.
   The tag names a folder that is deleted recursively, and `knowledge/api/` now sits beside the
   release folders, so a hand-edited manifest listing `api` could otherwise remove every installed
