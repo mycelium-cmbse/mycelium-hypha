@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **The VS Code extension for Windows x64** (`fixes #157`), validated end to end on Windows 11 and
+  published with extension version `0.1.1` beside Linux x64 and arm64. CI now packages and
+  smoke-tests the Windows VSIX too, against VS Code stable and against 1.100.0.
+
+### Fixed
+- The extension's installed-VSIX smoke test finds VS Code's `cli.js` on Windows from 1.145 on, which
+  keeps it under a folder named after the build's commit; it now asks the installation's own
+  launcher (`bin/code.cmd`) for the path, and looks in both known layouts when it cannot.
+
 ## [2.3.0] - 2026-11-07
 
 ### Added

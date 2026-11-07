@@ -18,7 +18,7 @@ on:
       targets:
         description: 'Space-separated VSIX targets'
         required: true
-        default: 'linux-x64 linux-arm64'
+        default: 'win32-x64 linux-x64 linux-arm64'
         type: string
       pre-release:
         description: 'Publish as a pre-release'
