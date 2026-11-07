@@ -17,7 +17,7 @@ manifest or generated-file layout. Lookups are not compiler validation or normat
 
 Each platform-specific VSIX includes a self-contained Hypha CLI built from this checkout. End users
 do not need .NET, Python, a source checkout, a separate Agent Plugin, or a CLI on `PATH`.
-Supported targets are Windows x64, Linux x64 and macOS x64/arm64; web hosts are unsupported.
+Supported targets are Windows x64, Linux x64/arm64 and macOS x64/arm64; web hosts are unsupported.
 The extension runs on the workspace extension host, including WSL/SSH, in trusted, non-virtual
 workspaces.
 
@@ -69,7 +69,9 @@ it is meant for publication; the bundled CLI then reports that version (`hypha -
 it with the source commit, e.g. `1.5.0+f4c0548…`). Without it the CLI is marked as a development
 build, `0.0.0-dev`.
 The package command builds the CLI and extension and includes the required runtime assets.
-The repository CI runs `npm test`, packages the Linux x64 extension and smoke-tests the installed VSIX.
+The repository CI runs `npm test`, packages the extension and smoke-tests the installed VSIX on
+Linux x64 and on Windows x64; on Windows against VS Code stable and against 1.100.0, the two archive
+layouts `scripts/test-host.mjs` has to find VS Code's `cli.js` in.
 Development-only packaging dependencies currently have five moderate npm audit advisories, all in
 `@vscode/vsce`'s own dependency tree; `npm audit --omit=dev` is clean and no Node dependencies ship
 in the VSIX.
@@ -88,7 +90,10 @@ It uses Marketplace **Trusted Publishing**: GitHub Actions proves its identity t
 - The `vscode-marketplace` GitHub environment is where approval is enforced: give it required
   reviewers, so a run waits for a maintainer before anything is published.
 - The run takes the hypha tools version the bundled CLI is labelled with (`cli-version`), the
-  targets (default `linux-x64 linux-arm64`) and whether to publish a pre-release (default yes). It
+  targets (default `win32-x64 linux-x64 linux-arm64`) and whether to publish a pre-release (default
+  yes). Publish a new version for every supported target: users of a target left out stay on the
+  previous version. A target can be added to an already published version by a later run with only
+  that target. It
   refuses to publish when `tools/` differs from the `tools-v<cli-version>` tag, so the bundled CLI is
   always exactly that release.
 - The extension version comes from `package.json`. The Marketplace accepts only

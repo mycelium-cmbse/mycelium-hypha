@@ -1,4 +1,5 @@
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdtemp, mkdir, readdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,6 +8,40 @@ import { spawnSync } from "node:child_process";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const target = `${process.platform}-${process.arch}`;
+
+/**
+ * Finds the `cli.js` a Windows VS Code installation runs extension commands with. Older archives
+ * keep it at `resources/app/out/` next to `Code.exe`; newer ones (seen in 1.145) put it under a
+ * folder named after the build's commit (`<commit>/resources/app/out/cli.js`). The installation's own
+ * launcher, `bin/code.cmd`, names the one it runs, so that is asked first; looking in both layouts
+ * is the fallback for a launcher that does not.
+ */
+async function windowsCliScript(executable) {
+  const installation = path.dirname(executable);
+  try {
+    const launcher = await readFile(path.join(installation, "bin", "code.cmd"), "utf8");
+    // e.g. "%~dp0..\Code.exe" "%~dp0..\c4453f8ea4\resources\app\out\cli.js" %*
+    const named = /"%~dp0\.\.\\([^"]*\\cli\.js)"/.exec(launcher);
+    if (named && existsSync(path.join(installation, named[1]))) {
+      return path.join(installation, named[1]);
+    }
+  } catch {
+    // No readable launcher: fall back to the known layouts.
+  }
+  const relative = path.join("resources", "app", "out", "cli.js");
+  const candidates = [path.join(installation, relative)];
+  for (const entry of await readdir(installation, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      candidates.push(path.join(installation, entry.name, relative));
+    }
+  }
+  const script = candidates.find(candidate => existsSync(candidate));
+  if (!script) {
+    throw new Error(`No ${relative} found in ${installation} or a folder directly below it.`);
+  }
+  return script;
+}
+
 const temporary = await mkdtemp(path.join(os.tmpdir(), "hypha-vsix-host-"));
 try {
   const userData = path.join(temporary, "user-data");
@@ -31,7 +66,7 @@ try {
   // The Linux launcher redirects to the current remote host when this is set.
   const { VSCODE_IPC_HOOK_CLI: _remoteCliHook, ...installationEnv } = process.env;
   const installation = process.platform === "win32"
-    ? spawnSync(executable, [path.resolve(path.dirname(cli), "../resources/app/out/cli.js"), ...installArgs], {
+    ? spawnSync(executable, [await windowsCliScript(executable), ...installArgs], {
       encoding: "utf8", env: { ...installationEnv, ELECTRON_RUN_AS_NODE: "1" }
     })
     : spawnSync(cli, installArgs, {

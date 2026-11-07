@@ -17,7 +17,7 @@ mycelium-hypha contains three related parts:
    contributes release-status and grounded-lookup tools and manages a shared, extension-global Hypha
    data directory. It can check, fetch and generate releases locally. It is a preview, published on
    the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha)
-   as a pre-release for Linux x64 and arm64. See its [user guide](extensions/vscode/README.md) or
+   as a pre-release for Windows x64 and Linux x64/arm64. See its [user guide](extensions/vscode/README.md) or
    [development guide](extensions/vscode/DEVELOPMENT.md).
 3. **The generation pipelines** (`tools/`) that build the knowledge base from the upstream OMG
    sources, driven by the `hypha` command-line tool, which is published on
@@ -43,8 +43,8 @@ mycelium-hypha/
 
 Install **Hypha – SysML v2 and KerML** from the Extensions view, or from its
 [Marketplace page](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha).
-It is published as a pre-release for Linux x64 and arm64, which also covers WSL and SSH remotes;
-on other platforms, build a VSIX with the [development guide](extensions/vscode/DEVELOPMENT.md).
+It is published as a pre-release for Windows x64 and for Linux x64 and arm64, which also covers WSL
+and SSH remotes; on macOS, build a VSIX with the [development guide](extensions/vscode/DEVELOPMENT.md).
 Its release data is stored in VS Code extension-global storage, shared across workspaces on the same
 extension host. See its [user guide](extensions/vscode/README.md).
 

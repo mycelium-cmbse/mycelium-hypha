@@ -43,6 +43,47 @@ jobs:
         working-directory: extensions/vscode
         run: xvfb-run -a npm run test:host
 
+  vscode-extension-windows:
+    name: VS Code Extension (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: extensions/vscode/package-lock.json
+
+      - uses: actions/setup-dotnet@v5.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install extension dependencies
+        working-directory: extensions/vscode
+        run: npm ci --ignore-scripts
+
+      - name: Test extension
+        working-directory: extensions/vscode
+        run: npm test
+
+      - name: Package Windows x64 extension
+        working-directory: extensions/vscode
+        run: npm run package -- win32-x64
+
+      # Both Windows archive layouts: current stable keeps cli.js under a commit folder, the
+      # oldest supported release (engines.vscode) next to Code.exe.
+      - name: Smoke-test installed VSIX on VS Code stable
+        working-directory: extensions/vscode
+        run: npm run test:host
+
+      - name: Smoke-test installed VSIX on VS Code 1.100.0
+        working-directory: extensions/vscode
+        env:
+          VSCODE_TEST_VERSION: '1.100.0'
+        run: npm run test:host
+
   build:
     name: Build & Test & SonarQube
     runs-on: ubuntu-latest

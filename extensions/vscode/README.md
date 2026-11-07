@@ -14,8 +14,8 @@ declarations on your machine and gives Copilot source links to cite in its answe
 - **Keep working across folders** – installed knowledge is shared across workspaces on the same
   VS Code host.
 
-Hypha is a preview, published as a pre-release for Linux x64 and arm64 (including WSL and SSH
-remotes).
+Hypha is a preview, published as a pre-release for Windows x64 and for Linux x64 and arm64
+(including WSL and SSH remotes).
 
 ## Get started
 
@@ -122,6 +122,14 @@ Source excerpts returned to Copilot are included in its chat context.
   ensure no Hypha processes are running before removing the named lock file from the data location.
 - **Tools are not listed:** check that Hypha is enabled on the current workspace host, reload the
   window and open a new Agent chat. Check **Configure Tools** again.
+- **Windows: a path is too long:** Hypha's data sits under
+  `%APPDATA%\Code\User\globalStorage\mycelium-cmbse.mycelium-hypha\`, and its deepest files – a
+  generated example page and files inside the managed Python – add up to about 165 characters. With
+  a long Windows user name (about 18 characters or more), or with VS Code Insiders, whose folder name
+  is longer, some paths go past Windows' classic 260-character limit. Hypha's CLI, `uv` and VS Code
+  handle long paths, but other tools may not. If extraction, or opening a cited file, fails with a
+  path-length error, turn on Windows' long path support (the `LongPathsEnabled` setting, which needs
+  administrator rights), then retry installation for the same release.
 
 A manifest entry alone does not mean generation finished. Status checks report artifact presence,
 not a full integrity check.
@@ -132,8 +140,10 @@ not a full integrity check.
 - Lookups provide source-backed knowledge, not compiler validation of your models.
 - The lookup tool reads metamodel and model-library sources; it does not search or quote normative
   specification text, even when that text is installed.
-- Package targets are Windows x64, Linux x64/arm64 and macOS x64/arm64. End-to-end validation has currently
-  been completed on Linux/WSL.
+- Hypha is published for Windows x64 and Linux x64/arm64, where it has been validated end to end.
+  macOS x64/arm64 packages build but have not been validated yet, and are not published.
+- On Windows, some paths in Hypha's data can exceed 260 characters for long user names or VS Code
+  Insiders; see *Windows: a path is too long* above.
 
 For feedback and source code, visit the
 [Hypha repository](https://github.com/mycelium-cmbse/mycelium-hypha).
