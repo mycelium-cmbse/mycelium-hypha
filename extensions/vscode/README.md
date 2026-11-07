@@ -130,7 +130,7 @@ not a full integrity check.
 - Lookups provide source-backed knowledge, not compiler validation of your models.
 - The lookup tool reads metamodel and model-library sources; it does not search or quote normative
   specification text, even when that text is installed.
-- Package targets are Windows x64, Linux x64 and macOS x64/arm64. End-to-end validation has currently
+- Package targets are Windows x64, Linux x64/arm64 and macOS x64/arm64. End-to-end validation has currently
   been completed on Linux/WSL.
 
 For feedback and source code, visit the

@@ -97,7 +97,7 @@
     "vscode:prepublish": "npm run compile"
   },
   "devDependencies": {
-    "@vscode/vsce": "3.9.2",
+    "@vscode/vsce": "4.1.0",
     "@vscode/test-electron": "^2.5.2",
     "@types/node": "^22.0.0",
     "@types/vscode": "1.100.0",

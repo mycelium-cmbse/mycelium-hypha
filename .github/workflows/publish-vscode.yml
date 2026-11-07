@@ -1,0 +1,130 @@
+name: Publish VS Code extension
+
+# Publishes extensions/vscode to the Visual Studio Marketplace through Trusted Publishing (OIDC):
+# no Marketplace token is stored. The `mycelium-cmbse` publisher's Trusted Publishing policy names
+# this repository, this file (`publish-vscode.yml`) and the `vscode-marketplace` environment, so
+# renaming any of them requires updating the policy too.
+#
+# Each target's VSIX bundles a self-contained hypha CLI built from this checkout. The run refuses
+# to publish unless that CLI is the exact code of the hypha tools release it is labelled with.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cli-version:
+        description: 'hypha tools release the bundled CLI is built from (e.g. 1.5.0); tools/ must match its tools-v tag'
+        required: true
+        type: string
+      targets:
+        description: 'Space-separated VSIX targets'
+        required: true
+        default: 'linux-x64 linux-arm64'
+        type: string
+      pre-release:
+        description: 'Publish as a pre-release'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-vscode
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Package and publish
+    runs-on: ubuntu-latest
+    environment: vscode-marketplace
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Validate the inputs
+        # Inputs arrive through the environment rather than through `${{ }}`, so they are checked
+        # before anything else ever sees them (see release.yml).
+        env:
+          CLI_VERSION_INPUT: ${{ github.event.inputs.cli-version }}
+          TARGETS_INPUT: ${{ github.event.inputs.targets }}
+          PRE_RELEASE_INPUT: ${{ github.event.inputs.pre-release }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$CLI_VERSION_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "cli-version '$CLI_VERSION_INPUT' is not SemVer." >&2
+            exit 1
+          fi
+          read -r -a targets <<< "$TARGETS_INPUT"
+          if [ "${#targets[@]}" -eq 0 ]; then
+            echo "No targets given." >&2
+            exit 1
+          fi
+          for target in "${targets[@]}"; do
+            case "$target" in
+              linux-x64|linux-arm64|win32-x64|darwin-x64|darwin-arm64) ;;
+              *) echo "Unsupported target '$target'." >&2; exit 1 ;;
+            esac
+          done
+          echo "HYPHA_CLI_VERSION=$CLI_VERSION_INPUT" >> "$GITHUB_ENV"
+          echo "TARGETS=${targets[*]}" >> "$GITHUB_ENV"
+          if [ "$PRE_RELEASE_INPUT" = "true" ]; then
+            echo "PRE_RELEASE_FLAG=--pre-release" >> "$GITHUB_ENV"
+          else
+            echo "PRE_RELEASE_FLAG=" >> "$GITHUB_ENV"
+          fi
+
+      - name: Check the CLI matches its tools release
+        run: |
+          set -euo pipefail
+          tag="tools-v${HYPHA_CLI_VERSION}"
+          if ! git rev-parse --verify --quiet "refs/tags/${tag}" > /dev/null; then
+            echo "Tag ${tag} does not exist." >&2
+            exit 1
+          fi
+          if ! git diff --quiet "${tag}" HEAD -- tools/ sources/PrimitiveTypes.xmi; then
+            echo "tools/ differs from ${tag}; the bundled CLI would not be hypha tools ${HYPHA_CLI_VERSION}:" >&2
+            git diff --stat "${tag}" HEAD -- tools/ sources/PrimitiveTypes.xmi >&2
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: extensions/vscode/package-lock.json
+
+      - uses: actions/setup-dotnet@v5.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install extension dependencies
+        working-directory: extensions/vscode
+        run: npm ci
+
+      - name: Test extension
+        working-directory: extensions/vscode
+        run: npm test
+
+      - name: Package each target
+        working-directory: extensions/vscode
+        run: |
+          set -euo pipefail
+          for target in $TARGETS; do
+            npm run package -- "$target" $PRE_RELEASE_FLAG
+          done
+
+      - name: Publish to the Visual Studio Marketplace
+        working-directory: extensions/vscode
+        run: |
+          set -euo pipefail
+          packages=()
+          for target in $TARGETS; do
+            packages+=("hypha-${target}.vsix")
+          done
+          npx --no-install vsce publish --oidc $PRE_RELEASE_FLAG --packagePath "${packages[@]}"
