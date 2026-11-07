@@ -200,7 +200,10 @@ export async function runCli(
         if (!captureStdout && stdout) {
           output.append(stdout);
         }
-        reject(new Error(`The Hypha CLI exited with code ${code ?? `after signal ${signal}`}. See the Hypha output channel for details.`));
+        const detail = !captureStdout ? readJsonError(stdout) : undefined;
+        reject(new Error(detail
+          ? `The Hypha CLI failed: ${detail}`
+          : `The Hypha CLI exited with code ${code ?? `after signal ${signal}`}. See the Hypha output channel for details.`));
       } else {
         resolve(stdout);
       }
@@ -234,4 +237,18 @@ export async function runCliJson<T>(
   } catch (error) {
     throw new Error("The Hypha CLI returned invalid JSON.", { cause: error });
   }
+}
+
+/** Returns a structured CLI error when a failed JSON command reports one. */
+function readJsonError(stdout: string): string | undefined {
+  try {
+    const result: unknown = JSON.parse(stdout);
+    if (typeof result === "object" && result !== null && "error" in result &&
+        typeof result.error === "string" && result.error.length > 0) {
+      return result.error;
+    }
+  } catch {
+    // Keep the process-exit diagnostic when stdout was not a JSON error document.
+  }
+  return undefined;
 }

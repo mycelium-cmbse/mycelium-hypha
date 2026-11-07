@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { cp, readFile, rm } from "node:fs/promises";
+import { cp, readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,9 +17,6 @@ if (build.error || build.status !== 0) {
 const require = createRequire(import.meta.url);
 for (const name of ["LICENSE", "NOTICE"]) {
   await cp(path.resolve(root, "../..", name), path.join(root, name));
-}
-for (const name of ["specExtractor.js", "specExtractor.js.map"]) {
-  await rm(path.join(root, "out", name), { force: true });
 }
 const vsce = require.resolve("@vscode/vsce/vsce");
 const result = spawnSync(process.execPath, [

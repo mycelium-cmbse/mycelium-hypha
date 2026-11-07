@@ -64,7 +64,7 @@ npm run package -- linux-x64       # produces hypha-linux-x64.vsix
 Other package targets are `win32-x64`, `darwin-x64` and `darwin-arm64`.
 Set `DOTNET` to an absolute SDK executable if `dotnet` is not on `PATH`.
 The package command builds the CLI and extension and includes the required runtime assets.
-The repository CI runs `npm test` and packages the Linux x64 extension.
+The repository CI runs `npm test`, packages the Linux x64 extension and smoke-tests the installed VSIX.
 Development-only packaging dependencies currently have four moderate npm audit advisories;
 `npm audit --omit=dev` is clean and no Node dependencies ship in the VSIX.
 
@@ -86,6 +86,8 @@ It downloads desktop VS Code and needs that application's normal system librarie
 (`xvfb-run -a npm run test:host` on headless Linux). It checks installed-package activation, the bundled
 CLI and both language-model tools without changing the personal VS Code profile.
 Linux/WSL is the currently exercised package and host-test target.
+The installer ignores the launching terminal's VS Code remote CLI hook so that, even from a WSL
+VS Code terminal, the VSIX is installed into the isolated extensions directory.
 
 For interactive validation:
 

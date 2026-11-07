@@ -29,6 +29,8 @@ supported.
    **Hypha: Install a SysML v2 Release**.
 3. Choose a release and confirm the download and generation. It becomes the default only after
   generation succeeds. The first installation needs internet access and may take several minutes.
+  The first specification generation may also download `uv`, a managed Python build and the
+  extraction dependencies pinned by Hypha.
 4. Run **Hypha: Show Installed Releases** to check readiness. Installation progress and the data
    location appear in the **Hypha** output channel.
 
@@ -109,6 +111,13 @@ Source excerpts returned to Copilot are included in its chat context.
   for the same release; existing downloaded inputs are reused.
 - **Normative specification text is missing:** core lookups can still work. Check the Hypha output
   channel for extraction or download problems, then retry installation for the same release.
+- **Generation cannot download its runtime:** the first specification generation needs access to
+  the download sources for `uv`, managed Python and the pinned extraction dependencies. If a
+  download fails or the machine is offline, generation reports the failure in the Hypha output
+  channel and the new release does not become the default; retry when those sources are reachable.
+- **A release-operation lock prevents changes:** wait for the other window to finish and retry.
+  If a lock or its recovery was interrupted and the error persists, close all Hypha windows and
+  ensure no Hypha processes are running before removing the named lock file from the data location.
 - **Tools are not listed:** check that Hypha is enabled on the current workspace host, reload the
   window and open a new Agent chat. Check **Configure Tools** again.
 

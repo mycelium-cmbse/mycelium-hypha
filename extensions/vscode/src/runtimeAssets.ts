@@ -1,4 +1,4 @@
-import { access, cp, mkdir } from "node:fs/promises";
+import { access, cp, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 
 /**
@@ -30,5 +30,6 @@ export async function provisionRuntimeAssets(
   await mkdir(path.join(storagePath, "sources"), { recursive: true });
   await cp(primitiveTypes, path.join(storagePath, "sources", "PrimitiveTypes.xmi"), { force: true });
   await mkdir(path.dirname(destination), { recursive: true });
+  await rm(path.join(destination, "src"), { recursive: true, force: true });
   await cp(source, destination, { recursive: true, force: true });
 }

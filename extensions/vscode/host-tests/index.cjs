@@ -40,15 +40,19 @@ exports.run = async function () {
   assert.deepEqual(probe.args, [
     "--repository-root", storage, "--toolchain-cache-root", path.join(storage, "toolchain"), "--no-logo"
   ]);
-  const { releaseReadiness } = require(path.join(extension.extensionPath, "out/readiness.js"));
-  const uri = vscode.Uri.file(storage);
   const spec = path.join(storage, "knowledge/2026-09/spec");
   await fs.mkdir(path.join(spec, "kerml"), { recursive: true });
   await fs.writeFile(path.join(spec, "index.md"), "obsolete layout");
-  await fs.writeFile(path.join(spec, "kerml/index.md"), "synthetic catalog");
-  assert.match(await releaseReadiness(uri, "2026-09"), /Normative specification text is not present/);
+  await fs.writeFile(path.join(spec, "kerml/index.json"), "{}");
+  const statusBeforeSysmlCatalog = await vscode.lm.invokeTool("mycelium-hypha_get_release_status", {
+    input: {}, toolInvocationToken: undefined
+  });
+  assert.match(statusBeforeSysmlCatalog.content.map(part => part.value ?? "").join(""), /specification text not present/);
   await fs.mkdir(path.join(spec, "sysml2"), { recursive: true });
-  await fs.writeFile(path.join(spec, "sysml2/index.md"), "synthetic catalog");
-  assert.match(await releaseReadiness(uri, "2026-09"), /Normative specification text is present/);
+  await fs.writeFile(path.join(spec, "sysml2/index.json"), "{}");
+  const statusAfterSysmlCatalog = await vscode.lm.invokeTool("mycelium-hypha_get_release_status", {
+    input: {}, toolInvocationToken: undefined
+  });
+  assert.match(statusAfterSysmlCatalog.content.map(part => part.value ?? "").join(""), /specification text present/);
   console.log("Installed VSIX activated and both Copilot tools returned global-storage data.");
 };

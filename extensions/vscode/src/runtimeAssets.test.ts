@@ -22,6 +22,12 @@ test("provisions generation inputs into an independent global data root and supp
     const releaseSources = path.join(storage, "sources", "2026-09", "xmi");
     await mkdir(releaseSources, { recursive: true });
     await writeFile(path.join(releaseSources, "existing.uml"), "existing downloaded input");
+    const staleModule = path.join(storage, "tools", "spec-extract", "src", "obsolete.py");
+    const venvMarker = path.join(storage, "tools", "spec-extract", ".venv", "preserved");
+    await mkdir(path.dirname(staleModule), { recursive: true });
+    await mkdir(path.dirname(venvMarker), { recursive: true });
+    await writeFile(staleModule, "obsolete module");
+    await writeFile(venvMarker, "managed environment");
     await provisionRuntimeAssets(extensionPath, storage);
     await provisionRuntimeAssets(extensionPath, storage);
 
@@ -31,6 +37,8 @@ test("provisions generation inputs into an independent global data root and supp
     );
     await access(path.join(storage, "tools", "spec-extract", "pyproject.toml"));
     await access(path.join(storage, "tools", "spec-extract", "src", "spec_extract", "__main__.py"));
+    await assert.rejects(access(staleModule), { code: "ENOENT" });
+    assert.equal(await readFile(venvMarker, "utf8"), "managed environment");
     assert.equal(await readFile(path.join(releaseSources, "existing.uml"), "utf8"), "existing downloaded input");
   } finally {
     await rm(storage, { recursive: true, force: true });

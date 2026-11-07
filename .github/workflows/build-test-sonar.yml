@@ -39,6 +39,10 @@ jobs:
         working-directory: extensions/vscode
         run: npm run package -- linux-x64
 
+      - name: Smoke-test installed VSIX
+        working-directory: extensions/vscode
+        run: xvfb-run -a npm run test:host
+
   build:
     name: Build & Test & SonarQube
     runs-on: ubuntu-latest

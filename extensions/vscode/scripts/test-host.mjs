@@ -28,12 +28,14 @@ try {
     "--user-data-dir", userData, "--extensions-dir", extensions,
     "--install-extension", path.join(root, `hypha-${target}.vsix`), "--force"
   ];
+  // The Linux launcher redirects to the current remote host when this is set.
+  const { VSCODE_IPC_HOOK_CLI: _remoteCliHook, ...installationEnv } = process.env;
   const installation = process.platform === "win32"
     ? spawnSync(executable, [path.resolve(path.dirname(cli), "../resources/app/out/cli.js"), ...installArgs], {
-      encoding: "utf8", env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }
+      encoding: "utf8", env: { ...installationEnv, ELECTRON_RUN_AS_NODE: "1" }
     })
     : spawnSync(cli, installArgs, {
-      encoding: "utf8", env: { ...process.env, DONT_PROMPT_WSL_INSTALL: "1" }
+      encoding: "utf8", env: { ...installationEnv, DONT_PROMPT_WSL_INSTALL: "1" }
     });
   if (installation.error || installation.status !== 0) {
     throw installation.error ?? new Error(installation.stdout + installation.stderr);
@@ -43,9 +45,17 @@ try {
   const metamodel = path.join(storage, "knowledge/2026-09/metamodel");
   await mkdir(path.join(metamodel, "elements"), { recursive: true });
   await writeFile(path.join(storage, "knowledge/versions.json"),
-    JSON.stringify({ default: "2026-09", versions: [{ tag: "2026-09" }] }));
+    JSON.stringify({
+      schemaVersion: "1.0.0",
+      default: "2026-09",
+      versions: [{
+        tag: "2026-09",
+        release: { repo: "fixture/release", commit: "fixture" },
+        pilot: { repo: "fixture/pilot", commit: "fixture" }
+      }]
+    }));
   await writeFile(path.join(metamodel, "index.json"),
-    JSON.stringify({ entries: { PartUsage: { file: "elements/PartUsage.md" } } }));
+    JSON.stringify({ entries: { PartUsage: { kind: "class", file: "elements/PartUsage.md" } } }));
   await writeFile(path.join(metamodel, "elements/PartUsage.md"), "# Synthetic PartUsage\nHost test fixture only.");
   await runTests({
     vscodeExecutablePath: executable,

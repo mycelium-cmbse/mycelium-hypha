@@ -1,4 +1,7 @@
 import * as vscode from "vscode";
+import { randomUUID } from "node:crypto";
+import { mkdir, open, readFile, rm } from "node:fs/promises";
+import path from "node:path";
 
 import { ensureCli, runCli, runCliJson, type CheckResult, type ListResult, type ReleaseStatus } from "./cli";
 import { provisionRuntimeAssets } from "./runtimeAssets";
@@ -14,7 +17,7 @@ export function registerReleaseCommands(
   output: vscode.OutputChannel
 ): vscode.Disposable[] {
   const storagePath = context.globalStorageUri.fsPath;
-  // Share one guard across install, use and remove because all mutate the same manifest.
+  // The process-local guard avoids duplicate prompts; the lock also coordinates VS Code windows.
   const releaseOperation = { inProgress: false };
 
   return [
@@ -33,6 +36,7 @@ export function registerReleaseCommands(
       "mycelium-hypha.installRelease",
       "Hypha release installation did not complete",
       output,
+      storagePath,
       releaseOperation,
       async () => {
         const check = await checkReleases(context, output);
@@ -115,6 +119,7 @@ export function registerReleaseCommands(
       "mycelium-hypha.useRelease",
       "Could not change the default Hypha release",
       output,
+      storagePath,
       releaseOperation,
       async () => {
         const executable = await ensureCli(context.extensionUri.fsPath);
@@ -152,6 +157,7 @@ export function registerReleaseCommands(
       "mycelium-hypha.removeRelease",
       "Could not remove the Hypha release",
       output,
+      storagePath,
       releaseOperation,
       async () => {
         const executable = await ensureCli(context.extensionUri.fsPath);
@@ -288,13 +294,14 @@ function yesNo(value: boolean): string {
 /**
  * Wraps a release mutation with a shared in-progress guard and consistent error handling.
  *
- * The guard is shared by all registered mutations so overlapping CLI processes cannot
- * race while changing the same release manifest.
+ * The local guard coordinates commands in this extension host; the storage lock coordinates
+ * mutations across windows sharing the same extension-global data.
  */
 function registerReleaseMutation(
   command: string,
   errorTitle: string,
   output: vscode.OutputChannel,
+  storagePath: string,
   operationState: { inProgress: boolean },
   operation: () => Promise<void>
 ): vscode.Disposable {
@@ -306,13 +313,135 @@ function registerReleaseMutation(
 
     operationState.inProgress = true;
     try {
-      await operation();
+      const releaseLock = await acquireReleaseLock(storagePath);
+      try {
+        await operation();
+      } finally {
+        await releaseLock();
+      }
     } catch (error) {
       await showError(output, errorTitle, error);
     } finally {
       operationState.inProgress = false;
     }
   });
+}
+
+/** Acquires an exclusive lock in shared extension storage for release mutations. */
+async function acquireReleaseLock(storagePath: string): Promise<() => Promise<void>> {
+  await mkdir(storagePath, { recursive: true });
+  const lockPath = path.join(storagePath, ".release-operation.lock");
+  const owner = JSON.stringify({ pid: process.pid, token: randomUUID() });
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const handle = await open(lockPath, "wx");
+      try {
+        await handle.writeFile(owner);
+      } catch (error) {
+        await handle.close();
+        await rm(lockPath, { force: true });
+        throw error;
+      }
+
+      return async () => {
+        await handle.close();
+        try {
+          if (await readFile(lockPath, "utf8") === owner) {
+            await rm(lockPath);
+          }
+        } catch (error) {
+          if (!isFileMissing(error)) {
+            throw error;
+          }
+        }
+      };
+    } catch (error) {
+      if (!isAlreadyExists(error)) {
+        throw error;
+      }
+
+      await recoverReleaseLock(lockPath);
+    }
+  }
+
+  throw new Error("Could not acquire the Hypha release-operation lock. Try again.");
+}
+
+/** Serializes stale-lock recovery; its own lock is never recovered automatically. */
+async function recoverReleaseLock(lockPath: string): Promise<void> {
+  const recoveryPath = `${lockPath}.recovery`;
+  let recovery;
+  try {
+    recovery = await open(recoveryPath, "wx");
+  } catch (error) {
+    if (isAlreadyExists(error)) {
+      throw new Error(
+        "Another Hypha window may be recovering a release-operation lock. Try again; if recovery was interrupted, close all Hypha windows and ensure no Hypha processes are running before removing .release-operation.lock.recovery from the data directory."
+      );
+    }
+    throw error;
+  }
+
+  try {
+    let existing: string;
+    try {
+      existing = await readFile(lockPath, "utf8");
+    } catch (error) {
+      if (isFileMissing(error)) {
+        return;
+      }
+      throw error;
+    }
+
+    let pid: number;
+    try {
+      const lock: unknown = JSON.parse(existing);
+      if (typeof lock !== "object" || lock === null || !("pid" in lock) ||
+          typeof lock.pid !== "number" || !Number.isInteger(lock.pid) || lock.pid <= 0) {
+        throw new Error("invalid process id");
+      }
+      pid = lock.pid;
+    } catch (cause) {
+      throw new Error(
+        "A Hypha release-operation lock is unreadable or still being created. Try again; if it remains unreadable, close all Hypha windows and ensure no Hypha processes are running before removing .release-operation.lock from the data directory.",
+        { cause }
+      );
+    }
+
+    if (isProcessRunning(pid)) {
+      throw new Error("A Hypha release operation is already running in another VS Code window. Wait for it to finish before trying again.");
+    }
+
+    await rm(lockPath);
+  } finally {
+    await recovery.close();
+    await rm(recoveryPath);
+  }
+}
+
+/** Checks whether a lock owner's process is still alive on this extension host. */
+function isProcessRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+      return false;
+    }
+    if ((error as NodeJS.ErrnoException).code === "EPERM") {
+      return true;
+    }
+    throw error;
+  }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException).code === "EEXIST";
+}
+
+function isFileMissing(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException).code === "ENOENT";
 }
 
 /** Logs command failures while treating user cancellation as a normal outcome. */
