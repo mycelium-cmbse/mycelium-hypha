@@ -37,7 +37,7 @@ const required = [
   `out/cli/${target.startsWith("win32-") ? "hypha.exe" : "hypha"}`,
   "out/resources/sources/PrimitiveTypes.xmi",
   "out/resources/spec-extract/pyproject.toml", "out/resources/spec-extract/uv.lock",
-  "out/resources/spec-extract/src/spec_extract/__main__.py", "LICENSE", "NOTICE"
+  "out/resources/spec-extract/src/spec_extract/__main__.py", "LICENSE", "NOTICE", "icon.png"
 ];
 for (const file of required) {
   if (!files.includes(file)) {
