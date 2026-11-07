@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdtemp, mkdir, readdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, readdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,12 +10,24 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const target = `${process.platform}-${process.arch}`;
 
 /**
- * Finds the `cli.js` a Windows VS Code installation runs extension commands with. Archives up to
- * 1.144 keep it at `resources/app/out/` next to `Code.exe`; from 1.145 it sits under a folder named
- * after the build's commit (`<commit>/resources/app/out/cli.js`).
+ * Finds the `cli.js` a Windows VS Code installation runs extension commands with. Older archives
+ * keep it at `resources/app/out/` next to `Code.exe`; newer ones (seen in 1.145) put it under a
+ * folder named after the build's commit (`<commit>/resources/app/out/cli.js`). The installation's own
+ * launcher, `bin/code.cmd`, names the one it runs, so that is asked first; looking in both layouts
+ * is the fallback for a launcher that does not.
  */
 async function windowsCliScript(executable) {
   const installation = path.dirname(executable);
+  try {
+    const launcher = await readFile(path.join(installation, "bin", "code.cmd"), "utf8");
+    // e.g. "%~dp0..\Code.exe" "%~dp0..\c4453f8ea4\resources\app\out\cli.js" %*
+    const named = /"%~dp0\.\.\\([^"]*\\cli\.js)"/.exec(launcher);
+    if (named && existsSync(path.join(installation, named[1]))) {
+      return path.join(installation, named[1]);
+    }
+  } catch {
+    // No readable launcher: fall back to the known layouts.
+  }
   const relative = path.join("resources", "app", "out", "cli.js");
   const candidates = [path.join(installation, relative)];
   for (const entry of await readdir(installation, { withFileTypes: true })) {
