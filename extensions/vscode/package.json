@@ -6,6 +6,7 @@
   "publisher": "mycelium-cmbse",
   "license": "Apache-2.0",
   "icon": "icon.png",
+  "preview": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/mycelium-cmbse/mycelium-hypha"

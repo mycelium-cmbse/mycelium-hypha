@@ -14,7 +14,8 @@ declarations on your machine and gives Copilot source links to cite in its answe
 - **Keep working across folders** – installed knowledge is shared across workspaces on the same
   VS Code host.
 
-Hypha is a preview and is not yet published to the VS Code Marketplace.
+Hypha is a preview, published as a pre-release for Linux x64 and arm64 (including WSL and SSH
+remotes).
 
 ## Get started
 
@@ -22,7 +23,8 @@ You need VS Code 1.100 or later and access to GitHub Copilot Chat with tools ena
 Use a trusted local or remote workspace; browser-based VS Code and virtual workspaces are not
 supported.
 
-1. Install the Hypha VSIX for your platform with **Extensions: Install from VSIX…**.
+1. Install **Hypha – SysML v2 and KerML** from the Extensions view, or a VSIX for your platform
+   with **Extensions: Install from VSIX…**.
    In WSL or SSH, install it on the remote host where your workspace runs. You do not need to
    install .NET, Python, a separate CLI or an Agent Plugin.
 2. Open the Command Palette (**Ctrl+Shift+P**, or **Cmd+Shift+P** on macOS) and run
