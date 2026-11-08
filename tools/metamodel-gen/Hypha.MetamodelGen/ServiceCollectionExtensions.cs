@@ -28,9 +28,12 @@ namespace Hypha.MetamodelGen
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds the metamodel model loader and generator. Call after <c>AddHyphaKnowledge</c>, which
-        /// registers the layout this depends on.
+        /// Adds the metamodel model loader and generator, and the Systems Modeling API PIM generator.
+        /// Call after <c>AddHyphaKnowledge</c>, which registers the layouts these depend on.
         /// </summary>
+        /// <param name="services">The collection to add the services to.</param>
+        /// <returns><paramref name="services"/>, so calls can be chained.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="services"/> is <c>null</c>.</exception>
         public static IServiceCollection AddHyphaMetamodelGen(this IServiceCollection services)
         {
             ArgumentNullException.ThrowIfNull(services);

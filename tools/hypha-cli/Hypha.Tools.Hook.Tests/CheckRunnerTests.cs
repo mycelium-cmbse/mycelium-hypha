@@ -14,9 +14,6 @@ namespace Hypha.Tools.Hook.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// Suite of tests for <see cref="CheckRunner"/>.
-    /// </summary>
     [TestFixture]
     public class CheckRunnerTests
     {

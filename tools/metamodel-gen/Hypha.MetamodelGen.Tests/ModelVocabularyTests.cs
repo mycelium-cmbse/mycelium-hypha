@@ -18,7 +18,7 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     // Two things are pinned down. A generator that is not told otherwise still says metaclass and metamodel,
-    // word for word as before - the KerML / SysML golden files depend on it. And one told it describes an
+    // word for word as before: the KerML / SysML golden files depend on it. And one told it describes an
     // ordinary model says class and model everywhere, with nothing else on the page changing.
     [TestFixture]
     public class ModelVocabularyTests
@@ -200,7 +200,7 @@ namespace Hypha.MetamodelGen.Tests
 
             var content = new MetamodelIndexGenerator().GenerateIndex(model!, "SysML v2").Replace("\r\n", "\n");
 
-            // SysML has a package called Interfaces, so that heading is there - once, as a package.
+            // SysML has a package called Interfaces, so that heading is there once, as a package.
             var headings = content.Split('\n').Where(line => line == "## Interfaces").ToList();
 
             Assert.Multiple(() =>

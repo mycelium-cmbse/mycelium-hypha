@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Referenced as an ordinary (non-AOT) build here - only the published verb needs PublishAot, and
+    <!-- Referenced as an ordinary (non-AOT) build here: only the published verb needs PublishAot, and
          tests exercise the same code either way. -->
     <ProjectReference Include="..\Hypha.Tools.Hook\Hypha.Tools.Hook.csproj" />
   </ItemGroup>

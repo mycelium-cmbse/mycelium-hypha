@@ -22,8 +22,8 @@ namespace Hypha.MetamodelGen.Tests
 
     // The published PIM is an OMG document and is not committed. The fixture is synthetic and small, but it
     // is shaped like the real thing where that matters to the generators: it declares an interface,
-    // realizations and data types that are neither primitive nor an enumeration - none of which KerML or
-    // SysML have - and it refers to the UML primitive types and to the KerML abstract syntax by the same
+    // realizations and data types that are neither primitive nor an enumeration (none of which KerML or
+    // SysML have), and it refers to the UML primitive types and to the KerML abstract syntax by the same
     // literal references the published model uses. The KerML it refers to is the fixture already committed
     // under `Fixtures/xmi/`.
     internal static class PimFixture

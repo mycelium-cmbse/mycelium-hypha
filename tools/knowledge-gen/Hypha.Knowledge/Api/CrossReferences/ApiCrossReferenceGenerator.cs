@@ -27,17 +27,27 @@ namespace Hypha.Knowledge.Api.CrossReferences
     /// <remarks>
     /// Runs last: it reads what the three other API generators wrote. Only the PIM is required. Without
     /// the REST/HTTP PSM knowledge the types carry no schema, and without the specification text they
-    /// carry no clause and the operations no endpoint - the document records which were present.
+    /// carry no clause and the operations no endpoint, and the document records which were present.
     /// </remarks>
     public sealed class ApiCrossReferenceGenerator : IApiKnowledgeGenerator
     {
+        /// <summary>Where the generated PIM, OpenAPI and specification knowledge are read and the document is written.</summary>
         private readonly IApiLayout layout;
+
+        /// <summary>Lines up the PIM, the specification clauses and the REST/HTTP PSM.</summary>
         private readonly IApiCrossReferenceBuilder builder;
+
+        /// <summary>The logger progress and outcomes are reported to.</summary>
         private readonly ILogger<ApiCrossReferenceGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiCrossReferenceGenerator"/> class.
         /// </summary>
+        /// <param name="layout">
+        /// Where the generated PIM, OpenAPI and specification knowledge are read and the document is written.
+        /// </param>
+        /// <param name="builder">Lines up the PIM, the specification clauses and the REST/HTTP PSM.</param>
+        /// <param name="logger">The logger progress and outcomes are reported to.</param>
         public ApiCrossReferenceGenerator(
             IApiLayout layout, IApiCrossReferenceBuilder builder, ILogger<ApiCrossReferenceGenerator> logger)
         {
@@ -50,13 +60,33 @@ namespace Hypha.Knowledge.Api.CrossReferences
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets what this generator produces: <c>cross-references</c>. Used when reporting progress.
+        /// </summary>
         public string Artifact => "cross-references";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets where this generator sits in a full API run: <c>40</c>, last, because it reads what the
+        /// other API generators wrote.
+        /// </summary>
         public int Order => 40;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Generates <c>knowledge/api/&lt;tag&gt;/cross-references.json</c> from the generated PIM graph,
+        /// and from the OpenAPI index and the specification clauses when they are present.
+        /// </summary>
+        /// <param name="tag">The API version.</param>
+        /// <param name="cancellationToken">Cancels reading the inputs and writing the document.</param>
+        /// <returns>
+        /// The document written, or <see cref="GenerationOutcome.Skipped"/> when the PIM knowledge has not
+        /// been generated for <paramref name="tag"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="JsonException">The PIM graph or the OpenAPI index is not valid JSON.</exception>
+        /// <exception cref="ArgumentException">The PIM graph or the OpenAPI index is empty.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// The PIM graph or the OpenAPI index is the JSON literal <c>null</c>.
+        /// </exception>
         public async Task<GenerationResult> GenerateAsync(string tag, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -89,6 +119,11 @@ namespace Hypha.Knowledge.Api.CrossReferences
         }
 
         /// <summary>The clauses the catalog lists, with their text; none when there is no catalog.</summary>
+        /// <param name="tag">The API version.</param>
+        /// <param name="cancellationToken">Cancels reading the catalog and the clause files.</param>
+        /// <returns>
+        /// The clauses in catalog order. An entry that names no file, or a file that is not there, is left out.
+        /// </returns>
         private async Task<IReadOnlyList<ApiClause>> ReadClausesAsync(string tag, CancellationToken cancellationToken)
         {
             var catalog = this.layout.SpecificationCatalog(tag);

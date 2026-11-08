@@ -18,19 +18,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.DependencyInjection;
 
-    /// <summary>
-    /// Live fetches against the real upstreams. <b>Explicit</b> - never part of a normal run or CI.
-    /// </summary>
-    /// <remarks>
-    /// The reason for the port was that the Python fetcher was reset by the host after roughly 190 of
-    /// a release's 317 files. No stub can show that is fixed, so this exists to be run by hand:
-    /// <code>
-    /// dotnet test --filter "FullyQualifiedName~LiveReleaseFetchTests" -- NUnit.DefaultTestNamePattern=...
-    /// </code>
-    /// It writes to a temporary folder, never to <c>sources/</c>, so an interrupted run cannot leave
-    /// the repository half-updated. Set <c>GITHUB_TOKEN</c> first: the anonymous API allows 60
-    /// requests an hour.
-    /// </remarks>
     [TestFixture]
     [Explicit("Hits the network; run by hand when changing the fetcher.")]
     [Category("Live")]

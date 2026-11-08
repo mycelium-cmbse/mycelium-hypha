@@ -13,7 +13,7 @@ namespace Hypha.Knowledge.Api.CrossReferences
 
     /// <summary>
     /// <c>knowledge/api/&lt;tag&gt;/cross-references.json</c>: how the three views of the Systems
-    /// Modeling API line up - PIM type, specification clause, REST/HTTP PSM schema - and which
+    /// Modeling API line up (PIM type, specification clause, REST/HTTP PSM schema) and which
     /// endpoint each PIM service operation maps to.
     /// </summary>
     /// <remarks>
@@ -50,7 +50,7 @@ namespace Hypha.Knowledge.Api.CrossReferences
         /// <summary>A clause with a paragraph that opens by defining the type in bold.</summary>
         public const string DefinitionMethod = "definition-paragraph";
 
-        /// <summary>A clause that sets the name in bold - typically a figure it appears in.</summary>
+        /// <summary>A clause that sets the name in bold, typically a figure it appears in.</summary>
         public const string BoldMentionMethod = "bold-mention";
 
         /// <summary>A clause that lists the operation's signature.</summary>

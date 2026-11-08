@@ -37,7 +37,7 @@ namespace Hypha.Knowledge.Tests
             this.cacheRoot = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-uv-tests-" + Guid.NewGuid().ToString("N")));
             this.cacheRoot.Create();
 
-            // Whatever platform the test happens to run on - the stub responds to that target's asset.
+            // Whatever platform the test happens to run on: the stub responds to that target's asset.
             this.target = UvPlatform.CurrentTarget
                 ?? throw new InvalidOperationException("this platform has no uv release target");
         }

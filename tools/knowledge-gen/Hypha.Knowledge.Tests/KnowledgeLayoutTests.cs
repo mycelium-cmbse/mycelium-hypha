@@ -14,9 +14,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Layout;
 
-    /// <summary>
-    /// Tests for the one place that knows where things live.
-    /// </summary>
     [TestFixture]
     public class KnowledgeLayoutTests
     {

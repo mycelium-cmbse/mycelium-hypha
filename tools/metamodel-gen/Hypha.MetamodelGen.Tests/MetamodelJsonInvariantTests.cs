@@ -19,11 +19,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using uml4net.Extensions;
 
-    /// <summary>
-    /// Validates the generated JSON, round-tripped through serialization back into the strongly-typed
-    /// records (the records are the schema), and asserts structural invariants. Built fresh from the
-    /// fixture model each time - nothing per-release is committed for this to read any more.
-    /// </summary>
     [TestFixture]
     public class MetamodelJsonInvariantTests
     {

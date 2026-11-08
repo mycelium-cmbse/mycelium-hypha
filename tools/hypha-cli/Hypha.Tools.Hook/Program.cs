@@ -19,7 +19,7 @@ namespace Hypha.Tools.Hook
     /// <summary>
     /// The <c>SessionStart</c> hook entry point: ensures the real <c>hypha</c> CLI is cached, runs
     /// <c>hypha check</c> to compare local releases against what is offerable upstream, and reports
-    /// the result. Never fetches or generates anything itself - deciding whether to act on what it
+    /// the result. Never fetches or generates anything itself; deciding whether to act on what it
     /// reports is left entirely to the user, through a skill.
     /// </summary>
     /// <remarks>
@@ -31,6 +31,7 @@ namespace Hypha.Tools.Hook
     public static class Program
     {
         /// <summary>Runs the hook.</summary>
+        /// <returns>A task whose result is always <c>0</c>: a failure is swallowed, never reported.</returns>
         public static async Task<int> Main()
         {
             try
@@ -52,9 +53,18 @@ namespace Hypha.Tools.Hook
         /// The hook's real work, taking the HTTP client and the cache root resolver as parameters so a
         /// test can supply a stub transport and an isolated cache directory instead of a real one
         /// reaching GitHub and the real, shared <c>%LOCALAPPDATA%\mycelium-hypha</c> (or platform
-        /// equivalent) - which a test must never read from or write to, since a machine that has
+        /// equivalent), which a test must never read from or write to, since a machine that has
         /// actually used this hook before may already have a matching version/RID cached there.
         /// </summary>
+        /// <param name="client">The client the GitHub API and the CLI download go through.</param>
+        /// <param name="getFolderPath">
+        /// Resolves the local application data folder the cache lives under; <c>null</c> for
+        /// <see cref="Environment.GetFolderPath(Environment.SpecialFolder)"/>.
+        /// </param>
+        /// <returns>
+        /// A task that completes once the result, if there is anything worth saying, has been written
+        /// to stdout as a <see cref="HookOutput"/>.
+        /// </returns>
         internal static async Task RunAsync(HttpClient client, Func<Environment.SpecialFolder, string>? getFolderPath = null)
         {
             var pluginRoot = ResolvePluginRoot();
@@ -77,7 +87,7 @@ namespace Hypha.Tools.Hook
                 return;
             }
 
-            // check only ever compares local releases against what is offerable upstream - cheap
+            // check only ever compares local releases against what is offerable upstream, cheap
             // enough to wait for here, synchronously, with nothing left to poll for later.
             var output = await CheckRunner.RunAndCaptureOutputAsync(
                 executable.FullName,
@@ -94,6 +104,9 @@ namespace Hypha.Tools.Hook
             }
         }
 
+        /// <summary>Parses what <c>hypha check --json</c> wrote to stdout.</summary>
+        /// <param name="output">The captured stdout, or <c>null</c> when the run failed.</param>
+        /// <returns>The result, or <c>null</c> when <paramref name="output"/> is blank or not valid JSON.</returns>
         internal static HookCheckResult? ParseCheckResult(string? output)
         {
             if (string.IsNullOrWhiteSpace(output))
@@ -111,6 +124,11 @@ namespace Hypha.Tools.Hook
             }
         }
 
+        /// <summary>
+        /// Resolves the plugin root: the <c>CLAUDE_PLUGIN_ROOT</c> environment variable when it is set,
+        /// otherwise three levels above this executable (<c>hooks/native/&lt;rid&gt;/</c>).
+        /// </summary>
+        /// <returns>The plugin root, or this executable's own folder when it has no such ancestor.</returns>
         internal static DirectoryInfo ResolvePluginRoot()
         {
             var fromEnvironment = Environment.GetEnvironmentVariable("CLAUDE_PLUGIN_ROOT");
@@ -126,6 +144,13 @@ namespace Hypha.Tools.Hook
             return baseDirectory.Parent?.Parent?.Parent ?? baseDirectory;
         }
 
+        /// <summary>
+        /// Reads the CLI version the plugin is pinned to from <c>.claude-plugin/plugin.json</c>.
+        /// </summary>
+        /// <param name="pluginRoot">The plugin root the manifest is read from.</param>
+        /// <returns>
+        /// The version, or <c>null</c> when the manifest is absent, not valid JSON or states no version.
+        /// </returns>
         internal static string? ReadPinnedCliVersion(DirectoryInfo pluginRoot)
         {
             var manifestPath = Path.Combine(pluginRoot.FullName, ".claude-plugin", "plugin.json");

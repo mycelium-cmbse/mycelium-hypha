@@ -62,7 +62,7 @@ jobs:
       - name: Install spec-extract dependencies (Python)
         # A real .venv, not the runner's system interpreter, matching the documented local setup:
         # `move-window`'s pre-flight check looks for tools/spec-extract/.venv/bin/python and fails
-        # the step - and every test asserting on it - if it's missing. Wheels only (no source
+        # the step (and every test asserting on it) if it's missing. Wheels only (no source
         # builds / setup scripts) and pinned to the committed lock. Prepending its bin to PATH lets
         # `dotnet test` resolve to this venv without changing how it's invoked.
         run: |
@@ -79,7 +79,7 @@ jobs:
 
       - name: Pack the dotnet tool
         # GenerateSBOM=true embeds an SPDX 2.2 manifest in the .nupkg under _manifest/ (Microsoft.Sbom.Targets'
-        # own AfterTargets="Pack" hook - see Hypha.Tools.csproj).
+        # own AfterTargets="Pack" hook; see Hypha.Tools.csproj).
         run: |
           dotnet pack tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj \
             -c Release -p:Version="${VERSION}" -p:GenerateSBOM=true -o ReleaseBuilds
@@ -99,7 +99,7 @@ jobs:
 
       - name: Publish a self-contained executable per platform
         # GenerateSBOM=true runs Hypha.Tools.csproj's GenerateSbomForPublish target (Microsoft.Sbom.Targets
-        # itself only hooks Pack), writing an SPDX 2.2 manifest under publish/$RID/_manifest/ - archived
+        # itself only hooks Pack), writing an SPDX 2.2 manifest under publish/$RID/_manifest/, archived
         # into each platform's zip below, alongside its own bytes.
         run: |
           set -euo pipefail
@@ -114,7 +114,7 @@ jobs:
       - name: Smoke-test the self-contained build
         # The test suite exercises the generators in-process, where the assembly has a location on
         # disk and the templates sit beside it. A single-file bundle has neither, so it can fail in
-        # ways nothing else here would notice - it did once, on Assembly.Location. Run the artifact
+        # ways nothing else here would notice; it did once, on Assembly.Location. Run the artifact
         # that ships, and let it prove it still fetches and generates.
         #
         # Nothing is committed to fetch a release from any more (see #106): `generate` has nothing to
@@ -210,7 +210,7 @@ jobs:
       - name: Draft the GitHub release
         # Pinned to the commit rather than the tag: this is the one third-party action here, it runs
         # with a token that can write releases, and a tag can be repointed by whoever owns it. The
-        # comment is the human-readable half - bump both together.
+        # comment is the human-readable half: bump both together.
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
           draft: true

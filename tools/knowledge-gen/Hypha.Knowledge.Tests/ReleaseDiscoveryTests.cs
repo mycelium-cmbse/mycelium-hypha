@@ -19,9 +19,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for the networked part of discovery, against a stubbed transport - no live calls.
-    /// </summary>
     [TestFixture]
     public class ReleaseDiscoveryTests
     {
@@ -113,7 +110,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public async Task Reads_from_an_overridden_host()
         {
-            // The host is configurable so an enterprise instance - or a stub - can be pointed at.
+            // The host is configurable so an enterprise instance (or a stub) can be pointed at.
             var handler = new StubHandler(_ => "[]");
 
             using var client = new HttpClient(handler);

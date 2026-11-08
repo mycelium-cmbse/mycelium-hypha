@@ -49,9 +49,17 @@ namespace Hypha.MetamodelGen.Generators
         /// Renders the element markdown for a single metaclass. The <paramref name="subtypeIndex"/>
         /// (see <see cref="BuildSubtypeIndex"/>) supplies the direct subtypes, which cannot be
         /// derived from the metaclass alone. The <paramref name="linkableTypeNames"/> (see
-        /// <see cref="QueryMetaclassNames"/>) are the metaclasses that have a generated element file,
-        /// so feature types pointing at them can be rendered as links.
+        /// <see cref="ElementCatalog.LinkableTypeNames"/>) are the elements that have a generated
+        /// element file, so feature types pointing at them can be rendered as links.
         /// </summary>
+        /// <param name="class">The metaclass to render.</param>
+        /// <param name="subtypeIndex">Each metaclass name mapped to its direct subtype names.</param>
+        /// <param name="linkableTypeNames">The type names that have a page of their own to link to.</param>
+        /// <returns>The page's Markdown.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="class"/>, <paramref name="subtypeIndex"/> or
+        /// <paramref name="linkableTypeNames"/> is <c>null</c>.
+        /// </exception>
         public string GenerateElement(
             IClass @class,
             IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,
@@ -71,6 +79,12 @@ namespace Hypha.MetamodelGen.Generators
         /// Renders one <c>&lt;MetaclassName&gt;.md</c> file per metaclass into
         /// <paramref name="outputDirectory"/>.
         /// </summary>
+        /// <param name="model">The model whose metaclasses are written.</param>
+        /// <param name="outputDirectory">The folder the pages are written to.</param>
+        /// <returns>A task that completes when every page has been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="outputDirectory"/> is <c>null</c>.
+        /// </exception>
         public async Task GenerateAsync(XmiReaderResult model, DirectoryInfo outputDirectory)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -92,6 +106,12 @@ namespace Hypha.MetamodelGen.Generators
         /// Builds a map from each metaclass name to its direct subtype names (the inverse of the
         /// generalization relation), ordered.
         /// </summary>
+        /// <param name="metaclasses">The metaclasses whose generalizations are inverted.</param>
+        /// <returns>
+        /// Each supertype name mapped to its distinct direct subtype names, ordered ordinally; a
+        /// metaclass without subtypes has no entry.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="metaclasses"/> is <c>null</c>.</exception>
         public static IReadOnlyDictionary<string, IReadOnlyList<string>> BuildSubtypeIndex(
             IEnumerable<IClass> metaclasses)
         {
@@ -130,12 +150,18 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Returns all metaclasses (<see cref="IClass"/>) in the model, ordered by name.
         /// </summary>
+        /// <param name="model">The model to read.</param>
+        /// <returns>The metaclasses, ordered ordinally by name.</returns>
         public static IReadOnlyList<IClass> QueryMetaclasses(XmiReaderResult model) =>
             ElementCatalog.Metaclasses(model);
 
         /// <summary>
         /// Builds the deterministic payload for a metaclass from the model.
         /// </summary>
+        /// <param name="class">The metaclass the payload describes.</param>
+        /// <param name="subtypeIndex">Each metaclass name mapped to its direct subtype names.</param>
+        /// <param name="linkableTypeNames">The type names that have a page of their own to link to.</param>
+        /// <returns>The payload, every collection in it ordered by name.</returns>
         private static MetaclassPayload CreatePayload(
             IClass @class,
             IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,
@@ -233,6 +259,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <c>in</c> is prefixed with its direction; the return comes from the <c>return</c>
         /// parameter, and is left out when there is none.
         /// </summary>
+        /// <param name="operation">The operation whose signature is rendered.</param>
+        /// <returns>The signature.</returns>
         internal static string QueryOperationSignature(IOperation operation)
         {
             var parameters = operation.OwnedParameter
@@ -260,6 +288,8 @@ namespace Hypha.MetamodelGen.Generators
         /// Returns the modifier tokens (<c>derived</c>, <c>composite</c>, <c>ordered</c>) that apply
         /// to a property, in a stable order.
         /// </summary>
+        /// <param name="property">The property whose modifiers are read.</param>
+        /// <returns>The tokens that apply, possibly none.</returns>
         private static IEnumerable<string> QueryModifierTokens(IProperty property)
         {
             if (property.IsDerived)
@@ -283,6 +313,9 @@ namespace Hypha.MetamodelGen.Generators
         /// generated metaclass, otherwise the plain type name (e.g. a primitive, enumeration or the
         /// <c>«untyped»</c> placeholder).
         /// </summary>
+        /// <param name="typeName">The name of the feature's type.</param>
+        /// <param name="linkableTypeNames">The type names that have a page of their own to link to.</param>
+        /// <returns>The type as Markdown.</returns>
         private static string RenderTypeLink(string typeName, IReadOnlySet<string> linkableTypeNames)
         {
             return linkableTypeNames.Contains(typeName) ? $"[{typeName}]({typeName}.md)" : typeName;
@@ -293,6 +326,10 @@ namespace Hypha.MetamodelGen.Generators
         /// the feature is owned locally, the declaring supertype's element file when it is inherited,
         /// otherwise plain backtick text when the target is outside this metaclass' feature set.
         /// </summary>
+        /// <param name="featureName">The name of the redefined or subsetted feature.</param>
+        /// <param name="ownedNames">The names of the metaclass' own features.</param>
+        /// <param name="inheritedOwners">Each inherited feature name mapped to the supertype that declares it.</param>
+        /// <returns>The reference as Markdown.</returns>
         private static string RenderFeatureReference(
             string featureName,
             HashSet<string> ownedNames,
@@ -314,12 +351,16 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Returns the GitHub-style heading anchor for a feature name (identifiers only need lowercasing).
         /// </summary>
+        /// <param name="name">The feature name.</param>
+        /// <returns>The anchor, without the leading <c>#</c>.</returns>
         private static string Slug(string name) => name.ToLowerInvariant();
 
         /// <summary>
         /// Returns the UML visibility sigil (<c>+</c> public, <c>-</c> private, <c>#</c> protected,
         /// <c>~</c> package); an unset visibility reads as public.
         /// </summary>
+        /// <param name="visibility">The visibility the XMI states, or <c>null</c> when it is omitted.</param>
+        /// <returns>The sigil.</returns>
         private static string QueryVisibilitySigil(VisibilityKind? visibility) => visibility switch
         {
             VisibilityKind.Private => "-",

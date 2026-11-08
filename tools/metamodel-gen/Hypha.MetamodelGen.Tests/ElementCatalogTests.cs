@@ -17,7 +17,7 @@ namespace Hypha.MetamodelGen.Tests
     using NUnit.Framework;
 
     // The PIM-shaped fixture (see PimFixture) declares all three; the KerML / SysML fixture declares none,
-    // which is the other half of the contract - nothing new may appear for the metamodels.
+    // which is the other half of the contract: nothing new may appear for the metamodels.
     [TestFixture]
     public class ElementCatalogTests
     {

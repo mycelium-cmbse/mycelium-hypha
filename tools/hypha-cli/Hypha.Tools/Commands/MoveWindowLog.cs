@@ -27,17 +27,27 @@ namespace Hypha.Tools.Commands
             (MoveWindowStep.Verify, "Verifying the regenerated knowledge base"),
         ];
 
+        /// <summary>
+        /// Logs, at <see cref="LogLevel.Information"/>, the step number, the step count, the step's
+        /// description and the release.
+        /// </summary>
         private static readonly Action<ILogger, int, int, string, string, Exception?> StepMessage =
             LoggerMessage.Define<int, int, string, string>(
                 LogLevel.Information, new EventId(1, nameof(Step)),
                 "Step {Number}/{Total}: {Description} ({Tag})");
 
+        /// <summary>
+        /// Logs, at <see cref="LogLevel.Error"/>, the failed step's description, the release and the exit code.
+        /// </summary>
         private static readonly Action<ILogger, string, string, int, Exception?> StepFailedMessage =
             LoggerMessage.Define<string, string, int>(
                 LogLevel.Error, new EventId(2, nameof(Failed)),
                 "{Description} failed for {Tag} (exit code {ExitCode})");
 
         /// <summary>A step is about to begin.</summary>
+        /// <param name="logger">The logger the message goes to.</param>
+        /// <param name="step">The step about to begin.</param>
+        /// <param name="tag">The release the step runs for.</param>
         public static void Step(ILogger logger, MoveWindowStep step, string tag)
         {
             var index = Array.FindIndex(Steps, entry => entry.Step == step);
@@ -46,6 +56,10 @@ namespace Hypha.Tools.Commands
         }
 
         /// <summary>A step did not succeed.</summary>
+        /// <param name="logger">The logger the message goes to.</param>
+        /// <param name="step">The step that failed.</param>
+        /// <param name="tag">The release the step ran for.</param>
+        /// <param name="exitCode">The exit code the step returned.</param>
         public static void Failed(ILogger logger, MoveWindowStep step, string tag, int exitCode)
         {
             var description = Array.Find(Steps, entry => entry.Step == step).Description;

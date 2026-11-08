@@ -19,6 +19,8 @@ namespace Hypha.Knowledge.Api
     public interface IApiDiscovery
     {
         /// <summary>The offerable API versions, newest first.</summary>
+        /// <param name="cancellationToken">Cancels the tag listing.</param>
+        /// <returns>The offerable API versions, newest first.</returns>
         Task<IReadOnlyList<string>> AvailableAsync(CancellationToken cancellationToken = default);
     }
 }

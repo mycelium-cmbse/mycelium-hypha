@@ -15,9 +15,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Smoke tests proving the uml4net dependency and the XMI input are wired up correctly.
-    /// </summary>
     [TestFixture]
     public class XmiModelReaderTests
     {
@@ -42,11 +39,6 @@ namespace Hypha.MetamodelGen.Tests
             }
         }
 
-        /// <summary>
-        /// Returns the metamodel entry point under the committed test fixture
-        /// (<c>Fixtures/xmi/</c>, see <see cref="TestModel"/>): the <c>*.uml</c> model is preferred,
-        /// falling back to a <c>*.xmi</c> file. Returns <c>null</c> if none is found.
-        /// </summary>
         private static string? TryLocateXmiFile()
         {
             var xmiDir = new DirectoryInfo(Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", "xmi"));

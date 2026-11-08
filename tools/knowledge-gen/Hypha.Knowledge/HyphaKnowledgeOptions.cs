@@ -63,7 +63,7 @@ namespace Hypha.Knowledge
         /// Where generated artifacts are written. Defaults to <see cref="RepositoryRoot"/>.
         /// </summary>
         /// <remarks>
-        /// Setting this generates without touching the committed knowledge base - what the CLI's
+        /// Setting this generates without touching the committed knowledge base, which is what the CLI's
         /// <c>--output</c> offers, and what lets the golden tests regenerate into a scratch folder and
         /// compare rather than overwrite. Inputs are still read from <see cref="RepositoryRoot"/>.
         /// </remarks>

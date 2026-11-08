@@ -11,9 +11,6 @@ namespace Hypha.Knowledge.Tests
 {
     using Hypha.Knowledge.ModelLibrary;
 
-    /// <summary>
-    /// Tests for the generated standard-library package pages and the per-release index.
-    /// </summary>
     [TestFixture]
     public class ModelLibraryRendererTests
     {

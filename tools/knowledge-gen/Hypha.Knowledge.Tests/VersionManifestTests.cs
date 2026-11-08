@@ -16,9 +16,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for the installed-versions manifest: assembly, ordering, and the file it produces.
-    /// </summary>
     [TestFixture]
     public class VersionManifestTests
     {
@@ -190,7 +187,6 @@ namespace Hypha.Knowledge.Tests
                 new UpstreamReference(Upstream.ReleaseRepository, release),
                 new UpstreamReference(Upstream.PilotRepository, pilot));
 
-        /// <summary>The committed manifest, or <c>null</c> when running outside the repository.</summary>
         private static string? CommittedManifest()
         {
             var manifest = Repository.Layout?.VersionManifest;

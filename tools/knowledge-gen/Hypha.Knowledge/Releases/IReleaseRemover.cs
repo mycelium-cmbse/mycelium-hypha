@@ -18,7 +18,7 @@ namespace Hypha.Knowledge.Releases
     /// <remarks>
     /// The single-tag counterpart of <see cref="IReleaseWindowEvictor"/>, which shrinks the installed
     /// set back to a rolling window automatically. This is never automatic: it only ever runs because
-    /// something - a user, through a skill - asked for exactly this tag to go.
+    /// something (a user, through a skill) asked for exactly this tag to go.
     /// </remarks>
     public interface IReleaseRemover
     {
@@ -26,10 +26,13 @@ namespace Hypha.Knowledge.Releases
         /// Removes <paramref name="tag"/>: deletes its <c>sources/</c> and <c>knowledge/</c> folders
         /// and drops it from the version manifest.
         /// </summary>
+        /// <param name="tag">The installed release to remove.</param>
         /// <param name="force">
         /// Removes the last installed release too. Without it, removing the only remaining release is
-        /// refused - it would leave nothing for any skill to answer from.
+        /// refused: it would leave nothing for any skill to answer from.
         /// </param>
+        /// <param name="cancellationToken">Cancels the removal before anything is changed.</param>
+        /// <returns>A task that completes once the release is removed.</returns>
         /// <exception cref="System.ArgumentException">
         /// <paramref name="tag"/> is not a release tag, or is not installed.
         /// </exception>

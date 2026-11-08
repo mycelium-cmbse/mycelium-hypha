@@ -9,9 +9,6 @@
 
 namespace Hypha.Tools.Hook.Tests
 {
-    /// <summary>
-    /// Suite of tests for <see cref="ChecksumTable"/>.
-    /// </summary>
     [TestFixture]
     public class ChecksumTableTests
     {

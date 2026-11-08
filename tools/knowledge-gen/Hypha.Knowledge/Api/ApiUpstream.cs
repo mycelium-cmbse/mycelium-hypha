@@ -39,7 +39,7 @@ namespace Hypha.Knowledge.Api
         public const string PimDocument = "ptc/25-02-29";
 
         /// <summary>
-        /// Where the PIM model is published. Overridable so a test can serve it from a stub.
+        /// Gets where the PIM model is published. Overridable so a test can serve it from a stub.
         /// </summary>
         [SuppressMessage(
             "Major Code Smell",

@@ -24,7 +24,7 @@ namespace Hypha.Knowledge.Lookup
     /// <list type="bullet">
     ///   <item>
     ///     an enclosing scope is a declaration of that name, introduced by the keyword the index
-    ///     recorded for that scope, that opens a body - not a mention in a comment, and not a
+    ///     recorded for that scope, that opens a body, not a mention in a comment, and not a
     ///     reference such as <c>: LengthValue</c>, <c>:&gt; Base</c> or <c>specializes Usage</c>;
     ///   </item>
     ///   <item>
@@ -310,8 +310,8 @@ namespace Hypha.Knowledge.Lookup
         private static Regex Pattern(string pattern) => new(pattern, RegexOptions.None, MatchTimeout);
 
         /// <summary>
-        /// The name preceded by the keyword that declares it - optionally with <c>all</c> or a short
-        /// name in between - or the bare name without a keyword.
+        /// The name preceded by the keyword that declares it (optionally with <c>all</c> or a short
+        /// name in between), or the bare name without a keyword.
         /// </summary>
         /// <param name="name">The declared name, quoted or not.</param>
         /// <param name="keyword">
@@ -337,7 +337,7 @@ namespace Hypha.Knowledge.Lookup
             + NamePattern(name);
 
         /// <summary>
-        /// A name as declared: bare, or quoted when it is not a plain identifier - and not a reference
+        /// A name as declared: bare, or quoted when it is not a plain identifier, and not a reference
         /// to it, which follows <c>:</c>, <c>:&gt;</c>, <c>:&gt;&gt;</c>, <c>::</c>, <c>=</c> or <c>~</c>.
         /// A <c>&gt;</c> on its own, closing a short name (<c>&lt;m&gt; mass</c>), is not a reference.
         /// </summary>

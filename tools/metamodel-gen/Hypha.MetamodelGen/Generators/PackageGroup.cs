@@ -19,6 +19,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageGroup"/> class.
         /// </summary>
+        /// <param name="name">The package name.</param>
+        /// <param name="metaclasses">The metaclasses contained in the package, ordered by name.</param>
         public PackageGroup(string name, IReadOnlyList<IndexEntry> metaclasses)
         {
             this.Name = name;

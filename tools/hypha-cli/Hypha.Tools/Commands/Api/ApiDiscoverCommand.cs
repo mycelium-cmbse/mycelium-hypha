@@ -43,11 +43,14 @@ namespace Hypha.Tools.Commands.Api
         /// <summary>Runs the command.</summary>
         public sealed class Handler
         {
+            /// <summary>Lists the API versions the upstreams offer.</summary>
             private readonly IApiDiscovery discovery;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="discovery">Lists the API versions the upstreams offer.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="discovery"/> is <c>null</c>.</exception>
             public Handler(IApiDiscovery discovery)
             {
                 ArgumentNullException.ThrowIfNull(discovery);
@@ -56,6 +59,10 @@ namespace Hypha.Tools.Commands.Api
             }
 
             /// <summary>Lists the offerable API versions.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the discovery.</param>
+            /// <returns>0 when at least one API version was found, 1 when none was.</returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

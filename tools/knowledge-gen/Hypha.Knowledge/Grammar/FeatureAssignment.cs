@@ -33,8 +33,19 @@ namespace Hypha.Knowledge.Grammar
         /// </remarks>
         public static IComparer<FeatureAssignment> Order { get; } = new OrdinalOrder();
 
+        /// <summary>The comparer behind <see cref="Order"/>: ordinal by feature, then by operator.</summary>
         private sealed class OrdinalOrder : IComparer<FeatureAssignment>
         {
+            /// <summary>
+            /// Compares two assignments ordinally by <see cref="Feature"/>, then by <see cref="Operator"/>;
+            /// <c>null</c> sorts first.
+            /// </summary>
+            /// <param name="x">The first assignment.</param>
+            /// <param name="y">The second assignment.</param>
+            /// <returns>
+            /// Less than zero when <paramref name="x"/> sorts first, zero when they are equal, and greater than
+            /// zero when <paramref name="y"/> sorts first.
+            /// </returns>
             public int Compare(FeatureAssignment? x, FeatureAssignment? y)
             {
                 if (x is null)

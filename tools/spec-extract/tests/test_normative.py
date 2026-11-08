@@ -1,6 +1,6 @@
 # Copyright 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
-"""Block classification: code, normative prose, informative NOTE/EXAMPLE — and losslessness."""
+"""Block classification: code, normative prose, informative NOTE/EXAMPLE, and losslessness."""
 
 from __future__ import annotations
 

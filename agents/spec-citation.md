@@ -11,26 +11,26 @@ KerML and SysML v2 specifications.
 
 Clause text is generated per upstream release tag (`YYYY-MM`). Read `knowledge/versions.json` for
 the installed tags and the `default`, substitute it for `<tag>` below, and **report the tag with
-every citation** — clause numbering shifts between releases.
+every citation**, since clause numbering shifts between releases.
 
 ## Where the text lives
 
-- `knowledge/<tag>/spec/kerml/` — KerML 1.0, one markdown file per clause.
-- `knowledge/<tag>/spec/sysml2/` — SysML v2.0, one markdown file per clause.
-- `knowledge/api/<version>/spec/` – Systems Modeling API and Services 1.0, one markdown file per
+- `knowledge/<tag>/spec/kerml/`: KerML 1.0, one markdown file per clause.
+- `knowledge/<tag>/spec/sysml2/`: SysML v2.0, one markdown file per clause.
+- `knowledge/api/<version>/spec/`: Systems Modeling API and Services 1.0, one markdown file per
   clause. The API is versioned apart from the language releases: read `knowledge/api/versions.json`
   for its installed versions and `default`, and report the **API version** with every citation from
   it.
 
 Each tree has an `index.md` (human-readable) and an `index.json` (machine-readable: `entries` keyed by
 clause number → `{title, pages, normative, file}`, metadata only) mapping every clause → title → pages
-→ file — your entry point. `index.json` is best for exact lookup or filtering (e.g. `normative`
+→ file. That is your entry point. `index.json` is best for exact lookup or filtering (e.g. `normative`
 clauses). Clause files are named by zero-padded clause number + slug (e.g. `07.04.02-concrete-syntax.md`).
 
 > This tree is **generated locally** by `tools/spec-extract` and **not shipped** with the plugin (OMG
 > licensing). `hypha generate` fetches and caches `uv` to run that extraction automatically once the
-> PDFs are present — no maintainer source checkout needed. If it is still empty, the spec text has not
-> been regenerated — say so rather than fabricating.
+> PDFs are present, so no maintainer source checkout is needed. If it is still empty, the spec text has not
+> been regenerated; say so rather than fabricating.
 
 ## Clause file structure
 
@@ -38,7 +38,7 @@ Front matter `clause`, `title`, `document` (`KerML`|`SysML`), `version` (`1.0`|`
 `normative` (true when the clause contains "shall"/"must"); then a `# <number> <title>` heading and
 the body. The body preserves the spec's formatting: `*italic*`, `**bold**`, inline `` `code` `` and
 fenced ` ``` ` blocks for textual-notation examples; informative asides are wrapped in
-`<!-- informative:note -->` / `<!-- informative:example -->` markers **when detected** (sparse — do
+`<!-- informative:note -->` / `<!-- informative:example -->` markers **when detected** (sparse, so do
 not depend on them).
 
 ## How to work
@@ -47,17 +47,17 @@ not depend on them).
    the tree for the concept; then `Read` the matching clause file(s).
 2. Quote the wording verbatim. Do not paraphrase normative ("shall"/"must") statements.
 3. Classify each quote:
-   - **Normative** — "shall"/"must" sentences (the `normative: true` flag marks such clauses).
-   - **Informative** — notes/examples: content inside `<!-- informative:… -->` markers or any
+   - **Normative**: "shall"/"must" sentences (the `normative: true` flag marks such clauses).
+   - **Informative**: notes/examples, meaning content inside `<!-- informative:… -->` markers or any
      paragraph beginning "NOTE"/"EXAMPLE", even when unmarked.
-4. If the concept isn't in the extracted text (or the tree isn't generated), say so — never invent.
+4. If the concept isn't in the extracted text (or the tree isn't generated), say so; never invent.
 
 ## Output
 
 For each citation return:
-- the verbatim quote (the `*…*` / `` `…` `` markers reflect the spec's italics/monospace — keep or
+- the verbatim quote (the `*…*` / `` `…` `` markers reflect the spec's italics/monospace; keep or
   drop them, but never alter the words);
-- the reference as **`<document> <version> §<clause> <title> (p. <pages>)`** — e.g.
-  *SysML 2.0 §2 Conformance (pp. 35–36)*;
+- the reference as **`<document> <version> §<clause> <title> (p. <pages>)`**, e.g.
+  *SysML 2.0 §2 Conformance (pp. 35-36)*;
 - the knowledge-base file path;
 - whether the quote is normative or informative.

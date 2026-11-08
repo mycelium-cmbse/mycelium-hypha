@@ -24,11 +24,24 @@ namespace Hypha.Knowledge.Api.OpenApi
     /// </remarks>
     public sealed class OpenApiReader : IOpenApiReader
     {
+        /// <summary>What a <c>$ref</c> to a schema of the document starts with.</summary>
         private const string SchemaReferencePrefix = "#/components/schemas/";
 
+        /// <summary>The HTTP methods read from each path item, in the order their operations are listed.</summary>
         private static readonly string[] Methods = ["get", "post", "put", "patch", "delete"];
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Reads the title, versions, tags, schemas and endpoints of <paramref name="json"/>, and which
+        /// schemas the endpoints use in a request body, a response or both.
+        /// </summary>
+        /// <param name="json">The text of the OpenAPI document.</param>
+        /// <returns>The schemas, ordered by name, and the endpoints, in document order.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="JsonException"><paramref name="json"/> is not valid JSON.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// The document is not an OpenAPI document hypha can read: no <c>paths</c> or no
+        /// <c>components/schemas</c>.
+        /// </exception>
         public OpenApiModel Read(string json)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -66,9 +79,14 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>
-        /// A node's type in a compact notation, whether it allows <c>null</c>, and - for a reference
-        /// by identifier - the type the document says it points at.
+        /// A node's type in a compact notation, whether it allows <c>null</c>, and (for a reference
+        /// by identifier) the type the document says it points at.
         /// </summary>
+        /// <param name="node">The schema node: a property, a parameter, a body or an array's items.</param>
+        /// <returns>
+        /// The type notation (<c>any</c> for a node that is not an object), whether <c>null</c> is
+        /// allowed, and the target named by a <c>$comment</c> beside a <c>$ref</c>, or <c>null</c>.
+        /// </returns>
         internal static (string Type, bool Nullable, string? RefersTo) Describe(JsonElement node)
         {
             if (node.ValueKind != JsonValueKind.Object)
@@ -143,6 +161,14 @@ namespace Hypha.Knowledge.Api.OpenApi
             return (node.TryGetProperty("properties", out _) ? OpenApiNames.ObjectKind : "any", false, null);
         }
 
+        /// <summary>Reads one schema of <c>components/schemas</c>.</summary>
+        /// <param name="name">The name the schema is keyed under.</param>
+        /// <param name="schema">The schema node.</param>
+        /// <param name="roles">The role of each schema the endpoints use, by name.</param>
+        /// <returns>
+        /// The schema, its namespace decided by its <c>$id</c> and its role defaulting to
+        /// <see cref="OpenApiNames.NoRole"/>.
+        /// </returns>
         private static OpenApiSchema ReadSchema(string name, JsonElement schema, Dictionary<string, string> roles)
         {
             var id = Text(schema, "$id");
@@ -189,6 +215,15 @@ namespace Hypha.Knowledge.Api.OpenApi
                 values);
         }
 
+        /// <summary>
+        /// The kind of a schema: an enumeration when it has literals, an object when it has members, a
+        /// union when it has variants, and otherwise its type notation.
+        /// </summary>
+        /// <param name="schema">The schema node.</param>
+        /// <param name="properties">How many members it has.</param>
+        /// <param name="variants">How many referenced alternatives it has.</param>
+        /// <param name="values">How many literals it has.</param>
+        /// <returns>One of the <see cref="OpenApiNames"/> kinds, or the type notation.</returns>
         private static string Kind(JsonElement schema, int properties, int variants, int values)
         {
             if (values > 0)
@@ -209,6 +244,10 @@ namespace Hypha.Knowledge.Api.OpenApi
             return Describe(schema).Type;
         }
 
+        /// <summary>Reads every operation of every path, for each of <see cref="Methods"/>.</summary>
+        /// <param name="paths">The document's <c>paths</c> object.</param>
+        /// <param name="components">The document's <c>components</c> object, to resolve references against.</param>
+        /// <returns>The endpoints, in document order, the methods of one path in the order of <see cref="Methods"/>.</returns>
         private static List<OpenApiEndpoint> ReadEndpoints(JsonElement paths, JsonElement components)
         {
             var endpoints = new List<OpenApiEndpoint>();
@@ -269,6 +308,9 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>The parameters a path item or an operation declares.</summary>
+        /// <param name="owner">The path item or the operation.</param>
+        /// <param name="components">The document's <c>components</c> object, to resolve references against.</param>
+        /// <returns>The parameters, in document order; none when <c>parameters</c> is absent.</returns>
         private static IEnumerable<OpenApiParameter> Parameters(JsonElement owner, JsonElement components)
         {
             if (!owner.TryGetProperty("parameters", out var parameters) || parameters.ValueKind != JsonValueKind.Array)
@@ -287,9 +329,15 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>
-        /// Which schemas the endpoints use in a request body, in a response, or both - directly or
+        /// Which schemas the endpoints use in a request body, in a response, or both, directly or
         /// through the schemas those refer to.
         /// </summary>
+        /// <param name="paths">The document's <c>paths</c> object.</param>
+        /// <param name="components">The document's <c>components</c> object, to resolve references against.</param>
+        /// <param name="schemas">The document's <c>components/schemas</c> object.</param>
+        /// <returns>
+        /// The role of each used schema, by name. A schema no endpoint reaches has no entry.
+        /// </returns>
         private static Dictionary<string, string> Roles(JsonElement paths, JsonElement components, JsonElement schemas)
         {
             var requested = new HashSet<string>(StringComparer.Ordinal);
@@ -331,6 +379,8 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>Extends <paramref name="names"/> with every schema reachable from it.</summary>
+        /// <param name="names">The schema names to extend, in place.</param>
+        /// <param name="schemas">The document's <c>components/schemas</c> object.</param>
         private static void Close(HashSet<string> names, JsonElement schemas)
         {
             var pending = new Queue<string>(names);
@@ -353,6 +403,8 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>Every schema <paramref name="node"/> refers to, at any depth within the node.</summary>
+        /// <param name="node">The node to search; <c>examples</c> are skipped.</param>
+        /// <param name="names">Receives the names of the schemas referred to.</param>
         private static void Collect(JsonElement node, HashSet<string> names)
         {
             switch (node.ValueKind)
@@ -384,6 +436,8 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>The type of a request or response body: its first media type's schema.</summary>
+        /// <param name="body">The request body or response, already resolved.</param>
+        /// <returns>The type notation, or <c>null</c> when the body has no content with a schema.</returns>
         private static string? BodyType(JsonElement body)
         {
             if (body.ValueKind != JsonValueKind.Object
@@ -405,6 +459,9 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>Follows a <c>#/components/...</c> reference one step; anything else is returned as is.</summary>
+        /// <param name="node">The node, which may be a <c>$ref</c>.</param>
+        /// <param name="components">The document's <c>components</c> object.</param>
+        /// <returns>The node referred to, or <paramref name="node"/> when it is not a resolvable reference.</returns>
         private static JsonElement Resolve(JsonElement node, JsonElement components)
         {
             if (node.ValueKind != JsonValueKind.Object || !node.TryGetProperty("$ref", out var reference))
@@ -422,11 +479,23 @@ namespace Hypha.Knowledge.Api.OpenApi
                 : node;
         }
 
+        /// <summary>The name a <c>$ref</c> points at: its last segment.</summary>
+        /// <param name="reference">The reference, e.g. <c>#/components/schemas/Commit</c>.</param>
+        /// <returns>The name, e.g. <c>Commit</c>; empty when <paramref name="reference"/> is <c>null</c> or empty.</returns>
         private static string ReferenceName(string? reference) => LastSegment(reference) ?? string.Empty;
 
+        /// <summary>The text after the last <c>/</c> of <paramref name="value"/>, or all of it when there is none.</summary>
+        /// <param name="value">The text.</param>
+        /// <returns>The last segment, or <c>null</c> when <paramref name="value"/> is <c>null</c> or empty.</returns>
         private static string? LastSegment(string? value) =>
             string.IsNullOrEmpty(value) ? null : value[(value.LastIndexOf('/') + 1)..];
 
+        /// <summary>A string member of an object node.</summary>
+        /// <param name="node">The node.</param>
+        /// <param name="property">The member name.</param>
+        /// <returns>
+        /// The member's text; empty when the node is not an object or the member is absent or not a string.
+        /// </returns>
         private static string Text(JsonElement node, string property) =>
             node.ValueKind == JsonValueKind.Object
             && node.TryGetProperty(property, out var value)

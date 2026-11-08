@@ -17,15 +17,9 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Golden-file tests for the package diagrams, compared against committed expected files under
-    /// <c>Expected/metamodel/diagrams/</c> - the fixture model (see <see cref="TestModel"/>) is the
-    /// only one exercised now that nothing per-release is committed.
-    /// </summary>
     [TestFixture]
     public class PackageDiagramGoldenTests
     {
-        /// <summary>The packages to golden-test, discovered from the generator, never hard-coded.</summary>
         private static IEnumerable<string> PackageNames()
         {
             var model = TestModel.Model;

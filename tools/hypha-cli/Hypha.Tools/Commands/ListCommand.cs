@@ -62,6 +62,8 @@ namespace Hypha.Tools.Commands
             /// 0 when at least one release is installed, 1 when none is. With <c>--json</c> always 0:
             /// an empty list is an answer, not a failure.
             /// </returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
+            /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

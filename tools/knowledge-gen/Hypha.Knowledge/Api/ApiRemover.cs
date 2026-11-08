@@ -25,16 +25,22 @@ namespace Hypha.Knowledge.Api
     /// </summary>
     public sealed class ApiRemover : IApiRemover
     {
+        /// <summary>Logs that one API version was removed.</summary>
         private static readonly Action<ILogger, string, Exception?> RemovedMessage =
             LoggerMessage.Define<string>(
                 LogLevel.Information, new EventId(1, "Removed"), "Removed API version {Tag}");
 
+        /// <summary>Where the version manifest and each version's folders are.</summary>
         private readonly IApiLayout layout;
+
+        /// <summary>The logger the removal is reported to.</summary>
         private readonly ILogger<ApiRemover> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiRemover"/> class.
         /// </summary>
+        /// <param name="layout">Where the version manifest and each version's folders are.</param>
+        /// <param name="logger">The logger the removal is reported to.</param>
         public ApiRemover(IApiLayout layout, ILogger<ApiRemover> logger)
         {
             ArgumentNullException.ThrowIfNull(layout);
@@ -44,7 +50,29 @@ namespace Hypha.Knowledge.Api
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes <paramref name="tag"/>: drops it from <c>knowledge/api/versions.json</c> (deleting the
+        /// manifest when it was the last version) and deletes its <c>sources/api/&lt;tag&gt;/</c> and
+        /// <c>knowledge/api/&lt;tag&gt;/</c> folders.
+        /// </summary>
+        /// <param name="tag">The API version to remove.</param>
+        /// <param name="force">
+        /// Removes the last installed API version too. Without it, removing the only remaining version is
+        /// refused.
+        /// </param>
+        /// <param name="cancellationToken">Cancels the removal before anything is changed.</param>
+        /// <returns>A completed task: the removal runs synchronously.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="tag"/> is <c>null</c>, empty or white space, is not version-shaped, or is not
+        /// installed.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// There is no API version manifest; or <paramref name="tag"/> is the default while another
+        /// version is installed; or it is the only one and <paramref name="force"/> was not given.
+        /// </exception>
+        /// <exception cref="OperationCanceledException">
+        /// <paramref name="cancellationToken"/> was cancelled before anything was changed.
+        /// </exception>
         public Task RemoveAsync(string tag, bool force = false, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -103,6 +131,8 @@ namespace Hypha.Knowledge.Api
             return Task.CompletedTask;
         }
 
+        /// <summary>Deletes <paramref name="directory"/> recursively, if it exists.</summary>
+        /// <param name="directory">The folder to delete.</param>
         private static void Delete(DirectoryInfo directory)
         {
             directory.Refresh();

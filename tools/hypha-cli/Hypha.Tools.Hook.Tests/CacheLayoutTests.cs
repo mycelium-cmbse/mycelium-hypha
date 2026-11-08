@@ -12,9 +12,6 @@ namespace Hypha.Tools.Hook.Tests
     using System;
     using System.IO;
 
-    /// <summary>
-    /// Suite of tests for <see cref="CacheLayout"/>.
-    /// </summary>
     [TestFixture]
     public class CacheLayoutTests
     {
@@ -23,7 +20,7 @@ namespace Hypha.Tools.Hook.Tests
         {
             // A real absolute path on whichever OS the test runs on, not a hardcoded Windows one:
             // "C:/..." is not absolute on Linux, so DirectoryInfo would resolve it against the working
-            // directory instead of returning it unchanged - exactly what broke this on the Linux CI
+            // directory instead of returning it unchanged, which is exactly what broke this on the Linux CI
             // runner. Path.GetTempPath() is always absolute on the current OS.
             var fakeLocalApplicationData = Path.Combine(Path.GetTempPath(), "fake-local-application-data");
 

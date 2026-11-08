@@ -16,6 +16,8 @@ namespace Hypha.Knowledge.CrossReferences
     public interface ICrossReferenceBuilder
     {
         /// <summary>Assembles the whole document. Pure: no disk access, no ordering surprises.</summary>
+        /// <param name="inputs">Everything read from the knowledge trees for one release.</param>
+        /// <returns>The cross-reference document, ready to be rendered.</returns>
         CrossReferenceDocument Build(CrossReferenceInputs inputs);
     }
 }

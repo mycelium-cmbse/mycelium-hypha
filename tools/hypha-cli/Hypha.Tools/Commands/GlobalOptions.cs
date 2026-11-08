@@ -39,8 +39,8 @@ namespace Hypha.Tools.Commands
             new("--toolchain-cache-root")
             {
                 Description =
-                    "Keep the managed toolchain - the uv executable, uv's package cache and the Python "
-                    + "it installs - under this folder. Without it, uv is cached in the per-user "
+                    "Keep the managed toolchain (the uv executable, uv's package cache and the Python "
+                    + "it installs) under this folder. Without it, uv is cached in the per-user "
                     + "application data folder and uv uses its own default locations.",
                 Recursive = true,
             };
@@ -50,8 +50,8 @@ namespace Hypha.Tools.Commands
             new("--token")
             {
                 Description =
-                    "A GitHub token. Falls back to GITHUB_TOKEN / GH_TOKEN. Optional - every read is "
-                    + "public - but the anonymous API allows only 60 requests an hour.",
+                    "A GitHub token. Falls back to GITHUB_TOKEN / GH_TOKEN. Optional, since every read is "
+                    + "public, but the anonymous API allows only 60 requests an hour.",
                 Recursive = true,
             };
 

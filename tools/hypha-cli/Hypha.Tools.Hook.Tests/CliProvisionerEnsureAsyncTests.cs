@@ -21,10 +21,6 @@ namespace Hypha.Tools.Hook.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// Suite of tests for <see cref="CliProvisioner.EnsureAsync"/>: download, checksum verification and
-    /// extraction, against a stubbed <see cref="HttpMessageHandler"/> - no live network call.
-    /// </summary>
     [TestFixture]
     public class CliProvisionerEnsureAsyncTests
     {

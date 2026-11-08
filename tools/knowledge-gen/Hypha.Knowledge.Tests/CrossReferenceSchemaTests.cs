@@ -17,14 +17,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.CrossReferences;
 
-    /// <summary>
-    /// Keeps the hand-written <c>cross-references.schema.json</c> honest without pulling in a
-    /// JSON-Schema validator.
-    /// </summary>
-    /// <remarks>
-    /// Checks the shape the builder actually produces against the <c>required</c> lists the schema
-    /// declares, so adding a field to one and not the other fails here.
-    /// </remarks>
     [TestFixture]
     public class CrossReferenceSchemaTests
     {

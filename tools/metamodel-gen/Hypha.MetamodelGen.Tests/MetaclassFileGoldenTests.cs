@@ -18,17 +18,9 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Golden-file tests: the generated element markdown for each "interesting" metaclass (as
-    /// determined by uml4net's <see cref="uml4net.Reporting.Generators.ModelInspector"/>) is
-    /// compared byte-for-byte against a committed expected file under <c>Expected/metamodel/elements/</c>.
-    /// </summary>
     [TestFixture]
     public class MetaclassFileGoldenTests
     {
-        /// <summary>
-        /// The metaclass names to golden-test: the ModelInspector's interesting classes (not hard-coded).
-        /// </summary>
         private static IEnumerable<string> InterestingMetaclassNames()
         {
             var model = TestModel.Model;

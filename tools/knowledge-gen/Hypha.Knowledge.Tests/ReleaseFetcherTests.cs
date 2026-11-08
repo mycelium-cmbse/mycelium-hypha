@@ -20,9 +20,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for fetching a release, against a stubbed transport - no live calls.
-    /// </summary>
     [TestFixture]
     public class ReleaseFetcherTests
     {
@@ -204,7 +201,7 @@ namespace Hypha.Knowledge.Tests
 
             // A plain thread-safe collector, not Progress<T>: with no SynchronizationContext (as in a
             // console app / this test), Progress<T> still marshals through the thread pool, so multiple
-            // callbacks from the concurrent downloads below could run at once - collecting into
+            // callbacks from the concurrent downloads below could run at once; collecting into
             // something itself thread-safe is what makes the assertions below reliable.
             var reports = new ConcurrentBag<FetchProgress>();
             var progress = new SynchronousProgress<FetchProgress>(reports.Add);
@@ -226,7 +223,7 @@ namespace Hypha.Knowledge.Tests
         public async Task Progress_still_counts_a_skipped_file_as_one_completed()
         {
             // Pre-populate both metamodel destinations non-empty, so skipExisting resumes both without
-            // a single HTTP request - progress must still see two files "done", not zero.
+            // a single HTTP request, and progress must still see two files "done", not zero.
             var written = await new ReleaseFetcher(new HttpClient(StubHandler.WithContent("xmi")))
                 .FetchMetamodelAsync("2026-05", this.workspace);
             foreach (var file in written)
@@ -249,11 +246,6 @@ namespace Hypha.Knowledge.Tests
             });
         }
 
-        /// <summary>
-        /// An <see cref="IProgress{T}"/> that invokes its callback synchronously and directly, rather
-        /// than through <see cref="Progress{T}"/>'s <see cref="System.Threading.SynchronizationContext"/>
-        /// marshalling - simpler to reason about in a test that only cares what was reported, not when.
-        /// </summary>
         private sealed class SynchronousProgress<T> : IProgress<T>
         {
             private readonly Action<T> callback;

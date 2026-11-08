@@ -24,6 +24,7 @@ namespace Hypha.Knowledge.Api
     /// </remarks>
     public static class ApiJson
     {
+        /// <summary>The serializer options that define the format.</summary>
         private static readonly JsonSerializerOptions Format = new()
         {
             WriteIndented = true,
@@ -33,6 +34,10 @@ namespace Hypha.Knowledge.Api
         };
 
         /// <summary>Renders <paramref name="document"/> deterministically.</summary>
+        /// <typeparam name="T">The document type.</typeparam>
+        /// <param name="document">The document to render.</param>
+        /// <returns>The JSON text, with LF endings and a single closing newline.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="document"/> is <c>null</c>.</exception>
         public static string Render<T>(T document)
         {
             ArgumentNullException.ThrowIfNull(document);
@@ -41,7 +46,12 @@ namespace Hypha.Knowledge.Api
         }
 
         /// <summary>Reads a document back.</summary>
-        /// <exception cref="InvalidOperationException">The text is not such a document.</exception>
+        /// <typeparam name="T">The document type.</typeparam>
+        /// <param name="json">The JSON text, as <see cref="Render{T}"/> wrote it.</param>
+        /// <returns>The document.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="JsonException"><paramref name="json"/> is not valid JSON for <typeparamref name="T"/>.</exception>
+        /// <exception cref="InvalidOperationException">The text is the JSON literal <c>null</c>.</exception>
         public static T Read<T>(string json)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(json);

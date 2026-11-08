@@ -4,7 +4,7 @@
 
 A line is only accepted as a heading when its number is the legitimate *successor* of the previous
 clause (a child, sibling, or ancestor's sibling). That single rule both rejects stray in-text numbers
-(e.g. "2.5 times") and skips the table of contents — whose dot-leader entries are filtered first and
+(e.g. "2.5 times") and skips the table of contents, whose dot-leader entries are filtered first and
 whose numbers, even if matched, would not form a contiguous successor chain with the real body.
 """
 

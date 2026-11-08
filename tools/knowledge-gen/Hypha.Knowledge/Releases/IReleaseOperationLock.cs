@@ -14,7 +14,7 @@ namespace Hypha.Knowledge.Releases
 
     /// <summary>
     /// Serialises operations that change the installed releases of one repository root, across
-    /// processes – including the Hypha VS Code extension, which takes the same lock.
+    /// processes, including the Hypha VS Code extension, which takes the same lock.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -30,7 +30,7 @@ namespace Hypha.Knowledge.Releases
     /// The CLI's own verbs (<c>fetch</c>, <c>generate</c>, <c>use</c>, <c>remove</c>) deliberately do
     /// not take it: the extension runs them while it holds the lock itself, so a verb that took it
     /// would refuse every extension install. It is for operations that change releases on their own,
-    /// instead of through the extension – such as an install driven by an MCP tool.
+    /// instead of through the extension, such as an install driven by an MCP tool.
     /// </para>
     /// </remarks>
     public interface IReleaseOperationLock
@@ -41,8 +41,8 @@ namespace Hypha.Knowledge.Releases
         /// <param name="cancellationToken">Cancels before the lock is taken.</param>
         /// <returns>The held lock; disposing it releases the lock.</returns>
         /// <exception cref="ReleaseOperationLockException">
-        /// Another process or VS Code window holds the lock – or this process does, through a lease it
-        /// has not released yet, since the lock is not re-entrant – another recovery is in progress or
+        /// Another process or VS Code window holds the lock (or this process does, through a lease it
+        /// has not released yet, since the lock is not re-entrant), another recovery is in progress or
         /// was interrupted, or the existing lock cannot be read or created.
         /// </exception>
         Task<ReleaseOperationLease> AcquireAsync(CancellationToken cancellationToken = default);

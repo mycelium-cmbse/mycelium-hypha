@@ -7,7 +7,7 @@ Two things ship from this repository, on **independent version lines**:
 | the `hypha` **plugin** (skills, agents, `knowledge/`) | `vX.Y.Z` | the steps below |
 | the `hypha` **tools** (the generator CLI) | `tools-vX.Y.Z` | [the Release workflow](#releasing-the-tools) |
 
-A plugin release does not require a tool release, or the other way round – the tool is developer
+A plugin release does not require a tool release, or the other way round: the tool is developer
 tooling that is not part of the shipped plugin.
 
 ## Releasing the plugin
@@ -30,9 +30,9 @@ A release therefore means: **bump the version, point the source at a new tag, an
 
 1. Get `development` into a releasable state (all intended PRs merged, `dotnet test` / `pytest` green).
 2. On a branch off `development`:
-   - `.claude-plugin/plugin.json` — bump `version` to `X.Y.Z`.
-   - `.claude-plugin/marketplace.json` — set the `hypha` entry's `source.ref` to `vX.Y.Z`.
-   - `CHANGELOG.md` — move the `[Unreleased]` items under a new `## [X.Y.Z] - <YYYY-MM-DD>` heading and
+   - `.claude-plugin/plugin.json`: bump `version` to `X.Y.Z`.
+   - `.claude-plugin/marketplace.json`: set the `hypha` entry's `source.ref` to `vX.Y.Z`.
+   - `CHANGELOG.md`: move the `[Unreleased]` items under a new `## [X.Y.Z] - <YYYY-MM-DD>` heading and
      leave a fresh empty `[Unreleased]`.
    - Open a PR into `development` and merge it.
 3. Tag the merged commit and push the tag (the actual publish):
@@ -69,5 +69,5 @@ publish it.
   compares it byte for byte against the committed files, so a build that can no longer reproduce what
   ships cannot be released.
 - It then **runs the published binary** over the committed sources. A single-file bundle can fail in
-  ways the in-process tests cannot see – its assemblies have no location on disk – so the artifact
+  ways the in-process tests cannot see (its assemblies have no location on disk), so the artifact
   that ships has to prove it still generates.

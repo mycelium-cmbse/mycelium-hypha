@@ -14,14 +14,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Grammar;
 
-    /// <summary>
-    /// Tests for ordering dotted clause numbers.
-    /// </summary>
-    /// <remarks>
-    /// The Python this replaced covered the non-numeric case directly; the port kept the behaviour but
-    /// lost the test, which left the annex path as the least-covered code in the ported library. This
-    /// restores it and exercises the comparer through its own surface rather than incidentally.
-    /// </remarks>
     [TestFixture]
     public class ClauseNumberComparerTests
     {

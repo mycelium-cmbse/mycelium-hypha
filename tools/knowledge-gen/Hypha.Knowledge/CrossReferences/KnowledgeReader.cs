@@ -26,10 +26,24 @@ namespace Hypha.Knowledge.CrossReferences
     /// </remarks>
     public sealed partial class KnowledgeReader : IKnowledgeReader
     {
+        /// <summary>
+        /// Matches an example page's <c>elements: [...]</c> front-matter line, capturing the list's
+        /// <c>items</c>.
+        /// </summary>
+        /// <returns>The compiled expression.</returns>
         [GeneratedRegex(@"^elements:[ \t]*\[(?<items>[^\]]*)\][ \t]*$", RegexOptions.Multiline)]
         private static partial Regex ElementsFrontMatter();
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Reads a release's metamodel index: the name, <c>kind</c> and <c>file</c> of every entry under
+        /// <c>entries</c>, and the index's <c>modelVersionUri</c>.
+        /// </summary>
+        /// <param name="index">The release's <c>metamodel/index.json</c>.</param>
+        /// <returns>The elements, in index order, and the model URI.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="index"/> is <c>null</c>.</exception>
+        /// <exception cref="FileNotFoundException"><paramref name="index"/> does not exist.</exception>
+        /// <exception cref="JsonException"><paramref name="index"/> is not valid JSON.</exception>
+        /// <exception cref="KeyNotFoundException">The index lacks a property it is read for.</exception>
         public (IReadOnlyList<ElementRecord> Elements, string ModelVersionUri) ReadElements(FileInfo index)
         {
             ArgumentNullException.ThrowIfNull(index);
@@ -48,7 +62,16 @@ namespace Hypha.Knowledge.CrossReferences
             return (elements, root.GetProperty("modelVersionUri").GetString()!);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Reads a specification clause catalog: the <c>title</c> of every entry under <c>entries</c>, by
+        /// clause number, and the catalog's <c>document</c> and <c>version</c>.
+        /// </summary>
+        /// <param name="index">A specification's <c>spec/&lt;document&gt;/index.json</c>.</param>
+        /// <returns>The clause titles, keyed ordinally, and the document they belong to.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="index"/> is <c>null</c>.</exception>
+        /// <exception cref="FileNotFoundException"><paramref name="index"/> does not exist.</exception>
+        /// <exception cref="JsonException"><paramref name="index"/> is not valid JSON.</exception>
+        /// <exception cref="KeyNotFoundException">The catalog lacks a property it is read for.</exception>
         public (IReadOnlyDictionary<string, string> Titles, SpecificationDocument Document) ReadClauseTitles(
             FileInfo index)
         {
@@ -71,7 +94,19 @@ namespace Hypha.Knowledge.CrossReferences
                     root.GetProperty("version").GetString()!));
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Reads the <c>elements:</c> front matter of every <c>*.md</c> page in <paramref name="examples"/>,
+        /// keyed by <paramref name="prefix"/> plus the page's file name.
+        /// </summary>
+        /// <param name="examples">The release's <c>textual-notation/examples</c> folder.</param>
+        /// <param name="prefix">Prepended to each page's file name to form its key.</param>
+        /// <returns>
+        /// The metaclasses each example declares, unquoted, keyed ordinally by page path. Empty when the
+        /// folder does not exist; a page without the front-matter line is left out.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="examples"/> or <paramref name="prefix"/> is <c>null</c>.
+        /// </exception>
         public IReadOnlyDictionary<string, IReadOnlyList<string>> ReadExamples(
             DirectoryInfo examples, string prefix)
         {

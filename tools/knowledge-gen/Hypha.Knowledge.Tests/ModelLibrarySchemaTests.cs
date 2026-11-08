@@ -17,15 +17,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.ModelLibrary;
 
-    /// <summary>
-    /// Keeps the hand-written <c>model-library.schema.json</c> honest without pulling in a
-    /// JSON-Schema validator.
-    /// </summary>
-    /// <remarks>
-    /// Checks the shape the document actually produces against the <c>required</c> lists the schema
-    /// declares, so adding a field to one and not the other fails here - the same technique
-    /// <c>CrossReferenceSchemaTests</c> uses for <c>cross-references.schema.json</c>.
-    /// </remarks>
     [TestFixture]
     public class ModelLibrarySchemaTests
     {

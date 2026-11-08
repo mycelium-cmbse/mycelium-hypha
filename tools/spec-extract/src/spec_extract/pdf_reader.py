@@ -40,7 +40,7 @@ def extract_words(pdf_path: str | Path) -> list[list[Word]]:
     """Return the positioned words of each page (1-based ``page`` index).
 
     Keeping word positions lets the layout layer reconstruct reading order across columns and drop
-    running headers/footers — things a flat ``extract_text`` cannot do.
+    running headers/footers: things a flat ``extract_text`` cannot do.
     """
     pages: list[list[Word]] = []
     with pdfplumber.open(pdf_path) as pdf:

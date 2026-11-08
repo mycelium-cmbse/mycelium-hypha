@@ -36,42 +36,55 @@ namespace Hypha.Knowledge.Api
         FileInfo SharedPrimitiveTypes { get; }
 
         /// <summary><c>sources/api/&lt;tag&gt;</c> - everything fetched for one API version.</summary>
+        /// <param name="tag">The API version.</param>
         DirectoryInfo Sources(string tag);
 
         /// <summary><c>sources/api/&lt;tag&gt;/openapi/openapi.json</c>.</summary>
+        /// <param name="tag">The API version.</param>
         FileInfo OpenApi(string tag);
 
         /// <summary><c>sources/api/&lt;tag&gt;/xmi</c> - the PIM model and the KerML model it refers to.</summary>
+        /// <param name="tag">The API version.</param>
         DirectoryInfo Xmi(string tag);
 
         /// <summary><c>sources/api/&lt;tag&gt;/xmi/Systems-Modeling-API.xmi</c>.</summary>
+        /// <param name="tag">The API version.</param>
         FileInfo PimModel(string tag);
 
         /// <summary><c>sources/api/&lt;tag&gt;/specs/</c> - OMG-copyrighted.</summary>
+        /// <param name="tag">The API version.</param>
         DirectoryInfo Specifications(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;</c>.</summary>
+        /// <param name="tag">The API version.</param>
         DirectoryInfo Knowledge(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;/pim</c>.</summary>
+        /// <param name="tag">The API version.</param>
         DirectoryInfo Pim(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;/pim/metamodel.json</c>.</summary>
+        /// <param name="tag">The API version.</param>
         FileInfo PimGraph(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;/openapi</c>.</summary>
+        /// <param name="tag">The API version.</param>
         DirectoryInfo OpenApiKnowledge(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;/openapi/index.json</c>.</summary>
+        /// <param name="tag">The API version.</param>
         FileInfo OpenApiIndex(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;/spec</c> - verbatim OMG text.</summary>
+        /// <param name="tag">The API version.</param>
         DirectoryInfo SpecificationText(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;/spec/index.json</c>.</summary>
+        /// <param name="tag">The API version.</param>
         FileInfo SpecificationCatalog(string tag);
 
         /// <summary><c>knowledge/api/&lt;tag&gt;/cross-references.json</c>.</summary>
+        /// <param name="tag">The API version.</param>
         FileInfo CrossReferences(string tag);
     }
 }

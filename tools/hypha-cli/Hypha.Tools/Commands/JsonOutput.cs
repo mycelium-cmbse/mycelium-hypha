@@ -25,7 +25,7 @@ namespace Hypha.Tools.Commands
     /// <remarks>
     /// Standard output carries exactly one line holding one JSON document: no banner, no log lines
     /// (they go to standard error), no wrapping. A failure is a document too,
-    /// <c>{"error": "..."}</c>, with a non-zero exit code - whether the verb reports it or
+    /// <c>{"error": "..."}</c>, with a non-zero exit code, whether the verb reports it or
     /// <c>Program</c> does, before or around the verb.
     /// </remarks>
     public static class JsonOutput
@@ -82,6 +82,7 @@ namespace Hypha.Tools.Commands
         /// Still goes through <see cref="AnsiConsole.Console"/>, so a test that redirects it can
         /// capture this the same way it captures everything else.
         /// </remarks>
+        /// <returns>A task that completes once the line has been written and flushed.</returns>
         public static async Task WriteAsync<T>(T document)
         {
             await AnsiConsole.Console.Profile.Out.Writer.WriteLineAsync(JsonSerializer.Serialize(document, Format));
@@ -90,6 +91,7 @@ namespace Hypha.Tools.Commands
 
         /// <summary>Writes a failure as <c>{"error": "..."}</c>.</summary>
         /// <param name="message">What went wrong, written as is as the value of <c>error</c>.</param>
+        /// <returns>A task that completes once the line has been written and flushed.</returns>
         public static Task WriteErrorAsync(string message) => WriteAsync(new JsonError(message));
 
         /// <summary>The document a failed <c>--json</c> verb prints.</summary>

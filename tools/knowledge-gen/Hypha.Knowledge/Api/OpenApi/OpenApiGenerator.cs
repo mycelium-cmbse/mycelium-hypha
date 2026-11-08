@@ -21,19 +21,30 @@ namespace Hypha.Knowledge.Api.OpenApi
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// Writes <c>knowledge/api/&lt;tag&gt;/openapi/</c>: the REST/HTTP PSM - one page per API schema with
+    /// Writes <c>knowledge/api/&lt;tag&gt;/openapi/</c>: the REST/HTTP PSM: one page per API schema with
     /// its required and nullable members, every endpoint, and the index.
     /// </summary>
     public sealed class OpenApiGenerator : IApiKnowledgeGenerator
     {
+        /// <summary>Where the OpenAPI document is read from and the knowledge is written to.</summary>
         private readonly IApiLayout layout;
+
+        /// <summary>Reads the schemas and endpoints out of the OpenAPI document.</summary>
         private readonly IOpenApiReader reader;
+
+        /// <summary>Renders the schema pages, the endpoint list and the index page.</summary>
         private readonly IOpenApiRenderer renderer;
+
+        /// <summary>The logger progress and outcomes are reported to.</summary>
         private readonly ILogger<OpenApiGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenApiGenerator"/> class.
         /// </summary>
+        /// <param name="layout">Where the OpenAPI document is read from and the knowledge is written to.</param>
+        /// <param name="reader">Reads the schemas and endpoints out of the OpenAPI document.</param>
+        /// <param name="renderer">Renders the schema pages, the endpoint list and the index page.</param>
+        /// <param name="logger">The logger progress and outcomes are reported to.</param>
         public OpenApiGenerator(
             IApiLayout layout, IOpenApiReader reader, IOpenApiRenderer renderer, ILogger<OpenApiGenerator> logger)
         {
@@ -48,13 +59,28 @@ namespace Hypha.Knowledge.Api.OpenApi
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>Gets what this generator produces: <c>openapi</c>. Used when reporting progress.</summary>
         public string Artifact => "openapi";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets where this generator sits in a full API run: <c>20</c>, after the PIM and before the
+        /// specification text and the API cross-references, which read the index it writes.
+        /// </summary>
         public int Order => 20;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Generates <c>knowledge/api/&lt;tag&gt;/openapi/</c> from the fetched OpenAPI document: one page
+        /// per API schema under <see cref="OpenApiRenderer.SchemasFolder"/> (stale pages are deleted
+        /// first), <see cref="OpenApiRenderer.EndpointsFileName"/>, <c>index.md</c> and
+        /// <c>index.json</c>.
+        /// </summary>
+        /// <param name="tag">The API version.</param>
+        /// <param name="cancellationToken">Cancels reading the document and writing the files.</param>
+        /// <returns>
+        /// The files written, or <see cref="GenerationOutcome.Skipped"/> when no OpenAPI document was
+        /// fetched for <paramref name="tag"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="InvalidOperationException">
         /// The document is not readable OpenAPI, a schema name cannot be used as a page name, or two
         /// schema names differ only by case.
@@ -156,7 +182,9 @@ namespace Hypha.Knowledge.Api.OpenApi
             return GenerationResult.Generated(written).Report(this.logger, this.Artifact, tag);
         }
 
-        /// <summary>Letters, digits, underscores, hyphens and inner dots - nothing a path could be built from.</summary>
+        /// <summary>Letters, digits, underscores, hyphens and inner dots; nothing a path could be built from.</summary>
+        /// <param name="name">The schema name.</param>
+        /// <returns><c>true</c> when <paramref name="name"/> can be used as a page's file name.</returns>
         private static bool IsPageName(string name) =>
             name.Length > 0
             && name[0] != '.'

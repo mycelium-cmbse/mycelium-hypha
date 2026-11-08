@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A release-operation lock in `Hypha.Knowledge`** (`fixes #166`), compatible with the VS Code
   extension's: the same `.release-operation.lock` file in the repository root, the same
   `{"pid", "token"}` content and the same recovery rules, so an operation that changes releases on
-  its own – such as the coming MCP install – and an extension install never run at the same time.
+  its own (such as the coming MCP install) and an extension install never run at the same time.
   The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
 
 ### Changed
@@ -54,16 +54,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **The Systems Modeling API & Services is part of the knowledge base** (`fixes #146`), as a body of
   knowledge with a version of its own beside the language releases:
-  - **the PIM** – every type of the Platform Independent Model, in the shape of the metamodel pages:
-    attributes with multiplicity, derivation, subsetting and redefinition, the full effective
-    attribute set, and the six services with their operations. The `Data` interface and the `UUID`,
+  - **the PIM**: every type of the Platform Independent Model, in the shape of the metamodel pages
+    (attributes with multiplicity, derivation, subsetting and redefinition, the full effective
+    attribute set, and the six services with their operations). The `Data` interface and the `UUID`,
     `IRI` and `ISO8601DateTime` data types get pages too.
-  - **the REST/HTTP PSM** – one page per API schema of the OpenAPI document, with required and
+  - **the REST/HTTP PSM**: one page per API schema of the OpenAPI document, with required and
     nullable members and whether the endpoints use it as a request or a response model, plus every
     endpoint.
   - **the API specification text**, clause by clause, quotable through spec citation on the same
     terms as the KerML and SysML texts (generated locally from the PDF, never committed).
-  - **`cross-references.json`** – PIM type ↔ specification clause ↔ PSM schema, the PIM members a PSM
+  - **`cross-references.json`**: PIM type ↔ specification clause ↔ PSM schema, the PIM members a PSM
     model leaves out, the PSM-only members, and the endpoint each PIM service operation maps to.
     Every edge names the method that produced it.
   - a new **`api-lookup`** skill, and the `spec-citation` and `version-management` skills now cover
@@ -92,11 +92,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not yet on the Marketplace. A platform-specific VSIX bundles a self-contained `hypha` CLI, so
   nothing has to be installed by hand: on first use the CLI downloads `uv`, which provides the Python
   that specification extraction needs.
-  - **Commands** – *Show Installed Releases*, *Check Available Releases*, *Install a SysML v2
+  - **Commands**: *Show Installed Releases*, *Check Available Releases*, *Install a SysML v2
     Release*, *Change Default Release* and *Remove a Release*. Installing asks for consent first,
     reports progress and can be cancelled; a release becomes the default only once it has been
     generated.
-  - **Copilot tools** – `#hyphaReleaseStatus` reports the installed releases and which of their
+  - **Copilot tools**: `#hyphaReleaseStatus` reports the installed releases and which of their
     artifacts are present; `#hyphaLookup` resolves a metamodel or model-library name through
     `hypha lookup` and answers with a release-qualified source link, the candidates when a name is
     ambiguous, and one page at a time.
@@ -113,8 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `SessionStart` hook now provisions hypha tools `1.5.0` (`hyphaCliVersion`), which carries the
   CLI changes in this release.
 - Every `--json` document (`check`, `list`, `lookup`, `api list`) is one line on standard output with no banner;
-  log lines go to standard error, and every failure – including one before the verb runs, such as
-  cancellation or an unreachable upstream – is written as `{"error": "..."}`.
+  log lines go to standard error, and every failure (including one before the verb runs, such as
+  cancellation or an unreachable upstream) is written as `{"error": "..."}`.
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.2.0`, which
   provides `QueryConstraintBody` and `QueryBodyConditionText` itself. The generators now use those
   and hypha's own copies in `ModelQueryExtensions` are gone (`fixes #145`); the generated knowledge
@@ -144,7 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   uml4net upgrade below.
 - Bumped `uml4net` (`uml4net.xmi`, `uml4net.Extensions`, `uml4net.Reporting`) to `9.1.0` (tools
   `1.4.0`). Optional `[0..1]` enumeration properties are now nullable, so an unset `visibility`
-  reads as `public`, the UML 2.5.1 default for a `PackageableElement` – the generated metamodel
+  reads as `public`, the UML 2.5.1 default for a `PackageableElement`, and the generated metamodel
   keeps its exact shape. The only change to generated knowledge is in documentation text: every
   owned comment of an element is now used (8.x dropped all but one), and words on adjacent source
   lines are kept apart (e.g. `Elements. Note` instead of `Elements.Note`), which also changes three
@@ -160,7 +160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Bash** (`fixes #139`). Its dispatch shim is POSIX-shell-only (`case`/`esac`, `uname`), and Claude
   Code falls back to PowerShell for shell-form hooks when Git Bash isn't found, which can't parse
   it. The hook now pins `"shell": "bash"`, so Claude Code either runs it under Git Bash or reports
-  a clear, dedicated "shell not found" error instead - making the project's existing Git Bash
+  a clear, dedicated "shell not found" error instead. That makes the project's existing Git Bash
   dependency explicit rather than reimplementing the OS/arch dispatch in a second language. No
   behavior change on Linux/macOS/Windows-with-Git-Bash, where bash was already the default.
 
@@ -177,7 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`hypha generate`'s new `spec` artifact quotes verbatim OMG spec text without a maintainer source
   checkout** (`fixes #129`, tools `1.3.0`). `SpecGenerator` fetches and caches
   [`uv`](https://github.com/astral-sh/uv), which resolves or fetches a matching Python itself and runs
-  `tools/spec-extract` (Python/pdfplumber) through it - no pre-existing Python or provisioned `.venv`
+  `tools/spec-extract` (Python/pdfplumber) through it, with no pre-existing Python or provisioned `.venv`
   needed. A C# port of the pipeline was evaluated first (the PdfPig comparison spike, #128) and
   rejected: even after fixing a real bug, it still fell short of the mature Python pipeline's quality,
   and a port can at best tie Python, never beat it. `tools/spec-extract` also gained a real CLI entry
@@ -187,11 +187,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - **The committed knowledge floor** (`fixes #106`). `knowledge/2026-04/`, `knowledge/2026-05/`,
-  `sources/2026-04/`, `sources/2026-05/` and `knowledge/versions.json` are no longer committed to git -
-  2,120 files. Part 1 (`hypha use`/`remove`/`check`, below) landed the interactive mechanics while this
+  `sources/2026-04/`, `sources/2026-05/` and `knowledge/versions.json` are no longer committed to git
+  (2,120 files). Part 1 (`hypha use`/`remove`/`check`, below) landed the interactive mechanics while this
   floor still existed, so they could be verified before anything was deleted; this closes #106 by
   deleting it. A plugin install now fetches and generates *every* release identically, entirely on the
-  user's own machine, on request - not two privileged releases pre-installed and everything else
+  user's own machine, on request, rather than two privileged releases pre-installed and everything else
   second-class.
 
 ### Changed
@@ -201,7 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   extracted text.
 - **`Hypha.MetamodelGen.Tests` reads a committed test fixture instead of `sources/<tag>/xmi/`**
   (`fixes #106`): one real release's XMI is committed under
-  `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/xmi/` - a fixture for this test project alone
+  `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/xmi/`, a fixture for this test project alone
   (`tools/` is never shipped with the plugin), so the generators still have real regression coverage
   without a network fetch or a reintroduced distributed knowledge floor. The accepted consequence:
   only that one fixture release is exercised, not every installed release, since nothing per-release
@@ -210,12 +210,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PackageDiagramGoldenTests` redesigned** (`fixes #106`): with no committed `knowledge/<tag>/` left to
   diff against, `KnowledgeRegenerationTests` now fetches one release fresh and asserts two independent
   regenerations are byte-identical to *each other* (self-consistency, not a match against a
-  human-reviewed baseline - a real reduction in rigor, named as such in its own doc comment); the
+  human-reviewed baseline; a real reduction in rigor, named as such in its own doc comment); the
   metamodel-gen golden tests moved to the same committed-`Expected/`-fixture pattern
   `MetaclassFileGoldenTests` already used.
 - **`hypha move-window`** (`refs #106`) is now documented and commented as the maintainer-only,
   source-checkout-only convenience it always functionally was, not a way to move a *committed* rolling
-  window - its `--keep` count only ever governed which releases stay installed locally.
+  window: its `--keep` count only ever governed which releases stay installed locally.
 
 ### Added
 - **`hypha use`, `hypha remove` and `hypha check`** (`refs #106`) replace `hypha sync`: switching the
@@ -223,16 +223,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   offerable upstream are now separate, always-safe-to-run verbs instead of one verb that silently
   fetched and generated the newest release automatically.
   - The `version-management` skill gives Claude the vocabulary to list local vs. online releases,
-    fetch a chosen tag with visible progress, switch the default, or remove one - always confirming
+    fetch a chosen tag with visible progress, switch the default, or remove one, always confirming
     with the user first, since fetching costs real time and removing is destructive.
-  - `hypha fetch` downloads the OMG specification PDFs **by default** now (`--no-specs` to opt out) -
+  - `hypha fetch` downloads the OMG specification PDFs **by default** now (`--no-specs` to opt out):
     a fully local install needs everything a plain HTTP call can get it.
 
 ### Changed
-- **The plugin's `SessionStart` hook only ever compares now - it never fetches or generates anything
-  itself** (`refs #106`). `Hypha.Tools.Hook` runs `hypha check --json` synchronously (cheap enough - a
-  couple of GitHub API calls - that no background process is needed) and reports what it finds:
-  nothing installed yet, a newer release available, or nothing to report - leaving the decision to
+- **The plugin's `SessionStart` hook only ever compares now; it never fetches or generates anything
+  itself** (`refs #106`). `Hypha.Tools.Hook` runs `hypha check --json` synchronously (a couple of GitHub
+  API calls, cheap enough that no background process is needed) and reports what it finds:
+  nothing installed yet, a newer release available, or nothing to report, leaving the decision to
   fetch entirely to the user. The same hook also folds in what `hooks/check-spec-pdfs.py` used to do
   separately (naming missing OMG PDFs for the default release), so the plugin needs one
   `SessionStart` hook instead of two, and no longer depends on Python being present just to run it.
@@ -252,7 +252,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`hypha`, a distributable command-line tool, is now what generates the knowledge base**
   (`fixes #81`). It ships as a `dotnet tool` for anyone with the .NET 10 SDK and as a
   **self-contained** executable per platform (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`) for
-  anyone with no toolchain at all – which is the answer #77 needed to the question of what happens
+  anyone with no toolchain at all, which is the answer #77 needed to the question of what happens
   when the toolchains are absent. NativeAOT is deliberately out of scope: Handlebars.Net compiles
   templates at runtime through expression trees, and uml4net is reflection-heavy over XMI.
   - Four verbs: `discover` (what the upstreams offer), `fetch` (download a release into `sources/`
@@ -274,14 +274,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   made "is the working tree clean afterwards?" a check you had to remember to perform. Generation is
   `hypha generate`'s job now, and a test run leaves the working tree clean.
   - `KnowledgeRegenerationTests` regenerates the whole knowledge base into a scratch folder and
-    compares it **byte for byte** against the committed files – the same determinism proof, without
+    compares it **byte for byte** against the committed files: the same determinism proof, without
     touching a tracked file. All 1,090 files match.
   - The seam is `HyphaKnowledgeOptions.OutputRoot` (the CLI's `--output`): inputs are still read from
     the repository, only the output moves. `knowledge/<tag>/spec/` stays on the input side, because
     the Python PDF chain writes it and the cross-references read it.
   - `Hypha.Knowledge.Tests` went from 30s to 3s, having stopped doing the generation work twice.
 - **Generation orchestration moved out of the test fixtures and into the library** (`refs #92`). Each
-  artifact is now an `IKnowledgeGenerator` – `Artifact`, `Order`, `GenerateAsync(tag)` – registered as
+  artifact is now an `IKnowledgeGenerator` (`Artifact`, `Order`, `GenerateAsync(tag)`), registered as
   a collection, so regenerating a release is a loop over `Order` rather than a list of calls each
   caller had to keep in step. The knowledge base comes out byte-identical.
   - `KnowledgeLayout` replaced three separate copies of the repository layout that had grown up in the
@@ -292,7 +292,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     caller: a clause title must never reach the cross-references, two models must never slugify to the
     same example page, and the textual notation refuses to run before the metamodel index exists.
   - `HyphaKnowledgeOptions` replaces the optional parameters that were accumulating on
-    `AddHyphaKnowledge` – token, API host, raw-content host, repository root, download concurrency –
+    `AddHyphaKnowledge` (token, API host, raw-content host, repository root, download concurrency),
     and is validated at registration rather than at first use. It is where the CLI's flags will land.
   - Every generator takes an `ILogger` and reports the same three messages, so a host can show
     progress without knowing which generator it is watching. That is the seam #77 needs.
@@ -302,7 +302,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **The cross-references no longer degrade silently on a new release tag** (`fixes #96`). The PDF-free
   rebuild added in #88 carries title-matched clause edges forward from the committed document, which
-  is lossless – except for a tag that has neither a clause catalog nor a previous document, where it
+  is lossless, except for a tag that has neither a clause catalog nor a previous document, where it
   wrote a file with roughly a third of its clause edges missing and nothing failing. `Build` now
   refuses that combination and names both ways out; `AllowGrammarOnly` states that a grammar-only
   document is intended.
@@ -316,19 +316,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     edges are stated outright by the grammar's own `// Clause` comments in the committed `.kebnf`;
     the remaining title-matched ones are carried forward from the committed document, which already
     holds them. A contributor without the specifications regenerates the file and gets the same
-    bytes back – previously they could not regenerate it at all.
+    bytes back; previously they could not regenerate it at all.
   - The licensing guarantee is unchanged and still tested: edges record clause **identifiers**,
     never clause text, which is what lets this file be committed while `knowledge/<tag>/spec/`
     cannot be.
   - `tools/spec-extract` is now the PDF chain and nothing else, and its README says so.
 - **The textual-notation knowledge base moved to .NET** (`fixes #87`).
-  `Hypha.Knowledge.TextualNotation` now writes `knowledge/<tag>/textual-notation/` – 309 example
+  `Hypha.Knowledge.TextualNotation` now writes `knowledge/<tag>/textual-notation/`: 309 example
   pages per release plus the index. All 618 committed example pages come out **byte-identical**; the
   only change is the line naming the generator in `index.md`.
   - Surface forms are still derived from the metamodel's own naming convention rather than curated
     (`PartDefinition` → `part def`, `PartUsage` → `part`), and still bounded by that release's
     metamodel index, so the mapping cannot invent an element.
-  - The declaration match still refuses to fire inside an identifier or a quoted name –
+  - The declaration match still refuses to fire inside an identifier or a quoted name:
     `counterpart` is not a `part`. Unlike the grammar patterns this one is deliberately left
     Unicode-aware, matching the Python it replaces: model text is user-written.
   - Example pages are ordered segment by segment and case-insensitively, which is what the committed
@@ -346,7 +346,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     would report more feature assignments and mean less.
 - **Release handling moved from Python to .NET** (`fixes #83`, `fixes #84`, `fixes #85`), into the new
   `tools/knowledge-gen/Hypha.Knowledge` library. `spec_extract.versions` and `spec_extract.fetch` are
-  gone; `spec-extract` now does what it is best at – PDF extraction – and nothing else.
+  gone; `spec-extract` now does what it is best at (PDF extraction) and nothing else.
   - `ReleaseTag`, `ReleaseCatalog`, `GitHubToken` and `ReleaseDiscovery` offer the same 56 releases in
     the same order as the Python they replace; `VersionManifest` rewrites the committed
     `knowledge/versions.json` byte for byte.
@@ -357,16 +357,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     release now fetches whole in about 15 seconds.
 - Well-established NuGet packages are now welcome rather than avoided, and services are composed
   through `Microsoft.Extensions.DependencyInjection`. `AddHyphaKnowledge()` registers one resilient
-  named client – `Microsoft.Extensions.Http.Resilience`, so retries are **jittered**, which matters
-  once downloads run concurrently – and the services that share it. This is groundwork for the CLI
+  named client (`Microsoft.Extensions.Http.Resilience`, so retries are **jittered**, which matters
+  once downloads run concurrently) and the services that share it. This is groundwork for the CLI
   (#81).
 
 ### Added
 - **Version awareness (`fixes #67`, `fixes #74`).** The knowledge base is now generated per upstream
   release tag (`YYYY-MM`) instead of from a single snapshot, with a committed rolling window of the
-  two most recent releases – currently `2026-05` (the default) and `2026-04`.
+  two most recent releases, currently `2026-05` (the default) and `2026-04`.
   - `knowledge/versions.json` records the installed tags, the default, and the upstream commit each
-    tag resolved to (traceability only – **the tag is the identifier**).
+    tag resolved to (traceability only; **the tag is the identifier**).
   - Release discovery offers a version only when the tag resolves in **both** upstreams: they are not
     in lockstep (`2023-07.1` is Release-only; `2024-08`, `2023-01`, `2026-05-pre` are Pilot-only).
     Tags are `YYYY-MM` with an optional point release; pre-releases, internal drops and letter
@@ -388,7 +388,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `sources/` and `knowledge/` are laid out per tag: `sources/<tag>/{xmi,textual,specs}` and
   `knowledge/<tag>/{metamodel,spec,cross-references.json}`. `knowledge/textual-notation/` stays
-  shared (hand-curated), and `sources/PrimitiveTypes.xmi` is shared – it is the OMG UML primitives
+  shared (hand-curated), and `sources/PrimitiveTypes.xmi` is shared: it is the OMG UML primitives
   library, published by neither upstream and identical for every release.
 - The model URI inside the XMI (`…/SysML/20250201`) is no longer used anywhere as a version
   identifier. It tracks neither release nor content: the 2026-05 metamodel still declares a 2025 URI.
@@ -397,7 +397,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `knowledge/cross-references.json` (+ schema): edges from every metamodel element to the
   specification clauses that treat it, its BNF grammar production and any worked example. It records
-  clause **identifiers only, never clause text**, so it ships even though `knowledge/spec/` cannot –
+  clause **identifiers only, never clause text**, so it ships even though `knowledge/spec/` cannot;
   185 of 187 elements resolve to at least one clause. Generated by the new `spec_extract.crossrefs`
   layer (`fixes #68`).
 - Provenance tiers (`NORMATIVE` / `MODEL` / `DERIVED`) documented in the skills and the README, and
@@ -410,7 +410,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   structural owned features (`fixes #69`).
 - Two rules keep those diagrams legible: derived features are omitted (computed views rather than
   structure, and they outnumber the structural features roughly three to one), and only
-  metaclass-typed features become edges – primitive- and enumeration-typed ones are drawn inside the
+  metaclass-typed features become edges; primitive- and enumeration-typed ones are drawn inside the
   class box, so `String` and `Boolean` never become hub nodes.
 
 ### Fixed
@@ -430,7 +430,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reasoning from prose; the `bad-multiplicity` and `redefines-nonexistent` fixtures record how each
   is decided.
 - `jq` is now described as **recommended** rather than merely an accelerator, and the recommendation
-  moved into the plugin-facing README – the previous note lived in `tools/metamodel-gen/README.md`,
+  moved into the plugin-facing README; the previous note lived in `tools/metamodel-gen/README.md`,
   which is not shipped with the plugin.
 
 ## [1.1.0] - 2026-07-01

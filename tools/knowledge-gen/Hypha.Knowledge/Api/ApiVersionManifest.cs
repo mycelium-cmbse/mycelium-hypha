@@ -22,7 +22,7 @@ namespace Hypha.Knowledge.Api
     /// <remarks>
     /// Written to <c>knowledge/api/versions.json</c>, apart from the language releases' manifest: the
     /// two are installed, switched and removed independently, and that manifest cannot exist without
-    /// a default language release - which an API-only install does not have.
+    /// a default language release, which an API-only install does not have.
     /// </remarks>
     public sealed record ApiVersionManifest
     {
@@ -45,11 +45,16 @@ namespace Hypha.Knowledge.Api
         public required IReadOnlyList<InstalledApiVersion> Versions { get; init; }
 
         /// <summary>The installed tags, newest first.</summary>
+        /// <returns>The tag of each of <see cref="Versions"/>, in the same order.</returns>
         public IReadOnlyList<string> GetTags() => this.Versions.Select(version => version.Tag).ToList();
 
         /// <summary>
         /// Assembles a manifest, ordering the versions newest first regardless of input order.
         /// </summary>
+        /// <param name="defaultTag">The API version answered from by default.</param>
+        /// <param name="versions">The installed API versions, in any order.</param>
+        /// <returns>A manifest at <see cref="CurrentSchemaVersion"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="versions"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">
         /// <paramref name="defaultTag"/> is not among <paramref name="versions"/>.
         /// </exception>

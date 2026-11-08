@@ -24,7 +24,7 @@ namespace Hypha.Knowledge.ModelLibrary
         /// This release's SysML surface forms (e.g. <c>"part def"</c>, <c>"action"</c>), as derived by
         /// <see cref="TextualNotation.ISurfaceForms"/> from its metamodel index. KerML's own core
         /// vocabulary (<c>package</c>, <c>classifier</c>, <c>datatype</c>, <c>feature</c>, ...) is
-        /// always recognised regardless of what is passed here - it does not follow the
+        /// always recognised regardless of what is passed here: it does not follow the
         /// Definition/Usage naming convention <see cref="TextualNotation.ISurfaceForms"/> derives from.
         /// </param>
         /// <param name="reservedKeywords">
@@ -32,7 +32,7 @@ namespace Hypha.Knowledge.ModelLibrary
         /// <see cref="Grammar.IGrammarParser.ReservedKeywords"/>). A word never opens as a declared
         /// name even when it is not itself a recognised declaration keyword: <c>attribute def</c> not
         /// being registered as a two-word phrase must not make a bare <c>attribute</c> read the
-        /// following <c>def</c> as the name it declares - a reserved word can never be an unquoted
+        /// following <c>def</c> as the name it declares; a reserved word can never be an unquoted
         /// identifier in KerML/SysML, so seeing one is proof this is not the name.
         /// </param>
         IReadOnlyList<LibraryDeclaration> Scan(

@@ -29,16 +29,23 @@ namespace Hypha.Knowledge.Releases
     /// </remarks>
     public sealed class ReleaseRemover : IReleaseRemover
     {
+        /// <summary>The compiled <c>Removed {Tag}</c> message (event 1, information).</summary>
         private static readonly Action<ILogger, string, Exception?> RemovedMessage =
             LoggerMessage.Define<string>(
                 LogLevel.Information, new EventId(1, "Removed"), "Removed {Tag}");
 
+        /// <summary>Resolves the version manifest and the release's folders.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Receives the message that a release was removed.</summary>
         private readonly ILogger<ReleaseRemover> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReleaseRemover"/> class.
         /// </summary>
+        /// <param name="layout">Resolves the version manifest and the release's folders.</param>
+        /// <param name="logger">Receives the message that a release was removed.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="layout"/> or <paramref name="logger"/> is <c>null</c>.</exception>
         public ReleaseRemover(IKnowledgeLayout layout, ILogger<ReleaseRemover> logger)
         {
             ArgumentNullException.ThrowIfNull(layout);
@@ -48,7 +55,29 @@ namespace Hypha.Knowledge.Releases
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Removes <paramref name="tag"/>: rewrites the version manifest without it (or deletes the manifest
+        /// when it was the last release), then deletes its <c>sources/&lt;tag&gt;/</c> and
+        /// <c>knowledge/&lt;tag&gt;/</c> folders. The work is synchronous; the returned task is already
+        /// complete.
+        /// </summary>
+        /// <param name="tag">The installed release to remove.</param>
+        /// <param name="force">
+        /// Removes the last installed release too. Without it, removing the only remaining release is
+        /// refused: it would leave nothing for any skill to answer from.
+        /// </param>
+        /// <param name="cancellationToken">Checked once, before anything is changed.</param>
+        /// <returns>A completed task.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="tag"/> is <c>null</c>, empty or white space, is not a release tag, or is not
+        /// installed.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// There is no version manifest, <paramref name="tag"/> is the manifest's current default while
+        /// other releases are installed (switch with <c>hypha use</c> first), or it is the only installed
+        /// release and <paramref name="force"/> was not given.
+        /// </exception>
+        /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
         public Task RemoveAsync(string tag, bool force = false, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -72,7 +101,7 @@ namespace Hypha.Knowledge.Releases
             }
 
             // The only installed release is always the default (VersionManifest.Build requires it),
-            // so that case is decided by --force alone - checking "is it the default" first would
+            // so that case is decided by --force alone; checking "is it the default" first would
             // make --force unreachable, since the last release could never pass that check.
             if (manifest.Versions.Count == 1)
             {
@@ -111,6 +140,8 @@ namespace Hypha.Knowledge.Releases
             return Task.CompletedTask;
         }
 
+        /// <summary>Deletes a folder and everything in it, when it exists.</summary>
+        /// <param name="directory">The folder to delete.</param>
         private static void Delete(DirectoryInfo directory)
         {
             directory.Refresh();

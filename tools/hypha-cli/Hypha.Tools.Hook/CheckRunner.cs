@@ -17,17 +17,26 @@ namespace Hypha.Tools.Hook
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Runs <c>hypha check --json</c> and captures its output - synchronously, waiting for it to
+    /// Runs <c>hypha check --json</c> and captures its output synchronously, waiting for it to
     /// finish, unlike the detached launch a hook-triggered fetch used to need.
     /// </summary>
     /// <remarks>
-    /// <c>check</c> only ever compares local releases against what is offerable upstream - a couple of
-    /// GitHub API calls, no fetching or generating - so it is cheap enough to wait for inline within
+    /// <c>check</c> only ever compares local releases against what is offerable upstream (a couple of
+    /// GitHub API calls, no fetching or generating), so it is cheap enough to wait for inline within
     /// the hook's own timeout budget (10 minutes by default), with nothing left to poll for later.
     /// </remarks>
     public static class CheckRunner
     {
         /// <summary>Builds the <see cref="ProcessStartInfo"/> for a synchronous, output-capturing run.</summary>
+        /// <param name="fileName">The executable to run.</param>
+        /// <param name="arguments">The arguments, each passed as one argument without shell quoting.</param>
+        /// <param name="workingDirectory">The folder the process runs in.</param>
+        /// <returns>The start information, with no window and every standard stream redirected.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="fileName"/> or <paramref name="workingDirectory"/> is <c>null</c>, empty or
+        /// white space.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="arguments"/> is <c>null</c>.</exception>
         public static ProcessStartInfo Build(string fileName, IReadOnlyList<string> arguments, string workingDirectory)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
@@ -56,10 +65,17 @@ namespace Hypha.Tools.Hook
         /// <summary>
         /// Runs the process to completion and returns what it wrote to stdout.
         /// </summary>
+        /// <param name="fileName">The executable to run.</param>
+        /// <param name="arguments">The arguments, each passed as one argument without shell quoting.</param>
+        /// <param name="workingDirectory">The folder the process runs in.</param>
+        /// <param name="cancellationToken">Cancels reading the output and waiting for the exit.</param>
         /// <returns>
         /// The captured stdout, or <c>null</c> when the process could not be started, exited with a
         /// non-zero code, or wrote nothing.
         /// </returns>
+        /// <exception cref="OperationCanceledException">
+        /// <paramref name="cancellationToken"/> was cancelled.
+        /// </exception>
         public static async Task<string?> RunAndCaptureOutputAsync(
             string fileName, IReadOnlyList<string> arguments, string workingDirectory,
             CancellationToken cancellationToken)

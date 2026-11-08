@@ -14,9 +14,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for working out which releases are offerable, on the tag sets the upstreams really have.
-    /// </summary>
     [TestFixture]
     public class ReleaseCatalogTests
     {
@@ -25,10 +22,8 @@ namespace Hypha.Knowledge.Tests
             "2026-05", "2026-04", "2026-03", "2025-09.1", "2025-09", "2025-07", "2020-10",
         ];
 
-        /// <summary>Release-shaped, but published only by the Pilot repository.</summary>
         private static readonly string[] PilotOnlyButValid = ["2024-08", "2023-01"];
 
-        /// <summary>Not release-shaped at all: pre-releases, internal drops, letter revisions.</summary>
         private static readonly string[] NonRelease =
         [
             "2026-05-pre", "2021-05a", "2021-08-internal", "2021-02b",

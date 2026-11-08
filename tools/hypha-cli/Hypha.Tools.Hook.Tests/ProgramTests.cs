@@ -16,18 +16,6 @@ namespace Hypha.Tools.Hook.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// Suite of tests for the hook entry point's internal pieces.
-    /// </summary>
-    /// <remarks>
-    /// <see cref="Program.RunAsync"/> takes its <see cref="HttpClient"/> as a parameter specifically so
-    /// it can be driven here against a stub transport for the CLI-provisioning half, rather than only
-    /// through <see cref="Program.Main"/> (which always builds a real one). Running the cached
-    /// executable it provisions - the actual <c>hypha check</c> subprocess - is real process spawning
-    /// with real stdout, so exercising RunAsync's full happy path end-to-end is left to manual
-    /// verification, per <c>tools/hypha-cli/README.md</c>; <see cref="CheckRunnerTests"/> and
-    /// <see cref="CheckResultSummarizerTests"/> cover that half's logic directly instead.
-    /// </remarks>
     [TestFixture]
     public class ProgramTests
     {
@@ -178,7 +166,7 @@ namespace Hypha.Tools.Hook.Tests
             var handler = new CountingHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
 
             // Must not throw: CliProvisioner.EnsureAsync catches the failure internally, and RunAsync
-            // simply returns once it sees no executable came back - never reaching CheckRunner at all.
+            // simply returns once it sees no executable came back, never reaching CheckRunner at all.
             Assert.That(
                 async () => await Program.RunAsync(
                     new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") },

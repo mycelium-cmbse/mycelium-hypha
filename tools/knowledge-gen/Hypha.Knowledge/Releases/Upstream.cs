@@ -29,8 +29,8 @@ namespace Hypha.Knowledge.Releases
         public const string PilotRepository = "Systems-Modeling/SysML-v2-Pilot-Implementation";
 
         /// <summary>
-        /// The default API host. Overridable per caller so a different host - an enterprise instance,
-        /// or a stub in a test - can be used without touching the code that builds the requests.
+        /// The default API host. Overridable per caller so a different host (an enterprise instance,
+        /// or a stub in a test) can be used without touching the code that builds the requests.
         /// </summary>
         public static Uri DefaultApiBaseAddress { get; } = new("https://api.github.com/", UriKind.Absolute);
 

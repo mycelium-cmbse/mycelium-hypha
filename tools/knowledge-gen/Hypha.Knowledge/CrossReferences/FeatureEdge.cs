@@ -16,7 +16,7 @@ namespace Hypha.Knowledge.CrossReferences
     /// </summary>
     /// <remarks>
     /// The only link in the knowledge base between the notation and the features it fills. The same
-    /// feature legitimately appears under both grammars - SysML re-declares many KerML productions -
+    /// feature legitimately appears under both grammars (SysML re-declares many KerML productions),
     /// which is one fact stated twice, not a duplicate to collapse.
     /// </remarks>
     /// <param name="Grammar">The grammar the assignment was read from.</param>

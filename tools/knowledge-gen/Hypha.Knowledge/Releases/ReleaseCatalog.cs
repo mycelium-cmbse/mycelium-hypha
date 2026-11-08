@@ -23,7 +23,7 @@ namespace Hypha.Knowledge.Releases
         /// </summary>
         /// <remarks>
         /// This is an intersection rather than an assumption about either side. The repositories are
-        /// not in lockstep - some tags exist in only one of them - so a version is offerable only
+        /// not in lockstep (some tags exist in only one of them), so a version is offerable only
         /// when both a metamodel and a specification side exist for it.
         /// </remarks>
         public static IReadOnlyList<string> Available(

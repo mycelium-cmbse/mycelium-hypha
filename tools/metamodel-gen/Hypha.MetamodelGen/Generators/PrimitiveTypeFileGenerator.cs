@@ -38,6 +38,9 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Renders the element markdown for a single primitive type.
         /// </summary>
+        /// <param name="primitiveType">The primitive type to render.</param>
+        /// <returns>The page's Markdown.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="primitiveType"/> is <c>null</c>.</exception>
         public string GenerateElement(IPrimitiveType primitiveType)
         {
             ArgumentNullException.ThrowIfNull(primitiveType);
@@ -49,6 +52,12 @@ namespace Hypha.MetamodelGen.Generators
         /// Renders one <c>&lt;PrimitiveTypeName&gt;.md</c> file per primitive type into
         /// <paramref name="outputDirectory"/>.
         /// </summary>
+        /// <param name="model">The model whose primitive types are written.</param>
+        /// <param name="outputDirectory">The folder the pages are written to.</param>
+        /// <returns>A task that completes when every page has been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="outputDirectory"/> is <c>null</c>.
+        /// </exception>
         public async Task GenerateAsync(XmiReaderResult model, DirectoryInfo outputDirectory)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -65,6 +74,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Builds the deterministic payload for a primitive type from the model.
         /// </summary>
+        /// <param name="primitiveType">The primitive type the payload describes.</param>
+        /// <returns>The payload.</returns>
         private static PrimitiveTypePayload CreatePayload(IPrimitiveType primitiveType)
         {
             return new PrimitiveTypePayload(

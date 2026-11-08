@@ -23,7 +23,7 @@ namespace Hypha.Tools.Commands
     /// entry in the version manifest.
     /// </summary>
     /// <remarks>
-    /// Never automatic - this only ever runs because a user asked for exactly this tag to go, unlike
+    /// Never automatic: this only ever runs because a user asked for exactly this tag to go, unlike
     /// <c>hypha move-window</c>'s window eviction.
     /// </remarks>
     public sealed class RemoveCommand : Command
@@ -57,11 +57,14 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="RemoveCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Deletes the release's folders and its manifest entry.</summary>
             private readonly IReleaseRemover remover;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="remover">Deletes the release's folders and its manifest entry.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="remover"/> is <c>null</c>.</exception>
             public Handler(IReleaseRemover remover)
             {
                 ArgumentNullException.ThrowIfNull(remover);
@@ -70,10 +73,13 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Removes the release.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the removal.</param>
             /// <returns>
             /// 0 when removed; 2 when the tag is not installed, is the default, or is the only
             /// installed release without <c>--force</c>.
             /// </returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

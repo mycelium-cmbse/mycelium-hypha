@@ -13,9 +13,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for deciding which installed releases fall outside the rolling window.
-    /// </summary>
     [TestFixture]
     public class ReleaseWindowTests
     {

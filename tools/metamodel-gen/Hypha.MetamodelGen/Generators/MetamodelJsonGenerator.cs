@@ -35,6 +35,10 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>The version of the JSON shape produced by this generator.</summary>
         public const string SchemaVersion = "1.0.0";
 
+        /// <summary>
+        /// The fixed serializer options: indented, camel-cased property names and relaxed escaping, so
+        /// the documentation text stays readable.
+        /// </summary>
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
             WriteIndented = true,
@@ -46,6 +50,13 @@ namespace Hypha.MetamodelGen.Generators
         /// Builds the deterministic rich-graph document for the model. <paramref name="sourceXmiSha256"/>
         /// is the provenance digest of the input XMI (see <see cref="ComputeSourceXmiSha256"/>).
         /// </summary>
+        /// <param name="model">The model the document describes.</param>
+        /// <param name="sourceXmiSha256">The provenance digest of the input XMI.</param>
+        /// <returns>The document, every collection in it ordered ordinally.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="sourceXmiSha256"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">The model has no named root package.</exception>
         public static MetamodelDocument BuildDocument(XmiReaderResult model, string sourceXmiSha256)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -142,6 +153,9 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>Builds the flat name → record lookup from a rich-graph document.</summary>
+        /// <param name="document">The rich-graph document to index.</param>
+        /// <returns>The lookup, its entries ordered ordinally by name.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="document"/> is <c>null</c>.</exception>
         public static MetamodelLookup BuildIndex(MetamodelDocument document)
         {
             ArgumentNullException.ThrowIfNull(document);
@@ -190,6 +204,15 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Writes <c>metamodel.json</c> and <c>index.json</c> into <paramref name="outputDirectory"/>.
         /// </summary>
+        /// <param name="model">The model the files describe.</param>
+        /// <param name="outputDirectory">The folder the files are written to.</param>
+        /// <param name="sourceXmiSha256">The provenance digest of the input XMI.</param>
+        /// <returns>A task that completes when both files have been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/>, <paramref name="outputDirectory"/> or
+        /// <paramref name="sourceXmiSha256"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">The model has no named root package.</exception>
         public static async Task GenerateAsync(
             XmiReaderResult model, DirectoryInfo outputDirectory, string sourceXmiSha256)
         {
@@ -207,6 +230,9 @@ namespace Hypha.MetamodelGen.Generators
         /// Serializes a payload deterministically: fixed options, LF newlines (independent of the host
         /// platform), and a trailing newline.
         /// </summary>
+        /// <typeparam name="T">The type of the payload.</typeparam>
+        /// <param name="value">The payload to serialize.</param>
+        /// <returns>The JSON text.</returns>
         public static string Serialize<T>(T value) =>
             JsonSerializer.Serialize(value, SerializerOptions).Replace("\r\n", "\n") + "\n";
 
@@ -215,6 +241,9 @@ namespace Hypha.MetamodelGen.Generators
         /// newline-normalized UTF-8 content (so the digest is independent of checkout line endings),
         /// combined in filename order into a single stable hex string.
         /// </summary>
+        /// <param name="filePaths">The XMI files the model was read from.</param>
+        /// <returns>The digest, as lowercase hexadecimal.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="filePaths"/> is <c>null</c>.</exception>
         public static string ComputeSourceXmiSha256(IEnumerable<string> filePaths)
         {
             ArgumentNullException.ThrowIfNull(filePaths);
@@ -233,6 +262,16 @@ namespace Hypha.MetamodelGen.Generators
                 .ToLowerInvariant();
         }
 
+        /// <summary>
+        /// Builds the node for one metaclass: its supertypes, closures, owned and inherited attributes,
+        /// operations and constraints.
+        /// </summary>
+        /// <param name="class">The metaclass the node describes.</param>
+        /// <param name="linkable">The type names that have an element of their own in the document.</param>
+        /// <param name="subtypeIndex">Each metaclass name mapped to its direct subtype names.</param>
+        /// <param name="allAncestors">The metaclass' transitive supertypes, ordered.</param>
+        /// <param name="allDescendants">The metaclass' transitive subtypes.</param>
+        /// <returns>The node.</returns>
         private static ClassNode BuildClass(
             IClass @class,
             IReadOnlySet<string> linkable,
@@ -301,6 +340,10 @@ namespace Hypha.MetamodelGen.Generators
                 constraints);
         }
 
+        /// <summary>Builds the node for one owned attribute.</summary>
+        /// <param name="property">The attribute the node describes.</param>
+        /// <param name="linkable">The type names that have an element of their own in the document.</param>
+        /// <returns>The node.</returns>
         private static AttributeNode BuildAttribute(IProperty property, IReadOnlySet<string> linkable)
         {
             var typeName = property.Type?.Name;
@@ -320,6 +363,11 @@ namespace Hypha.MetamodelGen.Generators
                 property.QueryDocumentationText());
         }
 
+        /// <summary>Builds the node for one inherited attribute.</summary>
+        /// <param name="property">The attribute the node describes.</param>
+        /// <param name="inheritedFrom">The name of the supertype that declares it.</param>
+        /// <param name="linkable">The type names that have an element of their own in the document.</param>
+        /// <returns>The node.</returns>
         private static InheritedAttributeNode BuildInheritedAttribute(
             IProperty property, string inheritedFrom, IReadOnlySet<string> linkable)
         {
@@ -341,6 +389,11 @@ namespace Hypha.MetamodelGen.Generators
                 inheritedFrom);
         }
 
+        /// <summary>
+        /// Builds the node for one operation, its return read from the <c>return</c> parameter.
+        /// </summary>
+        /// <param name="operation">The operation the node describes.</param>
+        /// <returns>The node; without a <c>return</c> parameter its return multiplicity is <c>0..1</c>.</returns>
         private static OperationNode BuildOperation(IOperation operation)
         {
             // The operation's return type/multiplicity are derived (and unimplemented in uml4net); the
@@ -369,6 +422,9 @@ namespace Hypha.MetamodelGen.Generators
                 operation.QueryBodyConditionText());
         }
 
+        /// <summary>Builds the node for one enumeration, its literals in declaration order.</summary>
+        /// <param name="enumeration">The enumeration the node describes.</param>
+        /// <returns>The node.</returns>
         private static EnumerationNode BuildEnumeration(IEnumeration enumeration)
         {
             var literals = enumeration.OwnedLiteral
@@ -386,6 +442,9 @@ namespace Hypha.MetamodelGen.Generators
                 literals);
         }
 
+        /// <summary>Builds the node for one primitive type.</summary>
+        /// <param name="primitiveType">The primitive type the node describes.</param>
+        /// <returns>The node.</returns>
         private static PrimitiveTypeNode BuildPrimitiveType(IPrimitiveType primitiveType) =>
             new(
                 primitiveType.Name,
@@ -396,6 +455,9 @@ namespace Hypha.MetamodelGen.Generators
                 primitiveType.QueryDocumentationText(),
                 primitiveType.QuerySummary());
 
+        /// <summary>Builds a node for every named package of the model, nested ones included.</summary>
+        /// <param name="model">The model whose packages are described.</param>
+        /// <returns>The nodes, ordered ordinally by qualified name.</returns>
         private static List<PackageNode> BuildPackages(XmiReaderResult model) =>
             model.Packages
                 .SelectMany(ElementCatalog.ExpandPackages)

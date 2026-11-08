@@ -85,5 +85,5 @@ class Clause:
 
     @property
     def text(self) -> str:
-        """The full clause body, every block's lines joined — used to assert losslessness in tests."""
+        """The full clause body, every block's lines joined; used to assert losslessness in tests."""
         return "\n".join(line.text for block in self.blocks for line in block.lines)

@@ -18,15 +18,9 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Golden-file tests for the enumeration and primitive-type element files. Every enumeration and
-    /// primitive type in the model is compared byte-for-byte against a committed expected file under
-    /// <c>Expected/metamodel/elements/</c>.
-    /// </summary>
     [TestFixture]
     public class EnumerationAndPrimitiveGoldenTests
     {
-        /// <summary>The enumeration names to golden-test (every enumeration in the model).</summary>
         private static IEnumerable<string> EnumerationNames()
         {
             var model = TestModel.Model;
@@ -41,7 +35,6 @@ namespace Hypha.MetamodelGen.Tests
             }
         }
 
-        /// <summary>The primitive-type names to golden-test (every primitive type in the model).</summary>
         private static IEnumerable<string> PrimitiveTypeNames()
         {
             var model = TestModel.Model;

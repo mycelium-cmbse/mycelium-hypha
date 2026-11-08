@@ -24,7 +24,7 @@ namespace Hypha.Knowledge.Generation
         Generated,
 
         /// <summary>
-        /// Its inputs are not present, which is normal - a release whose sources were never fetched,
+        /// Its inputs are not present, which is normal: a release whose sources were never fetched,
         /// or specifications the user does not have.
         /// </summary>
         Skipped,

@@ -45,11 +45,14 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="UseCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Resolves where the version manifest is read from and written to.</summary>
             private readonly IKnowledgeLayout layout;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="layout">Resolves where the version manifest is read from and written to.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="layout"/> is <c>null</c>.</exception>
             public Handler(IKnowledgeLayout layout)
             {
                 ArgumentNullException.ThrowIfNull(layout);
@@ -58,7 +61,11 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Switches the default release.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the switch; observed before the manifest is read.</param>
             /// <returns>0 when switched; 2 when the tag is not installed.</returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
+            /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
             public Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

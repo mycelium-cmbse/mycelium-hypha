@@ -27,6 +27,7 @@ namespace Hypha.Knowledge.Grammar
     /// </remarks>
     public sealed class GrammarReference : IGrammarReference
     {
+        /// <summary>The raw-content address a release's notation images are linked under, as a string.</summary>
         private readonly string rawContentBase;
 
         /// <summary>
@@ -34,16 +35,25 @@ namespace Hypha.Knowledge.Grammar
         /// </summary>
         /// <param name="rawContentBaseAddress">
         /// Where a file at a tag is served from; defaults to <see cref="Upstream.DefaultRawContentBaseAddress"/>.
-        /// Injectable for the same reason as the API host - an enterprise instance serves its raw
+        /// Injectable for the same reason as the API host: an enterprise instance serves its raw
         /// content from somewhere else.
         /// </param>
         public GrammarReference(Uri? rawContentBaseAddress = null) =>
             this.rawContentBase = (rawContentBaseAddress ?? Upstream.DefaultRawContentBaseAddress).ToString();
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders the textual grammar reference for one document: front matter, then one section per
+        /// production grouped by the clause the grammar states, each with the metaclass it produces, its
+        /// clause and the features it assigns.
+        /// </summary>
         /// <param name="grammar">The grammar's name, <c>KerML</c> or <c>SysML</c>.</param>
         /// <param name="tag">The release the grammar was read at.</param>
         /// <param name="productions">The parsed productions, in document order.</param>
+        /// <returns>The page's Markdown, with LF line endings.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="grammar"/> or <paramref name="tag"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="productions"/> is <c>null</c>.</exception>
         public string Render(string grammar, string tag, IReadOnlyList<Production> productions)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(grammar);
@@ -68,15 +78,23 @@ namespace Hypha.Knowledge.Grammar
             return Compose(preamble, productions, "Lexical", "```kebnf", TextualFacts);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders the graphical-notation reference for one release, grouped by clause, with each
+        /// production's notation images linked at <paramref name="tag"/>.
+        /// </summary>
+        /// <param name="tag">The release the grammar was read at, which the image links point into.</param>
+        /// <param name="repository">The upstream the images are published from.</param>
+        /// <param name="productions">The parsed graphical productions, in document order.</param>
+        /// <returns>The page's Markdown, with LF line endings.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="tag"/> or <paramref name="repository"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="productions"/> is <c>null</c>.</exception>
         /// <remarks>
         /// The notation itself is a set of SVGs published alongside the grammar. They are linked at the
         /// release tag rather than copied in: 284 images per release is 1.5 MB of binaries nothing in
         /// the knowledge base would read, and the link is stable because the tag is.
         /// </remarks>
-        /// <param name="tag">The release the grammar was read at, which the image links point into.</param>
-        /// <param name="repository">The upstream the images are published from.</param>
-        /// <param name="productions">The parsed graphical productions, in document order.</param>
         public string RenderGraphical(string tag, string repository, IReadOnlyList<Production> productions)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -113,6 +131,7 @@ namespace Hypha.Knowledge.Grammar
         /// <param name="title">The page's <c>#</c> heading.</param>
         /// <param name="source">The grammar file extension the page was generated from.</param>
         /// <param name="lead">The paragraph explaining how to read the page.</param>
+        /// <returns>The page's opening lines, to be extended by <see cref="Compose"/>.</returns>
         private static List<string> Preamble(
             IReadOnlyList<(string Key, string Value)> fields,
             string title,
@@ -138,9 +157,12 @@ namespace Hypha.Knowledge.Grammar
         }
 
         /// <summary>Appends one section per production, grouped by the clause the grammar states.</summary>
+        /// <param name="lines">The page's lines so far, from <see cref="Preamble"/>; appended to in place.</param>
+        /// <param name="productions">The productions, in document order.</param>
         /// <param name="unattributed">The heading for productions the grammar gives no clause.</param>
         /// <param name="fence">The opening code fence, which names the grammar's language.</param>
         /// <param name="facts">The lines between a production's heading and its body, blank line included.</param>
+        /// <returns>The whole page, joined with LF.</returns>
         private static string Compose(
             List<string> lines,
             IReadOnlyList<Production> productions,
@@ -174,6 +196,8 @@ namespace Hypha.Knowledge.Grammar
         }
 
         /// <summary>What the grammar states about a textual production, on one line.</summary>
+        /// <param name="production">The production.</param>
+        /// <returns>That line and a blank one, or nothing when the grammar states nothing about it.</returns>
         private static IReadOnlyList<string> TextualFacts(Production production)
         {
             var facts = new List<string>();
@@ -198,6 +222,10 @@ namespace Hypha.Knowledge.Grammar
         }
 
         /// <summary>A graphical production's clause, then the notation images it renders as.</summary>
+        /// <param name="production">The production.</param>
+        /// <param name="tag">The release the image links point into.</param>
+        /// <param name="repository">The upstream the images are published from.</param>
+        /// <returns>The lines, each followed by a blank one.</returns>
         private List<string> GraphicalFacts(Production production, string tag, string repository)
         {
             var lines = new List<string>();
@@ -221,11 +249,17 @@ namespace Hypha.Knowledge.Grammar
         /// The section heading for a production's clause, or <paramref name="unattributed"/> for the
         /// productions the grammar states no clause for.
         /// </summary>
+        /// <param name="production">The first production of the section.</param>
+        /// <param name="unattributed">The heading used when there is no clause.</param>
+        /// <returns>The clause number and title, or <paramref name="unattributed"/>.</returns>
         private static string Heading(Production production, string unattributed) =>
             string.IsNullOrEmpty(production.Clause)
                 ? unattributed
                 : $"{production.Clause} {production.ClauseTitle}".Trim();
 
+        /// <summary>Formats a count for the front matter, independently of the current culture.</summary>
+        /// <param name="value">The count.</param>
+        /// <returns>The invariant-culture digits.</returns>
         private static string Count(int value) => value.ToString(CultureInfo.InvariantCulture);
     }
 }

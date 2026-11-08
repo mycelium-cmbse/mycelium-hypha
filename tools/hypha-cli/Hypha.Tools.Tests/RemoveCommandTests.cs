@@ -19,9 +19,6 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for <see cref="RemoveCommand"/>.
-    /// </summary>
     [TestFixture]
     public class RemoveCommandTests
     {

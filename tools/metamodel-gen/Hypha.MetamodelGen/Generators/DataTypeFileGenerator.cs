@@ -25,6 +25,7 @@ namespace Hypha.MetamodelGen.Generators
     /// </remarks>
     public class DataTypeFileGenerator : HandleBarsGenerator
     {
+        /// <summary>The Handlebars template that renders a data type page.</summary>
         private const string TemplateName = "datatype";
 
         /// <summary>
@@ -36,6 +37,9 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>Renders the page for one data type.</summary>
+        /// <param name="dataType">The data type to render.</param>
+        /// <returns>The page's Markdown.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dataType"/> is <c>null</c>.</exception>
         public string GenerateElement(IDataType dataType)
         {
             ArgumentNullException.ThrowIfNull(dataType);
@@ -49,6 +53,12 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>Writes one <c>{Name}.md</c> per data type into <paramref name="outputDirectory"/>.</summary>
+        /// <param name="model">The model whose data types are written.</param>
+        /// <param name="outputDirectory">The folder the pages are written to.</param>
+        /// <returns>A task that completes when every page has been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="outputDirectory"/> is <c>null</c>.
+        /// </exception>
         public async Task GenerateAsync(XmiReaderResult model, DirectoryInfo outputDirectory)
         {
             ArgumentNullException.ThrowIfNull(model);

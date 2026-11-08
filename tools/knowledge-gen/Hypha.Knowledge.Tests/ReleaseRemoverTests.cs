@@ -18,9 +18,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.Logging.Abstractions;
 
-    /// <summary>
-    /// Suite of tests for <see cref="ReleaseRemover"/>: removing exactly one release, on request.
-    /// </summary>
     [TestFixture]
     public class ReleaseRemoverTests
     {

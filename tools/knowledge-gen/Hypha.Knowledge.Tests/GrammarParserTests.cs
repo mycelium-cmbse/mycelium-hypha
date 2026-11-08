@@ -14,13 +14,9 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Grammar;
 
-    /// <summary>
-    /// Tests for the textual BNF parser, on grammar text in the shape the <c>.kebnf</c> files use.
-    /// </summary>
     [TestFixture]
     public class GrammarParserTests
     {
-        /// <summary>A slice of the real grammar: a clause comment, a typed production, and each operator.</summary>
         internal const string Grammar =
             """
 
@@ -148,7 +144,7 @@ namespace Hypha.Knowledge.Tests
         public void Carriage_returns_never_reach_the_body()
         {
             // The sources are LF upstream, but a Windows checkout with the wrong attributes is not
-            // exotic - and a stray \r would land inside the fenced code block of the reference.
+            // exotic, and a stray \r would land inside the fenced code block of the reference.
             var productions = this.parser.Parse("// Clause 1 Parts\r\n\r\nFoo =\r\n    'foo'\r\n");
 
             Assert.Multiple(() =>

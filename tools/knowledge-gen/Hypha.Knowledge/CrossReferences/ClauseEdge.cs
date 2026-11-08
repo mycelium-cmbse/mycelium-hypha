@@ -13,7 +13,7 @@ namespace Hypha.Knowledge.CrossReferences
     /// The element is treated in this clause.
     /// </summary>
     /// <remarks>
-    /// Carries the clause <b>number</b> only - never its title or body. That is the licensing
+    /// Carries the clause <b>number</b> only, never its title or body. That is the licensing
     /// guarantee that lets this file be committed while <c>knowledge/&lt;tag&gt;/spec</c> stays
     /// git-ignored, and what lets a consumer still name the governing clause when the PDFs are absent.
     /// </remarks>

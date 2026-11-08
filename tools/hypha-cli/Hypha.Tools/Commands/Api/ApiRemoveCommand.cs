@@ -52,11 +52,14 @@ namespace Hypha.Tools.Commands.Api
         /// <summary>Runs the command.</summary>
         public sealed class Handler
         {
+            /// <summary>Deletes the API version's folders and its manifest entry.</summary>
             private readonly IApiRemover remover;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="remover">Deletes the API version's folders and its manifest entry.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="remover"/> is <c>null</c>.</exception>
             public Handler(IApiRemover remover)
             {
                 ArgumentNullException.ThrowIfNull(remover);
@@ -65,6 +68,14 @@ namespace Hypha.Tools.Commands.Api
             }
 
             /// <summary>Removes the requested API version.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the removal.</param>
+            /// <returns>
+            /// 0 when removed; 2 when the tag is not version-shaped, no API version manifest exists, the
+            /// API version is not installed, it is the default, or it is the only installed version and
+            /// <c>--force</c> was not given.
+            /// </returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

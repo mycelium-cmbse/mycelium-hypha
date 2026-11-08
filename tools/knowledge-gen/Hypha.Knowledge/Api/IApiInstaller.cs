@@ -18,6 +18,9 @@ namespace Hypha.Knowledge.Api
     public interface IApiInstaller
     {
         /// <summary>Installs the requested API version.</summary>
+        /// <param name="request">The API version to install and how.</param>
+        /// <param name="cancellationToken">Cancels the installation.</param>
+        /// <returns>The files fetched, what the tag resolved to and the manifest it was recorded in.</returns>
         /// <exception cref="System.ArgumentException">
         /// The tag is not release-shaped, or is older than <see cref="ApiCatalog.EarliestVersion"/>.
         /// </exception>

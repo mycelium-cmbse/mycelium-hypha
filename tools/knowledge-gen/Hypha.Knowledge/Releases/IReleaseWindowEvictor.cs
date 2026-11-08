@@ -23,6 +23,7 @@ namespace Hypha.Knowledge.Releases
         /// Evicts every installed release beyond the newest <paramref name="keep"/>.
         /// </summary>
         /// <param name="keep">How many releases the window holds.</param>
+        /// <param name="cancellationToken">Cancels the eviction between releases.</param>
         /// <returns>The tags evicted, oldest first; empty when the window was not over size.</returns>
         Task<IReadOnlyList<string>> EvictAsync(int keep, CancellationToken cancellationToken = default);
     }

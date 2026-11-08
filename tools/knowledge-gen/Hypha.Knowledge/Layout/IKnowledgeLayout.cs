@@ -18,7 +18,7 @@ namespace Hypha.Knowledge.Layout
     /// </summary>
     /// <remarks>
     /// One place that knows the layout, so a generator, a test and the CLI cannot disagree about it.
-    /// Every member is a path, not a promise that the path exists - ask the returned
+    /// Every member is a path, not a promise that the path exists; ask the returned
     /// <see cref="FileSystemInfo"/>.
     /// <para>
     /// Members are split by direction: what generation <b>reads</b> resolves against <see cref="Root"/>,

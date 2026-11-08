@@ -27,7 +27,7 @@ namespace Hypha.MetamodelGen.Generators
         public required IReadOnlyList<DiagramAttribute> Attributes { get; init; }
 
         /// <summary>
-        /// Gets a value indicating whether the class needs a braced body — either to carry the
+        /// Gets a value indicating whether the class needs a braced body, either to carry the
         /// <c>&lt;&lt;abstract&gt;&gt;</c> annotation or because it has attributes to show.
         /// </summary>
         public bool HasBody => this.IsAbstract || this.Attributes.Count > 0;

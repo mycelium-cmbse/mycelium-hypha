@@ -6,7 +6,7 @@ name: Hook binaries
 # Unlike the full `hypha` CLI (see release.yml), this binary IS committed to the repository: it never
 # generates anything itself, only downloads and launches the real CLI, so NativeAOT keeps it small
 # (single-digit MB per platform) rather than the ~80MB a self-contained non-AOT publish would need.
-# The plugin's SessionStart hook has no other way to reach a platform-specific compiled binary - see
+# The plugin's SessionStart hook has no other way to reach a platform-specific compiled binary; see
 # tools/hypha-cli/README.md.
 #
 # True NativeAOT cross-compilation across OS families is not reliably supported, so this needs a
@@ -87,7 +87,7 @@ jobs:
           done
 
           # The self-contained apphost is a native executable; the AOT publish output has no other
-          # files worth keeping (no .pdb - StripSymbols is set in the csproj, no .dll dependencies).
+          # files worth keeping (no .pdb, since StripSymbols is set in the csproj, and no .dll dependencies).
           chmod +x hooks/native/linux-x64/hypha-hook hooks/native/osx-x64/hypha-hook hooks/native/osx-arm64/hypha-hook
 
       - name: Commit if anything changed

@@ -44,11 +44,14 @@ namespace Hypha.Tools.Commands.Api
         /// <summary>Runs the command.</summary>
         public sealed class Handler
         {
+            /// <summary>Resolves where the API version manifest is read from and written to.</summary>
             private readonly IApiLayout layout;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="layout">Resolves where the API version manifest is read from and written to.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="layout"/> is <c>null</c>.</exception>
             public Handler(IApiLayout layout)
             {
                 ArgumentNullException.ThrowIfNull(layout);
@@ -57,6 +60,11 @@ namespace Hypha.Tools.Commands.Api
             }
 
             /// <summary>Makes the requested API version the default.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the switch; observed before the manifest is read.</param>
+            /// <returns>0 when switched or already the default; 2 when the API version is not installed.</returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
+            /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
             public Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

@@ -19,7 +19,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Api.CrossReferences;
 
     // Checks the shape the builder actually produces against the `required` lists and the declared
-    // `properties` of the schema, so adding a member to one and not the other fails here - the same technique
+    // `properties` of the schema, so adding a member to one and not the other fails here, the same technique
     // `CrossReferenceSchemaTests` uses. Every object in the schema is closed, so a member the schema does not
     // know would make it reject real documents.
     [TestFixture]

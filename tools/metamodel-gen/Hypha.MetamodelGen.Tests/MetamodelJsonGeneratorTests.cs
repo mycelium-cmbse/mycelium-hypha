@@ -17,10 +17,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests for <see cref="MetamodelJsonGenerator"/>, exercised against the fixture model and
-    /// written to a scratch directory (see <see cref="TestOutput"/>).
-    /// </summary>
     [TestFixture]
     public class MetamodelJsonGeneratorTests
     {

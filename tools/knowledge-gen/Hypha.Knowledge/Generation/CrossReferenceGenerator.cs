@@ -27,7 +27,7 @@ namespace Hypha.Knowledge.Generation
     /// </summary>
     /// <remarks>
     /// Runs last: it reads the metamodel index and the generated example pages, so both have to exist
-    /// first. It does <b>not</b> need the OMG specifications - see #88 for how the title-matched clause
+    /// first. It does <b>not</b> need the OMG specifications; see #88 for how the title-matched clause
     /// edges survive without them, and #113 for why that no longer depends on a committed prior
     /// document to carry them from.
     /// </remarks>
@@ -43,16 +43,33 @@ namespace Hypha.Knowledge.Generation
         /// <summary>Where the example paths are recorded, relative to the release's knowledge folder.</summary>
         private const string ExamplePrefix = "textual-notation/examples/";
 
+        /// <summary>Resolves the metamodel index, the grammars, the spec catalogs, the examples and the output.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Parses the textual grammars into productions.</summary>
         private readonly IGrammarParser parser;
+
+        /// <summary>Links the parsed productions to metaclasses, clauses and metamodel features.</summary>
         private readonly IGrammarLinks links;
+
+        /// <summary>Reads the metamodel index, the clause catalogs and the generated example pages.</summary>
         private readonly IKnowledgeReader reader;
+
+        /// <summary>Assembles the cross-reference document from the gathered inputs.</summary>
         private readonly ICrossReferenceBuilder builder;
+
+        /// <summary>Receives the progress messages of <see cref="GenerationLog"/>.</summary>
         private readonly ILogger<CrossReferenceGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CrossReferenceGenerator"/> class.
         /// </summary>
+        /// <param name="layout">Resolves the inputs and the output file.</param>
+        /// <param name="parser">Parses the textual grammars.</param>
+        /// <param name="links">Links productions to metaclasses, clauses and features.</param>
+        /// <param name="reader">Reads the generated knowledge the cross-references are built from.</param>
+        /// <param name="builder">Assembles the cross-reference document.</param>
+        /// <param name="logger">Receives the progress messages.</param>
         public CrossReferenceGenerator(
             IKnowledgeLayout layout,
             IGrammarParser parser,
@@ -69,13 +86,29 @@ namespace Hypha.Knowledge.Generation
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>Gets the artifact name, <c>cross-references</c>, used when reporting progress.</summary>
         public string Artifact => "cross-references";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets this generator's place in a full run, <c>40</c>: last, because it reads the metamodel index and
+        /// the generated example pages.
+        /// </summary>
         public int Order => 40;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Writes <c>knowledge/&lt;tag&gt;/cross-references.json</c> from the metamodel index, the textual
+        /// grammars, the generated examples and, when present, the specification clause catalogs.
+        /// </summary>
+        /// <param name="tag">The release to generate for.</param>
+        /// <param name="cancellationToken">Cancels the generation.</param>
+        /// <returns>
+        /// The written document, or a <see cref="GenerationOutcome.Skipped"/> result when the release has no
+        /// metamodel index or no grammar folder.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// The rendered document would carry a clause title, which would put OMG wording in it.
+        /// </exception>
         public async Task<GenerationResult> GenerateAsync(
             string tag, CancellationToken cancellationToken = default)
         {
@@ -113,6 +146,16 @@ namespace Hypha.Knowledge.Generation
             return GenerationResult.Generated([written]).Report(this.logger, this.Artifact, tag);
         }
 
+        /// <summary>
+        /// Gathers everything the <see cref="ICrossReferenceBuilder"/> needs for one release.
+        /// </summary>
+        /// <param name="tag">The release to gather the inputs of.</param>
+        /// <param name="cancellationToken">Cancels reading the grammars.</param>
+        /// <returns>
+        /// The inputs. Without a clause catalog, the title-matched clause edges and the document names are
+        /// carried from the document a previous run left under the repository root; when neither exists, the
+        /// inputs allow a grammar-only document and a <see cref="GenerationLog.Degraded"/> warning is logged.
+        /// </returns>
         private async Task<CrossReferenceInputs> InputsAsync(string tag, CancellationToken cancellationToken)
         {
             var (elements, modelVersionUri) = this.reader.ReadElements(this.layout.MetamodelIndex(tag));
@@ -145,8 +188,8 @@ namespace Hypha.Knowledge.Generation
                 documents[key] = document;
             }
 
-            // Without the specifications, the title-matched edges - and the document names they refer
-            // to - come from the document a previous run committed. See #88. Deliberately the
+            // Without the specifications, the title-matched edges (and the document names they refer
+            // to) come from the document a previous run committed. See #88. Deliberately the
             // committed path rather than the output one: generating elsewhere must still carry
             // forward from the repository, or a redirected run would silently drop these edges.
             var previous = CrossReferenceFile.ReadIfPresent(
@@ -163,8 +206,8 @@ namespace Hypha.Knowledge.Generation
             }
 
             // Neither source of title-matched edges exists: no specification PDFs were extracted (the
-            // ordinary case for every install without a maintainer source checkout - see #113) and
-            // nothing was carried forward (nothing is committed for any release any more - see #106).
+            // ordinary case for every install without a maintainer source checkout, see #113) and
+            // nothing was carried forward (nothing is committed for any release any more, see #106).
             // That combination is no longer the rare accident CrossReferenceInputs.AllowGrammarOnly's
             // doc comment describes; it is the default state of a real install, so state the
             // grammar-only document is intended rather than let the builder refuse it.
@@ -192,6 +235,11 @@ namespace Hypha.Knowledge.Generation
             };
         }
 
+        /// <summary>Applies <paramref name="select"/> to each grammar's productions, keeping the grammar keys.</summary>
+        /// <typeparam name="TResult">What each grammar's productions are projected to.</typeparam>
+        /// <param name="parsed">The parsed productions, by grammar key.</param>
+        /// <param name="select">The projection.</param>
+        /// <returns>The projected values, by grammar key, with ordinal keys.</returns>
         private static Dictionary<string, TResult> Project<TResult>(
             Dictionary<string, IReadOnlyList<Production>> parsed,
             Func<IReadOnlyList<Production>, TResult> select) =>

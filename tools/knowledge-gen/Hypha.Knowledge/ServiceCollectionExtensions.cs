@@ -152,7 +152,7 @@ namespace Hypha.Knowledge
             services.AddSingleton<ICrossReferenceBuilder, CrossReferenceBuilder>();
             services.AddSingleton<IKnowledgeReader, KnowledgeReader>();
 
-            // The one seam for shelling out - move-window's spec-extract/metamodel-gen steps and the
+            // The one seam for shelling out: move-window's spec-extract/metamodel-gen steps and the
             // SpecGenerator's on-demand `uv` invocation both go through this.
             services.AddSingleton<IProcessRunner, SystemProcessRunner>();
 

@@ -24,7 +24,7 @@ namespace Hypha.Knowledge.Releases
     {
         /// <summary>The tags that fall outside the newest <paramref name="keep"/>, oldest first.</summary>
         /// <exception cref="ArgumentOutOfRangeException">
-        /// <paramref name="keep"/> is less than one - a window that keeps nothing is not a window.
+        /// <paramref name="keep"/> is less than one: a window that keeps nothing is not a window.
         /// </exception>
         public static IReadOnlyList<string> Evicted(IReadOnlyList<InstalledVersion> versions, int keep)
         {

@@ -21,8 +21,8 @@ namespace Hypha.Knowledge.Generation
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// Writes <c>knowledge/&lt;tag&gt;/spec/{kerml,sysml2}/</c> - the full verbatim clause text of the
-    /// OMG specifications - by running <c>tools/spec-extract</c> (Python/pdfplumber) through <c>uv</c>.
+    /// Writes <c>knowledge/&lt;tag&gt;/spec/{kerml,sysml2}/</c>, the full verbatim clause text of the
+    /// OMG specifications, by running <c>tools/spec-extract</c> (Python/pdfplumber) through <c>uv</c>.
     /// </summary>
     /// <remarks>
     /// Unlike every other generator, the real work happens outside this process entirely: <c>uv</c>
@@ -32,7 +32,7 @@ namespace Hypha.Knowledge.Generation
     /// <c>tools/spec-extract</c> is already present on disk for an installed plugin (it ships as a
     /// tag-pinned full checkout); only the runtime to execute it was ever missing.
     /// <para>
-    /// Runs before <see cref="CrossReferenceGenerator"/> (<see cref="Order"/> 40) so a single
+    /// Runs before <see cref="CrossReferenceGenerator"/> (<see cref="CrossReferenceGenerator.Order"/> 40) so a single
     /// <c>hypha generate</c> pass gives the cross-references the freshly generated spec catalog to read,
     /// per <see cref="IKnowledgeLayout.SpecificationCatalog"/>'s own contract.
     /// </para>
@@ -72,13 +72,27 @@ namespace Hypha.Knowledge.Generation
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>Gets the artifact name, <c>spec</c>, used when reporting progress.</summary>
         public string Artifact => "spec";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets this generator's place in a full run, <c>37</c>: after the model library and before the
+        /// cross-references, which read the spec catalogs it writes.
+        /// </summary>
         public int Order => 37;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Writes <c>knowledge/&lt;tag&gt;/spec/{kerml,sysml2}/</c> by running <c>tools/spec-extract</c>
+        /// through a provisioned <c>uv</c> against the release's specification PDFs.
+        /// </summary>
+        /// <param name="tag">The release to generate for.</param>
+        /// <param name="cancellationToken">Cancels provisioning <c>uv</c> and the extraction.</param>
+        /// <returns>
+        /// Every file under the release's <c>spec/</c> folder, or a <see cref="GenerationOutcome.Skipped"/>
+        /// result when either PDF is absent, <c>uv</c> cannot be provisioned, the extraction exits with a
+        /// non-zero code, or it writes nothing. None of these throws: the specification text is optional.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
         public async Task<GenerationResult> GenerateAsync(string tag, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);

@@ -97,7 +97,7 @@ namespace Hypha.Knowledge.Tests
         public void Resolves_the_grammar_services_by_their_interfaces()
         {
             // They are resolved rather than constructed so the CLI (#81) composes them once, and so a
-            // caller can substitute one - which is also why they are not static despite holding no
+            // caller can substitute one, which is also why they are not static despite holding no
             // per-call state.
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
@@ -310,7 +310,7 @@ namespace Hypha.Knowledge.Tests
         public void No_api_generator_is_registered_among_the_language_generators()
         {
             // An API generator is an IKnowledgeGenerator too, so it could be registered under that
-            // type by mistake - and `hypha generate` would then run it for every language release.
+            // type by mistake, and `hypha generate` would then run it for every language release.
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
             Assert.That(

@@ -1,9 +1,9 @@
-# Hypha.Tools – the `hypha` command
+# Hypha.Tools: the `hypha` command
 
 `hypha` fetches the upstream OMG **SysML v2** and **KerML** sources for a release and generates a
 local knowledge base from them: the metamodel, the textual-notation grammar and its examples, the
 standard model library, the specification text, and cross-references between them. The
-**Systems Modeling API & Services** – the SysML v2 API – has its own versions and verbs.
+**Systems Modeling API & Services**, the SysML v2 API, has its own versions and verbs.
 
 It is the engine behind Hypha's [Claude Code plugin](https://github.com/mycelium-cmbse/mycelium-hypha)
 and its [VS Code extension for GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha),
@@ -48,6 +48,6 @@ submission team's repositories under the Eclipse Public License 2.0.
 
 ## More
 
-- [Command reference](https://github.com/mycelium-cmbse/mycelium-hypha/blob/development/tools/hypha-cli/README.md) – every verb and option, lookup rules, the JSON contract and exit codes
+- [Command reference](https://github.com/mycelium-cmbse/mycelium-hypha/blob/development/tools/hypha-cli/README.md): every verb and option, lookup rules, the JSON contract and exit codes
 - [Release notes](https://github.com/mycelium-cmbse/mycelium-hypha/releases)
 - [Issues](https://github.com/mycelium-cmbse/mycelium-hypha/issues)

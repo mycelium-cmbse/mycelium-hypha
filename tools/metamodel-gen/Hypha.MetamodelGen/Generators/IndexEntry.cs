@@ -17,6 +17,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="IndexEntry"/> class.
         /// </summary>
+        /// <param name="name">The element name.</param>
+        /// <param name="summary">The one-line summary of the element documentation (may be empty).</param>
         public IndexEntry(string name, string summary)
         {
             this.Name = name;

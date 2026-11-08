@@ -17,7 +17,7 @@ namespace Hypha.Knowledge.ModelLibrary
     public static class ModelLibraryFile
     {
         /// <summary>
-        /// Two-space indent, unescaped non-ASCII, property order taken from the records - the same
+        /// Two-space indent, unescaped non-ASCII, property order taken from the records: the same
         /// format <c>cross-references.json</c> uses, for the same reason: these settings are the file
         /// format, so changing any of them rewrites every committed document.
         /// </summary>

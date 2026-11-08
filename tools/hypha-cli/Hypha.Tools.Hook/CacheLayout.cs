@@ -15,7 +15,7 @@ namespace Hypha.Tools.Hook
     using System.Text;
 
     /// <summary>
-    /// Where the downloaded CLI binary and this install's operational state live - deliberately
+    /// Where the downloaded CLI binary and this install's operational state live: deliberately
     /// outside the plugin's own git-managed folder, since a plugin update/reinstall could reset that
     /// tree mid-run and an in-tree file would show as untracked noise in a maintainer's own checkout.
     /// </summary>
@@ -27,12 +27,13 @@ namespace Hypha.Tools.Hook
     /// </remarks>
     public sealed class CacheLayout
     {
+        /// <summary>The folder, under the local application data folder, the cache lives in.</summary>
         private const string CacheFolderName = "mycelium-hypha";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheLayout"/> class.
         /// </summary>
-        /// <param name="root">The cache root - see <see cref="ResolveRoot"/>.</param>
+        /// <param name="root">The cache root (see <see cref="ResolveRoot"/>).</param>
         /// <param name="installKey">See <see cref="ComputeInstallKey"/>.</param>
         public CacheLayout(DirectoryInfo root, string installKey)
         {
@@ -50,6 +51,9 @@ namespace Hypha.Tools.Hook
         public string InstallKey { get; }
 
         /// <summary><c>bin/&lt;version&gt;/&lt;rid&gt;/</c> - where one CLI build is cached.</summary>
+        /// <param name="version">The CLI version.</param>
+        /// <param name="rid">The runtime identifier the build targets, e.g. <c>win-x64</c>.</param>
+        /// <returns>The folder, which need not exist.</returns>
         public DirectoryInfo BinDirectory(string version, string rid) =>
             new(Path.Combine(this.Root.FullName, "bin", version, rid));
 
@@ -60,15 +64,21 @@ namespace Hypha.Tools.Hook
         /// deriving it from the RID keeps this a pure function of its arguments rather than of the
         /// environment it happens to run in.
         /// </remarks>
+        /// <param name="version">The CLI version.</param>
+        /// <param name="rid">The runtime identifier the build targets, e.g. <c>win-x64</c>.</param>
+        /// <returns>The executable, <c>hypha.exe</c> for a Windows RID and <c>hypha</c> otherwise; it need not exist.</returns>
         public FileInfo CliExecutable(string version, string rid) =>
             new(Path.Combine(
                 this.BinDirectory(version, rid).FullName,
                 rid.StartsWith("win", StringComparison.Ordinal) ? "hypha.exe" : "hypha"));
 
         /// <summary>
-        /// Written only once the cached CLI's checksum has been verified - its presence is what lets a
+        /// Written only once the cached CLI's checksum has been verified; its presence is what lets a
         /// later run skip the network entirely.
         /// </summary>
+        /// <param name="version">The CLI version.</param>
+        /// <param name="rid">The runtime identifier the build targets, e.g. <c>win-x64</c>.</param>
+        /// <returns>The <c>.ok</c> marker file, which need not exist.</returns>
         public FileInfo OkMarker(string version, string rid) =>
             new(Path.Combine(this.BinDirectory(version, rid).FullName, ".ok"));
 
@@ -84,6 +94,7 @@ namespace Hypha.Tools.Hook
         /// <param name="getFolderPath">
         /// Injectable for tests; defaults to <see cref="System.Environment.GetFolderPath(System.Environment.SpecialFolder)"/>.
         /// </param>
+        /// <returns>The <c>mycelium-hypha</c> folder under the local application data folder.</returns>
         public static DirectoryInfo ResolveRoot(Func<Environment.SpecialFolder, string>? getFolderPath = null)
         {
             getFolderPath ??= Environment.GetFolderPath;
@@ -96,6 +107,11 @@ namespace Hypha.Tools.Hook
         /// A short, stable, filesystem-safe key for a plugin root path, so a maintainer's dev checkout
         /// and a marketplace install never collide.
         /// </summary>
+        /// <param name="pluginRootFullPath">The plugin root's path, compared case-insensitively.</param>
+        /// <returns>The first 16 lowercase hexadecimal digits of the path's SHA256.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="pluginRootFullPath"/> is <c>null</c>, empty or white space.
+        /// </exception>
         public static string ComputeInstallKey(string pluginRootFullPath)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(pluginRootFullPath);

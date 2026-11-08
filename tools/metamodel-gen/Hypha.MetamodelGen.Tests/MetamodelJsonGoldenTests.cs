@@ -16,11 +16,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Golden-file tests for the JSON sidecar, compared against a committed expected file under
-    /// <c>Expected/metamodel/</c> - the fixture model (see <see cref="TestModel"/>) is the only one
-    /// exercised now that nothing per-release is committed.
-    /// </summary>
     [TestFixture]
     public class MetamodelJsonGoldenTests
     {

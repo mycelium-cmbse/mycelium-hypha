@@ -6,12 +6,12 @@ declarations on your machine and gives Copilot source links to cite in its answe
 
 ## What you can do
 
-- **Explore the metamodel** – ask about elements such as `PartUsage`, their features, inheritance,
+- **Explore the metamodel**: ask about elements such as `PartUsage`, their features, inheritance,
   operations and constraints.
-- **Find standard-library declarations** – look up names such as `ScalarValues::Real`.
-- **Know which release answers your question** – check the default release and whether its
+- **Find standard-library declarations**: look up names such as `ScalarValues::Real`.
+- **Know which release answers your question**: check the default release and whether its
   generated knowledge is available.
-- **Keep working across folders** – installed knowledge is shared across workspaces on the same
+- **Keep working across folders**: installed knowledge is shared across workspaces on the same
   VS Code host.
 
 Hypha is a preview, published as a pre-release for Windows x64 and for Linux x64 and arm64
@@ -123,8 +123,8 @@ Source excerpts returned to Copilot are included in its chat context.
 - **Tools are not listed:** check that Hypha is enabled on the current workspace host, reload the
   window and open a new Agent chat. Check **Configure Tools** again.
 - **Windows: a path is too long:** Hypha's data sits under
-  `%APPDATA%\Code\User\globalStorage\mycelium-cmbse.mycelium-hypha\`, and its deepest files – a
-  generated example page and files inside the managed Python – add up to about 165 characters. With
+  `%APPDATA%\Code\User\globalStorage\mycelium-cmbse.mycelium-hypha\`, and its deepest files (a
+  generated example page and files inside the managed Python) add up to about 165 characters. With
   a long Windows user name (about 18 characters or more), or with VS Code Insiders, whose folder name
   is longer, some paths go past Windows' classic 260-character limit. Hypha's CLI, `uv` and VS Code
   handle long paths, but other tools may not. If extraction, or opening a cited file, fails with a

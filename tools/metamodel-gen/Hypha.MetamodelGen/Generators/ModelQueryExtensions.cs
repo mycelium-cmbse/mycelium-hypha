@@ -20,6 +20,9 @@ namespace Hypha.MetamodelGen.Generators
         /// Converts a uml4net upper-multiplicity bound (a string, where <c>*</c> denotes unbounded and
         /// an empty value denotes the UML default of 1) to a number, encoding unbounded as <c>-1</c>.
         /// </summary>
+        /// <param name="rawUpper">The upper bound as uml4net reads it from the XMI.</param>
+        /// <returns>The upper bound, <c>-1</c> when unbounded.</returns>
+        /// <exception cref="System.FormatException"><paramref name="rawUpper"/> is neither <c>*</c> nor an integer.</exception>
         public static int QueryUpperBound(string? rawUpper)
         {
             if (string.IsNullOrEmpty(rawUpper))

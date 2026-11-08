@@ -25,6 +25,9 @@ namespace Hypha.Knowledge.Generation
         string? Reason = null)
     {
         /// <summary>The artifact was written.</summary>
+        /// <param name="written">The files written.</param>
+        /// <returns>A <see cref="GenerationOutcome.Generated"/> result with no reason.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="written"/> is <c>null</c>.</exception>
         public static GenerationResult Generated(IReadOnlyList<FileInfo> written)
         {
             ArgumentNullException.ThrowIfNull(written);
@@ -36,6 +39,9 @@ namespace Hypha.Knowledge.Generation
         /// The inputs are not present. <paramref name="reason"/> is shown to whoever asked for the
         /// generation, so it should name what is missing rather than restating that something is.
         /// </summary>
+        /// <param name="reason">Why nothing was written, in words a user can act on.</param>
+        /// <returns>A <see cref="GenerationOutcome.Skipped"/> result with no written files.</returns>
+        /// <exception cref="ArgumentException"><paramref name="reason"/> is <c>null</c>, empty or white space.</exception>
         public static GenerationResult Skipped(string reason)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(reason);

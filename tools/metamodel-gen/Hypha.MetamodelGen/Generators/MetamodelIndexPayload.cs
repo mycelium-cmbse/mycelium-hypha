@@ -19,6 +19,12 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="MetamodelIndexPayload"/> class.
         /// </summary>
+        /// <param name="title">The human-readable metamodel title.</param>
+        /// <param name="metaclassCount">The total number of metaclasses listed.</param>
+        /// <param name="packageCount">The number of packages that contain at least one metaclass.</param>
+        /// <param name="packages">The package groups, ordered for deterministic output.</param>
+        /// <param name="enumerations">The enumerations, ordered by name.</param>
+        /// <param name="primitiveTypes">The primitive types, ordered by name.</param>
         public MetamodelIndexPayload(
             string title,
             int metaclassCount,

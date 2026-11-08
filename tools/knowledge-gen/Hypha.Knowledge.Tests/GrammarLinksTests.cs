@@ -14,9 +14,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Grammar;
 
-    /// <summary>
-    /// Tests for the grammar-to-metamodel joins, and above all for the guards that keep them honest.
-    /// </summary>
     [TestFixture]
     public class GrammarLinksTests
     {
@@ -76,7 +73,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void Clause_links_are_ordered_numerically()
         {
-            // 8.3.10 follows 8.3.2 - ordinal ordering would put it between 8.3.1 and 8.3.2.
+            // 8.3.10 follows 8.3.2; ordinal ordering would put it between 8.3.1 and 8.3.2.
             var grammar =
                 """
                 // Clause 8.3.10 Later

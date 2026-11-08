@@ -36,7 +36,7 @@ namespace Hypha.Knowledge.Releases
         /// </summary>
         public const string SharedXmi = "PrimitiveTypes.xmi";
 
-        /// <summary>The specification PDFs. OMG-copyrighted - written only to a git-ignored folder.</summary>
+        /// <summary>The specification PDFs. OMG-copyrighted, written only to a git-ignored folder.</summary>
         public static IReadOnlyList<string> SpecificationPdfs { get; } =
         [
             "doc/1-Kernel_Modeling_Language.pdf",
@@ -44,18 +44,29 @@ namespace Hypha.Knowledge.Releases
             "doc/3-Systems_Modeling_API_and_Services.pdf",
         ];
 
+        /// <summary>The grammar file extensions taken from <c>bnf/</c>: the textual and the graphical grammars.</summary>
         private static readonly string[] GrammarSuffixes = [".kebnf", ".kgbnf"];
+
+        /// <summary>
+        /// The folders models are taken from. The trailing slash keeps <c>sysml.library.xmi/</c> and
+        /// <c>sysml.library.kpar/</c> out.
+        /// </summary>
         private static readonly string[] ModelRoots = ["kerml/", "sysml/", "sysml.library/"];
+
+        /// <summary>The model file extensions.</summary>
         private static readonly string[] ModelSuffixes = [".kerml", ".sysml"];
 
         /// <summary>
         /// The grammar and model files hypha needs, from a full Release-repository listing.
         /// </summary>
+        /// <param name="treePaths">Every blob path in the Release repository at a tag.</param>
+        /// <returns>The <c>bnf/</c> grammars, then the models, each group ordered ordinally.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="treePaths"/> is <c>null</c>.</exception>
         /// <remarks>
-        /// Grammar first, then the models, each ordered - so the result is stable regardless of the
+        /// Grammar first, then the models, each ordered, so the result is stable regardless of the
         /// order the listing arrives in. The grammar's HTML rendering, CSS and SVGs are excluded.
-        /// <c>sysml.library/</c> - the normative standard libraries (ISQ, ScalarValues, SysML.sysml,
-        /// ...) - is included as of #80: it is normative model content a user's own model
+        /// <c>sysml.library/</c>, the normative standard libraries (ISQ, ScalarValues, SysML.sysml,
+        /// ...), is included as of #80: it is normative model content a user's own model
         /// specializes, not merely an example. The exact "sysml.library/" prefix (trailing slash) is
         /// what keeps its siblings <c>sysml.library.xmi/</c> (24 MB) and <c>sysml.library.kpar/</c>
         /// out without a second rule, since the character after "sysml.library" there is "." rather

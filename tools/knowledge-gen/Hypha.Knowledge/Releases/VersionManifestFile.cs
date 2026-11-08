@@ -24,6 +24,10 @@ namespace Hypha.Knowledge.Releases
     /// </remarks>
     public static class VersionManifestFile
     {
+        /// <summary>
+        /// The fixed serializer options: indented, camel-case property names for the nested records too, and
+        /// relaxed escaping so the output stays readable.
+        /// </summary>
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
             WriteIndented = true,
@@ -34,6 +38,7 @@ namespace Hypha.Knowledge.Releases
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
+        /// <summary>UTF-8 without a byte-order mark.</summary>
         private static readonly UTF8Encoding Utf8WithoutBom = new(false);
 
         /// <summary>Renders the manifest deterministically.</summary>

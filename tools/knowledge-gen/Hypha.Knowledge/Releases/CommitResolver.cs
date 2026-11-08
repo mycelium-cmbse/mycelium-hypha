@@ -24,14 +24,17 @@ namespace Hypha.Knowledge.Releases
         /// <summary>Relative to the API base address, so the host stays configurable.</summary>
         private const string CommitPath = "repos/{0}/commits/{1}";
 
+        /// <summary>The client commits are requested with, already carrying its headers and credential.</summary>
         private readonly HttpClient client;
+
+        /// <summary>The API host commits are requested from.</summary>
         private readonly Uri apiBaseAddress;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitResolver"/> class.
         /// </summary>
         /// <param name="client">
-        /// A client already configured with the headers and credential to use — normally the same one
+        /// A client already configured with the headers and credential to use, normally the same one
         /// given to <see cref="ReleaseDiscovery"/>.
         /// </param>
         /// <param name="apiBaseAddress">The API host; defaults to the public GitHub API.</param>

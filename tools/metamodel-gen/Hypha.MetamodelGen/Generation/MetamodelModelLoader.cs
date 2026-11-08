@@ -38,7 +38,7 @@ namespace Hypha.MetamodelGen.Generation
         /// </summary>
         /// <remarks>
         /// Not a location we choose. It is the literal string the OMG XMI contains, and it is the key
-        /// we have to answer to for resolution to succeed - the value it maps <i>to</i> is what varies,
+        /// we have to answer to for resolution to succeed; the value it maps <i>to</i> is what varies,
         /// and that comes from the layout.
         /// </remarks>
         [SuppressMessage(
@@ -51,17 +51,28 @@ namespace Hypha.MetamodelGen.Generation
         /// <summary>The root document; KerML is pulled in by reference.</summary>
         public const string RootDocument = "SysML_only_xmi.uml";
 
+        /// <summary>
+        /// The model read for each tag, or <c>null</c> for a tag whose XMI was absent, keyed ordinally.
+        /// </summary>
         private readonly ConcurrentDictionary<string, XmiReaderResult?> cache =
             new(StringComparer.Ordinal);
 
+        /// <summary>Resolves a release's XMI folder and the shared primitive types.</summary>
         private readonly IKnowledgeLayout layout;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MetamodelModelLoader"/> class.
         /// </summary>
+        /// <param name="layout">Resolves a release's XMI folder and the shared primitive types.</param>
         public MetamodelModelLoader(IKnowledgeLayout layout) => this.layout = layout;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// The combined KerML + SysML model for <paramref name="tag"/>, read on the first call for that
+        /// tag and served from the cache afterwards.
+        /// </summary>
+        /// <param name="tag">The release whose metamodel is loaded.</param>
+        /// <returns>The model, or <c>null</c> when that release's XMI has not been fetched.</returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
         public XmiReaderResult? Load(string tag)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -69,6 +80,12 @@ namespace Hypha.MetamodelGen.Generation
             return this.cache.GetOrAdd(tag, this.Read);
         }
 
+        /// <summary>
+        /// Reads <paramref name="tag"/>'s model from <see cref="RootDocument"/>, mapping the UML
+        /// primitive types to the shared copy.
+        /// </summary>
+        /// <param name="tag">The release whose metamodel is read.</param>
+        /// <returns>The model, or <c>null</c> when the root document does not exist.</returns>
         private XmiReaderResult? Read(string tag)
         {
             var xmiDirectory = this.layout.Xmi(tag);

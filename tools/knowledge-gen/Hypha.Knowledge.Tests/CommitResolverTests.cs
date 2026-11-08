@@ -18,9 +18,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for resolving a tag to a commit, against a stubbed transport - no live calls.
-    /// </summary>
     [TestFixture]
     public class CommitResolverTests
     {

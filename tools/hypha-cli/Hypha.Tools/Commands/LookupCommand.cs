@@ -104,9 +104,11 @@ namespace Hypha.Tools.Commands
             /// <param name="parseResult">The parsed command line holding this verb's options.</param>
             /// <param name="cancellationToken">Cancels the run before it starts.</param>
             /// <returns>
-            /// 0 when the lookup ran, whatever the name resolved to - the status says that. 1 when it
+            /// 0 when the lookup ran, whatever the name resolved to; the status says that. 1 when it
             /// could not run: the release is not installed or generated, or the request is invalid.
             /// </returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
+            /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
@@ -151,9 +153,10 @@ namespace Hypha.Tools.Commands
 
             /// <summary>
             /// Prints a lookup result for a person: the page with a heading line when the name was found, otherwise
-            /// what the index held instead – nothing, or the candidates to choose from.
+            /// what the index held instead: nothing, or the candidates to choose from.
             /// </summary>
             /// <param name="result">The result to print; its <see cref="LookupResult.Status"/> decides the form.</param>
+            /// <returns>A task that completes once the result has been printed.</returns>
             private static async Task Report(LookupResult result)
             {
                 switch (result.Status)

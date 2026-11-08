@@ -18,9 +18,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.Logging.Abstractions;
 
-    /// <summary>
-    /// Tests for shrinking the installed releases back to the rolling window.
-    /// </summary>
     [TestFixture]
     public class ReleaseWindowEvictorTests
     {
@@ -48,7 +45,6 @@ namespace Hypha.Knowledge.Tests
             }
         }
 
-        /// <summary>Seeds a real, if empty, release: a manifest entry plus dummy source/knowledge files.</summary>
         private void Seed(string tag)
         {
             var xmi = this.layout.Xmi(tag);
@@ -132,7 +128,7 @@ namespace Hypha.Knowledge.Tests
         public void Evicting_the_default_release_is_refused_and_nothing_is_deleted()
         {
             // Unreachable in a normal run (the default always tracks the newest tag), but a stale or
-            // hand-edited manifest could still ask for it - refuse loudly rather than leave every
+            // hand-edited manifest could still ask for it; refuse loudly rather than leave every
             // skill pointing at a folder that no longer exists.
             this.Seed("2026-04");
             this.Seed("2026-05");

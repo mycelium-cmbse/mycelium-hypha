@@ -27,9 +27,6 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Tests for the one place a caller can vary how fetching and generation behave.
-    /// </summary>
     [TestFixture]
     public class HyphaKnowledgeOptionsTests
     {

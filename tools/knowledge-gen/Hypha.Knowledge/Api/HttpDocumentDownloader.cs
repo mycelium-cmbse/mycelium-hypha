@@ -24,6 +24,7 @@ namespace Hypha.Knowledge.Api
     /// </remarks>
     public sealed class HttpDocumentDownloader : IDocumentDownloader
     {
+        /// <summary>The credential-free client the documents are downloaded with.</summary>
         private readonly HttpClient client;
 
         /// <summary>
@@ -37,7 +38,19 @@ namespace Hypha.Knowledge.Api
             this.client = client;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Downloads <paramref name="address"/> to <paramref name="destination"/>, creating its folder,
+        /// unless <paramref name="skipExisting"/> is set and a non-empty file is already there.
+        /// </summary>
+        /// <param name="address">The document to download.</param>
+        /// <param name="destination">The file to write it to; an existing file is overwritten.</param>
+        /// <param name="skipExisting">Keeps a non-empty file already at <paramref name="destination"/>.</param>
+        /// <param name="cancellationToken">Cancels the download and the write.</param>
+        /// <returns><paramref name="destination"/>, refreshed.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="address"/> or <paramref name="destination"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="HttpRequestException">The server did not answer with a success status.</exception>
         /// <remarks>
         /// A zero-byte file counts as an interrupted write rather than a completed download, so a
         /// resumed run replaces it.

@@ -30,7 +30,14 @@ namespace Hypha.Knowledge.CrossReferences
         /// <summary>A clause the grammar's own <c>// Clause</c> comment states. Read, not guessed.</summary>
         public const string GrammarClause = "grammar-clause";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Assembles the whole document from <paramref name="inputs"/>: for every metamodel element, its
+        /// specification clauses, grammar productions, populated features and worked examples, each edge
+        /// carrying its provenance tier and method. Pure: no disk access, no ordering surprises.
+        /// </summary>
+        /// <param name="inputs">Everything read from the knowledge trees for one release.</param>
+        /// <returns>The cross-reference document, ready to be rendered.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="inputs"/> is <c>null</c>.</exception>
         /// <exception cref="InvalidOperationException">
         /// There is neither a clause catalog to match titles against nor a previous document to carry
         /// them from, and <see cref="CrossReferenceInputs.AllowGrammarOnly"/> was not set.
@@ -105,7 +112,7 @@ namespace Hypha.Knowledge.CrossReferences
         }
 
         /// <summary>
-        /// Matches element names against clause titles, exactly - or takes the matches a previous run
+        /// Matches element names against clause titles, exactly, or takes the matches a previous run
         /// recorded, when the specification catalog is not present.
         /// </summary>
         /// <remarks>

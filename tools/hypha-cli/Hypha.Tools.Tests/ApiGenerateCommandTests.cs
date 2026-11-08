@@ -323,7 +323,7 @@ namespace Hypha.Tools.Tests
         public async Task The_language_verb_does_not_read_the_api_verbs_tags()
         {
             // Parsed as `api generate`, the language handler finds neither its artifact nor its
-            // --tag, so it falls back to every installed release - never to the API versions typed.
+            // --tag, so it falls back to every installed release, never to the API versions typed.
             var knowledge = new Mock<IKnowledgeLayout>();
             knowledge.SetupGet(mock => mock.InstalledTags).Returns(["2026-05"]);
             knowledge.SetupGet(mock => mock.Root).Returns(new DirectoryInfo(Path.GetTempPath()));

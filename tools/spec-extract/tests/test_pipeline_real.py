@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """End-to-end smoke test against the real KerML PDF (skips when the git-ignored PDF is absent).
 
-Asserts structural properties only — never OMG text — so nothing copyrighted enters the repo.
+Asserts structural properties only (never OMG text), so nothing copyrighted enters the repo.
 """
 
 from __future__ import annotations
