@@ -1,0 +1,68 @@
+# Keeps the repository's dependencies current, as pull requests into development.
+#
+# - Weekly, with minor and patch updates grouped into one pull request per ecosystem; a major update
+#   comes on its own, since it is the one that may need reading the release notes.
+# - A cooldown of 14 days: a version is proposed only once it has been out for two weeks, the same
+#   rule used when pinning versions by hand.
+# - Commit messages and pull-request titles in the repository's "[Update] …" form (the trailing
+#   space stops Dependabot adding a colon after the bracket).
+
+version: 2
+
+updates:
+  # The four workflows under .github/workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: "[Update] "
+    groups:
+      github-actions:
+        update-types: [minor, patch]
+
+  # The central package versions in Directory.Packages.props, for every project in the solution,
+  # the NativeAOT hook included.
+  - package-ecosystem: nuget
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: "[Update] "
+    groups:
+      nuget:
+        update-types: [minor, patch]
+
+  # The VS Code extension's development dependencies; nothing from node_modules ships in the VSIX.
+  - package-ecosystem: npm
+    directory: /extensions/vscode
+    target-branch: development
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: "[Update] "
+    groups:
+      npm:
+        update-types: [minor, patch]
+
+  # The specification extractor, which the CLI and the VS Code extension provision through uv.
+  - package-ecosystem: uv
+    directory: /tools/spec-extract
+    target-branch: development
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: "[Update] "
+    groups:
+      spec-extract:
+        update-types: [minor, patch]

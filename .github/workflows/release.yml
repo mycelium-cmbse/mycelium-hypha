@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -50,12 +50,12 @@ jobs:
           fi
 
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v5.1.0
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: '10.0.x'
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: '3.12'
 
@@ -141,7 +141,7 @@ jobs:
 
           # A self-contained single file bundles every transitive dependency's bytes, so their
           # attribution notices have to travel with it.
-          dotnet tool install --global nuget-license
+          dotnet tool install --global nuget-license --version 4.0.18
           export PATH="$PATH:$HOME/.dotnet/tools"
 
           nuget-license \
@@ -211,7 +211,7 @@ jobs:
         # Pinned to the commit rather than the tag: this is the one third-party action here, it runs
         # with a token that can write releases, and a tag can be repointed by whoever owns it. The
         # comment is the human-readable half - bump both together.
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228  # v3.0.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
           draft: true
           prerelease: ${{ env.PRERELEASE }}

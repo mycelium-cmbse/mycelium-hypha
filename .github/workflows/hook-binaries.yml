@@ -42,10 +42,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
 
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v5.1.0
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: '10.0.x'
 
@@ -57,7 +57,7 @@ jobs:
         shell: bash
 
       - name: Upload ${{ matrix.rid }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: hypha-hook-${{ matrix.rid }}
           path: publish/${{ matrix.rid }}/${{ matrix.executable }}
@@ -69,10 +69,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
 
       - name: Download every platform's binary
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: hypha-hook-*
           path: downloaded
