@@ -55,8 +55,7 @@ namespace Hypha.Tools.Hook
         /// equivalent) - which a test must never read from or write to, since a machine that has
         /// actually used this hook before may already have a matching version/RID cached there.
         /// </summary>
-        internal static async Task RunAsync(
-            HttpClient client, Func<Environment.SpecialFolder, string>? getFolderPath = null)
+        internal static async Task RunAsync(HttpClient client, Func<Environment.SpecialFolder, string>? getFolderPath = null)
         {
             var pluginRoot = ResolvePluginRoot();
             var version = ReadPinnedCliVersion(pluginRoot);
