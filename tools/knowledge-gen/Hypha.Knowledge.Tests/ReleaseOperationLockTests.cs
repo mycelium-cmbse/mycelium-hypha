@@ -13,6 +13,7 @@ namespace Hypha.Knowledge.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
 
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
 
     [TestFixture]
@@ -137,6 +139,7 @@ namespace Hypha.Knowledge.Tests
             {
                 Assert.That(exception!.Message, Does.Contain("unreadable or still being created"));
                 Assert.That(exception.Message, Does.Contain(ReleaseOperationLock.FileName));
+                Assert.That(exception.Message, Does.Contain(this.root.FullName));
                 Assert.That(File.ReadAllText(this.LockPath), Is.EqualTo(content));
                 Assert.That(File.Exists(this.RecoveryPath), Is.False);
             });
@@ -153,19 +156,116 @@ namespace Hypha.Knowledge.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(exception!.Message, Does.Contain(ReleaseOperationLock.RecoveryFileName));
+                Assert.That(exception.Message, Does.Contain(this.root.FullName));
                 Assert.That(File.Exists(this.LockPath), Is.True);
                 Assert.That(File.Exists(this.RecoveryPath), Is.True);
             });
         }
 
         [Test]
-        public async Task A_second_owner_is_refused_while_the_first_holds_the_lock()
+        public async Task The_lock_file_is_the_exact_bytes_JSON_stringify_would_write()
+        {
+            await using var lease = await this.releaseLock.AcquireAsync();
+
+            var bytes = File.ReadAllBytes(this.LockPath);
+            using var document = JsonDocument.Parse(bytes);
+            var token = document.RootElement.GetProperty("token").GetString();
+            var expected = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
+                .GetBytes($$"""{"pid":{{Environment.ProcessId}},"token":"{{token}}"}""");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(bytes[0], Is.EqualTo((byte)'{'), "no byte order mark: the extension's JSON.parse would refuse it");
+                Assert.That(bytes, Is.EqualTo(expected));
+            });
+        }
+
+        [Test]
+        public async Task The_lock_is_taken_in_the_repository_root_not_the_output_root()
+        {
+            var output = new DirectoryInfo(Path.Combine(this.workspace.FullName, "output"));
+            var separate = new ReleaseOperationLock(
+                new KnowledgeLayout(this.root, output), this.processes, NullLogger<ReleaseOperationLock>.Instance);
+
+            await using var lease = await separate.AcquireAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(File.Exists(this.LockPath), Is.True);
+                Assert.That(File.Exists(Path.Combine(output.FullName, ReleaseOperationLock.FileName)), Is.False);
+            });
+        }
+
+        [Test]
+        public async Task A_second_acquisition_in_the_same_process_is_refused_as_such()
         {
             await using var first = await this.releaseLock.AcquireAsync();
-            this.processes.Running.Add(Environment.ProcessId);
 
-            Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
+            var exception = Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception!.Message, Does.Contain("already running in this process"));
+                Assert.That(File.Exists(this.LockPath), Is.True);
+            });
+        }
+
+        [Test]
+        public async Task Releasing_leaves_a_lock_this_process_took_again_under_another_token()
+        {
+            var lease = await this.releaseLock.AcquireAsync();
+            var other = $$"""{"pid":{{Environment.ProcessId}},"token":"other"}""";
+            File.WriteAllText(this.LockPath, other);
+
+            await lease.DisposeAsync();
+
+            Assert.That(File.ReadAllText(this.LockPath), Is.EqualTo(other));
+        }
+
+        [Test]
+        public async Task Releasing_after_the_root_is_removed_does_nothing()
+        {
+            var lease = await this.releaseLock.AcquireAsync();
+            this.root.Delete(recursive: true);
+
+            Assert.DoesNotThrow(lease.Dispose);
+        }
+
+        [Test]
+        public async Task Releasing_a_lock_that_cannot_be_removed_does_not_throw()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                Assert.Ignore("Only Windows refuses to open a file another handle holds exclusively.");
+            }
+
+            var lease = await this.releaseLock.AcquireAsync();
+
+            using (new FileStream(this.LockPath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                Assert.DoesNotThrow(lease.Dispose);
+            }
+
             Assert.That(File.Exists(this.LockPath), Is.True);
+        }
+
+        [Test]
+        public void Acquiring_gives_up_after_two_recoveries_when_stale_locks_keep_reappearing()
+        {
+            var stale = """{"pid":4242,"token":"abc"}""";
+            this.WriteLock(stale);
+            var reappearing = new ReleaseOperationLock(
+                new KnowledgeLayout(this.root),
+                this.processes,
+                new RecreatingLogger(() => File.WriteAllText(this.LockPath, stale)));
+
+            var exception = Assert.ThrowsAsync<ReleaseOperationLockException>(() => reappearing.AcquireAsync());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(exception!.Message, Does.Contain("Could not acquire"));
+                Assert.That(File.Exists(this.RecoveryPath), Is.False);
+            });
         }
 
         [Test]
@@ -226,6 +326,22 @@ namespace Hypha.Knowledge.Tests
             public HashSet<int> Running { get; } = new();
 
             public bool IsRunning(int processId) => this.Running.Contains(processId);
+        }
+
+        // Logs right after each stale lock is removed; recreating the lock there stands in for another
+        // process that keeps leaving a stale lock behind.
+        private sealed class RecreatingLogger(Action onLog) : ILogger<ReleaseOperationLock>
+        {
+            public IDisposable? BeginScope<TState>(TState state)
+                where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(
+                LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            {
+                onLog();
+            }
         }
     }
 }

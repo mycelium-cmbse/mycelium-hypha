@@ -41,8 +41,9 @@ namespace Hypha.Knowledge.Releases
         /// <param name="cancellationToken">Cancels before the lock is taken.</param>
         /// <returns>The held lock; disposing it releases the lock.</returns>
         /// <exception cref="ReleaseOperationLockException">
-        /// Another process or VS Code window holds the lock, another recovery is in progress or was
-        /// interrupted, or the existing lock cannot be read.
+        /// Another process or VS Code window holds the lock – or this process does, through a lease it
+        /// has not released yet, since the lock is not re-entrant – another recovery is in progress or
+        /// was interrupted, or the existing lock cannot be read or created.
         /// </exception>
         Task<ReleaseOperationLease> AcquireAsync(CancellationToken cancellationToken = default);
     }

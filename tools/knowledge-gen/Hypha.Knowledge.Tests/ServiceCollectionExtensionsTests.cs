@@ -19,6 +19,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
+    using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Releases;
@@ -53,6 +54,20 @@ namespace Hypha.Knowledge.Tests
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
             Assert.That(provider.GetRequiredService<IUvProvisioner>().Environment, Is.Empty);
+        }
+
+        [Test]
+        public void Resolves_the_release_operation_lock_and_its_process_probe()
+        {
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.RepositoryRoot = new DirectoryInfo(Path.GetTempPath()))
+                .BuildServiceProvider();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(provider.GetService<IReleaseOperationLock>(), Is.TypeOf<ReleaseOperationLock>());
+                Assert.That(provider.GetService<IProcessProbe>(), Is.TypeOf<SystemProcessProbe>());
+            });
         }
 
         [Test]

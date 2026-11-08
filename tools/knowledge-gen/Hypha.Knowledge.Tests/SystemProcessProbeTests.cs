@@ -41,6 +41,16 @@ namespace Hypha.Knowledge.Tests
             Assert.That(this.probe.IsRunning(processId), Is.False);
         }
 
+        [Test]
+        public void A_process_this_one_may_not_inspect_is_running()
+        {
+            // The System process on Windows and init on Unix: always there, and on Windows not open to
+            // a normal user, which is the branch that must count it as running.
+            var processId = OperatingSystem.IsWindows() ? 4 : 1;
+
+            Assert.That(this.probe.IsRunning(processId), Is.True);
+        }
+
         [TestCase(0)]
         [TestCase(-1)]
         [TestCase(int.MaxValue)]

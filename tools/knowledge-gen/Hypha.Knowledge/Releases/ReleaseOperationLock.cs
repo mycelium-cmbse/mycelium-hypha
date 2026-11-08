@@ -81,9 +81,9 @@ namespace Hypha.Knowledge.Releases
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (TryCreate(lockFile.FullName, owner))
+                if (TryCreate(root, lockFile.FullName, owner))
                 {
-                    return Task.FromResult(new ReleaseOperationLease(lockFile, owner));
+                    return Task.FromResult(new ReleaseOperationLease(lockFile, owner, this.logger));
                 }
 
                 this.Recover(root, lockFile);
@@ -131,12 +131,12 @@ namespace Hypha.Knowledge.Releases
             }
         }
 
-        private static bool TryCreate(string path, string content)
+        private static bool TryCreate(DirectoryInfo root, string path, string content)
         {
             FileStream stream;
             try
             {
-                stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, Shared);
+                stream = CreateExclusively(root, path);
             }
             catch (IOException) when (File.Exists(path))
             {
@@ -160,6 +160,29 @@ namespace Hypha.Knowledge.Releases
             return true;
         }
 
+        /// <summary>
+        /// Creates <paramref name="path"/>, failing if it exists.
+        /// </summary>
+        /// <remarks>
+        /// On Windows a file that is still being deleted refuses creation with access denied rather
+        /// than "exists"; that is reported as a lock that cannot be taken right now, not as a raw
+        /// exception.
+        /// </remarks>
+        private static FileStream CreateExclusively(DirectoryInfo root, string path)
+        {
+            try
+            {
+                return new FileStream(path, FileMode.CreateNew, FileAccess.Write, Shared);
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                throw new ReleaseOperationLockException(
+                    $"{Path.GetFileName(path)} in {root.FullName} cannot be created right now; it may still be "
+                    + "being removed by another hypha process or VS Code window. Try again.",
+                    exception);
+            }
+        }
+
         private void Recover(DirectoryInfo root, FileInfo lockFile)
         {
             var recoveryPath = Path.Combine(root.FullName, RecoveryFileName);
@@ -167,7 +190,7 @@ namespace Hypha.Knowledge.Releases
             FileStream recovery;
             try
             {
-                recovery = new FileStream(recoveryPath, FileMode.CreateNew, FileAccess.Write, Shared);
+                recovery = CreateExclusively(root, recoveryPath);
             }
             catch (IOException) when (File.Exists(recoveryPath))
             {
@@ -195,6 +218,13 @@ namespace Hypha.Knowledge.Releases
                         "A hypha release-operation lock is unreadable or still being created. Try again; if it "
                         + "remains unreadable, make sure no hypha process or VS Code window is changing releases, "
                         + $"then remove {FileName} from {root.FullName}.");
+
+                if (owner == Environment.ProcessId)
+                {
+                    throw new ReleaseOperationLockException(
+                        "A hypha release operation is already running in this process. Wait for it to finish "
+                        + "before starting another.");
+                }
 
                 if (this.processes.IsRunning(owner))
                 {
