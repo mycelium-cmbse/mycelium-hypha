@@ -5,6 +5,23 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>Hypha.Knowledge</RootNamespace>
+    <AssemblyName>Hypha.Knowledge</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Assembly">
+    <!-- Not a package of its own: the Hypha.Tools package carries it. -->
+    <IsPackable>false</IsPackable>
+    <Description>
+      The hypha knowledge base: its layout and manifests, fetching the upstream OMG SysML v2 / KerML
+      sources and the Systems Modeling API, the generators that build the knowledge from them, and
+      looking names up in it.
+    </Description>
+    <Authors>Starion Group S.A.</Authors>
+    <Company>Starion Group S.A.</Company>
+    <Copyright>Copyright 2026 Starion Group S.A.</Copyright>
+    <RepositoryUrl>https://github.com/mycelium-cmbse/mycelium-hypha</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>

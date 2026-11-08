@@ -10,6 +10,20 @@
     <AssemblyName>hypha-hook</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Label="Assembly">
+    <!-- Not a package of its own: hook-binaries.yml publishes it with NativeAOT into hooks/native/. -->
+    <IsPackable>false</IsPackable>
+    <Description>
+      The SessionStart hook of the hypha Claude plugin: it checks the locally installed releases and
+      downloads and launches the hypha CLI.
+    </Description>
+    <Authors>Starion Group S.A.</Authors>
+    <Company>Starion Group S.A.</Company>
+    <Copyright>Copyright 2026 Starion Group S.A.</Copyright>
+    <RepositoryUrl>https://github.com/mycelium-cmbse/mycelium-hypha</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
   <PropertyGroup Label="Publish">
     <!-- The one hypha-cli project that IS NativeAOT-published: it never generates anything itself,
          only downloads and launches the real `hypha` CLI, so it carries none of the reflection-heavy
