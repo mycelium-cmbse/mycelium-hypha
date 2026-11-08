@@ -70,7 +70,7 @@ namespace Hypha.Knowledge.Tests
 
         [TestCase("2025-01")]
         [TestCase("2022-02")]
-        public void Installing_a_tag_older_than_the_earliest_is_refused_before_anything_is_fetched(string tag)
+        public async Task Installing_a_tag_older_than_the_earliest_is_refused_before_anything_is_fetched(string tag)
         {
             var fetcher = new Mock<IReleaseFetcher>(MockBehavior.Strict);
             var documents = new Mock<IDocumentDownloader>(MockBehavior.Strict);
@@ -83,7 +83,7 @@ namespace Hypha.Knowledge.Tests
                 new HyphaKnowledgeOptions(),
                 NullLogger<ApiInstaller>.Instance);
 
-            var exception = Assert.ThrowsAsync<ArgumentException>(
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => installer.InstallAsync(new ApiInstallRequest { Tag = tag }));
 
             Assert.Multiple(() =>

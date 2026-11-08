@@ -428,7 +428,7 @@ namespace Hypha.MetamodelGen.Tests
                 Assert.That(result.Written, Is.Not.Empty);
                 Assert.That(
                     result.Written,
-                    Has.All.Matches<FileInfo>(file => file.FullName.StartsWith(
+                    Has.All.Matches<FileInfo>(file => file is not null && file.FullName.StartsWith(
                         Path.Combine(output.FullName, "knowledge", "api", Tag, "pim") + Path.DirectorySeparatorChar,
                         StringComparison.Ordinal)),
                     "nothing may be written outside the requested output folder");

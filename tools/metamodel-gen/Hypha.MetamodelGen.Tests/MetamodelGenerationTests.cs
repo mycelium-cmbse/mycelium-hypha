@@ -80,7 +80,7 @@ namespace Hypha.MetamodelGen.Tests
                     Assert.That(result.Written, Is.Not.Empty);
                     Assert.That(
                         result.Written,
-                        Has.All.Matches<FileInfo>(file => file.FullName.StartsWith(scratch.FullName, StringComparison.Ordinal)),
+                        Has.All.Matches<FileInfo>(file => file is not null && file.FullName.StartsWith(scratch.FullName, StringComparison.Ordinal)),
                         "nothing may be written outside the requested output folder");
                     Assert.That(File.Exists(Path.Combine(metamodel, "elements", "PartUsage.md")), Is.True);
                     Assert.That(File.Exists(Path.Combine(metamodel, "index.md")), Is.True);

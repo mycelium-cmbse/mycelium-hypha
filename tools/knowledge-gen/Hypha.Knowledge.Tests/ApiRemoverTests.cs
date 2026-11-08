@@ -102,13 +102,13 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void The_current_default_is_refused()
+        public async Task The_current_default_is_refused()
         {
             this.Seed("2026-04");
             this.Seed("2025-09");
             this.WriteManifest("2026-04", "2026-04", "2025-09");
 
-            var exception = Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => this.remover.RemoveAsync("2026-04"));
 
             Assert.That(exception!.Message, Does.Contain("hypha api use"));
@@ -122,7 +122,7 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void The_current_default_is_refused_even_with_force_while_another_could_take_its_place()
+        public async Task The_current_default_is_refused_even_with_force_while_another_could_take_its_place()
         {
             // --force is for the last version installed; it is not a way to leave a manifest whose
             // default is gone.
@@ -130,29 +130,29 @@ namespace Hypha.Knowledge.Tests
             this.Seed("2025-09");
             this.WriteManifest("2026-04", "2026-04", "2025-09");
 
-            Assert.ThrowsAsync<InvalidOperationException>(() => this.remover.RemoveAsync("2026-04", force: true));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => this.remover.RemoveAsync("2026-04", force: true));
 
             Assert.That(this.layout.Sources("2026-04").Exists, Is.True);
         }
 
         [Test]
-        public void An_uninstalled_tag_is_refused()
+        public async Task An_uninstalled_tag_is_refused()
         {
             this.Seed("2026-04");
             this.WriteManifest("2026-04", "2026-04");
 
-            var exception = Assert.ThrowsAsync<ArgumentException>(() => this.remover.RemoveAsync("2026-05"));
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() => this.remover.RemoveAsync("2026-05"));
 
             Assert.That(exception!.Message, Does.Contain("'2026-05' is not installed"));
         }
 
         [Test]
-        public void The_only_installed_version_is_refused_without_force()
+        public async Task The_only_installed_version_is_refused_without_force()
         {
             this.Seed("2026-04");
             this.WriteManifest("2026-04", "2026-04");
 
-            var exception = Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => this.remover.RemoveAsync("2026-04"));
 
             Assert.Multiple(() =>
@@ -181,9 +181,9 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Removing_without_a_manifest_is_refused()
+        public async Task Removing_without_a_manifest_is_refused()
         {
-            var exception = Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => this.remover.RemoveAsync("2026-04"));
 
             Assert.That(exception!.Message, Does.Contain("nothing is installed to remove"));

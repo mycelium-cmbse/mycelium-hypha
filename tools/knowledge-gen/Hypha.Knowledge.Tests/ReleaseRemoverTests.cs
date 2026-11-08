@@ -95,13 +95,13 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void The_current_default_is_refused()
+        public async Task The_current_default_is_refused()
         {
             this.Seed("2026-05");
             this.Seed("2026-04");
             this.WriteManifest("2026-05", "2026-05", "2026-04");
 
-            var exception = Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => this.remover.RemoveAsync("2026-05"));
 
             Assert.That(exception!.Message, Does.Contain("hypha use"));
@@ -114,12 +114,12 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void An_uninstalled_tag_is_refused()
+        public async Task An_uninstalled_tag_is_refused()
         {
             this.Seed("2026-05");
             this.WriteManifest("2026-05", "2026-05");
 
-            Assert.ThrowsAsync<ArgumentException>(() => this.remover.RemoveAsync("2026-06"));
+            await Assert.ThrowsAsync<ArgumentException>(() => this.remover.RemoveAsync("2026-06"));
         }
 
         [TestCase("api")]
@@ -161,12 +161,12 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void The_only_installed_release_is_refused_without_force()
+        public async Task The_only_installed_release_is_refused_without_force()
         {
             this.Seed("2026-05");
             this.WriteManifest("2026-05", "2026-05");
 
-            Assert.ThrowsAsync<InvalidOperationException>(() => this.remover.RemoveAsync("2026-05"));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => this.remover.RemoveAsync("2026-05"));
         }
 
         [Test]
@@ -186,9 +186,9 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Removing_without_a_manifest_is_refused()
+        public async Task Removing_without_a_manifest_is_refused()
         {
-            Assert.ThrowsAsync<InvalidOperationException>(() => this.remover.RemoveAsync("2026-05"));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => this.remover.RemoveAsync("2026-05"));
         }
 
         [Test]
