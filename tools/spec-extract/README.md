@@ -51,7 +51,14 @@ the OMG specification license. Two constraints shape this tool:
 
 ## Setup
 
-Requires **Python ≥ 3.12**. From this directory (`tools/spec-extract/`):
+Requires **Python ≥ 3.12**. From this directory (`tools/spec-extract/`), with [`uv`](#without-installing-python-uv):
+
+```sh
+uv sync --extra dev
+```
+
+This creates `.venv` with exactly the versions in `uv.lock`, the ones CI tests and `hypha generate`
+installs. Without uv, pip works too, but installs the newest versions rather than the locked ones:
 
 ```sh
 python -m venv .venv

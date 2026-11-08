@@ -118,13 +118,19 @@ jobs:
       - name: Install spec-extract dependencies (Python)
         # A real .venv, not the runner's system interpreter, matching the documented local setup:
         # `move-window`'s pre-flight check looks for tools/spec-extract/.venv/bin/python and fails
-        # the step (and every test asserting on it) if it's missing. Wheels only (no source
-        # builds / setup scripts) and pinned to the committed lock. Prepending its bin to PATH lets
-        # the later ruff/pytest steps resolve to this venv without changing how they're invoked.
+        # the step (and every test asserting on it) if it's missing. Installed from uv.lock, the
+        # lock `hypha generate` installs from, so this tests the versions users get. uv is the
+        # version Hypha.Knowledge pins (UvProvisioner.PinnedVersion); keep the two in step. Wheels
+        # only (--no-build), the lock unchanged (--frozen), and spec-extract itself not installed
+        # (the tests import it from src). Prepending its bin to PATH lets the later ruff/pytest steps
+        # resolve to this venv without changing how they're invoked.
+        env:
+          UV_PYTHON_DOWNLOADS: never
         run: |
-          python -m venv tools/spec-extract/.venv
-          tools/spec-extract/.venv/bin/pip install --only-binary :all: --no-deps -r tools/spec-extract/requirements-dev.lock
-          echo "$PWD/tools/spec-extract/.venv/bin" >> "$GITHUB_PATH"
+          python -m pip install --only-binary :all: uv==0.12.10
+          cd tools/spec-extract
+          uv sync --frozen --extra dev --no-install-project --no-build --python 3.12
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Cache NuGet packages
         uses: actions/cache@v6.1.0

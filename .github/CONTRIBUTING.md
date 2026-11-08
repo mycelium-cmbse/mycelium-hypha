@@ -77,11 +77,13 @@ A normal test run never reaches the network and leaves the working tree clean. T
 From `tools/spec-extract/`:
 
 ```sh
-python -m venv .venv && . .venv/Scripts/activate   # or source .venv/bin/activate
-pip install -e .[dev]
-ruff check .
-pytest
+uv sync --extra dev                  # .venv from uv.lock: the versions CI uses
+uv run --extra dev ruff check .
+uv run --extra dev pytest
 ```
+
+Without uv, `python -m venv .venv` and `pip install -e .[dev]` also work, but install the newest
+versions rather than the locked ones, so ruff and pytest may differ from CI.
 
 ## Style Guidelines
 
