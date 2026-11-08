@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The VS Code extension for Windows x64** (`fixes #157`), validated end to end on Windows 11 and
   published with extension version `0.1.1` beside Linux x64 and arm64. CI now packages and
   smoke-tests the Windows VSIX too, against VS Code stable and against 1.100.0.
+- **A release-operation lock in `Hypha.Knowledge`** (`fixes #166`), compatible with the VS Code
+  extension's: the same `.release-operation.lock` file in the repository root, the same
+  `{"pid", "token"}` content and the same recovery rules, so an operation that changes releases on
+  its own – such as the coming MCP install – and an extension install never run at the same time.
+  The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
 
 ### Changed
 - **`Hypha.Tools` on nuget.org has a proper package page** (`fixes #160`): a package readme, the

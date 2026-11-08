@@ -133,6 +133,8 @@ namespace Hypha.Knowledge
             services.AddSingleton<IReleaseInstaller, ReleaseInstaller>();
             services.AddSingleton<IReleaseWindowEvictor, ReleaseWindowEvictor>();
             services.AddSingleton<IReleaseRemover, ReleaseRemover>();
+            services.AddSingleton<IProcessProbe, SystemProcessProbe>();
+            services.AddSingleton<IReleaseOperationLock, ReleaseOperationLock>();
 
             // The grammar services are pure functions of the grammar text, so one instance serves
             // every caller.

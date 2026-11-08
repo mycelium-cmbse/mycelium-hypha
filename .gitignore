@@ -10,6 +10,11 @@
 /knowledge/*/
 /knowledge/versions.json
 
+# The release-operation lock (Hypha.Knowledge's ReleaseOperationLock and the VS
+# Code extension's), taken in the repository root while releases change.
+/.release-operation.lock
+/.release-operation.lock.recovery
+
 # Belt and braces: no OMG PDF may be committed from anywhere in the tree, even
 # somewhere the per-tag rule above would not otherwise reach.
 *.pdf
