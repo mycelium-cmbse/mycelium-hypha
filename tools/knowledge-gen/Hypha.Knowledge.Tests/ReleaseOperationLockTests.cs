@@ -95,7 +95,7 @@ namespace Hypha.Knowledge.Tests
             this.WriteLock("""{"pid":4242,"token":"abc"}""");
             this.processes.Running.Add(4242);
 
-            var exception = Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
+            var exception = await Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
 
             Assert.Multiple(() =>
             {
@@ -129,11 +129,11 @@ namespace Hypha.Knowledge.Tests
         [TestCase("""{"pid":-3}""")]
         [TestCase("""{"pid":"7"}""")]
         [TestCase("""{"pid":1.5}""")]
-        public void An_unreadable_lock_is_refused_and_left_exactly_as_it_was(string content)
+        public async Task An_unreadable_lock_is_refused_and_left_exactly_as_it_was(string content)
         {
             this.WriteLock(content);
 
-            var exception = Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
+            var exception = await Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
 
             Assert.Multiple(() =>
             {
@@ -146,12 +146,12 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void An_existing_recovery_file_is_refused_and_nothing_is_deleted()
+        public async Task An_existing_recovery_file_is_refused_and_nothing_is_deleted()
         {
             this.WriteLock("""{"pid":4242,"token":"abc"}""");
             File.WriteAllText(this.RecoveryPath, string.Empty);
 
-            var exception = Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
+            var exception = await Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
 
             Assert.Multiple(() =>
             {
@@ -201,7 +201,7 @@ namespace Hypha.Knowledge.Tests
         {
             await using var first = await this.releaseLock.AcquireAsync();
 
-            var exception = Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
+            var exception = await Assert.ThrowsAsync<ReleaseOperationLockException>(() => this.releaseLock.AcquireAsync());
 
             Assert.Multiple(() =>
             {
@@ -250,7 +250,7 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Acquiring_gives_up_after_two_recoveries_when_stale_locks_keep_reappearing()
+        public async Task Acquiring_gives_up_after_two_recoveries_when_stale_locks_keep_reappearing()
         {
             var stale = """{"pid":4242,"token":"abc"}""";
             this.WriteLock(stale);
@@ -259,7 +259,7 @@ namespace Hypha.Knowledge.Tests
                 this.processes,
                 new RecreatingLogger(() => File.WriteAllText(this.LockPath, stale)));
 
-            var exception = Assert.ThrowsAsync<ReleaseOperationLockException>(() => reappearing.AcquireAsync());
+            var exception = await Assert.ThrowsAsync<ReleaseOperationLockException>(() => reappearing.AcquireAsync());
 
             Assert.Multiple(() =>
             {
@@ -286,7 +286,7 @@ namespace Hypha.Knowledge.Tests
             File.Delete(this.LockPath);
 
             Assert.DoesNotThrow(lease.Dispose);
-            Assert.DoesNotThrowAsync(async () => await lease.DisposeAsync());
+            await Assert.DoesNotThrowAsync(async () => await lease.DisposeAsync());
         }
 
         [Test]
@@ -298,7 +298,7 @@ namespace Hypha.Knowledge.Tests
                 throw new InvalidOperationException("the operation failed");
             }
 
-            Assert.ThrowsAsync<InvalidOperationException>(Operation);
+            await Assert.ThrowsAsync<InvalidOperationException>(Operation);
             Assert.That(File.Exists(this.LockPath), Is.False);
 
             await using var next = await this.releaseLock.AcquireAsync();
@@ -306,12 +306,12 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void A_cancelled_acquisition_takes_no_lock()
+        public async Task A_cancelled_acquisition_takes_no_lock()
         {
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
 
-            Assert.ThrowsAsync<OperationCanceledException>(() => this.releaseLock.AcquireAsync(cancellation.Token));
+            await Assert.ThrowsAsync<OperationCanceledException>(() => this.releaseLock.AcquireAsync(cancellation.Token));
             Assert.That(File.Exists(this.LockPath), Is.False);
         }
 

@@ -86,7 +86,7 @@ namespace Hypha.Knowledge.Tests
                     "KerML + SysML together carry hundreds of clauses");
                 Assert.That(
                     result.Written.Where(file => file.Extension == ".md"),
-                    Has.All.Matches<FileInfo>(file => File.ReadAllText(file.FullName).StartsWith("---\n")),
+                    Has.All.Matches<FileInfo>(file => file is not null && File.ReadAllText(file.FullName).StartsWith("---\n")),
                     "every clause file should open with YAML front matter");
             });
         }

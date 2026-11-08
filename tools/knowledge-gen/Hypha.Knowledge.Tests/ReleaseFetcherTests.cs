@@ -62,13 +62,13 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Refuses_a_truncated_listing()
+        public async Task Refuses_a_truncated_listing()
         {
             // A truncated tree would silently drop inputs and still look like a complete release.
             using var client = new HttpClient(StubHandler.WithTree("""{"truncated":true,"tree":[]}"""));
             var fetcher = new ReleaseFetcher(client);
 
-            var exception = Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => fetcher.ListTreeAsync(Upstream.ReleaseRepository, "2026-05"));
 
             Assert.That(exception!.Message, Does.Contain("truncated"));

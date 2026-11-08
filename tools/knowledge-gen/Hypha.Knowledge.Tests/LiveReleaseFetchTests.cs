@@ -66,7 +66,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(textual, Has.Count.GreaterThan(200), "a release has ~300 textual files");
                 Assert.That(
                     textual,
-                    Has.All.Matches<FileInfo>(file => file.Exists && file.Length > 0),
+                    Has.All.Matches<FileInfo>(file => file is not null && file.Exists && file.Length > 0),
                     "a zero-byte file means the transfer was cut short");
             });
         }

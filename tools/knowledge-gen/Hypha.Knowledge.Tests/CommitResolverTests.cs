@@ -62,15 +62,15 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Rejects_a_missing_repository_or_tag()
+        public async Task Rejects_a_missing_repository_or_tag()
         {
             using var client = new HttpClient(new StubHandler());
             var resolver = new CommitResolver(client);
 
-            Assert.Multiple(() =>
+            await Assert.MultipleAsync(async () =>
             {
-                Assert.ThrowsAsync<ArgumentException>(() => resolver.ResolveAsync(" ", "2026-05"));
-                Assert.ThrowsAsync<ArgumentException>(() => resolver.ResolveAsync("owner/repo", " "));
+                await Assert.ThrowsAsync<ArgumentException>(() => resolver.ResolveAsync(" ", "2026-05"));
+                await Assert.ThrowsAsync<ArgumentException>(() => resolver.ResolveAsync("owner/repo", " "));
             });
         }
 

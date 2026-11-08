@@ -122,12 +122,12 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Rejects_a_missing_repository()
+        public async Task Rejects_a_missing_repository()
         {
             using var client = new HttpClient(new StubHandler(_ => "[]"));
             var discovery = new ReleaseDiscovery(client, "token");
 
-            Assert.ThrowsAsync<ArgumentException>(() => discovery.FetchTagsAsync("  "));
+            await Assert.ThrowsAsync<ArgumentException>(() => discovery.FetchTagsAsync("  "));
         }
 
         private sealed class StubHandler : HttpMessageHandler
