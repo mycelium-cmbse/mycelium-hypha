@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lookup` and the JSON output. The repository README adds the command-line install from NuGet.
 - CI and the publish workflow install the extension's dependencies with `npm ci --ignore-scripts`,
   so no dependency install script runs in a job that can publish.
+- **CI runs once per pull-request commit** (`fixes #173`): *Build & Test & SonarQube* runs on pull
+  requests and on pushes to `development` and `main` only (and by hand), instead of on every push
+  as well, which ran everything twice. Every action the workflows use is updated to its current
+  major version, pinned to a release at least two weeks old, and the .NET tools the workflows
+  install (`dotnet-sonarscanner`, `dotnet-coverage`, `nuget-license`) are pinned. Dependabot now
+  proposes weekly updates for the workflows' actions, the NuGet packages, the extension's npm
+  packages and `tools/spec-extract`, grouped per ecosystem and only for versions two weeks old.
 
 ### Fixed
 - The repository README no longer says spec citation needs a source checkout: since the uv-based
