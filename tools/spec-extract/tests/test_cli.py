@@ -114,7 +114,7 @@ def test_api_version_reads_and_writes_under_the_api_folders(
 
     assert exit_code == 0
     assert extracted == [(specs_dir / cli.API_PDF, "SystemsModelingAPI")]
-    # One document, so no per-document subfolder - and never inside a language release's folder.
+    # One document, so no per-document subfolder, and never inside a language release's folder.
     assert recorded == [out_root / "knowledge" / "api" / "2026-04" / "spec"]
 
 

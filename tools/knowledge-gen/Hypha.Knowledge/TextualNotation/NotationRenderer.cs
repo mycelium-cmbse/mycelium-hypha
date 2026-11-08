@@ -26,13 +26,23 @@ namespace Hypha.Knowledge.TextualNotation
     /// </remarks>
     public sealed partial class NotationRenderer : INotationRenderer
     {
+        /// <summary>Matches a run of characters that cannot appear in a slug.</summary>
+        /// <returns>The compiled expression.</returns>
         [GeneratedRegex("[^a-z0-9]+")]
         private static partial Regex NonSlug();
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// A deterministic, flat file name for a model's example page: the relative path without its
+        /// extension, lowercased, with every run of characters other than <c>a-z</c> and <c>0-9</c> replaced
+        /// by <c>-</c>. Two paths can slugify alike (<c>a b.sysml</c> and <c>a-b.sysml</c>); the textual
+        /// notation generator refuses such a release rather than overwrite one page with the other.
+        /// </summary>
+        /// <param name="sourcePath">The model's path relative to the textual sources, with <c>/</c> separators.</param>
+        /// <returns>The page's file name, ending in <c>.md</c>.</returns>
+        /// <exception cref="ArgumentException"><paramref name="sourcePath"/> is <c>null</c>, empty or white space.</exception>
         /// <remarks>
         /// The sources are nested directories with spaces and dots in their names, and the pages sit
-        /// in one flat folder, so the whole relative path is slugified rather than just the file name -
+        /// in one flat folder, so the whole relative path is slugified rather than just the file name:
         /// two models called <c>Example.sysml</c> in different folders must not collide.
         /// </remarks>
         public string ExampleFileName(string sourcePath)
@@ -44,11 +54,21 @@ namespace Hypha.Knowledge.TextualNotation
             return NonSlug().Replace(withoutExtension.ToLowerInvariant(), "-").Trim('-') + ".md";
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders one model as a page: front matter, the verbatim source in a fenced block, and a link to
+        /// each element it declares.
+        /// </summary>
         /// <param name="sourcePath">The model's path relative to the textual sources.</param>
         /// <param name="modelText">The model, embedded verbatim apart from newline normalisation.</param>
         /// <param name="elements">The metaclasses the model declares.</param>
         /// <param name="language"><c>KerML</c> or <c>SysML</c>.</param>
+        /// <returns>The page's Markdown, with LF line endings.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="sourcePath"/> or <paramref name="language"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="modelText"/> or <paramref name="elements"/> is <c>null</c>.
+        /// </exception>
         public string RenderExample(
             string sourcePath, string modelText, IReadOnlyList<string> elements, string language)
         {
@@ -94,10 +114,18 @@ namespace Hypha.Knowledge.TextualNotation
             return string.Join("\n", lines);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders the per-release index: each grammar's reserved keywords, in grammar-name order, then a link
+        /// to every generated example.
+        /// </summary>
         /// <param name="tag">The release these pages were generated for.</param>
         /// <param name="examples">The generated pages, in the order they should be listed.</param>
         /// <param name="keywords">Each grammar's reserved keywords, keyed by grammar name.</param>
+        /// <returns>The page's Markdown, with LF line endings.</returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="examples"/> or <paramref name="keywords"/> is <c>null</c>.
+        /// </exception>
         public string RenderIndex(
             string tag,
             IReadOnlyList<ExampleEntry> examples,
@@ -145,6 +173,8 @@ namespace Hypha.Knowledge.TextualNotation
         }
 
         /// <summary>The model's file name without its extension.</summary>
+        /// <param name="sourcePath">The model's relative path.</param>
+        /// <returns>The last path segment, without its final extension.</returns>
         private static string Stem(string sourcePath)
         {
             var lastSegment = sourcePath[(sourcePath.LastIndexOf('/') + 1)..];
@@ -154,6 +184,8 @@ namespace Hypha.Knowledge.TextualNotation
         }
 
         /// <summary>The path with only the final extension removed, separators intact.</summary>
+        /// <param name="sourcePath">The model's relative path.</param>
+        /// <returns>The path without the extension of its last segment.</returns>
         private static string StripExtension(string sourcePath)
         {
             var dot = sourcePath.LastIndexOf('.');

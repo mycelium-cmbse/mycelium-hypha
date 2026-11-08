@@ -22,7 +22,16 @@ namespace Hypha.Knowledge.Hosting
     /// </remarks>
     public sealed class SystemProcessProbe : IProcessProbe
     {
-        /// <inheritdoc/>
+        /// <summary>
+        /// Whether the process with <paramref name="processId"/> is still running, asked of the operating
+        /// system through <see cref="Process.GetProcessById(int)"/>.
+        /// </summary>
+        /// <param name="processId">The operating system's process id.</param>
+        /// <returns>
+        /// <c>false</c> for an id that is not positive, for an id no process has, and for a process that has
+        /// exited; <c>true</c> otherwise, including for a process that exists but may not be inspected, so
+        /// its lock is never taken from it.
+        /// </returns>
         public bool IsRunning(int processId)
         {
             if (processId <= 0)

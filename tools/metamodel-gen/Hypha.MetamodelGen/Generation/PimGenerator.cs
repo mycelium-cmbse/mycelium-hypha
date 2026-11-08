@@ -52,12 +52,18 @@ namespace Hypha.MetamodelGen.Generation
         /// <summary>The title the generated index carries.</summary>
         private const string IndexTitle = "Systems Modeling API PIM";
 
+        /// <summary>Resolves where an API version's inputs are read from and its PIM knowledge is written to.</summary>
         private readonly IApiLayout layout;
+
+        /// <summary>Reports the progress and the outcome of a run.</summary>
         private readonly ILogger<PimGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PimGenerator"/> class.
         /// </summary>
+        /// <param name="layout">Resolves the API version's input and output folders.</param>
+        /// <param name="logger">Reports the progress and the outcome of a run.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="layout"/> or <paramref name="logger"/> is <c>null</c>.</exception>
         public PimGenerator(IApiLayout layout, ILogger<PimGenerator> logger)
         {
             ArgumentNullException.ThrowIfNull(layout);
@@ -67,13 +73,30 @@ namespace Hypha.MetamodelGen.Generation
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>What this generator produces: <c>pim</c>. Used when reporting progress.</summary>
         public string Artifact => "pim";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Where this generator sits in a full API run: <c>10</c>, first, because the cross-references
+        /// read the PIM graph (<c>metamodel.json</c>) it writes.
+        /// </summary>
         public int Order => 10;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Generates <c>knowledge/api/&lt;tag&gt;/pim/</c> for the API version <paramref name="tag"/>:
+        /// the class, interface, data type, enumeration and primitive type pages, the index, the JSON
+        /// sidecars and the package diagrams.
+        /// </summary>
+        /// <param name="tag">The API version to generate the PIM knowledge for.</param>
+        /// <param name="cancellationToken">Observed once the files have been written.</param>
+        /// <returns>
+        /// Every file under the PIM directory, or a <see cref="GenerationOutcome.Skipped"/> result when
+        /// the PIM XMI or the KerML XMI it refers to has not been fetched.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="OperationCanceledException">
+        /// <paramref name="cancellationToken"/> was cancelled.
+        /// </exception>
         public async Task<GenerationResult> GenerateAsync(string tag, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -99,8 +122,8 @@ namespace Hypha.MetamodelGen.Generation
                 new Dictionary<string, string> { [PrimitiveTypesReference] = primitives.FullName },
                 xmi.FullName);
 
-            // The KerML model is read so the PIM's references into it resolve - ExternalRelationship's
-            // elementEnd is a KerML Element - but it is not part of the PIM: its metaclasses belong to
+            // The KerML model is read so the PIM's references into it resolve (ExternalRelationship's
+            // elementEnd is a KerML Element), but it is not part of the PIM: its metaclasses belong to
             // the language metamodel knowledge, not here. Dropping its packages keeps the names the PIM
             // refers to while writing pages for the PIM's own types only.
             model.Packages.RemoveAll(package =>

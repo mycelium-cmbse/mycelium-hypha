@@ -29,19 +29,40 @@ namespace Hypha.Knowledge.Generation
     /// </summary>
     public sealed class TextualNotationGenerator : IKnowledgeGenerator
     {
+        /// <summary>The textual grammars whose keywords the index lists, by their name in the sources.</summary>
         private static readonly string[] Grammars = ["KerML", "SysML"];
 
+        /// <summary>Resolves the textual sources, the metamodel index, the grammars and the output folders.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Discovers the models the release ships.</summary>
         private readonly IModelCatalog catalog;
+
+        /// <summary>Derives each metaclass's declaration keyword from the metamodel's element names.</summary>
         private readonly ISurfaceForms forms;
+
+        /// <summary>Names and renders the example pages and the index.</summary>
         private readonly INotationRenderer renderer;
+
+        /// <summary>Reads the reserved keywords out of the grammars.</summary>
         private readonly IGrammarParser parser;
+
+        /// <summary>Reads the metamodel index the surface forms are derived from.</summary>
         private readonly IKnowledgeReader reader;
+
+        /// <summary>Receives the progress messages of <see cref="GenerationLog"/>.</summary>
         private readonly ILogger<TextualNotationGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextualNotationGenerator"/> class.
         /// </summary>
+        /// <param name="layout">Resolves the inputs and the output folders.</param>
+        /// <param name="catalog">Discovers the models.</param>
+        /// <param name="forms">Derives the metaclasses' declaration keywords.</param>
+        /// <param name="renderer">Names and renders the pages.</param>
+        /// <param name="parser">Reads the grammars' reserved keywords.</param>
+        /// <param name="reader">Reads the metamodel index.</param>
+        /// <param name="logger">Receives the progress messages.</param>
         public TextualNotationGenerator(
             IKnowledgeLayout layout,
             IModelCatalog catalog,
@@ -60,17 +81,31 @@ namespace Hypha.Knowledge.Generation
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>Gets the artifact name, <c>textual-notation</c>, used when reporting progress.</summary>
         public string Artifact => "textual-notation";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets this generator's place in a full run, <c>30</c>: after the grammar references, before the
+        /// model library.
+        /// </summary>
         public int Order => 30;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Writes one page per model the release ships (the standard library excepted, which
+        /// <see cref="ModelLibraryGenerator"/> covers) under <c>textual-notation/examples/</c>, plus the
+        /// <c>index.md</c> with the keyword reference. Pages left over from a previous run are deleted first.
+        /// </summary>
+        /// <param name="tag">The release to generate for.</param>
+        /// <param name="cancellationToken">Cancels the generation.</param>
+        /// <returns>
+        /// The written files, or a <see cref="GenerationOutcome.Skipped"/> result when the release ships no
+        /// model.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="InvalidOperationException">
-        /// The models are present but the metamodel index is not. Without it there are no surface
-        /// forms, so every page would come out claiming the model declares nothing - wrong rather than
-        /// merely incomplete.
+        /// The models are present but the metamodel index is not (without it there are no surface forms,
+        /// so every page would come out claiming the model declares nothing, wrong rather than merely
+        /// incomplete), or two models slugify to the same example file name.
         /// </exception>
         public async Task<GenerationResult> GenerateAsync(
             string tag, CancellationToken cancellationToken = default)
@@ -82,7 +117,7 @@ namespace Hypha.Knowledge.Generation
             var textualRoot = this.layout.TextualSources(tag);
 
             // The standard library gets its own artifact (ModelLibraryGenerator, #80) rather than being
-            // rendered as an "example" - it is normative model content, not a worked example.
+            // rendered as an "example": it is normative model content, not a worked example.
             var models = this.catalog.Discover(textualRoot)
                 .Where(model => !model.StartsWith("sysml.library/", StringComparison.Ordinal))
                 .ToList();
@@ -153,6 +188,9 @@ namespace Hypha.Knowledge.Generation
         }
 
         /// <summary>The reserved keywords of each grammar the release ships.</summary>
+        /// <param name="tag">The release whose grammars are read.</param>
+        /// <param name="cancellationToken">Cancels reading the grammars.</param>
+        /// <returns>The reserved keywords by grammar name; an absent grammar maps to an empty list.</returns>
         private async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> KeywordsAsync(
             string tag, CancellationToken cancellationToken)
         {

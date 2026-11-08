@@ -19,7 +19,7 @@ namespace Hypha.Tools.Commands
     /// <remarks>
     /// This is the one piece of machine-readable output in the CLI, read by the plugin's
     /// <c>SessionStart</c> hook (<c>Hypha.Tools.Hook</c>, which keeps its own equivalent shape rather
-    /// than referencing this type directly - see that project's <c>HookCheckResult</c> and the note on
+    /// than referencing this type directly; see that project's <c>HookCheckResult</c> and the note on
     /// why it stays dependency-free). Changing these property names is a breaking change for that
     /// parser.
     /// </remarks>

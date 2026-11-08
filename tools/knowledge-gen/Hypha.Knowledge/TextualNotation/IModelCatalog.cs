@@ -21,6 +21,8 @@ namespace Hypha.Knowledge.TextualNotation
         /// Every model under a release's textual sources, as <c>/</c>-separated paths relative to that
         /// root, in a stable order.
         /// </summary>
+        /// <param name="textualRoot">The folder to search, e.g. the release's textual sources.</param>
+        /// <returns>The models' relative paths; empty when the folder does not exist.</returns>
         IReadOnlyList<string> Discover(DirectoryInfo textualRoot);
     }
 }

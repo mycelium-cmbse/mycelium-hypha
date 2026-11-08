@@ -19,7 +19,7 @@ namespace Hypha.Knowledge.Api.OpenApi
     /// </summary>
     /// <remarks>
     /// A schema gets a page only when it belongs to the API itself. The document also carries a schema
-    /// - and a request twin - for every KerML / SysML metamodel element; those are indexed by name
+    /// (and a request twin) for every KerML / SysML metamodel element; those are indexed by name
     /// rather than rendered, since the metamodel knowledge already describes the elements.
     /// </remarks>
     public sealed class OpenApiRenderer : IOpenApiRenderer
@@ -30,9 +30,15 @@ namespace Hypha.Knowledge.Api.OpenApi
         /// <summary>The file every endpoint is listed in.</summary>
         public const string EndpointsFileName = "endpoints.md";
 
+        /// <summary>The group an endpoint without a tag is listed under.</summary>
         private const string Untagged = "Other";
 
-        /// <inheritdoc/>
+        /// <summary>The file a schema's page is written to: the schema name with <c>.md</c> appended.</summary>
+        /// <param name="schemaName">The schema name, as keyed under <c>components/schemas</c>.</param>
+        /// <returns>The page's file name, e.g. <c>Commit.md</c>, relative to <see cref="SchemasFolder"/>.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="schemaName"/> is <c>null</c>, empty or white space.
+        /// </exception>
         public string SchemaFileName(string schemaName)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(schemaName);
@@ -40,7 +46,18 @@ namespace Hypha.Knowledge.Api.OpenApi
             return $"{schemaName}.md";
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders one schema's page: front matter, its members with their type, required and nullable
+        /// status and the type they refer to, its variants or values, and the endpoints that use it.
+        /// </summary>
+        /// <param name="model">
+        /// The whole document, for the schemas that have pages and the endpoints that use the schema.
+        /// </param>
+        /// <param name="schema">The schema to render.</param>
+        /// <returns>The page's Markdown, with LF endings.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="schema"/> is <c>null</c>.
+        /// </exception>
         public string RenderSchema(OpenApiModel model, OpenApiSchema schema)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -118,7 +135,13 @@ namespace Hypha.Knowledge.Api.OpenApi
             return page.ToString();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders every endpoint, grouped by its first tag in the order the document declares the tags;
+        /// an endpoint without a tag, or with one the document did not declare, follows at the end.
+        /// </summary>
+        /// <param name="model">The document whose endpoints are rendered.</param>
+        /// <returns>The Markdown of <see cref="EndpointsFileName"/>, with LF endings.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public string RenderEndpoints(OpenApiModel model)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -206,7 +229,15 @@ namespace Hypha.Knowledge.Api.OpenApi
             return page.ToString();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders the index page for one API version: the document's counts, a table linking every API
+        /// schema's page, and the names of the metamodel element schemas, which have no page.
+        /// </summary>
+        /// <param name="tag">The API version the page is generated for.</param>
+        /// <param name="model">The document the page indexes.</param>
+        /// <returns>The page's Markdown, with LF endings.</returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public string RenderIndex(string tag, OpenApiModel model)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -246,15 +277,31 @@ namespace Hypha.Knowledge.Api.OpenApi
             return page.ToString();
         }
 
+        /// <summary>Whether <paramref name="schema"/> belongs to the API itself, and so gets a page.</summary>
+        /// <param name="schema">The schema.</param>
+        /// <returns><c>true</c> when its namespace is <see cref="OpenApiNames.ApiNamespace"/>.</returns>
         private static bool IsApi(OpenApiSchema schema) =>
             string.Equals(schema.Namespace, OpenApiNames.ApiNamespace, StringComparison.Ordinal);
 
+        /// <summary>The names of the schemas that have a page.</summary>
+        /// <param name="model">The document.</param>
+        /// <returns>The names of the API schemas.</returns>
         private static HashSet<string> Pages(OpenApiModel model) =>
             model.Schemas.Where(IsApi).Select(schema => schema.Name).ToHashSet(StringComparer.Ordinal);
 
+        /// <summary>The group an endpoint is listed under.</summary>
+        /// <param name="endpoint">The endpoint.</param>
+        /// <returns>Its first tag, or <see cref="Untagged"/> when it has none.</returns>
         private static string Group(OpenApiEndpoint endpoint) =>
             endpoint.Tags.Count > 0 && endpoint.Tags[0].Length > 0 ? endpoint.Tags[0] : Untagged;
 
+        /// <summary>
+        /// Describes each place <paramref name="endpoint"/> uses <paramref name="schemaName"/>: its request
+        /// body and each response whose body names the schema.
+        /// </summary>
+        /// <param name="endpoint">The endpoint.</param>
+        /// <param name="schemaName">The schema looked for.</param>
+        /// <returns>The text of one list item per use; none when the endpoint does not use the schema.</returns>
         private static IEnumerable<string> Uses(OpenApiEndpoint endpoint, string schemaName)
         {
             if (endpoint.Request is not null && Mentions(endpoint.Request, schemaName))
@@ -270,6 +317,9 @@ namespace Hypha.Knowledge.Api.OpenApi
         }
 
         /// <summary>Whether a type notation names <paramref name="schemaName"/> as a whole word.</summary>
+        /// <param name="type">The type notation, e.g. <c>Commit[]</c>.</param>
+        /// <param name="schemaName">The schema looked for.</param>
+        /// <returns><c>true</c> when one of the notation's words is <paramref name="schemaName"/>.</returns>
         private static bool Mentions(string type, string schemaName) =>
             Words(type).Contains(schemaName, StringComparer.Ordinal);
 
@@ -277,6 +327,13 @@ namespace Hypha.Knowledge.Api.OpenApi
         /// Links every schema name in a type notation that has a page, leaving the rest of the notation
         /// (<c>[]</c>, <c>|</c>, parentheses, plain JSON types) as it is.
         /// </summary>
+        /// <param name="type">The type notation. A constant or an enumeration literal is returned unchanged.</param>
+        /// <param name="pages">The names of the schemas that have a page.</param>
+        /// <param name="folder">
+        /// The folder the pages are in, relative to the page being rendered, with a trailing <c>/</c>;
+        /// empty for the same folder.
+        /// </param>
+        /// <returns>The notation, with Markdown links.</returns>
         private static string Linked(string type, HashSet<string> pages, string folder)
         {
             // A literal is quoted text, not a type: "Commit" as a constant must not become a link.
@@ -318,15 +375,25 @@ namespace Hypha.Knowledge.Api.OpenApi
             return rendered.ToString();
         }
 
+        /// <summary>
+        /// Splits a type notation into its names, dropping spaces, brackets, parentheses, bars and commas.
+        /// </summary>
+        /// <param name="type">The type notation.</param>
+        /// <returns>The words of the notation, in order.</returns>
         private static IEnumerable<string> Words(string type) =>
             type.Split([' ', '[', ']', '(', ')', '|', ','], StringSplitOptions.RemoveEmptyEntries);
 
         /// <summary>Keeps a value from breaking the table it is placed in.</summary>
+        /// <param name="value">The cell text.</param>
+        /// <returns>The text with line breaks replaced by spaces and <c>|</c> escaped.</returns>
         private static string Cell(string value) =>
             value.Replace("\r\n", " ", StringComparison.Ordinal)
                 .Replace('\n', ' ')
                 .Replace("|", "\\|", StringComparison.Ordinal);
 
+        /// <summary>Phrases a schema's role for the line under its page title.</summary>
+        /// <param name="role">One of the <see cref="OpenApiNames"/> roles.</param>
+        /// <returns>The phrase, e.g. <c>used in responses</c>.</returns>
         private static string RoleSentence(string role) => role switch
         {
             OpenApiNames.RequestRole => "used in request bodies",

@@ -20,16 +20,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using Microsoft.Extensions.DependencyInjection;
 
-    /// <summary>
-    /// Asserts on how the metamodel generator is wired and what it does with a release it cannot
-    /// generate.
-    /// </summary>
-    /// <remarks>
-    /// No fixture in this project writes the committed knowledge base any more: they exercise a
-    /// generator and assert on scratch output. Producing <c>knowledge/&lt;tag&gt;/metamodel/</c> is
-    /// <c>hypha generate metamodel</c>'s job, and proving it reproduces the committed files is
-    /// <c>KnowledgeRegenerationTests</c>'s.
-    /// </remarks>
     [TestFixture]
     public class MetamodelGenerationTests
     {

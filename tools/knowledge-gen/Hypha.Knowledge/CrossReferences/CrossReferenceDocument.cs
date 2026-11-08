@@ -19,7 +19,7 @@ namespace Hypha.Knowledge.CrossReferences
     /// same inputs produce the same bytes.
     /// </remarks>
     /// <param name="SchemaVersion">The version of <c>cross-references.schema.json</c> this satisfies.</param>
-    /// <param name="ModelVersionUri">The model URI the metamodel declares - recorded, never used as a version.</param>
+    /// <param name="ModelVersionUri">The model URI the metamodel declares: recorded, never used as a version.</param>
     /// <param name="Documents">The specifications the clause identifiers refer to.</param>
     /// <param name="ProvenanceTiers">Each tier and what it means.</param>
     /// <param name="Counts">Coverage.</param>

@@ -21,16 +21,6 @@ namespace Hypha.Knowledge.Tests
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
-    /// <summary>
-    /// #88's carry-forward mechanism no longer has a committed document to carry from - nothing is
-    /// committed for any release any more (see #106) - so a release with no specification catalog
-    /// extracted (the ordinary case for every install without a maintainer source checkout) must
-    /// still generate rather than refuse (see #113).
-    /// </summary>
-    /// <remarks>
-    /// The catalog is hidden by decorating the layout rather than by moving files about, so the test
-    /// cannot leave the repository in a half-state if it fails.
-    /// </remarks>
     [TestFixture]
     public class CrossReferenceWithoutSpecificationsTests
     {
@@ -48,8 +38,8 @@ namespace Hypha.Knowledge.Tests
                 return;
             }
 
-            // CommittedCrossReferences is already always missing in this repository - nothing is
-            // committed for any release any more - so forcing the specification catalog missing too
+            // CommittedCrossReferences is already always missing in this repository (nothing is
+            // committed for any release any more), so forcing the specification catalog missing too
             // reproduces exactly what every real end-user's install has: neither source of
             // title-matched edges.
             var withoutCatalogOrCommitted = await Generate(provider, new WithoutSpecifications(layout), tag);
@@ -77,7 +67,6 @@ namespace Hypha.Knowledge.Tests
             return await File.ReadAllTextAsync(result.Written[0].FullName);
         }
 
-        /// <summary>A layout whose specification catalogs are all reported missing.</summary>
         private sealed class WithoutSpecifications(IKnowledgeLayout inner) : IKnowledgeLayout
         {
             public DirectoryInfo Root => inner.Root;
@@ -132,7 +121,6 @@ namespace Hypha.Knowledge.Tests
 
             public FileInfo CrossReferences(string tag) => inner.CrossReferences(tag);
 
-            /// <summary>Always a path that does not exist, whatever is really on disk.</summary>
             public FileInfo SpecificationCatalog(string tag, string document) =>
                 new(Path.Combine(inner.Knowledge(tag).FullName, "no-such-spec", document, "index.json"));
         }

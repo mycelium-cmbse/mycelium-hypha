@@ -93,7 +93,10 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="GenerateCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>The generators to run, ordered by <see cref="IKnowledgeGenerator.Order"/>.</summary>
             private readonly IReadOnlyList<IKnowledgeGenerator> generators;
+
+            /// <summary>What the generators are run over.</summary>
             private readonly GenerationScope scope;
 
             /// <summary>
@@ -104,6 +107,9 @@ namespace Hypha.Tools.Commands
             /// cross-references read what the others write.
             /// </param>
             /// <param name="layout">Used to resolve which releases are installed.</param>
+            /// <exception cref="ArgumentNullException">
+            /// <paramref name="generators"/> or <paramref name="layout"/> is <c>null</c>.
+            /// </exception>
             public Handler(IEnumerable<IKnowledgeGenerator> generators, IKnowledgeLayout layout)
             {
                 ArgumentNullException.ThrowIfNull(generators);
@@ -125,6 +131,9 @@ namespace Hypha.Tools.Commands
             /// </summary>
             /// <param name="generators">The generators to run, in any order.</param>
             /// <param name="scope">What they are run over.</param>
+            /// <exception cref="ArgumentNullException">
+            /// <paramref name="generators"/> or <paramref name="scope"/> is <c>null</c>.
+            /// </exception>
             public Handler(IEnumerable<IKnowledgeGenerator> generators, GenerationScope scope)
             {
                 ArgumentNullException.ThrowIfNull(generators);
@@ -135,10 +144,14 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Generates the requested artifacts.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the run; observed before each generator runs.</param>
             /// <returns>
             /// 0 when something was written, 1 when there was nothing to do or a generator refused,
             /// and 2 when an artifact was named that no generator produces.
             /// </returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
+            /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
             public async Task<int> InvokeAsync(
                 ParseResult parseResult, CancellationToken cancellationToken = default)
             {
@@ -180,7 +193,7 @@ namespace Hypha.Tools.Commands
                         }
                         catch (InvalidOperationException exception)
                         {
-                            // The deliberate refusals - a missing metamodel index, a clause title
+                            // The deliberate refusals: a missing metamodel index, a clause title
                             // reaching the cross-references, a slug collision. They mean the output
                             // would be wrong, so the run stops rather than leaving a half-built base.
                             AnsiConsole.MarkupLine(
@@ -220,6 +233,9 @@ namespace Hypha.Tools.Commands
             /// <summary>
             /// The generators to run, or <c>null</c> when an artifact was named that none produces.
             /// </summary>
+            /// <remarks>Reports the known artifacts when <paramref name="artifact"/> names none of them.</remarks>
+            /// <param name="artifact">The artifact named on the command line, or <c>null</c> or blank for all of them.</param>
+            /// <returns>Every generator, the one producing <paramref name="artifact"/>, or <c>null</c>.</returns>
             private IReadOnlyList<IKnowledgeGenerator>? Select(string? artifact)
             {
                 if (string.IsNullOrWhiteSpace(artifact))

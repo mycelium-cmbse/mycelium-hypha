@@ -179,7 +179,7 @@ namespace Hypha.MetamodelGen.Tests
         public void A_metamodel_document_has_neither_collection()
         {
             // Null rather than empty: the property is then left out, so a KerML or SysML document
-            // keeps the exact shape it had - which is what the golden files compare.
+            // keeps the exact shape it had, which is what the golden files compare.
             var model = TestModel.Model;
             if (model is null)
             {

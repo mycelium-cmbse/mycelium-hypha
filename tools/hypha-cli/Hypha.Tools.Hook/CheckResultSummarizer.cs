@@ -21,7 +21,7 @@ namespace Hypha.Tools.Hook
     /// <remarks>
     /// This is also where the plugin used to run a second, Python <c>SessionStart</c> hook
     /// (<c>hooks/check-spec-pdfs.py</c>) purely to say "the OMG PDFs are missing for the default
-    /// release" - folded in here so the plugin needs neither a second hook nor Python present just to
+    /// release"; it is folded in here so the plugin needs neither a second hook nor Python present just to
     /// report that. Silent by default, matching that hook's tone: only phases the user can act on, or
     /// would otherwise mistake for nothing happening, get a line.
     /// </remarks>
@@ -46,6 +46,11 @@ namespace Hypha.Tools.Hook
         /// </summary>
         /// <param name="result">What <c>hypha check --json</c> reported, or <c>null</c> if it failed.</param>
         /// <param name="pluginRoot">Where to look for already-downloaded specification PDFs.</param>
+        /// <returns>
+        /// One line asking which release to fetch when none is installed, or which says a newer one is
+        /// available, or which names the specification PDFs missing for the default release; otherwise
+        /// <c>null</c>.
+        /// </returns>
         public static string? Summarize(HookCheckResult? result, DirectoryInfo pluginRoot)
         {
             if (result is null)
@@ -78,6 +83,13 @@ namespace Hypha.Tools.Hook
             return MissingSpecificationsMessage(result.DefaultTag, pluginRoot);
         }
 
+        /// <summary>
+        /// Names the specification PDFs missing for <paramref name="defaultTag"/> and where to download
+        /// them from, or returns <c>null</c> when every one is present.
+        /// </summary>
+        /// <param name="defaultTag">The default release, or <c>null</c> when none is set.</param>
+        /// <param name="pluginRoot">The folder whose <c>sources/&lt;tag&gt;/specs/</c> is checked.</param>
+        /// <returns>The message, or <c>null</c> when there is no default release or nothing is missing.</returns>
         private static string? MissingSpecificationsMessage(string? defaultTag, DirectoryInfo pluginRoot)
         {
             if (defaultTag is null)

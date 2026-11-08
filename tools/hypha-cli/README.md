@@ -34,8 +34,8 @@ Every verb accepts `--repository-root` (the folder holding `sources/` and `knowl
 walking up from the working directory when omitted), `--toolchain-cache-root`, `--token`,
 `--log-level` and `--no-logo`.
 
-`--toolchain-cache-root <folder>` keeps the managed toolchain – the `uv` executable, uv's package
-cache (`uv-cache/`) and the Python uv installs (`python/`) – under that folder. Without it, `uv` is
+`--toolchain-cache-root <folder>` keeps the managed toolchain under that folder: the `uv` executable,
+uv's package cache (`uv-cache/`) and the Python uv installs (`python/`). Without it, `uv` is
 cached in the per-user application data folder and uv keeps its own default locations, which other uv
 users on the machine share. A host that keeps everything it provisions in its own storage, such as an
 editor extension, passes this option.
@@ -50,7 +50,7 @@ editor extension, passes this option.
 | `hypha move-window --tag <release> [--keep N]` | Maintainer-only: fetches, regenerates, re-extracts specifications, re-blesses the metamodel-gen fixtures, verifies, then prunes locally-installed releases beyond `--keep` (default 2). |
 | `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
 | `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
-| `hypha check [--json]` | Compares installed releases against what is offerable upstream - no fetching, no generating; the one verb the plugin's `SessionStart` hook drives. |
+| `hypha check [--json]` | Compares installed releases against what is offerable upstream, with no fetching and no generating; the one verb the plugin's `SessionStart` hook drives. |
 
 ```sh
 hypha discover                              # what can be installed
@@ -75,7 +75,7 @@ A name resolves in tiers, and the first tier with any match decides: the exact k
 then the same ignoring case, then a trailing part of the qualified name (`Real` for
 `ScalarValues::Real`, `Actions::ActionUsage`), then that ignoring case. One match is the answer;
 several are `ambiguous`. Only when no tier matches are names that merely contain the request offered,
-as `candidates` – never as an answer, even when there is only one.
+as `candidates`, never as an answer, even when there is only one.
 
 A model-library page holds a whole upstream file, so its lookup starts at the declaration rather than
 at the top of the page. The declaration is found by following the qualified name down the scopes of
@@ -87,8 +87,8 @@ a keyword and its name (`feature all x`, `attribute <m> mass`) are allowed. When
 the declaration cannot be found, the lookup starts at the top of the page and `declarationLine` is
 `null`.
 
-An index path that leaves the release folder – absolute, through `..`, or through a symbolic link
-anywhere on the way – is refused, and so is an index that is not what the generators write; both ask
+An index path that leaves the release folder (absolute, through `..`, or through a symbolic link
+anywhere on the way) is refused, and so is an index that is not what the generators write; both ask
 for `hypha generate`.
 
 ### JSON output
@@ -96,7 +96,7 @@ for `hypha generate`.
 `check`, `list`, `lookup` and `api list` take `--json`, for editors, language-model tools and scripts. Every
 `--json` document follows the same rules:
 
-- standard output holds exactly one line with one JSON document – no banner, no wrapping – and every
+- standard output holds exactly one line with one JSON document, with no banner and no wrapping, and every
   log line goes to standard error. HTTP request and retry logging is held to warnings and errors there,
   so a caller that never reads standard error (the `SessionStart` hook) cannot fill the pipe and stall
   the command;
@@ -118,7 +118,7 @@ order because the cross-references read what the others write.
 `spec` is unlike the rest: it needs the OMG spec PDFs (`hypha fetch` gets them by default; pass
 `--no-specs` to skip) and, the first time it runs, fetches and caches its own copy of
 [`uv`](https://github.com/astral-sh/uv), which resolves or fetches a matching Python itself and
-installs `tools/spec-extract`'s dependencies into a managed venv on demand - so it needs neither a
+installs `tools/spec-extract`'s dependencies into a managed venv on demand, so it needs neither a
 pre-existing Python nor a provisioned `.venv`. Either input being unavailable (no PDFs fetched, offline
 on first `uv` provisioning) is a `Skipped` result, the same as any other generator missing its inputs;
 it never blocks the rest of a `hypha generate` run.
@@ -146,7 +146,7 @@ hypha api generate                          # every artifact, every installed AP
 hypha api generate pim --tag 2026-04        # one artifact, one API version
 ```
 
-The API artifacts are the `IApiKnowledgeGenerator` implementations - the same contract as
+The API artifacts are the `IApiKnowledgeGenerator` implementations: the same contract as
 `IKnowledgeGenerator`, registered as a separate collection so a run over the language releases never
 picks them up. Today they are `pim`, `openapi`, `spec` and `cross-references`, run in that order
 because the cross-references read what the others write. `spec` behaves as it does for a language
@@ -154,7 +154,7 @@ release: it needs the PDF and `uv`, and is a `Skipped` result without either.
 
 A fetch reads four files from four places: the OpenAPI document from the API-Services repository,
 the specification PDF from the Release repository and the KerML model the PIM refers to from the
-Pilot-Implementation repository - all at the same tag - and the PIM model from the OMG document
+Pilot-Implementation repository (all at the same tag), and the PIM model from the OMG document
 server, because no repository carries it. That last request goes through a client of its own that
 carries no credentials: `--token` is for GitHub and is never sent anywhere else.
 
@@ -165,15 +165,15 @@ carries no credentials: `--token` is for GitHub and is never sent anywhere else.
 `hypha move-window --tag <release>` is a maintainer-only convenience for advancing to a newer upstream
 release in a source checkout: fetch → regenerate → re-extract specification text → re-bless
 `Hypha.MetamodelGen.Tests`' `Expected/` golden files against its committed XMI fixture (a fixed
-regression fixture, unrelated to the release just fetched - see CLAUDE.md's "Committed vs
+regression fixture, unrelated to the release just fetched; see CLAUDE.md's "Committed vs
 git-ignored") → prune whatever falls outside the local `--keep` count → verify the result regenerates
 self-consistently. `--keep` (default 2) is just how many releases stay installed locally; whichever
 fall outside it have their `sources/<tag>/` and `knowledge/<tag>/` deleted **immediately**, in the
-same run – nothing is left for later manual cleanup. Nothing is committed automatically, and nothing
-per-release is committed at all (see CLAUDE.md) – the deletions only ever touch the local, git-ignored
+same run; nothing is left for later manual cleanup. Nothing is committed automatically, and nothing
+per-release is committed at all (see CLAUDE.md): the deletions only ever touch the local, git-ignored
 `sources/`/`knowledge/` folders.
 
-It reports which step it is on as it goes and can take several minutes – specification extraction is
+It reports which step it is on as it goes and can take several minutes; specification extraction is
 the dominant cost. Unlike every other verb, **it needs a full source checkout with the .NET SDK and a
 provisioned `tools/spec-extract/.venv`** (`python -m venv .venv && pip install -e .[dev]`, from
 `tools/spec-extract/`): its re-bless and verify steps shell out to `dotnet test`, and specification
@@ -184,28 +184,28 @@ extraction shells out to `pytest`. It cannot run from the standalone distributed
 Nothing generated is committed to git (see the repository root `CLAUDE.md`): the plugin fetches and
 generates every release entirely on the user's machine, on request, and holds none of that content in
 git. `hypha check` is what the plugin's `SessionStart` hook runs, every session, to compare what is
-installed locally against what is offerable upstream - and *only* to compare. It never fetches or
+installed locally against what is offerable upstream, and *only* to compare. It never fetches or
 generates anything itself; deciding whether to act on what it reports is left entirely to the user,
 through the `version-management` skill (`skills/version-management/SKILL.md`).
 
 That is a deliberate difference from `move-window`, not a smaller version of it:
 
-- It **never shells out to `dotnet test`/`pytest`** - no re-bless, no verify, no specification
-  extraction - so it works from the downloaded self-contained binary a plugin install actually has,
+- It **never shells out to `dotnet test`/`pytest`** (no re-bless, no verify, no specification
+  extraction), so it works from the downloaded self-contained binary a plugin install actually has,
   not just from a full source checkout.
 - It is **read-only**: a couple of GitHub API calls, nothing written to disk. There is nothing here for
   `IReleaseWindowEvictor` (which deletes indiscriminately by tag age) to get wrong, because nothing is
-  ever deleted or fetched by this verb - only `hypha remove`, run because a user asked for exactly that
+  ever deleted or fetched by this verb: only `hypha remove`, run because a user asked for exactly that
   tag to go, ever deletes a release.
 
 It is driven by a small companion project, `Hypha.Tools.Hook` (`tools/hypha-cli/Hypha.Tools.Hook`),
 **not** part of `Hypha.Tools` itself. `Hypha.Tools.Hook` is the one thing in this repository that *is*
 NativeAOT-published and committed to git, at `hooks/native/<rid>/hypha-hook(.exe)`: unlike the main
 CLI, it never generates anything, only downloads and launches the CLI that does, so it carries none of
-the reflection-heavy dependencies (Handlebars.Net, uml4net) that keep `Hypha.Tools` off AOT - which is
+the reflection-heavy dependencies (Handlebars.Net, uml4net) that keep `Hypha.Tools` off AOT, which is
 what makes it small enough (single-digit MB per platform) to commit rather than download on demand.
 `.claude-plugin/plugin.json` registers a `SessionStart` hook whose command is a one-line POSIX shell
-dispatch shim - pure glue, no logic - that `exec`s the right platform binary for the current OS and
+dispatch shim (pure glue, no logic) that `exec`s the right platform binary for the current OS and
 architecture; see `.github/workflows/hook-binaries.yml` for how those binaries are built.
 
 Each session start, that binary:
@@ -214,20 +214,20 @@ Each session start, that binary:
    `hyphaCliVersion`) from GitHub Releases the first time it is needed, caching it outside the
    plugin's own git-managed folder (under the OS's local application data directory) so a plugin
    update/reinstall can never disturb it mid-run.
-2. Runs `hypha check --json`, **synchronously** - cheap enough to wait for inline (SessionStart's
+2. Runs `hypha check --json`, **synchronously**: cheap enough to wait for inline (SessionStart's
    default timeout is 10 minutes), with nothing to poll for later the way a background fetch would
    need.
 3. Reports the result as one line of `additionalContext`: nothing installed yet (names what is
-   available online), a newer release exists (names it), or nothing to report - silent, matching the
+   available online), a newer release exists (names it), or nothing to report (silent), matching the
    tone of the OMG-PDF-presence check this hook also folds in (see `CheckResultSummarizer`).
 
 ### Fetching the specification PDFs
 
-`hypha fetch --tag <release>` downloads the OMG specification PDFs **by default** now - a fully local
+`hypha fetch --tag <release>` downloads the OMG specification PDFs **by default** now: a fully local
 install needs everything, and downloading them is a plain HTTP call with no toolchain implication.
 Pass `--no-specs` to skip them. They land in the git-ignored `sources/<tag>/specs/` and must never be
-committed. *Quoting* their text (`knowledge/<tag>/spec/`) is `hypha generate`'s `spec` artifact - see
-[`tools/spec-extract`](../spec-extract/README.md) - which needs neither Python nor a maintainer source
+committed. *Quoting* their text (`knowledge/<tag>/spec/`) is `hypha generate`'s `spec` artifact (see
+[`tools/spec-extract`](../spec-extract/README.md)), which needs neither Python nor a maintainer source
 checkout of its own any more: it fetches and caches `uv`, which resolves or fetches a matching Python
 itself. The one remaining way spec-citation degrades to naming a clause rather than quoting it is `uv`
 itself being unprovisionable (offline on its first use, or an unsupported platform).
@@ -243,7 +243,7 @@ itself being unprovisionable (offline on its first use, or an unsupported platfo
 
 ## Rate limits
 
-Every upstream read is public, so a token is optional – but the anonymous GitHub API allows 60
+Every upstream read is public, so a token is optional, but the anonymous GitHub API allows 60
 requests an hour, which `discover` alone can exhaust. Set `--token`, `GITHUB_TOKEN` or `GH_TOKEN`.
 
 ## Why the tests no longer generate
@@ -288,7 +288,7 @@ dotnet test tools/hypha-cli/Hypha.Tools.Hook.Tests/Hypha.Tools.Hook.Tests.csproj
 ```
 
 NativeAOT publishing needs a platform linker (`Desktop development with C++` on Windows, `clang` on
-Linux/macOS) that a plain `dotnet build`/`dotnet test` does not - see
+Linux/macOS) that a plain `dotnet build`/`dotnet test` does not; see
 [the NativeAOT prerequisites](https://aka.ms/nativeaot-prerequisites). `.github/workflows/hook-binaries.yml`
 runs the four platforms on their native runners and commits the results; that workflow, not a local
 publish, is the normal way `hooks/native/` gets updated.

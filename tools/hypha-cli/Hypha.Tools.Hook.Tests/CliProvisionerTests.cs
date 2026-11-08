@@ -12,14 +12,6 @@ namespace Hypha.Tools.Hook.Tests
     using System;
     using System.IO;
 
-    /// <summary>
-    /// Suite of tests for the "is it already cached" half of <see cref="CliProvisioner"/>.
-    /// </summary>
-    /// <remarks>
-    /// <see cref="CliProvisionerEnsureAsyncTests"/> covers the download/verify/extract half, against a
-    /// stubbed transport; downloading a real archive from a real GitHub release is left to manual
-    /// verification - see <c>tools/hypha-cli/README.md</c>.
-    /// </remarks>
     [TestFixture]
     public class CliProvisionerTests
     {
@@ -54,7 +46,7 @@ namespace Hypha.Tools.Hook.Tests
         [Test]
         public void An_executable_with_no_ok_marker_is_not_trusted()
         {
-            // The marker is only ever written after a checksum verifies - an executable without one
+            // The marker is only ever written after a checksum verifies; an executable without one
             // could be a previous run's failed, partial extraction.
             var executable = this.cache.CliExecutable("1.2.0", "linux-x64");
             executable.Directory!.Create();

@@ -47,7 +47,7 @@ namespace Hypha.Knowledge.Tests
             this.root.Create();
 
             // Deliberately a *different* directory from root: SpecGenerator must honor `hypha
-            // generate --output`, not always write into the repository it reads inputs from - this is
+            // generate --output`, not always write into the repository it reads inputs from. This is
             // what caught the generator originally never passing --out-root at all.
             this.outputRoot = new DirectoryInfo(Path.Combine(Path.GetTempPath(), $"hypha-spec-generator-{unique}-out"));
             this.outputRoot.Create();

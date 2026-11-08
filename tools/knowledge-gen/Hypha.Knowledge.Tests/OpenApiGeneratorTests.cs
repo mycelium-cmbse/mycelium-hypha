@@ -124,7 +124,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(File.Exists(Path.Combine(output.FullName, "index.md")), Is.True);
                 Assert.That(File.Exists(Path.Combine(output.FullName, "index.json")), Is.True);
 
-                // 13 schema pages, the endpoints, and the two indexes - and nothing outside the output.
+                // 13 schema pages, the endpoints, and the two indexes, and nothing outside the output.
                 Assert.That(result.Written, Has.Count.EqualTo(16));
                 Assert.That(
                     result.Written.Select(file => file.FullName).Order(StringComparer.Ordinal),

@@ -31,7 +31,10 @@ namespace Hypha.Knowledge.Releases
         /// <summary>Guards against an unbounded loop if the API ever stops returning an empty page.</summary>
         private const int MaxPages = 20;
 
+        /// <summary>The client tags are read with; its lifetime belongs to the caller.</summary>
         private readonly HttpClient client;
+
+        /// <summary>The API host tags are read from.</summary>
         private readonly Uri apiBaseAddress;
 
         /// <summary>
@@ -65,7 +68,7 @@ namespace Hypha.Knowledge.Releases
                 new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
             // An explicitly supplied but empty token is treated as absent, the same way an exported
-            // but empty environment variable is - otherwise the request carries a bare "Bearer".
+            // but empty environment variable is; otherwise the request carries a bare "Bearer".
             var resolved = string.IsNullOrWhiteSpace(token)
                 ? GitHubToken.FromEnvironment(readEnvironment)
                 : token;

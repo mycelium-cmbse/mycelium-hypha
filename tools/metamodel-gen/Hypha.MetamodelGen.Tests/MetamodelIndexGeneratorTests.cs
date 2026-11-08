@@ -16,10 +16,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests for <see cref="MetamodelIndexGenerator"/>. Running these regenerates
-    /// <c>knowledge/metamodel/index.md</c> from the SysML metamodel XMI.
-    /// </summary>
     [TestFixture]
     public class MetamodelIndexGeneratorTests
     {

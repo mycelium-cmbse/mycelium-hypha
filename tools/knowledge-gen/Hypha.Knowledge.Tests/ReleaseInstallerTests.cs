@@ -22,14 +22,6 @@ namespace Hypha.Knowledge.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="ReleaseInstaller"/>: what it fetches, and what it records.
-    /// </summary>
-    /// <remarks>
-    /// Nothing here touches the network. The fetcher is a stub that reports the files it would have
-    /// written, which is enough to pin down the ordering, the flags and the manifest merge - the parts
-    /// a live run would be a slow and flaky way to check.
-    /// </remarks>
     [TestFixture]
     public class ReleaseInstallerTests
     {

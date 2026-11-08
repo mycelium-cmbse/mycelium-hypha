@@ -18,17 +18,31 @@ namespace Hypha.Knowledge.ModelLibrary
     /// Renders the standard-library pages for one release.
     /// </summary>
     /// <remarks>
-    /// Same anatomy as <c>NotationRenderer</c>'s example pages - front matter, verbatim source, a list
-    /// section - but the list answers a different question: not which metaclasses a file
+    /// Same anatomy as <c>NotationRenderer</c>'s example pages (front matter, verbatim source, a list
+    /// section), but the list answers a different question: not which metaclasses a file
     /// <i>exercises</i> (that is what an example page's <c>elements</c> section is for), but which
     /// qualified names this file itself <i>declares</i>. The libraries are normative model content a
     /// user's own model specialises, not a worked example. File naming is
     /// <see cref="TextualNotation.INotationRenderer.ExampleFileName"/>, reused by the generator rather
-    /// than duplicated here - same slugging, same collision semantics.
+    /// than duplicated here: same slugging, same collision semantics.
     /// </remarks>
     public sealed class ModelLibraryRenderer : IModelLibraryRenderer
     {
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders one standard-library file as a page: front matter listing the qualified names it
+        /// declares, the verbatim source in a fenced block, and the declarations with their keywords.
+        /// </summary>
+        /// <param name="sourcePath">The file's path, starting with <c>sysml.library/</c>.</param>
+        /// <param name="modelText">The file's content, embedded verbatim apart from newline normalisation.</param>
+        /// <param name="declarations">The declarations found in it, in the order the file declares them.</param>
+        /// <param name="language"><c>KerML</c> or <c>SysML</c>.</param>
+        /// <returns>The page's Markdown, with LF line endings.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="sourcePath"/> or <paramref name="language"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="modelText"/> or <paramref name="declarations"/> is <c>null</c>.
+        /// </exception>
         public string RenderPackage(
             string sourcePath, string modelText, IReadOnlyList<LibraryDeclaration> declarations, string language)
         {
@@ -75,7 +89,15 @@ namespace Hypha.Knowledge.ModelLibrary
             return string.Join("\n", lines);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Renders the per-release index page: every standard-library file, grouped by its top-level folder
+        /// under <c>sysml.library/</c>, with groups and files in ordinal order.
+        /// </summary>
+        /// <param name="tag">The release the pages were generated for.</param>
+        /// <param name="packages">The generated package pages.</param>
+        /// <returns>The page's Markdown, with LF line endings.</returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="packages"/> is <c>null</c>.</exception>
         public string RenderIndex(string tag, IReadOnlyList<ModelLibraryPackageEntry> packages)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
@@ -113,6 +135,8 @@ namespace Hypha.Knowledge.ModelLibrary
         }
 
         /// <summary>The upstream top-level folder right under <c>sysml.library/</c>.</summary>
+        /// <param name="package">The package page.</param>
+        /// <returns>The folder name, or the whole source path when it has no folder.</returns>
         private static string TopLevelFolder(ModelLibraryPackageEntry package)
         {
             var segments = package.SourcePath.Split('/');
@@ -121,6 +145,8 @@ namespace Hypha.Knowledge.ModelLibrary
         }
 
         /// <summary>The model's file name without its extension.</summary>
+        /// <param name="sourcePath">The file's relative path.</param>
+        /// <returns>The last path segment, without its final extension.</returns>
         private static string Stem(string sourcePath)
         {
             var lastSegment = sourcePath[(sourcePath.LastIndexOf('/') + 1)..];

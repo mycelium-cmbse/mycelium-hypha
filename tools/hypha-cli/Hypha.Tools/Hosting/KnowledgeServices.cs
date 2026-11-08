@@ -31,7 +31,7 @@ namespace Hypha.Tools.Hosting
     /// </summary>
     /// <remarks>
     /// Built <b>after</b> parsing rather than at start-up, because the flags that decide the
-    /// composition - the repository root, the output root, the token - are themselves parsed. The
+    /// composition (the repository root, the output root, the token) are themselves parsed. The
     /// registrations are the libraries' own: this adds nothing but the console log and the values the
     /// user typed.
     /// </remarks>
@@ -82,8 +82,8 @@ namespace Hypha.Tools.Hosting
 
                 if (json)
                 {
-                    // A caller reading the JSON may never read standard error - the SessionStart hook
-                    // does not - and once that pipe's buffer fills, the next log line blocks and the
+                    // A caller reading the JSON may never read standard error (the SessionStart hook
+                    // does not), and once that pipe's buffer fills, the next log line blocks and the
                     // verb never exits. So under --json the chattiest categories (a line per request,
                     // more on every retry) only report problems.
                     var quiet = (LogEventLevel)Math.Max((int)level, (int)LogEventLevel.Warning);

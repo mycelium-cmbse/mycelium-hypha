@@ -14,7 +14,7 @@
     <!-- The one hypha-cli project that IS NativeAOT-published: it never generates anything itself,
          only downloads and launches the real `hypha` CLI, so it carries none of the reflection-heavy
          dependencies (Handlebars.Net, uml4net) that keep Hypha.Tools off AOT. That is what makes it
-         small enough to commit into the plugin repository per platform - see hooks/native/. Deliberately
+         small enough to commit into the plugin repository per platform (see hooks/native/). Deliberately
          has NO ProjectReference to Hypha.Tools or Hypha.Knowledge: pulling either in would drag their
          non-AOT-safe dependency graph into this build. -->
     <PublishAot>true</PublishAot>

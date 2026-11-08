@@ -34,7 +34,7 @@ namespace Hypha.Knowledge.CrossReferences
 
         /// <summary>
         /// Clause titles per document, as <c>{clause: title}</c>. Empty when the specification PDFs
-        /// have not been extracted - see <see cref="CarriedClauseEdges"/>.
+        /// have not been extracted; see <see cref="CarriedClauseEdges"/>.
         /// </summary>
         public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> ClauseTitles { get; init; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
@@ -55,13 +55,13 @@ namespace Hypha.Knowledge.CrossReferences
         /// Permits a document built from the grammar alone, with no title-matched clause edges at all.
         /// </summary>
         /// <remarks>
-        /// Off by default for anyone building <see cref="CrossReferenceInputs"/> directly - a document
+        /// Off by default for anyone building <see cref="CrossReferenceInputs"/> directly: a document
         /// missing roughly a third of its clause edges should never be written silently. But
         /// <c>CrossReferenceGenerator</c> sets it whenever neither <see cref="ClauseTitles"/> nor
         /// <see cref="CarriedClauseEdges"/> has anything: a release tag with no specification PDFs
         /// extracted (no maintainer source checkout) and nothing committed to carry forward from
-        /// (nothing is committed for any release any more - see #106) is not an accident any more, it
-        /// is the default state of a real install - see #113.
+        /// (nothing is committed for any release any more, see #106) is not an accident any more, it
+        /// is the default state of a real install (see #113).
         /// </remarks>
         public bool AllowGrammarOnly { get; init; }
 

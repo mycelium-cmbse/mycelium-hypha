@@ -20,7 +20,7 @@ namespace Hypha.Tools.Tests
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands.Api;
 
-    // Against a real ApiLayout over a temp directory, the same style `UseCommandTests` uses - switching the
+    // Against a real ApiLayout over a temp directory, the same style `UseCommandTests` uses: switching the
     // default is a direct manifest rewrite, not worth mocking behind an interface for this alone.
     [TestFixture]
     public class ApiUseCommandTests

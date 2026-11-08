@@ -22,7 +22,7 @@ namespace Hypha.Tools.Hook
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Ensures the real, full <c>hypha</c> CLI is cached on disk - downloading, checksum-verifying and
+    /// Ensures the real, full <c>hypha</c> CLI is cached on disk, downloading, checksum-verifying and
     /// extracting it from the pinned <c>tools-v*</c> GitHub release the first time it is needed.
     /// </summary>
     /// <remarks>
@@ -33,13 +33,20 @@ namespace Hypha.Tools.Hook
     /// </remarks>
     public sealed class CliProvisioner
     {
+        /// <summary>The GitHub repository, <c>owner/name</c>, whose releases carry the CLI builds.</summary>
         private const string Repository = "mycelium-cmbse/mycelium-hypha";
 
+        /// <summary>The client the GitHub API and the asset downloads go through.</summary>
         private readonly HttpClient client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CliProvisioner"/> class.
         /// </summary>
+        /// <param name="client">
+        /// The client the GitHub API and the asset downloads go through, its base address the API root
+        /// (see <see cref="CreateClient"/>).
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="client"/> is <c>null</c>.</exception>
         public CliProvisioner(HttpClient client)
         {
             ArgumentNullException.ThrowIfNull(client);
@@ -48,6 +55,11 @@ namespace Hypha.Tools.Hook
         }
 
         /// <summary>Builds an <see cref="HttpClient"/> configured the way GitHub's API requires.</summary>
+        /// <remarks>
+        /// Authenticates with <c>GITHUB_TOKEN</c>, or else <c>GH_TOKEN</c>, when either is set, and
+        /// gives up on a request after 30 seconds.
+        /// </remarks>
+        /// <returns>The client; the caller owns and disposes it.</returns>
         public static HttpClient CreateClient()
         {
             var client = new HttpClient
@@ -75,6 +87,10 @@ namespace Hypha.Tools.Hook
         }
 
         /// <summary>Whether the CLI for this version/RID is already cached and verified.</summary>
+        /// <param name="cache">The cache to look in.</param>
+        /// <param name="version">The CLI version.</param>
+        /// <param name="rid">The runtime identifier the build targets.</param>
+        /// <returns><c>true</c> when both the executable and its <c>.ok</c> marker exist.</returns>
         public static bool IsCached(CacheLayout cache, string version, string rid)
         {
             var executable = cache.CliExecutable(version, rid);
@@ -89,7 +105,18 @@ namespace Hypha.Tools.Hook
         /// <summary>
         /// Ensures the CLI is cached, downloading it if necessary.
         /// </summary>
+        /// <remarks>
+        /// A failed download or verification is appended to <see cref="CacheLayout.DownloadErrorLog"/>.
+        /// </remarks>
+        /// <param name="cache">The cache the CLI is provisioned into.</param>
+        /// <param name="version">The CLI version, whose <c>tools-v&lt;version&gt;</c> release is downloaded.</param>
+        /// <param name="rid">The runtime identifier the build targets.</param>
+        /// <param name="cancellationToken">Cancels the download.</param>
         /// <returns>The cached executable, or <c>null</c> when it could not be provisioned.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cache"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="version"/> or <paramref name="rid"/> is <c>null</c>, empty or white space.
+        /// </exception>
         public async Task<FileInfo?> EnsureAsync(
             CacheLayout cache, string version, string rid, CancellationToken cancellationToken)
         {
@@ -182,6 +209,10 @@ namespace Hypha.Tools.Hook
             }
         }
 
+        /// <summary>Whether the file at <paramref name="path"/> has the SHA256 <paramref name="expectedHex"/>.</summary>
+        /// <param name="path">The file to hash.</param>
+        /// <param name="expectedHex">The expected digest, as hexadecimal in either case.</param>
+        /// <returns><c>true</c> when the digests match.</returns>
         private static bool VerifySha256(string path, string expectedHex)
         {
             using var stream = File.OpenRead(path);
@@ -190,6 +221,12 @@ namespace Hypha.Tools.Hook
             return string.Equals(actual, expectedHex, StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Appends <paramref name="exception"/> to <see cref="CacheLayout.DownloadErrorLog"/>, ignoring
+        /// any I/O failure in doing so.
+        /// </summary>
+        /// <param name="cache">The cache whose state folder holds the log.</param>
+        /// <param name="exception">The failure to record.</param>
         private static void TryLog(CacheLayout cache, Exception exception)
         {
             try
@@ -201,7 +238,7 @@ namespace Hypha.Tools.Hook
             }
             catch (IOException)
             {
-                // Nothing more useful to do - this is diagnostic-only, and the session must still exit.
+                // Nothing more useful to do: this is diagnostic-only, and the session must still exit.
             }
         }
     }

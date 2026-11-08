@@ -28,7 +28,7 @@ namespace Hypha.Knowledge.CrossReferences
 
         /// <summary>
         /// Each tier and what it means, carried in the output so a consumer can explain them without
-        /// hardcoding. Ordered as written - the order reaches the generated file.
+        /// hardcoding. Ordered as written: the order reaches the generated file.
         /// </summary>
         public static IReadOnlyDictionary<string, string> Tiers { get; } = new Dictionary<string, string>
         {

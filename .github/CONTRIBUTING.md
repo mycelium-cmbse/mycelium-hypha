@@ -23,7 +23,7 @@ We would like to start with saying thank you for wanting to contribute to the my
 1. Push the branch up to GitHub (`git push origin GH<issue-number>`)
 1. Send a Pull Request on GitHub into `development`
 
-You should **never** work on a clone of main or development, and you should **never** send a pull request from main or development – always from a branch. The reasons for this are detailed below.
+You should **never** work on a clone of main or development, and you should **never** send a pull request from main or development; always send it from a branch. The reasons for this are detailed below.
 
 ### Handling Updates from Upstream/Development
 
@@ -34,7 +34,7 @@ While you're working away in your branch it's quite possible that your upstream 
 1. `git pull upstream development`
 1. `git checkout GH<issue-number>`
 1. `git rebase development GH<issue-number>`
-1. `git push origin development` – (optional) this makes sure your remote development is up to date
+1. `git push origin development` (optional): this makes sure your remote development is up to date
 
 This ensures that your history is "clean" i.e. you have one branch off from development followed by your changes in a straight line. Failing to do this ends up with several "messy" merges in your history, which we don't want. This is the reason why you should always work in a branch and you should never be working in, or sending pull requests from, development.
 
@@ -47,7 +47,7 @@ While working on your feature you may well create several branches, which is fin
 When you're ready to go you should confirm that you are up to date and rebased with upstream/development (see "Handling Updates from Upstream/Development" above), and then:
 
 1. `git push origin GH<issue-number>`
-1. Send a descriptive [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on GitHub into `development` – making sure you have selected the correct branch in the GitHub UI!
+1. Send a descriptive [Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on GitHub into `development`, making sure you have selected the correct branch in the GitHub UI!
 1. Wait for a maintainer to review and merge your changes.
 
 Commit subjects follow `[Verb] <summary>; fixes #<n>`, for example `[Fix] emit operation bodyCondition OCL in the metamodel knowledge base; fixes #143`.
@@ -88,4 +88,4 @@ pytest
 - **C#:** block-scoped namespaces with `using`s inside the namespace, one public type per file, NUnit tests. Every source file opens with the Apache-2.0 copyright header (Starion Group S.A.).
 - **Python:** ruff-clean; each file carries the `# Copyright … / # SPDX-License-Identifier: Apache-2.0` header.
 - **Generated artifacts** must be byte-stable: ordinal sorting, LF line endings, and no timestamps, machine paths or culture-sensitive formatting.
-- **Prose and docs** use a spaced en dash (` – `), not an em dash.
+- **Prose and docs** use no dash as punctuation, neither the en dash nor the em dash: write the sentence with a comma, a colon, parentheses, a semicolon or a full stop instead. Hyphens in compound words stay.

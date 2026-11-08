@@ -20,16 +20,6 @@ namespace Hypha.Knowledge.Tests
 
     using Microsoft.Extensions.DependencyInjection;
 
-    /// <summary>
-    /// Asserts on how the generators this library owns are wired and what they do with a release they
-    /// cannot generate.
-    /// </summary>
-    /// <remarks>
-    /// This fixture used to run the generators over the committed knowledge base, which meant running
-    /// the tests rewrote the repository. Generation is <c>hypha generate</c>'s job now; regenerating
-    /// and comparing against the committed files is <c>KnowledgeRegenerationTests</c>'s, in the CLI's
-    /// test project, where it can write to a scratch folder instead.
-    /// </remarks>
     [TestFixture]
     public class KnowledgeGenerationTests
     {

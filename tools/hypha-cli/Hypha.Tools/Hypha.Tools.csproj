@@ -18,8 +18,8 @@
     <Title>hypha</Title>
     <Description>
       Fetches the upstream OMG SysML v2 / KerML sources and the Systems Modeling API, generates a local
-      knowledge base from them – metamodel, textual notation, model library, specification text and
-      cross-references – and looks names up in it, with JSON output for editors and language-model
+      knowledge base from them (metamodel, textual notation, model library, specification text and
+      cross-references) and looks names up in it, with JSON output for editors and language-model
       tools.
     </Description>
     <PackageTags>sysml sysml-v2 kerml omg mbse systems-modeling-api knowledge-base cli dotnet-tool</PackageTags>
@@ -70,7 +70,7 @@
 
   <!-- Microsoft.Sbom.Targets only wires itself into `Pack` (embedding the manifest in the .nupkg).
        The self-contained per-RID builds in release.yml use `publish` instead, so this reruns the same
-       task against $(PublishDir) - reusing the package's own SbomGeneration* defaults (package name,
+       task against $(PublishDir), reusing the package's own SbomGeneration* defaults (package name,
        version, supplier) rather than recomputing them. -->
   <Target Name="GenerateSbomForPublish" AfterTargets="Publish" Condition="'$(GenerateSBOM)' == 'true'">
     <GenerateSbom

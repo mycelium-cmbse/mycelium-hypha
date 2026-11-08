@@ -48,7 +48,25 @@ namespace Hypha.Knowledge.Hosting
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Runs <paramref name="fileName"/> without a shell and waits for it to exit, logging each line of its
+        /// standard output as information and each line of its standard error as a warning while it runs.
+        /// </summary>
+        /// <param name="fileName">The executable to run.</param>
+        /// <param name="arguments">The command-line arguments, as one already-escaped string.</param>
+        /// <param name="workingDirectory">Where the process runs from.</param>
+        /// <param name="environment">
+        /// Environment variables to set for the process, on top of this process's own; <c>null</c>
+        /// sets none.
+        /// </param>
+        /// <param name="cancellationToken">Kills the process and its whole process tree, then rethrows.</param>
+        /// <returns>The process's exit code.</returns>
+        /// <exception cref="ArgumentException"><paramref name="fileName"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="arguments"/> or <paramref name="workingDirectory"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+        /// <exception cref="System.ComponentModel.Win32Exception">The executable could not be started.</exception>
         public async Task<int> RunAsync(string fileName, string arguments, DirectoryInfo workingDirectory,
             IReadOnlyDictionary<string, string>? environment = null, CancellationToken cancellationToken = default)
         {

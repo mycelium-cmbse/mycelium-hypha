@@ -15,22 +15,22 @@ namespace Hypha.Knowledge.ModelLibrary
 
     /// <summary>
     /// Finds named declarations by walking the token stream once, tracking nesting depth and the
-    /// enclosing scope's name - not by parsing to a syntax tree.
+    /// enclosing scope's name, not by parsing to a syntax tree.
     /// </summary>
     /// <remarks>
     /// This deliberately stops well short of a real parser: it does not resolve <c>:&gt;</c>/<c>:&gt;&gt;</c>
     /// chains, does not know a feature's type, and cannot tell a public member from a private one. It
-    /// only answers "what names does this file declare and under what path" - enough to build a
+    /// only answers "what names does this file declare and under what path": enough to build a
     /// qualified-name index, nothing more.
     /// </remarks>
     public sealed class DeclarationScanner : IDeclarationScanner
     {
         /// <summary>
         /// KerML's own classifier/feature/package vocabulary (Clause 8.2.2, 8.2.4-8.2.6). None of the
-        /// metaclasses these build - Classifier, DataType, Class, Structure, Association,
+        /// metaclasses these build (Classifier, DataType, Class, Structure, Association,
         /// AssociationStructure, Behavior, Function, Predicate, Interaction, Metaclass, Feature, Step,
         /// Expression, BooleanExpression, Invariant, Connector, BindingConnector, Succession, Package,
-        /// LibraryPackage - end in "Definition"/"Usage", so <see cref="TextualNotation.ISurfaceForms"/>
+        /// LibraryPackage) end in "Definition"/"Usage", so <see cref="TextualNotation.ISurfaceForms"/>
         /// cannot derive them. Verified against <c>KerML-textual-bnf.kebnf</c>'s own concrete syntax
         /// productions (Clause 8.2.4.3, 8.2.5); longest phrases are listed first only for readability;
         /// <see cref="Scan"/> re-sorts regardless.
@@ -98,14 +98,32 @@ namespace Hypha.Knowledge.ModelLibrary
         /// Connecting keywords whose body-less form links two <b>existing</b> features by reference
         /// (<c>succession source then self;</c>, from Transfers.kerml) rather than declaring a new
         /// one. The word right after the keyword is indistinguishable, at this scanner's level, from a
-        /// fresh name in that form - every genuinely named connector/succession/binding/flow observed
+        /// fresh name in that form; every genuinely named connector/succession/binding/flow observed
         /// in the standard library carries a body, so a body is required before one of these is
         /// trusted as a declaration rather than discarded as a reference.
         /// </summary>
         private static readonly HashSet<string> RequiresBodyToDeclare =
             new(StringComparer.Ordinal) { "connector", "binding", "succession", "flow" };
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Every named declaration in <paramref name="modelText"/>, in the order it declares them, each
+        /// qualified by the names of the bodies it is nested in.
+        /// </summary>
+        /// <param name="modelText">The verbatim KerML/SysML source.</param>
+        /// <param name="surfaceForms">
+        /// This release's SysML surface forms (e.g. <c>"part def"</c>, <c>"action"</c>). The KerML core,
+        /// irregular SysML and membership keywords are always recognised in addition, and the longest
+        /// phrase is tried first.
+        /// </param>
+        /// <param name="reservedKeywords">
+        /// This release's reserved words, from both grammars. A reserved word is never read as the name a
+        /// keyword declares.
+        /// </param>
+        /// <returns>The declarations; a keyword followed by no fresh name declares nothing.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="modelText"/>, <paramref name="surfaceForms"/> or <paramref name="reservedKeywords"/>
+        /// is <c>null</c>.
+        /// </exception>
         public IReadOnlyList<LibraryDeclaration> Scan(
             string modelText, IEnumerable<string> surfaceForms, IEnumerable<string> reservedKeywords)
         {
@@ -172,7 +190,7 @@ namespace Hypha.Knowledge.ModelLibrary
                                 continue;
                             }
 
-                            // No name followed - a redefinition target, or another keyword right
+                            // No name followed: a redefinition target, or another keyword right
                             // behind this one. `index` already sits past the matched keyword; let
                             // whatever is there get its own turn at the top of the loop rather than
                             // skipping it with a further increment.
@@ -195,6 +213,8 @@ namespace Hypha.Knowledge.ModelLibrary
         /// This release's surface forms plus the always-on KerML core vocabulary, split into words and
         /// ordered longest-first so e.g. "standard library package" is tried before "package".
         /// </summary>
+        /// <param name="surfaceForms">This release's SysML surface forms.</param>
+        /// <returns>Each distinct keyword phrase with its words, longest first.</returns>
         private static List<(string[] Words, string Keyword)> BuildKeywordTable(IEnumerable<string> surfaceForms)
         {
             return CoreKeywords
@@ -209,6 +229,10 @@ namespace Hypha.Knowledge.ModelLibrary
         }
 
         /// <summary>The longest keyword phrase starting exactly at <paramref name="index"/>, if any.</summary>
+        /// <param name="tokens">The model's tokens.</param>
+        /// <param name="index">Where the phrase must start.</param>
+        /// <param name="keywords">The keyword table, longest phrase first.</param>
+        /// <returns>The matched keyword and how many tokens it spans, or <c>null</c>.</returns>
         private static (string Keyword, int Words)? MatchKeyword(
             IReadOnlyList<Token> tokens, int index, List<(string[] Words, string Keyword)> keywords)
         {
@@ -242,20 +266,20 @@ namespace Hypha.Knowledge.ModelLibrary
 
         /// <summary>
         /// The identifier or quoted name right after a matched keyword, or <c>null</c> when none
-        /// follows - a redefinition-only declaration (<c>feature :&gt;&gt; mass;</c>), a keyword used
+        /// follows: a redefinition-only declaration (<c>feature :&gt;&gt; mass;</c>), a keyword used
         /// only as a modifier before another keyword (<c>succession flow x { ... }</c>), or a bare
         /// <c>attribute</c> immediately followed by the reserved word <c>def</c> because "attribute
-        /// def" was not registered as its own two-word phrase - a reserved word can never be an
-        /// unquoted identifier, so seeing one here is proof this is not the name. <paramref
-        /// name="index"/> is left unmoved when there is no name, so the token that stopped the search -
-        /// very often another keyword - gets its own turn at the top of the scan.
+        /// def" was not registered as its own two-word phrase (a reserved word can never be an
+        /// unquoted identifier, so seeing one here is proof this is not the name). <paramref
+        /// name="index"/> is left unmoved when there is no name, so the token that stopped the search
+        /// (very often another keyword) gets its own turn at the top of the scan.
         /// </summary>
         /// <remarks>
         /// One reserved word is skipped rather than treated as disqualifying: <c>all</c>, the
         /// <c>isSufficient</c> marker the grammar allows directly before a classifier's or feature's
         /// own identification (<c>(isSufficient ?= 'all')? Identification</c>, repeated across
         /// <c>ClassifierDeclaration</c>, <c>FeatureDeclaration</c> and the anonymous connector/binding/
-        /// succession forms) - unlike every other reserved word, it is a prefix flag on the name that
+        /// succession forms). Unlike every other reserved word, it is a prefix flag on the name that
         /// follows, not a sign that there is no name at all.
         /// </remarks>
         private static string? ReadDeclaredName(
@@ -296,7 +320,7 @@ namespace Hypha.Knowledge.ModelLibrary
 
         /// <summary>
         /// Advances past everything between a declared name and its first <c>{</c> or <c>;</c> at the
-        /// current depth - the supertype list, multiplicity and modifiers a name can be followed by
+        /// current depth: the supertype list, multiplicity and modifiers a name can be followed by
         /// before its body (or the lack of one) is known.
         /// </summary>
         private static int SkipToBodyOrStatementEnd(IReadOnlyList<Token> tokens, int index, out bool opensBody)
@@ -318,6 +342,12 @@ namespace Hypha.Knowledge.ModelLibrary
             return index + 1;
         }
 
+        /// <summary>
+        /// Cuts a model into words, quoted names, braces, semicolons and single-character other tokens,
+        /// dropping white space and <c>//</c> and <c>/* */</c> comments.
+        /// </summary>
+        /// <param name="text">The model's content.</param>
+        /// <returns>The tokens, in order.</returns>
         private static List<Token> Tokenize(string text)
         {
             var tokens = new List<Token>();
@@ -397,7 +427,7 @@ namespace Hypha.Knowledge.ModelLibrary
                     continue;
                 }
 
-                // Everything else - ':', '>', '=', '?', '[', ']', ',', digits, ... - becomes its own
+                // Everything else (':', '>', '=', '?', '[', ']', ',', digits, ...) becomes its own
                 // token rather than being skipped. That is what lets ReadDeclaredName tell "attribute
                 // def LengthUnit" (a fresh name, directly adjacent) from "attribute :>> quantityDimension"
                 // (a redefinition target, separated by operator tokens) apart: silently skipping
@@ -409,16 +439,26 @@ namespace Hypha.Knowledge.ModelLibrary
             return tokens;
         }
 
+        /// <summary>What kind of token a <see cref="Token"/> is.</summary>
         private enum TokenKind
         {
+            /// <summary>An unquoted identifier or keyword: an ASCII letter or <c>_</c>, then letters, digits or <c>_</c>.</summary>
             Word,
+            /// <summary>A single- or double-quoted name, its quotes removed.</summary>
             Quoted,
+            /// <summary><c>{</c>, which opens a body.</summary>
             OpenBrace,
+            /// <summary><c>}</c>, which closes a body.</summary>
             CloseBrace,
+            /// <summary><c>;</c>, which ends a statement without a body.</summary>
             Semicolon,
+            /// <summary>Any other character, kept as its own token so operators separate a keyword from what follows.</summary>
             Other,
         }
 
+        /// <summary>One token of a model.</summary>
+        /// <param name="Kind">What kind of token it is.</param>
+        /// <param name="Text">Its text; for a <see cref="TokenKind.Quoted"/> token, without the quotes.</param>
         private readonly record struct Token(TokenKind Kind, string Text);
     }
 }

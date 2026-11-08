@@ -22,8 +22,8 @@ namespace Hypha.Knowledge.Api
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// Writes <c>knowledge/api/&lt;tag&gt;/spec/</c> - the full verbatim clause text of the Systems
-    /// Modeling API and Services specification - by running <c>tools/spec-extract</c> through
+    /// Writes <c>knowledge/api/&lt;tag&gt;/spec/</c>, the full verbatim clause text of the Systems
+    /// Modeling API and Services specification, by running <c>tools/spec-extract</c> through
     /// <c>uv</c>, exactly as <see cref="SpecGenerator"/> does for the KerML and SysML specifications.
     /// </summary>
     /// <remarks>
@@ -33,15 +33,35 @@ namespace Hypha.Knowledge.Api
     /// </remarks>
     public sealed class ApiSpecGenerator : IApiKnowledgeGenerator
     {
+        /// <summary>Where the specification PDF is read from and the clause text is written to.</summary>
         private readonly IApiLayout layout;
+
+        /// <summary>
+        /// The repository layout: <c>tools/spec-extract</c> and the inputs resolve against its root, the
+        /// output against its output root.
+        /// </summary>
         private readonly IKnowledgeLayout repository;
+
+        /// <summary>Provisions the <c>uv</c> executable <c>spec-extract</c> runs through.</summary>
         private readonly IUvProvisioner uv;
+
+        /// <summary>Runs <c>uv</c>.</summary>
         private readonly IProcessRunner processes;
+
+        /// <summary>The logger progress and outcomes are reported to.</summary>
         private readonly ILogger<ApiSpecGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiSpecGenerator"/> class.
         /// </summary>
+        /// <param name="layout">Where the specification PDF is read from and the clause text is written to.</param>
+        /// <param name="repository">
+        /// The repository layout: <c>tools/spec-extract</c> and the inputs resolve against its root, the
+        /// output against its output root.
+        /// </param>
+        /// <param name="uv">Provisions the <c>uv</c> executable <c>spec-extract</c> runs through.</param>
+        /// <param name="processes">Runs <c>uv</c>.</param>
+        /// <param name="logger">The logger progress and outcomes are reported to.</param>
         public ApiSpecGenerator(
             IApiLayout layout,
             IKnowledgeLayout repository,
@@ -62,13 +82,27 @@ namespace Hypha.Knowledge.Api
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>Gets what this generator produces: <c>spec</c>. Used when reporting progress.</summary>
         public string Artifact => "spec";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets where this generator sits in a full API run: <c>30</c>, after the PIM and the OpenAPI
+        /// knowledge and before the API cross-references, which read the clause text it writes.
+        /// </summary>
         public int Order => 30;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Generates <c>knowledge/api/&lt;tag&gt;/spec/</c> from the specification PDF by running
+        /// <c>spec-extract</c> through <c>uv</c>.
+        /// </summary>
+        /// <param name="tag">The API version.</param>
+        /// <param name="cancellationToken">Cancels provisioning <c>uv</c> and the extraction.</param>
+        /// <returns>
+        /// The files written; or <see cref="GenerationOutcome.Skipped"/> when the PDF is absent,
+        /// <c>uv</c> could not be provisioned, the extraction exited with a non-zero code, or it wrote
+        /// nothing.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
         public async Task<GenerationResult> GenerateAsync(string tag, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);

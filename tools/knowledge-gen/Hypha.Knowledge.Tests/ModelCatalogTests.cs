@@ -14,9 +14,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.TextualNotation;
 
-    /// <summary>
-    /// Tests for finding the models a release ships.
-    /// </summary>
     [TestFixture]
     public class ModelCatalogTests
     {
@@ -81,7 +78,7 @@ namespace Hypha.Knowledge.Tests
         public void Ordering_ignores_case()
         {
             // "KerML Spec Annex A Examples" must sit among its lowercase siblings, not ahead of all
-            // of them - which is what the committed index was generated with.
+            // of them, which is what the committed index was generated with.
             this.Write("sysml/alpha.sysml");
             this.Write("sysml/Beta.sysml");
             this.Write("sysml/gamma.sysml");

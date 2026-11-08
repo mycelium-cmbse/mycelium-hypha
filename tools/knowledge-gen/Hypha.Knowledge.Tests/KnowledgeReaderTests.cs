@@ -15,9 +15,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.CrossReferences;
 
-    /// <summary>
-    /// Tests for reading the generated knowledge trees off disk.
-    /// </summary>
     [TestFixture]
     public class KnowledgeReaderTests
     {

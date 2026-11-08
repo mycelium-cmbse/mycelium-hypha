@@ -11,10 +11,6 @@ namespace Hypha.Tools.Hook.Tests
 {
     using System.Text.Json;
 
-    /// <summary>
-    /// Suite of tests for the small JSON-shaped types read/written through
-    /// <see cref="HookJsonContext"/> - the source-generated context NativeAOT needs.
-    /// </summary>
     [TestFixture]
     public class HookJsonSerializationTests
     {

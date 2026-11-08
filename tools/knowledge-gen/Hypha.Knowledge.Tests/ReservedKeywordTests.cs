@@ -11,9 +11,6 @@ namespace Hypha.Knowledge.Tests
 {
     using Hypha.Knowledge.Grammar;
 
-    /// <summary>
-    /// Tests for reading the <c>RESERVED_KEYWORD</c> production out of a grammar.
-    /// </summary>
     [TestFixture]
     public class ReservedKeywordTests
     {

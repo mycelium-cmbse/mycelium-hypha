@@ -13,9 +13,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.TextualNotation;
 
-    /// <summary>
-    /// Tests for the generated example pages and the per-release index.
-    /// </summary>
     [TestFixture]
     public class NotationRendererTests
     {

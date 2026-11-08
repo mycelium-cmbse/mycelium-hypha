@@ -22,7 +22,16 @@ namespace Hypha.Knowledge.TextualNotation
         /// <summary>The two model extensions; everything else in the tree is grammar or chrome.</summary>
         public static IReadOnlyList<string> ModelExtensions { get; } = [".kerml", ".sysml"];
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Finds every <c>.kerml</c> and <c>.sysml</c> file under <paramref name="textualRoot"/>, at any
+        /// depth, whatever the extension's case.
+        /// </summary>
+        /// <param name="textualRoot">The release's textual sources, or its standard-library folder.</param>
+        /// <returns>
+        /// The models' paths relative to <paramref name="textualRoot"/>, with <c>/</c> separators, ordered
+        /// segment by segment and case-insensitively. Empty when the folder does not exist.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="textualRoot"/> is <c>null</c>.</exception>
         public IReadOnlyList<string> Discover(DirectoryInfo textualRoot)
         {
             ArgumentNullException.ThrowIfNull(textualRoot);
@@ -54,8 +63,19 @@ namespace Hypha.Knowledge.TextualNotation
         /// </remarks>
         private sealed class PathOrder : IComparer<string>
         {
+            /// <summary>Gets the shared instance; the comparer holds no state.</summary>
             public static PathOrder Instance { get; } = new();
 
+            /// <summary>
+            /// Compares two relative paths segment by segment, ordinally on their lowercase forms; a path that is
+            /// a prefix of the other sorts first, and <c>null</c> sorts before any path.
+            /// </summary>
+            /// <param name="x">The first path.</param>
+            /// <param name="y">The second path.</param>
+            /// <returns>
+            /// Less than zero when <paramref name="x"/> sorts first, zero when they are equal, and greater than
+            /// zero when <paramref name="y"/> sorts first.
+            /// </returns>
             public int Compare(string? x, string? y)
             {
                 if (x is null)

@@ -21,11 +21,13 @@ namespace Hypha.Knowledge.Api
     /// </summary>
     public sealed class ApiDiscovery : IApiDiscovery
     {
+        /// <summary>Lists each upstream repository's tags.</summary>
         private readonly IReleaseDiscovery releases;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiDiscovery"/> class.
         /// </summary>
+        /// <param name="releases">Lists each upstream repository's tags.</param>
         public ApiDiscovery(IReleaseDiscovery releases)
         {
             ArgumentNullException.ThrowIfNull(releases);
@@ -33,7 +35,12 @@ namespace Hypha.Knowledge.Api
             this.releases = releases;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Lists the tags of the API-Services, Release and Pilot-Implementation repositories and keeps
+        /// the ones <see cref="ApiCatalog.Available"/> offers as API versions.
+        /// </summary>
+        /// <param name="cancellationToken">Cancels the tag listings.</param>
+        /// <returns>The offerable API versions, newest first.</returns>
         public async Task<IReadOnlyList<string>> AvailableAsync(CancellationToken cancellationToken = default)
         {
             var services = await this.releases.FetchTagsAsync(ApiUpstream.ServicesRepository, cancellationToken);

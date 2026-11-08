@@ -22,8 +22,10 @@ namespace Hypha.MetamodelGen.Generators
     {
         // Convention: every Regex in this tool is constructed with an explicit match timeout to
         // guard against catastrophic backtracking (ReDoS). Reuse RegexTimeout for any new patterns.
+        /// <summary>The match timeout every regular expression of this tool is constructed with.</summary>
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(2);
 
+        /// <summary>Matches a run of white space, collapsed to a single space.</summary>
         private static readonly Regex WhitespaceRegex =
             new(@"\s+", RegexOptions.Compiled, RegexTimeout);
 
@@ -31,6 +33,9 @@ namespace Hypha.MetamodelGen.Generators
         /// Returns the element's documentation as a single clean paragraph: the comment-body
         /// fragments are joined and runs of whitespace collapsed to single spaces.
         /// </summary>
+        /// <param name="element">The element whose documentation is read.</param>
+        /// <returns>The documentation, or an empty string when the element has none.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="element"/> is <c>null</c>.</exception>
         public static string QueryDocumentationText(this IElement element)
         {
             ArgumentNullException.ThrowIfNull(element);
@@ -44,6 +49,9 @@ namespace Hypha.MetamodelGen.Generators
         /// Returns a one-line summary of the element's documentation: the first sentence, truncated
         /// to <paramref name="maxLength"/> characters with an ellipsis when longer.
         /// </summary>
+        /// <param name="element">The element whose documentation is summarized.</param>
+        /// <param name="maxLength">The longest the summary may be before it is truncated.</param>
+        /// <returns>The summary, or an empty string when the element has no documentation.</returns>
         public static string QuerySummary(this IElement element, int maxLength = 160)
         {
             var text = element.QueryDocumentationText();

@@ -35,7 +35,7 @@ dotnet build mycelium-hypha.sln
 dotnet test  mycelium-hypha.sln
 ```
 
-Tests never write the committed knowledge base — that is
+Tests never write the committed knowledge base; that is the job of
 `dotnet run --project tools/hypha-cli/Hypha.Tools -- generate metamodel`. After an intended format
 change, regenerate, review the diff, then re-run the `[Explicit]` `Bless_*` tests to bring the golden
 expectations under `Expected/` in line.
@@ -45,10 +45,10 @@ expectations under `Expected/` in line.
 Alongside the markdown, the converter emits a structured JSON form of the metamodel (same `uml4net`
 pass, so the two never drift), committed under `knowledge/metamodel/`:
 
-- **`metamodel.json`** — the full graph: every class (with **precomputed** inheritance closures
+- **`metamodel.json`**: the full graph, every class (with **precomputed** inheritance closures
   `allAncestors` / `allDescendants`, owned + inherited attributes, operations, constraints),
   enumerations, primitive types and packages. Schema: `metamodel.schema.json`.
-- **`index.json`** — a small flat name → `{kind, package, qualifiedName, …, file}` lookup for fast
+- **`index.json`**: a small flat name → `{kind, package, qualifiedName, …, file}` lookup for fast
   resolution before drilling into the rich file. Schema: `index.schema.json`.
 
 Multiplicity upper bound `-1` denotes unbounded (`*`); output is deterministic (sorted, LF, no
@@ -75,10 +75,10 @@ jq -r '.classes[] | select(.ownedAttributes[]? | .isComposite and .type=="Expres
 jq '.entries["PartUsage"]' knowledge/metamodel/index.json
 ```
 
-**Recommended:** `jq` is a small standalone binary (not Python/Node) — install via `brew install jq`,
+**Recommended:** `jq` is a small standalone binary (not Python/Node); install via `brew install jq`,
 `sudo apt install jq`, or `winget install jqlang.jq`. It is not a hard requirement, but at ~8 MB
 `metamodel.json` is too large to read whole, so without `jq` the skills fall back to the per-element
-markdown — slower, far heavier on context, and unable to distinguish a field match from a mention in
+markdown, which is slower, far heavier on context, and unable to distinguish a field match from a mention in
 prose. The plugin-facing note lives in the [root README](../../README.md#recommended-jq); this file
 is not shipped with the plugin. A future MCP server would load the same JSON in memory and need
 neither `jq` nor a shell.

@@ -20,16 +20,12 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.TextualNotation;
 
-    /// <summary>
-    /// Tests for finding named declarations in KerML/SysML standard-library source, without a real
-    /// parser.
-    /// </summary>
     [TestFixture]
     public class DeclarationScannerTests
     {
         private static readonly string[] SysmlAttributeForms = ["attribute def", "attribute"];
 
-        // Enough of the real reserved-keyword vocabulary to exercise the tests below - "def" above
+        // Enough of the real reserved-keyword vocabulary to exercise the tests below, "def" above
         // all, since a bare keyword not registered as its own two-word phrase must never read it as
         // the name it declares.
         private static readonly string[] ReservedWords = ["def", "in", "out", "inout", "all", "from"];
@@ -151,7 +147,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void A_keyword_immediately_followed_by_another_keyword_declares_nothing_for_the_first()
         {
-            // "succession flow x" - "succession" alone must not swallow "flow" as if it were the name;
+            // "succession flow x": "succession" alone must not swallow "flow" as if it were the name;
             // "flow" gets its own turn and reports the real name.
             const string text = "package P { succession flow x { } }";
 

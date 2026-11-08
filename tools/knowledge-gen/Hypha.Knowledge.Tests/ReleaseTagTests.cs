@@ -14,9 +14,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for the release-tag shape rules, using the tag forms both upstreams really publish.
-    /// </summary>
     [TestFixture]
     public class ReleaseTagTests
     {

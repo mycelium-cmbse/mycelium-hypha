@@ -19,8 +19,8 @@ namespace Hypha.Knowledge.Grammar
     /// it, and which of its features the syntax populates.
     /// </summary>
     /// <remarks>
-    /// Every join here is something the grammar <i>states</i> - a declared type, a <c>// Clause</c>
-    /// comment, an assignment operator - rather than something matched on a name, so a consumer can
+    /// Every join here is something the grammar <i>states</i> (a declared type, a <c>// Clause</c>
+    /// comment, an assignment operator) rather than something matched on a name, so a consumer can
     /// cite it as read.
     /// </remarks>
     public sealed partial class GrammarLinks : IGrammarLinks
@@ -29,15 +29,25 @@ namespace Hypha.Knowledge.Grammar
         private const int MaxDepth = 4;
 
         // Capitalised identifiers are production references; lowercase ones are features and keywords.
+        /// <summary>Matches a capitalised identifier (a production reference), capturing it in group 1.</summary>
+        /// <returns>The compiled expression.</returns>
         [GeneratedRegex(@"\b([A-Z][A-Za-z0-9_]*)\b")]
         private static partial Regex Reference();
 
+        /// <summary>Matches a single-quoted literal, so keywords can be removed before references are read.</summary>
+        /// <returns>The compiled expression.</returns>
         [GeneratedRegex(@"'[^']*'")]
         private static partial Regex Literal();
 
         /// <summary>
         /// Maps each metaclass to the productions that build it, using the declared type then the name.
         /// </summary>
+        /// <param name="productions">One grammar's parsed productions.</param>
+        /// <param name="metaclasses">The metamodel's element names.</param>
+        /// <returns>The production names, ordered ordinally, by metaclass name.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="productions"/> or <paramref name="metaclasses"/> is <c>null</c>.
+        /// </exception>
         /// <remarks>
         /// Only names present in <paramref name="metaclasses"/> are kept, so the grammar can never
         /// introduce an element the metamodel does not have.
@@ -66,6 +76,12 @@ namespace Hypha.Knowledge.Grammar
         /// Maps each metaclass to the clauses its productions are defined in, per the grammar's own
         /// <c>// Clause</c> attribution.
         /// </summary>
+        /// <param name="productions">One grammar's parsed productions.</param>
+        /// <param name="metaclasses">The metamodel's element names; nothing outside them is linked.</param>
+        /// <returns>The clause numbers, ordered by <see cref="ClauseNumberComparer"/>, by metaclass name.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="productions"/> or <paramref name="metaclasses"/> is <c>null</c>.
+        /// </exception>
         public IReadOnlyDictionary<string, IReadOnlyList<string>> ClauseLinks(
             IReadOnlyList<Production> productions, ISet<string> metaclasses)
         {
@@ -89,9 +105,18 @@ namespace Hypha.Knowledge.Grammar
         /// <summary>
         /// Maps each metaclass to the metamodel features its productions populate, and how.
         /// </summary>
+        /// <param name="productions">One grammar's parsed productions.</param>
+        /// <param name="metaclasses">The metamodel's element names; nothing outside them is linked.</param>
+        /// <returns>
+        /// The feature links, ordered by <see cref="FeatureAssignment.Order"/>, by metaclass name; a metaclass
+        /// whose productions assign nothing is left out.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="productions"/> or <paramref name="metaclasses"/> is <c>null</c>.
+        /// </exception>
         /// <remarks>
         /// Assignments frequently sit in an <b>untyped helper</b> production rather than the typed one
-        /// - <c>PartUsage</c> delegates to <c>PartUsageDeclaration</c> - so a typed production also
+        /// (<c>PartUsage</c> delegates to <c>PartUsageDeclaration</c>), so a typed production also
         /// contributes the assignments of the helpers it reaches, transitively.
         /// <para>
         /// Two guards keep that honest. A helper must declare no metaclass of its own, so an assignment
@@ -158,11 +183,16 @@ namespace Hypha.Knowledge.Grammar
         }
 
         /// <summary>The metaclass a production builds: its declared type, else its own name, else nothing.</summary>
+        /// <param name="production">The production.</param>
+        /// <param name="metaclasses">The metamodel's element names.</param>
+        /// <returns>The metaclass name, or <c>null</c> when neither candidate is a metaclass.</returns>
         private static string? BuiltElement(Production production, ISet<string> metaclasses) =>
             new[] { production.Produces, production.Name }
                 .FirstOrDefault(candidate => !string.IsNullOrEmpty(candidate) && metaclasses.Contains(candidate));
 
         /// <summary>The production names a body refers to: capitalised identifiers outside quoted literals.</summary>
+        /// <param name="body">A production's body.</param>
+        /// <returns>The referenced names, in order of appearance, repeats included.</returns>
         private static IEnumerable<string> References(string body)
         {
             var withoutLiterals = Literal().Replace(body, " ");
@@ -170,6 +200,9 @@ namespace Hypha.Knowledge.Grammar
             return Reference().Matches(withoutLiterals).Select(match => match.Groups[1].Value);
         }
 
+        /// <summary>Indexes productions by name; a later production with the same name replaces an earlier one.</summary>
+        /// <param name="productions">The productions.</param>
+        /// <returns>The productions, by ordinal name.</returns>
         private static Dictionary<string, Production> ByName(IReadOnlyList<Production> productions)
         {
             var byName = new Dictionary<string, Production>(StringComparer.Ordinal);
@@ -185,8 +218,13 @@ namespace Hypha.Knowledge.Grammar
         /// <summary>
         /// A production plus the untyped helper productions it reaches, transitively.
         /// </summary>
+        /// <param name="production">The typed production to start from.</param>
+        /// <param name="byName">Every production, by name.</param>
+        /// <param name="exclusive">The helpers safe to attribute, from <see cref="ExclusiveHelpers"/>.</param>
+        /// <returns><paramref name="production"/> first, then the helpers in the order they were reached.</returns>
         /// <remarks>
-        /// Depth is bounded and visits are tracked, so a grammar that references itself cannot loop.
+        /// Depth is bounded by <see cref="MaxDepth"/> and visits are tracked, so a grammar that references
+        /// itself cannot loop.
         /// </remarks>
         private static List<Production> Contributors(
             Production production,
@@ -232,6 +270,9 @@ namespace Hypha.Knowledge.Grammar
         /// what makes a helper safe to attribute: its assignments can only belong to the one element
         /// that reaches it.
         /// </summary>
+        /// <param name="productions">The productions.</param>
+        /// <param name="byName">The same productions, by name.</param>
+        /// <returns>The names of the exclusive helpers.</returns>
         private static HashSet<string> ExclusiveHelpers(
             IReadOnlyList<Production> productions, Dictionary<string, Production> byName)
         {
@@ -266,6 +307,10 @@ namespace Hypha.Knowledge.Grammar
                 .ToHashSet(StringComparer.Ordinal);
         }
 
+        /// <summary>Gets the set of values linked to <paramref name="element"/>, creating it when absent.</summary>
+        /// <param name="links">The links being collected.</param>
+        /// <param name="element">The metaclass name.</param>
+        /// <returns>The metaclass's set, which the caller adds to.</returns>
         private static SortedSet<string> Bucket(
             Dictionary<string, SortedSet<string>> links, string element)
         {
@@ -278,6 +323,10 @@ namespace Hypha.Knowledge.Grammar
             return bucket;
         }
 
+        /// <summary>Turns the collected links into their read-only, ordered result.</summary>
+        /// <param name="links">The links collected.</param>
+        /// <param name="order">How each metaclass's values are ordered.</param>
+        /// <returns>The links, keyed ordinally by metaclass name.</returns>
         private static SortedDictionary<string, IReadOnlyList<string>> Freeze(
             Dictionary<string, SortedSet<string>> links, IComparer<string> order)
         {

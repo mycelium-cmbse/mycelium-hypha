@@ -404,7 +404,7 @@ namespace Hypha.Knowledge.Tests
             {
                 Assert.That(this.Schema("Colour").Role, Is.EqualTo(OpenApiNames.NoRole));
 
-                // Choice refers to Part, which is used - that does not make Choice itself used.
+                // Choice refers to Part, which is used, but that does not make Choice itself used.
                 Assert.That(this.Schema("Choice").Role, Is.EqualTo(OpenApiNames.NoRole));
             });
         }

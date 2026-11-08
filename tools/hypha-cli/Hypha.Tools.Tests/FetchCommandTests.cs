@@ -20,9 +20,6 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="FetchCommand"/>.
-    /// </summary>
     [TestFixture]
     public class FetchCommandTests
     {
@@ -67,7 +64,7 @@ namespace Hypha.Tools.Tests
         [Test]
         public async Task The_copyrighted_specifications_are_fetched_by_default()
         {
-            // A fully local install needs everything, including the PDFs - downloading them is a
+            // A fully local install needs everything, including the PDFs. Downloading them is a
             // plain HTTP call with no toolchain implication; only extracting clause text from them
             // needs Python.
             await this.Invoke("fetch --tag 2026-05");

@@ -37,7 +37,7 @@ namespace Hypha.Tools.Commands
             {
                 Description =
                     "Skip the OMG specification PDFs. Downloaded by default, since a fully local "
-                    + "install needs everything - they are copyright OMG, land in a git-ignored "
+                    + "install needs everything. They are copyright OMG, land in a git-ignored "
                     + "folder and must never be committed.",
                 DefaultValueFactory = _ => false,
             };
@@ -73,11 +73,14 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="FetchCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Downloads the release and records it in the version manifest.</summary>
             private readonly IReleaseInstaller installer;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="installer">Downloads the release and records it in the version manifest.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="installer"/> is <c>null</c>.</exception>
             public Handler(IReleaseInstaller installer)
             {
                 ArgumentNullException.ThrowIfNull(installer);
@@ -86,7 +89,10 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Fetches the release.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the download.</param>
             /// <returns>0 when the release was installed, 2 when the tag was rejected.</returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(
                 ParseResult parseResult, CancellationToken cancellationToken = default)
             {

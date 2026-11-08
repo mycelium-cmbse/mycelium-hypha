@@ -11,10 +11,6 @@ namespace Hypha.Knowledge.Tests
 {
     using Hypha.Knowledge.TextualNotation;
 
-    /// <summary>
-    /// Tests for deriving the textual-notation surface form of a metaclass, and for matching it
-    /// against a model.
-    /// </summary>
     [TestFixture]
     public class SurfaceFormsTests
     {

@@ -42,6 +42,11 @@ namespace Hypha.Knowledge.Api
         /// version installable: its specification PDF and the KerML model its PIM refers to are read
         /// from the language repositories at the same tag.
         /// </remarks>
+        /// <param name="servicesTags">The tags of the API-Services repository.</param>
+        /// <param name="releaseTags">The tags of the Release repository.</param>
+        /// <param name="pilotTags">The tags of the Pilot-Implementation repository.</param>
+        /// <returns>The offerable API versions, newest first.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="servicesTags"/> is <c>null</c>.</exception>
         public static IReadOnlyList<string> Available(
             IEnumerable<string> servicesTags, IEnumerable<string> releaseTags, IEnumerable<string> pilotTags)
         {
@@ -59,6 +64,8 @@ namespace Hypha.Knowledge.Api
         /// Whether <paramref name="tag"/> is release-shaped and not older than
         /// <see cref="EarliestVersion"/>.
         /// </summary>
+        /// <param name="tag">The candidate tag; <c>null</c> is never offerable.</param>
+        /// <returns><c>true</c> when <paramref name="tag"/> can be offered as an API version.</returns>
         public static bool IsOfferable(string? tag) =>
             ReleaseTag.IsRelease(tag)
             && ReleaseTag.SortKey(tag!).CompareTo(ReleaseTag.SortKey(EarliestVersion)) >= 0;

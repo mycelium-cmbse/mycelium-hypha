@@ -31,11 +31,37 @@ namespace Hypha.Knowledge.Api.CrossReferences
     {
         // The header rows of the two REST/HTTP mapping tables, as the extracted text carries them. The
         // OSLC PSM has tables of the same build under other headers, which must not be read as these.
+        /// <summary>The line that opens the PIM-to-PSM model mapping table.</summary>
         private const string ModelTableHeader = "**PIM Concept REST/HTTP PSM Model";
+
+        /// <summary>The line that opens the PIM-to-PSM endpoint mapping table.</summary>
         private const string EndpointTableHeader = "**PIM Service REST / HTTP PSM Endpoint";
+
+        /// <summary>The member a request schema fixes to the name of the PIM type it carries.</summary>
         private const string TypeProperty = "@type";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Builds the cross-references for one API version: links each PIM type to the clauses that
+        /// cover it and to its PSM schemas, compares its effective attributes with the PSM models'
+        /// members, and maps each PIM service operation to its clauses and endpoints.
+        /// </summary>
+        /// <param name="apiVersion">The API version.</param>
+        /// <param name="pim">The PIM types.</param>
+        /// <param name="openApi">
+        /// The REST/HTTP PSM index; <c>null</c> when it was not generated, in which case no type has a
+        /// schema and no endpoint has an operation identifier.
+        /// </param>
+        /// <param name="clauses">
+        /// The specification clauses, in any order; empty when the text was not generated, in which case
+        /// nothing is linked to a clause or a mapping table.
+        /// </param>
+        /// <returns>The cross-reference document, its types and operations ordered by key.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="apiVersion"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="pim"/> or <paramref name="clauses"/> is <c>null</c>.
+        /// </exception>
         public ApiCrossReferenceDocument Build(
             string apiVersion, PimGraph pim, OpenApiIndexDocument? openApi, IReadOnlyList<ApiClause> clauses)
         {
@@ -124,24 +150,55 @@ namespace Hypha.Knowledge.Api.CrossReferences
                 modelMapping);
         }
 
+        /// <summary>
+        /// A line that opens a paragraph by defining a name in bold, e.g. <c>**Commit** - </c>.
+        /// </summary>
+        /// <returns>The pattern; its <c>name</c> group is the defined name.</returns>
         [GeneratedRegex(@"^\*\*(?<name>[A-Za-z][A-Za-z ]*)\*\* - ", RegexOptions.Multiline)]
         private static partial Regex DefinitionPattern();
 
+        /// <summary>A run of bold text on one line.</summary>
+        /// <returns>The pattern; its <c>run</c> group is the bold text.</returns>
         [GeneratedRegex(@"\*\*(?<run>[^*\n]+)\*\*")]
         private static partial Regex BoldPattern();
 
+        /// <summary>A line that is nothing but a bold name, as a mapping table sets a service's name.</summary>
+        /// <returns>The pattern; its <c>name</c> group is the bold name.</returns>
         [GeneratedRegex(@"^\*\*(?<name>\w[\w ]*)\*\*$")]
         private static partial Regex BoldLinePattern();
 
+        /// <summary>
+        /// A row of the model mapping table: a PIM type or <c>Type.member</c>, then a PSM model,
+        /// optionally with a multiplicity.
+        /// </summary>
+        /// <returns>The pattern; its <c>pim</c> and <c>psm</c> groups are the two cells.</returns>
         [GeneratedRegex(@"^(?<pim>\w+(\.\w+)?) (?<psm>\w+( \[\d+\.\.(\d+|\*)\])?)$")]
         private static partial Regex ModelMappingRowPattern();
 
+        /// <summary>A row of the endpoint mapping table: an operation, an HTTP method and a path.</summary>
+        /// <returns>The pattern; its <c>operation</c>, <c>method</c> and <c>path</c> groups are the cells.</returns>
         [GeneratedRegex(@"^(?<operation>[A-Za-z]\w*) (?<method>GET|POST|PUT|PATCH|DELETE) ?(?<path>/\S+)$")]
         private static partial Regex EndpointRowPattern();
 
+        /// <summary>One word.</summary>
+        /// <returns>The pattern.</returns>
         [GeneratedRegex(@"\w+")]
         private static partial Regex WordPattern();
 
+        /// <summary>Lines up one PIM type with the clauses that cover it and its PSM schemas.</summary>
+        /// <param name="kind"><c>class</c>, <c>interface</c>, <c>enumeration</c> or <c>dataType</c>.</param>
+        /// <param name="name">The type's name.</param>
+        /// <param name="class">
+        /// The type when it is a class, whose effective attributes are compared with the PSM models'
+        /// members; <c>null</c> for any other kind.
+        /// </param>
+        /// <param name="clauses">The specification clauses, in clause order.</param>
+        /// <param name="mapped">The PSM model the model mapping table names for each whole PIM type.</param>
+        /// <param name="openApi">The REST/HTTP PSM index; <c>null</c> when it was not generated.</param>
+        /// <returns>
+        /// The type's entry. Its members and PSM-only members are <c>null</c> unless it is a class with a
+        /// response schema that has members.
+        /// </returns>
         private static ApiTypeEntry Type(
             string kind,
             string name,
@@ -197,6 +254,15 @@ namespace Hypha.Knowledge.Api.CrossReferences
             return new ApiTypeEntry(kind, $"pim/elements/{name}.md", edges, schema, members, psmOnly);
         }
 
+        /// <summary>
+        /// Finds a PIM type's PSM schemas: the response model the mapping table names (or, failing that,
+        /// the API schema of the same name), and the request schema whose <c>@type</c> is fixed to the
+        /// type's name.
+        /// </summary>
+        /// <param name="name">The PIM type's name.</param>
+        /// <param name="mapped">The PSM model the model mapping table names for each whole PIM type.</param>
+        /// <param name="openApi">The REST/HTTP PSM index.</param>
+        /// <returns>The schemas and what links each, or <c>null</c> when neither is found.</returns>
         private static ApiSchemaEdge? Schema(string name, Dictionary<string, string> mapped, OpenApiIndexDocument openApi)
         {
             string? response = null;
@@ -235,6 +301,8 @@ namespace Hypha.Knowledge.Api.CrossReferences
         }
 
         /// <summary>The rows of the model mapping table a clause holds; none when it holds no such table.</summary>
+        /// <param name="clause">The clause.</param>
+        /// <returns>The rows, as written, in the order the clause holds them.</returns>
         private static IEnumerable<ApiModelMappingRow> ModelMappingRows(ReadClause clause)
         {
             var inTable = false;
@@ -253,7 +321,7 @@ namespace Hypha.Knowledge.Api.CrossReferences
                 }
 
                 // A row is two names, the second optionally with a multiplicity. The table ends at the
-                // first line that is anything else - a blank one, a caption, or the prose that follows
+                // first line that is anything else: a blank one, a caption, or the prose that follows
                 // it without a blank line in the extracted text. Being this strict is what keeps
                 // specification wording out of a document that may carry identifiers only.
                 var row = ModelMappingRowPattern().Match(line);
@@ -272,6 +340,11 @@ namespace Hypha.Knowledge.Api.CrossReferences
         /// The endpoints a clause's mapping table gives for one operation, on rows that hold the whole
         /// mapping. The table groups its rows under the owning service, set in bold on a line of its own.
         /// </summary>
+        /// <param name="clause">The clause holding the endpoint mapping table.</param>
+        /// <param name="service">The service that owns the operation.</param>
+        /// <param name="operation">The operation's name.</param>
+        /// <param name="services">The operation names of every PIM service, by service name.</param>
+        /// <returns>The method and path of each matching row, in the order the clause holds them.</returns>
         private static IEnumerable<(string Method, string Path)> EndpointRows(
             ReadClause clause, string service, string operation, Dictionary<string, HashSet<string>> services)
         {
@@ -302,6 +375,13 @@ namespace Hypha.Knowledge.Api.CrossReferences
             }
         }
 
+        /// <summary>The OpenAPI operation with <paramref name="method"/> and <paramref name="path"/>.</summary>
+        /// <param name="openApi">The REST/HTTP PSM index; <c>null</c> when it was not generated.</param>
+        /// <param name="method">The HTTP method, upper case.</param>
+        /// <param name="path">The path template.</param>
+        /// <returns>
+        /// The operation identifier; <c>null</c> without an index or when it has no such endpoint.
+        /// </returns>
         private static string? OperationId(OpenApiIndexDocument? openApi, string method, string path) =>
             openApi?.Endpoints
                 .FirstOrDefault(endpoint =>
@@ -309,6 +389,10 @@ namespace Hypha.Knowledge.Api.CrossReferences
                     && string.Equals(endpoint.Path, path, StringComparison.Ordinal))
                 ?.OperationId;
 
+        /// <summary>Writes a multiplicity in the PIM's notation.</summary>
+        /// <param name="lower">The lower bound.</param>
+        /// <param name="upper">The upper bound; negative for unbounded.</param>
+        /// <returns>The multiplicity, e.g. <c>[0..*]</c> or <c>[1..1]</c>.</returns>
         private static string Multiplicity(int lower, int upper) => string.Create(
             CultureInfo.InvariantCulture,
             $"[{lower}..{(upper < 0 ? "*" : upper.ToString(CultureInfo.InvariantCulture))}]");
@@ -316,8 +400,14 @@ namespace Hypha.Knowledge.Api.CrossReferences
         /// <summary>A clause, with what the builder looks for in it worked out once.</summary>
         private sealed class ReadClause
         {
+            /// <summary>The clause title.</summary>
             private readonly string title;
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ReadClause"/> class, reading
+            /// <paramref name="clause"/>'s text once into lines, definitions, bold words and words.
+            /// </summary>
+            /// <param name="clause">The clause to read.</param>
             public ReadClause(ApiClause clause)
             {
                 var text = clause.Text.Replace("\r\n", "\n", StringComparison.Ordinal);
@@ -342,20 +432,40 @@ namespace Hypha.Knowledge.Api.CrossReferences
                 this.Words = WordPattern().Matches(text).Select(word => word.Value).ToHashSet(StringComparer.Ordinal);
             }
 
+            /// <summary>Gets the clause number, e.g. <c>7.1.2</c>.</summary>
             public string Number { get; }
 
+            /// <summary>Gets the clause text, split into lines.</summary>
             public string[] Lines { get; }
 
+            /// <summary>
+            /// Gets the names a paragraph of the clause opens by defining in bold, with spaces removed.
+            /// </summary>
             public HashSet<string> Definitions { get; }
 
+            /// <summary>
+            /// Gets each word of every bold run of the clause, and each run as one name with its spaces
+            /// removed.
+            /// </summary>
             public HashSet<string> BoldWords { get; }
 
+            /// <summary>Gets every word of the clause text.</summary>
             public HashSet<string> Words { get; }
 
+            /// <summary>Whether a line of the clause starts with <paramref name="prefix"/>.</summary>
+            /// <param name="prefix">The text a line must start with, compared ordinally.</param>
+            /// <returns><c>true</c> when at least one line starts with <paramref name="prefix"/>.</returns>
             public bool HasLineStarting(string prefix) =>
                 this.Lines.Any(line => line.StartsWith(prefix, StringComparison.Ordinal));
 
             /// <summary>The strongest thing that links this clause to <paramref name="name"/>, if anything does.</summary>
+            /// <param name="name">The PIM type's name.</param>
+            /// <returns>
+            /// <see cref="ApiCrossReferenceDocument.TitleMethod"/>,
+            /// <see cref="ApiCrossReferenceDocument.DefinitionMethod"/> or
+            /// <see cref="ApiCrossReferenceDocument.BoldMentionMethod"/>, strongest first; <c>null</c> when
+            /// nothing links them.
+            /// </returns>
             public string? MethodFor(string name)
             {
                 if (string.Equals(this.title, name, StringComparison.Ordinal))

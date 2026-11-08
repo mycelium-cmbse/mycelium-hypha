@@ -37,7 +37,7 @@ namespace Hypha.Tools.Commands.Api
             new("--no-specs")
             {
                 Description =
-                    "Skip the OMG specification PDF. Downloaded by default - it is copyright OMG, lands "
+                    "Skip the OMG specification PDF. Downloaded by default; it is copyright OMG, lands "
                     + "in a git-ignored folder and must never be committed.",
                 DefaultValueFactory = _ => false,
             };
@@ -73,11 +73,14 @@ namespace Hypha.Tools.Commands.Api
         /// <summary>Runs the command.</summary>
         public sealed class Handler
         {
+            /// <summary>Downloads the API version and records it in the API version manifest.</summary>
             private readonly IApiInstaller installer;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="installer">Downloads the API version and records it in the API version manifest.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="installer"/> is <c>null</c>.</exception>
             public Handler(IApiInstaller installer)
             {
                 ArgumentNullException.ThrowIfNull(installer);
@@ -86,6 +89,10 @@ namespace Hypha.Tools.Commands.Api
             }
 
             /// <summary>Fetches the requested API version.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the download.</param>
+            /// <returns>0 when the API version was installed, 2 when the tag was rejected.</returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

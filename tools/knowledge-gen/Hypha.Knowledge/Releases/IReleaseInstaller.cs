@@ -26,10 +26,13 @@ namespace Hypha.Knowledge.Releases
         /// <summary>
         /// Installs one release.
         /// </summary>
+        /// <param name="request">Which release to install, and how.</param>
+        /// <param name="cancellationToken">Cancels the fetch and the commit resolution.</param>
         /// <param name="progress">
         /// Reported once per fetched file, across the metamodel and textual inputs (never for
         /// specifications). <c>null</c> when nobody needs to show progress.
         /// </param>
+        /// <returns>What was fetched, the version recorded, and the manifest it was recorded in.</returns>
         /// <exception cref="System.ArgumentException">
         /// The tag is not an offerable release tag. Refusing early beats writing a
         /// <c>sources/2026-05-pre/</c> that nothing downstream will ever look at.

@@ -2,12 +2,12 @@
 
 Raw, unprocessed inputs to the generation pipelines, **one folder per upstream release tag**.
 
-- **`<tag>/` is entirely git-ignored** — `xmi/`, `textual/` and `specs/` alike. Nothing per-release is
+- **`<tag>/` is entirely git-ignored**: `xmi/`, `textual/` and `specs/` alike. Nothing per-release is
   committed to this repository any more (see the root `CLAUDE.md`'s "Committed vs git-ignored"); every
   release is fetched on request, onto the user's own machine, via `hypha fetch --tag <tag>`.
 - **`specs/` holds the OMG PDF specifications**, copyrighted and never committed regardless (see the
   repository `.gitignore`, which also carries a global `*.pdf` backstop).
-- **`PrimitiveTypes.xmi` is shared** across every release, and stays committed at this root — it is
+- **`PrimitiveTypes.xmi` is shared** across every release, and stays committed at this root: it is
   tag-independent, not part of any one release's fetch.
 
 > ⚠️ The OMG PDF specifications are copyrighted. Do **not** commit them to this repository.
@@ -38,7 +38,7 @@ sources/
 
 A hypha version is one **tag name that resolves in both upstreams**. The tag is the only identifier
 used: the model URI inside the XMI (`…/SysML/20250201`) is ignored, because it tracks neither the
-release nor the content — the 2026-05 metamodel still declares a 2025 URI. The same model may
+release nor the content (the 2026-05 metamodel still declares a 2025 URI). The same model may
 therefore appear under several tags, which is accepted.
 
 The two repositories are not in lockstep, so the offerable versions are the **intersection** of their
@@ -48,7 +48,7 @@ namespace `Hypha.Knowledge.Releases`); which files make up a release is stated i
 ## The API has its own version
 
 The Systems Modeling API is not part of a language release. An **API version** is one tag of the
-API-Services repository that is also a language release tag – so its specification PDF and the KerML
+API-Services repository that is also a language release tag, so that its specification PDF and the KerML
 model its PIM refers to can be read from the language repositories at the same tag. The earliest
 API version offered is `2025-02`: the PIM model is one fixed OMG document of that date (see below),
 so an older tag would pair a 2025 PIM with an earlier OpenAPI document and specification. The
@@ -67,7 +67,7 @@ and `ApiInputs` (`tools/knowledge-gen`, namespace `Hypha.Knowledge.Api`).
 | --- | --- | --- | --- |
 | SysML v2 metamodel | Pilot-Implementation | `org.omg.sysml/model/SysML_only_xmi.uml` | EPL-2.0, git-ignored |
 | KerML metamodel | Pilot-Implementation | `org.omg.sysml/model/KerML_only_xmi.uml` | EPL-2.0, git-ignored |
-| Primitive types | — | shared `sources/PrimitiveTypes.xmi` | OMG UML library, committed |
+| Primitive types | none | shared `sources/PrimitiveTypes.xmi` | OMG UML library, committed |
 | Specification PDFs | Release | `doc/*.pdf` | OMG, **git-ignored** |
 | Textual grammar | Release | `bnf/*.kebnf`, `*.kgbnf` | EPL-2.0, git-ignored |
 | Textual examples | Release | `kerml/`, `sysml/` | EPL-2.0, git-ignored |
@@ -92,15 +92,15 @@ is stored once rather than duplicated per tag.
 ## Installed releases
 
 `knowledge/versions.json` is the authoritative record of which releases this checkout carries, which
-one is the default, and the upstream commit each tag resolved to (traceability only — the tag is the
+one is the default, and the upstream commit each tag resolved to (traceability only; the tag is the
 identifier). It is itself git-ignored now: it records *local* installation state, not something every
 checkout starts from. Fetching a release writes a new `sources/<tag>/` folder; nothing about it is
 committed.
 
 The OMG PDFs are downloaded by default now (`hypha fetch --tag <release>`, opt out with
-`--no-specs`) - a fully local install needs everything a plain HTTP call can get it. *Quoting* their
+`--no-specs`): a fully local install needs everything a plain HTTP call can get it. *Quoting* their
 text is `hypha generate`'s `spec` artifact (see `tools/spec-extract/README.md`), which fetches and
-caches `uv` to run it - no maintainer source checkout needed any more. The plugin's `SessionStart` hook
+caches `uv` to run it, so no maintainer source checkout is needed any more. The plugin's `SessionStart` hook
 (`Hypha.Tools.Hook`, see `tools/hypha-cli/README.md`'s "Automatic version check" section) still names
 the exact files and tagged URLs when they're missing for the default
 release, folded into the same message that reports newer releases.
@@ -109,7 +109,7 @@ release, folded into the same message that reports newer releases.
 
 A fresh plugin install starts with nothing fetched: no committed floor means no offline-zero-setup
 release either. The `SessionStart` hook only ever **compares** what's installed locally against what's
-offerable upstream (`hypha check`) and reports the result - it never fetches or generates anything
+offerable upstream (`hypha check`) and reports the result; it never fetches or generates anything
 itself. Getting a release, first one or another, is always something the user asks for
 (conversationally, through the `version-management` skill, or directly): `hypha fetch --tag <tag>` +
 `hypha generate --tag <tag>` lands it as an ordinary, git-ignored `knowledge/<tag>/` + `sources/<tag>/`
@@ -126,7 +126,7 @@ Windows development machine, but not guaranteed) to pick the right platform bina
 
 The XMI and textual sources are EPL-2.0; the OMG PDFs are copyrighted. Neither is committed to this
 repository (the OMG license forbids redistributing the PDFs; the XMI/textual sources are simply no
-longer part of what ships in git at all — see the repository [NOTICE](../NOTICE) for the full
+longer part of what ships in git at all; see the repository [NOTICE](../NOTICE) for the full
 attribution and license terms). One release's real XMI is the exception: it is committed as a test
 fixture under `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/xmi/`, which never ships with the
 plugin (see `CLAUDE.md`'s "What this repo is").

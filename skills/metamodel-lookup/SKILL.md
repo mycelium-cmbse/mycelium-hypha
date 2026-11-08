@@ -1,6 +1,6 @@
 ---
 name: metamodel-lookup
-description: Look up the structure of the OMG SysML v2 / KerML metamodel (not OMG UML 2.x) – a metaclass's features, supertypes, subtypes, redefinitions, multiplicities and constraints, plus enumerations and primitive types. Use when the user asks how a SysML v2 or KerML element (e.g. PartUsage, ConnectionDefinition, Feature) is defined in the metamodel, or how elements relate.
+description: "Look up the structure of the OMG SysML v2 / KerML metamodel (not OMG UML 2.x): a metaclass's features, supertypes, subtypes, redefinitions, multiplicities and constraints, plus enumerations and primitive types. Use when the user asks how a SysML v2 or KerML element (e.g. PartUsage, ConnectionDefinition, Feature) is defined in the metamodel, or how elements relate."
 ---
 
 # Metamodel lookup
@@ -21,11 +21,11 @@ jq -r '.default, (.versions[].tag)' knowledge/versions.json
 Then substitute that tag for `<tag>` in every path below.
 
 - Answer from the **default** release unless the user names one.
-- **Say which release you answered from** — e.g. "in 2026-05, `PartUsage` …". The metamodel changes
+- **Say which release you answered from**, e.g. "in 2026-05, `PartUsage` …". The metamodel changes
   between releases, so an unqualified structural claim is incomplete.
 - If the user asks about a release that is not installed, say so and list the ones that are, rather
   than answering from a different release silently.
-- The tag is the version. Ignore the model URI inside the XMI (`…/SysML/20250201`) — it tracks
+- The tag is the version. Ignore the model URI inside the XMI (`…/SysML/20250201`); it tracks
   neither the release nor the content, and the same model can appear under several tags.
 
 ## Knowledge base
@@ -34,15 +34,15 @@ KerML and SysML v2 are **combined** in one tree (the SysML v2 model is generated
 KerML + SysML metamodel, so KerML metaclasses such as `Feature`, `Element` and `Membership` live
 here too):
 
-- `knowledge/<tag>/metamodel/index.md` — manifest: every metaclass grouped by package, plus
+- `knowledge/<tag>/metamodel/index.md`: the manifest, with every metaclass grouped by package, plus
   `## Enumeration types` and `## Primitive types` sections. Each entry links to its element file
   and carries a one-line summary.
-- `knowledge/<tag>/metamodel/elements/<Name>.md` — one file per element. This includes metaclasses,
+- `knowledge/<tag>/metamodel/elements/<Name>.md`: one file per element. This includes metaclasses,
   enumerations (`kind: enumeration`) and primitive types (`kind: primitive`).
-- `knowledge/<tag>/metamodel/metamodel.json` — the same metamodel as a **structural graph**, with the
+- `knowledge/<tag>/metamodel/metamodel.json`: the same metamodel as a **structural graph**, with the
   inheritance closures already computed. Use it for set-shaped and cross-cutting questions; see
   [Querying the graph](#querying-the-graph) below.
-- `knowledge/<tag>/cross-references.json` — links each element to the spec clauses that treat it, its BNF
+- `knowledge/<tag>/cross-references.json`: links each element to the spec clauses that treat it, its BNF
   grammar production, and any worked example. See [Cross-references](#cross-references).
 
 ## Element file anatomy
@@ -51,33 +51,33 @@ YAML front matter: `name`, `package`, `fully qualified name` (e.g.
 `SysML::Systems::Actions::AcceptActionUsage`), `isAbstract`, `visibility`, `generalizes`,
 `specializedBy`. Then:
 
-- **## Generalizations** / **## Specializations** — direct supertypes / subtypes, each a
+- **## Generalizations** / **## Specializations**: direct supertypes / subtypes, each a
   `[Name](Name.md)` link.
-- **## Owned features** — one `### name` heading per feature, followed by a signature line:
+- **## Owned features**: one `### name` heading per feature, followed by a signature line:
   `` `+` [Type](Type.md) · `[0..1]` · *derived* `` (visibility sigil, linked type, multiplicity,
   italic modifiers). Documentation follows, then any `Redefines …` / `Subsets …` lines, each a link
   to the feature it refines.
-- **## Inherited features** — a table (`Feature | Type | Multiplicity | Owner | Modifiers`) giving
+- **## Inherited features**: a table (`Feature | Type | Multiplicity | Owner | Modifiers`) giving
   the **full effective inherited feature set**, with the declaring supertype in the `Owner` column.
-  Read this table directly — you do **not** need to walk the generalization chain by hand.
-- **## Operations** – each owned operation's signature (e.g. `namesOf(element : Element [1..1]) :
+  Read this table directly; you do **not** need to walk the generalization chain by hand.
+- **## Operations**: each owned operation's signature (e.g. `namesOf(element : Element [1..1]) :
   String [0..*]`, *query* when it is one), its documentation, and the OCL of its `bodyCondition` (the
   derivation it computes) in an ```ocl block.
-- **## Constraints** — each constraint's intent text plus its OCL body in an ```ocl block.
+- **## Constraints**: each constraint's intent text plus its OCL body in an ```ocl block.
 
 Enumeration files list their literals under `## Literals`; primitive-type files carry just their
 documentation.
 
 ## Querying the graph
 
-`knowledge/<tag>/metamodel/metamodel.json` holds every element as a node with its closures precomputed —
+`knowledge/<tag>/metamodel/metamodel.json` holds every element as a node with its closures precomputed:
 `allAncestors`, `allDescendants`, `directSubclasses`, and `inheritedAttributes` carrying the
 declaring type in `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper` (`-1` is
 unbounded), `isDerived`, `isComposite`, `isOrdered`, `redefines` and `subsets`; classes also carry
 `ownedOperations` (each with `documentation` and `body`, the OCL of its `bodyCondition`) and
 `constraints` with their OCL.
 
-It is ~8 MB, so **never read it whole** — query it. `jq` is *recommended* for this; when it is not
+It is ~8 MB, so **never read it whole**; query it. `jq` is *recommended* for this; when it is not
 installed, fall back to the markdown route described under [Procedure](#procedure), which is slower
 and reads more files but always works.
 
@@ -115,7 +115,7 @@ jq '.entries["PartUsage"] | {clauses: [.clauses[] | "\(.document) \(.clause)"], 
 
 Use it to point at the governing clause or a worked example after answering a structural question.
 
-## Notation questions — how an element is written
+## Notation questions: how an element is written
 
 `cross-references.json` also carries `grammar` (the productions that build an element) and
 `features` (which metamodel feature a piece of syntax populates, and how). Together they answer
@@ -136,7 +136,7 @@ jq -r '.entries | to_entries[] | . as $e | $e.value.features[]
 ```
 
 Read the operator literally: `=` sets a value, `+=` adds to a collection, and `?=` sets a boolean
-from the *presence of a keyword* — so `isStandard ?=` means the flag is true when the keyword is
+from the *presence of a keyword*, so `isStandard ?=` means the flag is true when the keyword is
 written at all, with no value to supply.
 
 The full production text, grouped by clause, is in
@@ -144,7 +144,7 @@ The full production text, grouped by clause, is in
 `grammar-graphical.md`.
 
 **An empty `features` list is meaningful, not missing data.** It means the element adds no syntax of
-its own — `PartUsage` has none, because its declaration is inherited from `Usage`. Say that, rather
+its own: `PartUsage` has none, because its declaration is inherited from `Usage`. Say that, rather
 than reporting that nothing is known.
 
 **The same feature often appears under both grammars.** The SysML grammar re-declares many KerML
@@ -153,7 +153,7 @@ two: report it once and mention both grammars declare it only if the user asks.
 
 ## Provenance
 
-Every fact you report belongs to one of three tiers — say which when it matters, and never blur them:
+Every fact you report belongs to one of three tiers. Say which when it matters, and never blur them:
 
 | Tier | Means | Where it comes from |
 | --- | --- | --- |
@@ -162,8 +162,8 @@ Every fact you report belongs to one of three tiers — say which when it matter
 | `DERIVED` | computed or asserted here | `allAncestors` / `allDescendants` / `inheritedAttributes`, and every edge in `cross-references.json` |
 
 The distinction that matters most in practice: a metaclass's own features are `MODEL`, its inherited
-set is `DERIVED`, and a clause reference obtained by name matching is `DERIVED` — it tells you where
-to look, it is not itself a citation. Quoting normative wording requires `spec-citation`.
+set is `DERIVED`, and a clause reference obtained by name matching is `DERIVED`: it tells you where
+to look, but it is not itself a citation. Quoting normative wording requires `spec-citation`.
 
 ## Procedure
 
@@ -174,10 +174,10 @@ to look, it is not itself a citation. Quoting normative wording requires `spec-c
 3. Report the metaclass, abstractness, supertypes/subtypes, and the relevant features (name, type,
    multiplicity, modifiers), plus redefinitions/subsettings and constraints. Follow `[Type](Type.md)`
    links to related elements when needed. Always include the source file path.
-4. If the element isn't in the knowledge base, say so — never invent structure.
+4. If the element isn't in the knowledge base, say so; never invent structure.
 
-Answer single-element lookups inline (one index read + one element file — the inherited table
+Answer single-element lookups inline (one index read + one element file, since the inherited table
 already gives the full feature set). For a **set or closure** question, query `metamodel.json` as
 above instead of reading files. Delegate to the `metamodel-navigator` subagent only when the answer
-still needs many element files read — e.g. comparing the documentation of several metaclasses — so
+still needs many element files read (e.g. comparing the documentation of several metaclasses), so
 the bulk reading stays out of this context.

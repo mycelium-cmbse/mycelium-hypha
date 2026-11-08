@@ -39,6 +39,9 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Renders the element markdown for a single enumeration.
         /// </summary>
+        /// <param name="enumeration">The enumeration to render.</param>
+        /// <returns>The page's Markdown.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="enumeration"/> is <c>null</c>.</exception>
         public string GenerateElement(IEnumeration enumeration)
         {
             ArgumentNullException.ThrowIfNull(enumeration);
@@ -50,6 +53,12 @@ namespace Hypha.MetamodelGen.Generators
         /// Renders one <c>&lt;EnumerationName&gt;.md</c> file per enumeration into
         /// <paramref name="outputDirectory"/>.
         /// </summary>
+        /// <param name="model">The model whose enumerations are written.</param>
+        /// <param name="outputDirectory">The folder the pages are written to.</param>
+        /// <returns>A task that completes when every page has been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="outputDirectory"/> is <c>null</c>.
+        /// </exception>
         public async Task GenerateAsync(XmiReaderResult model, DirectoryInfo outputDirectory)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -66,6 +75,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Builds the deterministic payload for an enumeration from the model.
         /// </summary>
+        /// <param name="enumeration">The enumeration the payload describes.</param>
+        /// <returns>The payload, its literals in declaration order.</returns>
         private static EnumerationPayload CreatePayload(IEnumeration enumeration)
         {
             var literals = enumeration.OwnedLiteral

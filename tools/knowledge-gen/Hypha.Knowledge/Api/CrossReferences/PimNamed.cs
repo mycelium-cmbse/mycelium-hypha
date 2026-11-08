@@ -10,5 +10,6 @@
 namespace Hypha.Knowledge.Api.CrossReferences
 {
     /// <summary>A PIM type that is known by name only.</summary>
+    /// <param name="Name">The type name.</param>
     public sealed record PimNamed(string Name);
 }

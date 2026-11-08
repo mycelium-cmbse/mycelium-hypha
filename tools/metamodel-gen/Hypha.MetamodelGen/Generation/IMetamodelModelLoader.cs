@@ -20,6 +20,8 @@ namespace Hypha.MetamodelGen.Generation
         /// The combined KerML + SysML model for <paramref name="tag"/>, or <c>null</c> when that
         /// release's XMI has not been fetched.
         /// </summary>
+        /// <param name="tag">The release whose metamodel is loaded.</param>
+        /// <returns>The model, or <c>null</c> when the release's XMI is absent.</returns>
         XmiReaderResult? Load(string tag);
     }
 }

@@ -31,7 +31,7 @@ namespace Hypha.Tools.Commands
     /// prunes whichever locally-installed releases no longer fit the requested count.
     /// </summary>
     /// <remarks>
-    /// A maintainer-only, source-checkout-only convenience - not a way to move a committed rolling
+    /// A maintainer-only, source-checkout-only convenience, not a way to move a committed rolling
     /// window, since nothing per-release is committed to git any more (see the repository root
     /// <c>CLAUDE.md</c>'s "Committed vs git-ignored"). The one verb that is not self-contained: unlike
     /// <c>fetch</c>/<c>generate</c>, its re-bless and verify steps shell out to <c>dotnet test</c>
@@ -92,7 +92,7 @@ namespace Hypha.Tools.Commands
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
-            /// <param name="installer">Installs the release – fetches its sources – for the fetch step.</param>
+            /// <param name="installer">Installs the release (fetches its sources) for the fetch step.</param>
             /// <param name="generators">The artifact generators the generate step runs; copied, so enumerated once.</param>
             /// <param name="layout">The knowledge layout whose root must be a full source checkout.</param>
             /// <param name="evictor">Removes the installed releases that no longer fit within <c>--keep</c>.</param>
@@ -124,6 +124,7 @@ namespace Hypha.Tools.Commands
             /// 0 once every step, including the final verification, has succeeded; 1 when a step
             /// fails; 2 when the command line or the environment is unusable before anything runs.
             /// </returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

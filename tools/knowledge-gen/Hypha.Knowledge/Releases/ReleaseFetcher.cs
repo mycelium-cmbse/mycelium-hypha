@@ -27,7 +27,7 @@ namespace Hypha.Knowledge.Releases
     /// 190 of the 317 files in a release. Two things address that here: <see cref="HttpClient"/>
     /// reuses connections, and the resilience handler registered in
     /// <see cref="ServiceCollectionExtensions"/> retries with <b>jittered</b> backoff. Jitter matters
-    /// now that downloads run concurrently - without it a throttled batch would retry in lockstep.
+    /// now that downloads run concurrently: without it a throttled batch would retry in lockstep.
     /// <para>
     /// Concurrency is deliberately modest. The goal is to stop opening a connection per file, not to
     /// saturate the host that was throttling us in the first place.
@@ -38,18 +38,30 @@ namespace Hypha.Knowledge.Releases
         /// <summary>Relative to the API base address, so the host stays configurable.</summary>
         private const string TreePath = "repos/{0}/git/trees/{1}?recursive=1";
 
+        /// <summary>
+        /// The raw-content address of a file, formatted with the repository, the tag and the escaped path.
+        /// </summary>
         private const string RawUrl = "https://raw.githubusercontent.com/{0}/{1}/{2}";
 
+        /// <summary>The client every request goes through, with its credentials and resilience handler.</summary>
         private readonly HttpClient client;
+
+        /// <summary>The API host tree listings are requested from.</summary>
         private readonly Uri apiBaseAddress;
+
+        /// <summary>How many downloads run at once.</summary>
         private readonly int maxConcurrency;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReleaseFetcher"/> class.
         /// </summary>
         /// <param name="client">A client configured with credentials and a resilience handler.</param>
-        /// <param name="apiBaseAddress">The API host; defaults to the public GitHub API.</param>
+        /// <param name="apiBaseAddress">
+        /// The API host; defaults to the client's base address, else to the public GitHub API.
+        /// </param>
         /// <param name="maxConcurrency">Concurrent downloads; kept low on purpose.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="client"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxConcurrency"/> is less than 1.</exception>
         public ReleaseFetcher(HttpClient client, Uri? apiBaseAddress = null, int maxConcurrency = 6)
         {
             ArgumentNullException.ThrowIfNull(client);
@@ -61,6 +73,13 @@ namespace Hypha.Knowledge.Releases
         }
 
         /// <summary>Every blob path in <paramref name="repository"/> at <paramref name="tag"/>.</summary>
+        /// <param name="repository">The upstream repository, as <c>owner/name</c>.</param>
+        /// <param name="tag">The tag to list.</param>
+        /// <param name="cancellationToken">Cancels the request.</param>
+        /// <returns>The repository-relative paths of every blob in the recursive tree.</returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="repository"/> or <paramref name="tag"/> is <c>null</c>, empty or white space.
+        /// </exception>
         /// <exception cref="InvalidOperationException">
         /// The API truncated the listing. Failing loudly matters: a truncated tree would silently
         /// drop inputs and produce a knowledge base that looks complete.
@@ -90,6 +109,14 @@ namespace Hypha.Knowledge.Releases
         }
 
         /// <summary>Downloads one file, unless <paramref name="skipExisting"/> and it is already there.</summary>
+        /// <param name="repository">The upstream repository, as <c>owner/name</c>.</param>
+        /// <param name="tag">The tag to download the file at.</param>
+        /// <param name="path">The file's path in the repository.</param>
+        /// <param name="destination">Where the file is written; its folder is created if needed.</param>
+        /// <param name="skipExisting">Keeps a non-empty file that is already there instead of downloading it again.</param>
+        /// <param name="cancellationToken">Cancels the download.</param>
+        /// <returns><paramref name="destination"/>, refreshed.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <c>null</c>.</exception>
         /// <remarks>
         /// A zero-byte file counts as an interrupted write rather than a completed download, so a
         /// resumed run replaces it.
@@ -124,6 +151,13 @@ namespace Hypha.Knowledge.Releases
         }
 
         /// <summary>Fetches the metamodel XMI for a release. Needs no tree listing: the paths are known.</summary>
+        /// <param name="tag">The release to fetch.</param>
+        /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/xmi/</c>.</param>
+        /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
+        /// <param name="cancellationToken">Cancels the downloads.</param>
+        /// <param name="progress">Reported once per file, after it completes; <c>null</c> reports nothing.</param>
+        /// <returns>The fetched files of <see cref="ReleaseInputs.XmiFiles"/>, ordered by upstream path.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         public Task<IReadOnlyList<FileInfo>> FetchMetamodelAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
             CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
@@ -142,6 +176,13 @@ namespace Hypha.Knowledge.Releases
         }
 
         /// <summary>Fetches the grammar and textual models, preserving the upstream layout.</summary>
+        /// <param name="tag">The release to fetch.</param>
+        /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/textual/</c>.</param>
+        /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
+        /// <param name="cancellationToken">Cancels the listing and the downloads.</param>
+        /// <param name="progress">Reported once per file, after it completes; <c>null</c> reports nothing.</param>
+        /// <returns>The fetched files, as <see cref="ReleaseInputs.SelectTextual"/> selects them from the tree.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         public async Task<IReadOnlyList<FileInfo>> FetchTextualAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
             CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
@@ -164,6 +205,13 @@ namespace Hypha.Knowledge.Releases
         /// <summary>
         /// Fetches the specification PDFs into the <b>git-ignored</b> folder.
         /// </summary>
+        /// <param name="tag">The release to fetch.</param>
+        /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/specs/</c>.</param>
+        /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
+        /// <param name="cancellationToken">Cancels the downloads.</param>
+        /// <param name="progress">Reported once per file, after it completes; <c>null</c> reports nothing.</param>
+        /// <returns>The fetched PDFs.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         /// <remarks>
         /// The PDFs are OMG-copyrighted and must never be committed. This only automates the download
         /// the README otherwise asks the user to perform by hand.
@@ -186,6 +234,17 @@ namespace Hypha.Knowledge.Releases
                 cancellationToken);
         }
 
+        /// <summary>
+        /// Downloads <paramref name="targets"/> with at most <see cref="maxConcurrency"/> downloads at once.
+        /// </summary>
+        /// <param name="repository">The upstream repository, as <c>owner/name</c>.</param>
+        /// <param name="tag">The tag to download the files at.</param>
+        /// <param name="targets">Each file's upstream path and where it is written.</param>
+        /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
+        /// <param name="kind">What is being fetched, e.g. <c>metamodel</c>, as the progress reports name it.</param>
+        /// <param name="progress">Reported once per file, after it completes; <c>null</c> reports nothing.</param>
+        /// <param name="cancellationToken">Cancels the downloads.</param>
+        /// <returns>The written files, in the order of <paramref name="targets"/>.</returns>
         private async Task<IReadOnlyList<FileInfo>> DownloadManyAsync(
             string repository,
             string tag,

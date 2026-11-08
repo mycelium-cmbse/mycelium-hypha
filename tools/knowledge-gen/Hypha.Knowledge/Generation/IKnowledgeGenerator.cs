@@ -41,6 +41,8 @@ namespace Hypha.Knowledge.Generation
         /// <summary>
         /// Generates the artifact for <paramref name="tag"/>.
         /// </summary>
+        /// <param name="tag">The release to generate for.</param>
+        /// <param name="cancellationToken">Cancels the generation.</param>
         /// <returns>
         /// What was written, or why nothing was. Inputs that are simply absent are a
         /// <see cref="GenerationOutcome.Skipped"/> result; inputs that are present but would yield

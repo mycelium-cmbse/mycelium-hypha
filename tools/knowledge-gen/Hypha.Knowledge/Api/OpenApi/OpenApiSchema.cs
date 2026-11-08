@@ -22,7 +22,7 @@ namespace Hypha.Knowledge.Api.OpenApi
     /// </param>
     /// <param name="Kind"><c>object</c>, <c>union</c>, <c>enumeration</c>, or the JSON type.</param>
     /// <param name="Role">
-    /// Whether the endpoints use it in a request body, a response, both or neither - reached directly
+    /// Whether the endpoints use it in a request body, a response, both or neither, reached directly
     /// or through another schema.
     /// </param>
     /// <param name="AdditionalProperties">Whether members beyond the declared ones are allowed, when stated.</param>

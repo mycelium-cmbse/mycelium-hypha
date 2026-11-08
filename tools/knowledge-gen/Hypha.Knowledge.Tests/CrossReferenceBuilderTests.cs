@@ -16,9 +16,6 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
 
-    /// <summary>
-    /// Tests for the cross-reference join, on synthetic data - no knowledge base and no PDFs.
-    /// </summary>
     [TestFixture]
     public class CrossReferenceBuilderTests
     {

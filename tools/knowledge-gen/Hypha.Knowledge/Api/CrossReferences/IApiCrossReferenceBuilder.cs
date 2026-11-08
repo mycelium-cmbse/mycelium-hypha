@@ -23,6 +23,7 @@ namespace Hypha.Knowledge.Api.CrossReferences
         /// <param name="pim">The PIM types.</param>
         /// <param name="openApi">The REST/HTTP PSM index; <c>null</c> when it was not generated.</param>
         /// <param name="clauses">The specification clauses; empty when the text was not generated.</param>
+        /// <returns>The cross-reference document for <paramref name="apiVersion"/>.</returns>
         ApiCrossReferenceDocument Build(
             string apiVersion, PimGraph pim, OpenApiIndexDocument? openApi, IReadOnlyList<ApiClause> clauses);
     }

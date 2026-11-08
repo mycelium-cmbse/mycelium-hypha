@@ -15,7 +15,7 @@ namespace Hypha.Knowledge.Releases
     /// <param name="Kind">Which input this is progress for, e.g. <c>metamodel</c> or <c>textual</c>.</param>
     /// <param name="Done">
     /// How many of <paramref name="Total"/> have completed, counting a skipped-because-already-present
-    /// file the same as a freshly downloaded one - both are one target finished, not zero.
+    /// file the same as a freshly downloaded one; both are one target finished, not zero.
     /// </param>
     /// <param name="Total">The full count for <paramref name="Kind"/>, known before the first download.</param>
     public readonly record struct FetchProgress(string Kind, int Done, int Total);

@@ -15,9 +15,13 @@ namespace Hypha.Tools.Hook
     /// The one field of <c>.claude-plugin/plugin.json</c> this hook cares about.
     /// </summary>
     /// <remarks>
-    /// Deserialization tolerates every other field in the file - this never round-trips the manifest,
+    /// Deserialization tolerates every other field in the file: this never round-trips the manifest,
     /// only reads it, so nothing else needs a property here.
     /// </remarks>
+    /// <param name="HyphaCliVersion">
+    /// The <c>hypha</c> CLI version the plugin is pinned to (<c>hyphaCliVersion</c>), or <c>null</c>
+    /// when the manifest does not state one.
+    /// </param>
     public sealed record PluginManifest(
         [property: JsonPropertyName("hyphaCliVersion")] string? HyphaCliVersion);
 }

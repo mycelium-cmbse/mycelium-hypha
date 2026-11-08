@@ -18,7 +18,10 @@ namespace Hypha.Knowledge.Lookup
 
     using Hypha.Knowledge.Layout;
 
-    /// <inheritdoc cref="IKnowledgeLookup"/>
+    /// <summary>
+    /// Resolves a metamodel or model-library name to its generated page in an installed release and
+    /// returns one page of it, reading the release's <c>index.json</c> and never fetching or generating.
+    /// </summary>
     /// <remarks>
     /// A name resolves in tiers, and the first tier with any match decides:
     /// <list type="number">
@@ -54,7 +57,27 @@ namespace Hypha.Knowledge.Lookup
             this.layout = layout;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Looks up a name in the requested release, or the default one, and returns a page of the matched
+        /// entry's generated file; for a model-library entry, the page starts at its declaration unless a start line
+        /// is given.
+        /// </summary>
+        /// <param name="request">What to look up, in which release, and which page of its source to return.</param>
+        /// <returns>
+        /// One page of the matched entry's generated source when the name resolves to exactly one entry;
+        /// otherwise the status and at most <see cref="MaxMatches"/> names to choose from, ordinally. A name
+        /// that does not resolve is a normal result, not an exception.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">
+        /// The request has an empty name, a start line below 1 or past the end of the page, or a page size
+        /// outside 1 to <see cref="LookupRequest.LargestPage"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">The request's kind is not a <see cref="KnowledgeKind"/>.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its generated
+        /// files are invalid, too large, or reached through a path that leaves the release's folder.
+        /// </exception>
         public LookupResult Lookup(LookupRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -331,7 +354,7 @@ namespace Hypha.Knowledge.Lookup
         }
 
         /// <summary>
-        /// Resolves an index path, refusing one that leaves the artifact's folder - directly, through
+        /// Resolves an index path, refusing one that leaves the artifact's folder, directly, through
         /// <c>..</c>, or through a symbolic link anywhere on the way.
         /// </summary>
         /// <param name="root">The artifact's folder, which the page has to stay inside.</param>
@@ -513,7 +536,7 @@ namespace Hypha.Knowledge.Lookup
         /// <param name="Key">The entry's key in the index: an element name, or a declaration's qualified name.</param>
         /// <param name="Names">Every name the entry answers to, the key included.</param>
         /// <param name="Keyword">
-        /// The entry's <c>kind</c> as the index recorded it – for a model-library declaration, the keyword that
+        /// The entry's <c>kind</c> as the index recorded it; for a model-library declaration, the keyword that
         /// introduces it; empty when the index has none.
         /// </param>
         /// <param name="File">The entry's page, relative to the artifact's folder, with <c>/</c> separators.</param>

@@ -28,6 +28,7 @@ namespace Hypha.MetamodelGen.Generators
     /// </remarks>
     public class InterfaceFileGenerator : HandleBarsGenerator
     {
+        /// <summary>The Handlebars template that renders an interface page.</summary>
         private const string TemplateName = "interface";
 
         /// <summary>
@@ -39,6 +40,14 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>Renders the page for one interface.</summary>
+        /// <param name="interface">The interface to render.</param>
+        /// <param name="realizedBy">The names of the classifiers that realize it.</param>
+        /// <param name="linkableTypeNames">The type names that have a page of their own to link to.</param>
+        /// <returns>The page's Markdown.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="interface"/>, <paramref name="realizedBy"/> or
+        /// <paramref name="linkableTypeNames"/> is <c>null</c>.
+        /// </exception>
         public string GenerateElement(
             IInterface @interface, IReadOnlyList<string> realizedBy, IReadOnlySet<string> linkableTypeNames)
         {
@@ -72,6 +81,12 @@ namespace Hypha.MetamodelGen.Generators
         }
 
         /// <summary>Writes one <c>{Name}.md</c> per interface into <paramref name="outputDirectory"/>.</summary>
+        /// <param name="model">The model whose interfaces are written.</param>
+        /// <param name="outputDirectory">The folder the pages are written to.</param>
+        /// <returns>A task that completes when every page has been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="outputDirectory"/> is <c>null</c>.
+        /// </exception>
         public async Task GenerateAsync(XmiReaderResult model, DirectoryInfo outputDirectory)
         {
             ArgumentNullException.ThrowIfNull(model);

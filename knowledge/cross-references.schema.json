@@ -95,7 +95,7 @@
       }
     },
     "clauseEdge": {
-      "description": "The element is treated in this clause. Carries the clause number only - never its title or body.",
+      "description": "The element is treated in this clause. Carries the clause number only, never its title or body.",
       "type": "object",
       "additionalProperties": false,
       "required": ["document", "clause", "provenance", "method"],

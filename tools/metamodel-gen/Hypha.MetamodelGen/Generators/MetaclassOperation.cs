@@ -17,6 +17,11 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="MetaclassOperation"/> class.
         /// </summary>
+        /// <param name="name">The operation name.</param>
+        /// <param name="signature">The UML-style signature.</param>
+        /// <param name="isQuery">Whether the operation is a query.</param>
+        /// <param name="documentation">The operation documentation (may be empty).</param>
+        /// <param name="body">The OCL of the operation's <c>bodyCondition</c> (may be empty).</param>
         public MetaclassOperation(string name, string signature, bool isQuery, string documentation, string body)
         {
             this.Name = name;

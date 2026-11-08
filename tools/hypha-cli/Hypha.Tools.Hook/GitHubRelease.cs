@@ -16,7 +16,7 @@ namespace Hypha.Tools.Hook
     /// The parts of the GitHub Releases API response this hook reads.
     /// </summary>
     /// <param name="Body">
-    /// The release notes - specifically the checksum table <c>release.yml</c>'s "Record the
+    /// The release notes, specifically the checksum table <c>release.yml</c>'s "Record the
     /// checksums" step writes into it, which is the only place a SHA256 for each asset is published.
     /// </param>
     /// <param name="Assets">The files attached to the release.</param>

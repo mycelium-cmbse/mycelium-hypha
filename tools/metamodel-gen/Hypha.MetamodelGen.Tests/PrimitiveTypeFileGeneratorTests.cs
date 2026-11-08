@@ -16,10 +16,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests for <see cref="PrimitiveTypeFileGenerator"/>. Running these regenerates the
-    /// per-primitive-type files under <c>knowledge/metamodel/elements/</c>.
-    /// </summary>
     [TestFixture]
     public class PrimitiveTypeFileGeneratorTests
     {

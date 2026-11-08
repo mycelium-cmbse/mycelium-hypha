@@ -20,7 +20,7 @@ namespace Hypha.Knowledge.Releases
     /// <remarks>
     /// Written to <c>knowledge/versions.json</c>. The <b>tag</b> is the identifier throughout: the
     /// model URI inside the XMI is deliberately absent, because it tracks neither the release nor the
-    /// content — the 2026-05 metamodel still declares a 2025 URI.
+    /// content: the 2026-05 metamodel still declares a 2025 URI.
     /// </remarks>
     public sealed record VersionManifest
     {

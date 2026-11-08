@@ -41,7 +41,7 @@ namespace Hypha.Tools.Tests
         [Test]
         public void Every_api_verb_is_reachable()
         {
-            // The API is versioned on its own axis, so it gets the version verbs over again - under
+            // The API is versioned on its own axis, so it gets the version verbs over again, under
             // `api`, where they cannot be mistaken for the language releases' ones.
             Assert.That(
                 this.Api().Subcommands.Select(command => command.Name),

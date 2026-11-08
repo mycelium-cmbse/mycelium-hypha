@@ -22,14 +22,14 @@ namespace Hypha.Tools.Commands
     using Spectre.Console;
 
     /// <summary>
-    /// Compares what is installed locally against what is offerable upstream - fast, unattended, and
+    /// Compares what is installed locally against what is offerable upstream. It is fast, unattended, and
     /// read-only: no fetching, no generating.
     /// </summary>
     /// <remarks>
     /// This is what the plugin's <c>SessionStart</c> hook runs, synchronously, every session: cheap
     /// enough (a couple of GitHub API calls) that it needs no background process, lock file or status
     /// file the way the fetch+generate it used to trigger automatically did. Deciding whether to act
-    /// on what it reports is left entirely to the user, through a skill - this command never fetches.
+    /// on what it reports is left entirely to the user, through a skill; this command never fetches.
     /// </remarks>
     public sealed class CheckCommand : Command
     {
@@ -76,6 +76,7 @@ namespace Hypha.Tools.Commands
             /// <param name="parseResult">The parsed command line holding this verb's options.</param>
             /// <param name="cancellationToken">Cancels the upstream discovery.</param>
             /// <returns>0. This command never fails for want of anything to compare.</returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);

@@ -7,7 +7,7 @@ bundles has its own changelog, in the
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions with an
 odd minor number are Marketplace pre-releases; an even minor number marks a release.
 
-## [0.1.1] – pre-release
+## [0.1.1] (pre-release)
 
 Bundles hypha tools `1.5.1`.
 
@@ -21,16 +21,16 @@ Bundles hypha tools `1.5.1`.
 - The README's troubleshooting explains paths that go past Windows' 260-character limit for long
   user names or VS Code Insiders, and how to turn on long path support.
 
-## [0.1.0] – first pre-release
+## [0.1.0] (first pre-release)
 
 Bundles hypha tools `1.5.0`.
 
 ### Added
-- **Copilot tools** – `#hyphaReleaseStatus` reports the installed SysML v2 / KerML releases and
+- **Copilot tools**: `#hyphaReleaseStatus` reports the installed SysML v2 / KerML releases and
   which of their artifacts are present; `#hyphaLookup` resolves a metamodel or model-library name
   and answers with a release-qualified source link, the candidates when a name is ambiguous, and
   one page at a time.
-- **Commands** – *Show Installed Releases*, *Check Available Releases*, *Install a SysML v2
+- **Commands**: *Show Installed Releases*, *Check Available Releases*, *Install a SysML v2
   Release*, *Change Default Release* and *Remove a Release*. Installing asks for consent first,
   reports progress and can be cancelled; a release becomes the default only once it has been
   generated.

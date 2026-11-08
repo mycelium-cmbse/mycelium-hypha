@@ -16,9 +16,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests the precomputed inheritance closures and inherited-attribute attribution in the rich graph.
-    /// </summary>
     [TestFixture]
     public class MetamodelClosureTests
     {

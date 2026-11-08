@@ -13,9 +13,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Grammar;
 
-    /// <summary>
-    /// Tests for the graphical (<c>.kgbnf</c>) parser, on text in the shape upstream really uses.
-    /// </summary>
     [TestFixture]
     public class GraphicalGrammarParserTests
     {

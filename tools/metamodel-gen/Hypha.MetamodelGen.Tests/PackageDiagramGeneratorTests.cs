@@ -18,11 +18,6 @@ namespace Hypha.MetamodelGen.Tests
 
     using NUnit.Framework;
 
-    /// <summary>
-    /// Tests for <see cref="PackageDiagramGenerator"/>. The rendering rules are exercised on
-    /// hand-built payloads (no model needed); the extraction rules are exercised against the real
-    /// SysML metamodel. Running the last test regenerates <c>knowledge/metamodel/diagrams/</c>.
-    /// </summary>
     [TestFixture]
     public class PackageDiagramGeneratorTests
     {

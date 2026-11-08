@@ -31,10 +31,11 @@ namespace Hypha.Knowledge.TextualNotation
         /// These patterns are built at run time from metaclass names, so they are the one place here
         /// that is not a fixed literal. The generated pattern has no quantifier and cannot backtrack
         /// catastrophically, but a match against a model measured in kilobytes should never take
-        /// anywhere near this long - so if it does, something is wrong and failing beats hanging.
+        /// anywhere near this long, so if it does, something is wrong and failing beats hanging.
         /// </remarks>
         private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(5);
 
+        /// <summary>Each metaclass with the compiled pattern that finds its declarations in a model.</summary>
         private readonly IReadOnlyList<(string Metaclass, Regex Declaration)> declarations;
 
         /// <summary>
@@ -54,6 +55,10 @@ namespace Hypha.Knowledge.TextualNotation
         public IReadOnlyDictionary<string, string> Forms { get; }
 
         /// <summary>The metaclasses whose surface form appears as a declaration in the model, sorted.</summary>
+        /// <param name="modelText">The model's content.</param>
+        /// <returns>The metaclass names, ordered ordinally.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="modelText"/> is <c>null</c>.</exception>
+        /// <exception cref="RegexMatchTimeoutException">A match took longer than five seconds.</exception>
         public IReadOnlyList<string> ElementsIn(string modelText)
         {
             ArgumentNullException.ThrowIfNull(modelText);
@@ -66,9 +71,11 @@ namespace Hypha.Knowledge.TextualNotation
         }
 
         /// <summary>
-        /// A declaration is the keyword followed by a name, a body or a typing colon - never a
+        /// A declaration is the keyword followed by a name, a body or a typing colon, never a
         /// substring of a longer identifier, and never a quoted name.
         /// </summary>
+        /// <param name="form">The surface form, e.g. <c>part def</c>.</param>
+        /// <returns>The compiled pattern, bounded by <see cref="MatchTimeout"/>.</returns>
         /// <remarks>
         /// <c>counterpart</c> is not a <c>part</c>, and <c>'part'</c> in quotes is a name. Unlike the
         /// grammar patterns this one leaves <c>\w</c> Unicode-aware, matching the Python it replaces:

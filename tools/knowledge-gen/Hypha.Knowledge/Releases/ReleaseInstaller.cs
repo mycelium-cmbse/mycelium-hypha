@@ -30,26 +30,41 @@ namespace Hypha.Knowledge.Releases
     /// </remarks>
     public sealed class ReleaseInstaller : IReleaseInstaller
     {
+        /// <summary>The compiled <c>Fetching the inputs for {Tag}</c> message (event 1, information).</summary>
         private static readonly Action<ILogger, string, Exception?> StartedMessage =
             LoggerMessage.Define<string>(
                 LogLevel.Information, new EventId(1, "Started"), "Fetching the inputs for {Tag}");
 
+        /// <summary>The compiled <c>Fetched {Kind}: {Files} files</c> message (event 2, information).</summary>
         private static readonly Action<ILogger, string, int, Exception?> FetchedMessage =
             LoggerMessage.Define<string, int>(
                 LogLevel.Information, new EventId(2, "Fetched"), "Fetched {Kind}: {Files} files");
 
+        /// <summary>The compiled <c>Recorded {Tag} in {Manifest}</c> message (event 3, information).</summary>
         private static readonly Action<ILogger, string, string, Exception?> RecordedMessage =
             LoggerMessage.Define<string, string>(
                 LogLevel.Information, new EventId(3, "Recorded"), "Recorded {Tag} in {Manifest}");
 
+        /// <summary>Downloads the release's inputs.</summary>
         private readonly IReleaseFetcher fetcher;
+
+        /// <summary>Resolves the tag to the upstream commits it points at, for the manifest.</summary>
         private readonly ICommitResolver resolver;
+
+        /// <summary>Resolves the <c>sources/</c> folder and the version manifest.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Receives the installation's progress messages.</summary>
         private readonly ILogger<ReleaseInstaller> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReleaseInstaller"/> class.
         /// </summary>
+        /// <param name="fetcher">Downloads the release's inputs.</param>
+        /// <param name="resolver">Resolves the tag to its upstream commits.</param>
+        /// <param name="layout">Resolves the <c>sources/</c> folder and the version manifest.</param>
+        /// <param name="logger">Receives the progress messages.</param>
+        /// <exception cref="ArgumentNullException">Any argument is <c>null</c>.</exception>
         public ReleaseInstaller(
             IReleaseFetcher fetcher,
             ICommitResolver resolver,
@@ -67,7 +82,28 @@ namespace Hypha.Knowledge.Releases
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Installs one release: fetches its metamodel and textual inputs (and its specification PDFs when
+        /// the request asks for them) into <c>sources/&lt;tag&gt;/</c>, resolves the commits the tag points
+        /// at, and only then records it in the version manifest, replacing any earlier record of the same
+        /// tag.
+        /// </summary>
+        /// <param name="request">Which release to install, and how.</param>
+        /// <param name="cancellationToken">Cancels the fetch and the commit resolution.</param>
+        /// <param name="progress">
+        /// Reported once per fetched file, across the metamodel and textual inputs (never for
+        /// specifications). <c>null</c> when nobody needs to show progress.
+        /// </param>
+        /// <returns>What was fetched, the version recorded, and the manifest it was recorded in.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">
+        /// The tag is not an offerable release tag. Refusing early beats writing a
+        /// <c>sources/2026-05-pre/</c> that nothing downstream will ever look at.
+        /// </exception>
+        /// <remarks>
+        /// The release becomes the default when the request asks for it, and also when there was no manifest
+        /// yet: the first release installed is always the default.
+        /// </remarks>
         public async Task<ReleaseInstallation> InstallAsync(
             ReleaseInstallRequest request,
             CancellationToken cancellationToken = default,
@@ -116,6 +152,9 @@ namespace Hypha.Knowledge.Releases
         /// <summary>
         /// Merges the release into the manifest, replacing any earlier record of the same tag.
         /// </summary>
+        /// <param name="version">The release's record.</param>
+        /// <param name="makeDefault">Makes the release the default; it also becomes the default when there is no manifest yet.</param>
+        /// <returns>The manifest file written.</returns>
         private FileInfo Record(InstalledVersion version, bool makeDefault)
         {
             var path = this.layout.VersionManifest.FullName;

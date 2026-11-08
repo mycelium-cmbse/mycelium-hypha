@@ -19,6 +19,11 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="InheritedFeature"/> class.
         /// </summary>
+        /// <param name="name">The feature name.</param>
+        /// <param name="typeMarkdown">The feature type rendered as markdown.</param>
+        /// <param name="multiplicity">The formatted multiplicity.</param>
+        /// <param name="owner">The name of the supertype that declares the feature.</param>
+        /// <param name="modifiers">The comma-separated modifier list (may be empty).</param>
         public InheritedFeature(string name, string typeMarkdown, string multiplicity, string owner, string modifiers)
         {
             this.Name = name;

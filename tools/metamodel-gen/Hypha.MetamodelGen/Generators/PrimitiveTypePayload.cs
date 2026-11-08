@@ -17,6 +17,11 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="PrimitiveTypePayload"/> class.
         /// </summary>
+        /// <param name="name">The type name.</param>
+        /// <param name="package">The owning package name.</param>
+        /// <param name="fullyQualifiedName">The fully qualified name.</param>
+        /// <param name="visibility">The type visibility (e.g. <c>public</c>).</param>
+        /// <param name="documentation">The type documentation (may be empty).</param>
         public PrimitiveTypePayload(
             string name,
             string package,

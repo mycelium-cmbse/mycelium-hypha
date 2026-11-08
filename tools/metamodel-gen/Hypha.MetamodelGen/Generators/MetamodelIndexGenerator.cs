@@ -50,6 +50,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <param name="xmiReaderResult">The deserialized metamodel.</param>
         /// <param name="title">The human-readable metamodel title (e.g. "SysML v2").</param>
         /// <returns>The generated index markdown.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="xmiReaderResult"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="title"/> is <c>null</c>, empty or white space.</exception>
         public string GenerateIndex(XmiReaderResult xmiReaderResult, string title)
         {
             ArgumentNullException.ThrowIfNull(xmiReaderResult);
@@ -65,6 +67,14 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Renders the index and writes it to <c>index.md</c> in <paramref name="outputDirectory"/>.
         /// </summary>
+        /// <param name="xmiReaderResult">The deserialized metamodel.</param>
+        /// <param name="outputDirectory">The folder <c>index.md</c> is written to.</param>
+        /// <param name="title">The human-readable metamodel title (e.g. "SysML v2").</param>
+        /// <returns>A task that completes when the index has been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="xmiReaderResult"/> or <paramref name="outputDirectory"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException"><paramref name="title"/> is <c>null</c>, empty or white space.</exception>
         public async Task GenerateAsync(XmiReaderResult xmiReaderResult, DirectoryInfo outputDirectory, string title)
         {
             ArgumentNullException.ThrowIfNull(outputDirectory);
@@ -77,6 +87,9 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Builds the deterministic, ordered index payload from the model.
         /// </summary>
+        /// <param name="xmiReaderResult">The deserialized metamodel.</param>
+        /// <param name="title">The human-readable metamodel title.</param>
+        /// <returns>The payload, packages without a metaclass left out.</returns>
         private static MetamodelIndexPayload CreatePayload(XmiReaderResult xmiReaderResult, string title)
         {
             var packages = xmiReaderResult.Packages
@@ -119,6 +132,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Yields a package together with all of its (recursively) nested packages.
         /// </summary>
+        /// <param name="package">The package to expand.</param>
+        /// <returns><paramref name="package"/> first, then every package nested in it.</returns>
         private static IEnumerable<IPackage> ExpandPackages(IPackage package)
         {
             yield return package;

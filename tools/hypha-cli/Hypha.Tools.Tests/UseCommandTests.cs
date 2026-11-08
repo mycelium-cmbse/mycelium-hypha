@@ -19,14 +19,6 @@ namespace Hypha.Tools.Tests
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
 
-    /// <summary>
-    /// Suite of tests for <see cref="UseCommand"/>.
-    /// </summary>
-    /// <remarks>
-    /// Against a real <see cref="KnowledgeLayout"/> over a temp directory, the same style
-    /// <c>ReleaseWindowEvictorTests</c>/<c>ReleaseRemoverTests</c> use - switching the default is a
-    /// direct manifest rewrite, not worth mocking behind an interface for this alone.
-    /// </remarks>
     [TestFixture]
     public class UseCommandTests
     {

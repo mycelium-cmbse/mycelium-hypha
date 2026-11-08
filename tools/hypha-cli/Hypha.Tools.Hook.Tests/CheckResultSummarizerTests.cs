@@ -12,9 +12,6 @@ namespace Hypha.Tools.Hook.Tests
     using System;
     using System.IO;
 
-    /// <summary>
-    /// Suite of tests for <see cref="CheckResultSummarizer"/>.
-    /// </summary>
     [TestFixture]
     public class CheckResultSummarizerTests
     {
@@ -90,7 +87,7 @@ namespace Hypha.Tools.Hook.Tests
         [Test]
         public void Already_on_the_newest_with_specs_missing_names_them()
         {
-            // No PDFs seeded at all - sources/2026-05/specs/ does not even exist.
+            // No PDFs seeded at all: sources/2026-05/specs/ does not even exist.
             var result = new HookCheckResult(["2026-05"], "2026-05", ["2026-05", "2026-04"]);
 
             var context = CheckResultSummarizer.Summarize(result, this.pluginRoot);
@@ -117,7 +114,7 @@ namespace Hypha.Tools.Hook.Tests
         public void No_default_tag_and_up_to_date_says_nothing()
         {
             // Defensive: DefaultTag is only ever null when nothing is installed, which the
-            // nothing-local branch already handles - covered here in case that assumption ever slips.
+            // nothing-local branch already handles, but is covered here in case that assumption ever slips.
             var result = new HookCheckResult(["2026-05"], null, ["2026-05"]);
 
             Assert.That(CheckResultSummarizer.Summarize(result, this.pluginRoot), Is.Null);

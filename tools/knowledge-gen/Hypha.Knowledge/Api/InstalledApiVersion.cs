@@ -14,7 +14,7 @@ namespace Hypha.Knowledge.Api
     /// <summary>
     /// One API version this checkout carries: the tag, and what it resolved to in each upstream.
     /// </summary>
-    /// <param name="Tag">The API-Services tag - the version identifier.</param>
+    /// <param name="Tag">The API-Services tag, the version identifier.</param>
     /// <param name="Services">The API-Services reference (the OpenAPI document).</param>
     /// <param name="Release">The Release repository reference (the specification PDF).</param>
     /// <param name="Pilot">The Pilot-Implementation reference (the KerML model the PIM refers to).</param>

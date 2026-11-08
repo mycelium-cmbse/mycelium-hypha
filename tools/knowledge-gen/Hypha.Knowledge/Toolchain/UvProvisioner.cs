@@ -107,7 +107,12 @@ namespace Hypha.Knowledge.Toolchain
         /// <summary>The variable uv reads the location of the Pythons it installs from.</summary>
         public const string UvPythonInstallVariable = "UV_PYTHON_INSTALL_DIR";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets the environment variables every <c>uv</c> invocation runs with: <see cref="UvCacheVariable"/>
+        /// and <see cref="UvPythonInstallVariable"/> pointing at <c>uv-cache/</c> and <c>python/</c> under the
+        /// cache root when this provisioner owns the toolchain, and empty otherwise, so uv keeps its default
+        /// locations.
+        /// </summary>
         public IReadOnlyDictionary<string, string> Environment { get; }
 
         /// <summary>
@@ -150,7 +155,7 @@ namespace Hypha.Knowledge.Toolchain
         }
 
         /// <summary>
-        /// Written only once the cached download's checksum has been verified - its presence is what
+        /// Written only once the cached download's checksum has been verified; its presence is what
         /// lets a later run skip the network entirely.
         /// </summary>
         /// <param name="version">The uv release, such as <see cref="PinnedVersion"/>.</param>
@@ -158,7 +163,26 @@ namespace Hypha.Knowledge.Toolchain
         /// <returns>The marker's path in <see cref="BinDirectory"/>; it may not exist yet.</returns>
         public FileInfo OkMarker(string version, string target) => new(Path.Combine(this.BinDirectory(version, target).FullName, ".ok"));
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Ensures <see cref="PinnedVersion"/> of <c>uv</c> is cached for this platform: returns the cached
+        /// executable straight away when it was verified before, and otherwise downloads the release asset,
+        /// verifies it against the published SHA-256 checksum, extracts it and writes the
+        /// <see cref="OkMarker"/>.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// Cancels the download of the release and its checksum. A cancellation during those HTTP calls
+        /// is reported like any other failed download: logged, and <c>null</c> returned.
+        /// </param>
+        /// <returns>
+        /// The cached executable, or <c>null</c> when it could not be provisioned: no uv build for this
+        /// platform, no matching release asset or checksum, a failed checksum, an archive without the
+        /// executable, or a network, I/O or parse failure. Each of these reasons is logged as a warning
+        /// rather than thrown.
+        /// </returns>
+        /// <exception cref="UnauthorizedAccessException">The cache folder cannot be written.</exception>
+        /// <exception cref="OperationCanceledException">
+        /// <paramref name="cancellationToken"/> was cancelled while the archive was being saved or extracted.
+        /// </exception>
         public async Task<FileInfo?> EnsureAsync(CancellationToken cancellationToken = default)
         {
             var target = UvPlatform.CurrentTarget;

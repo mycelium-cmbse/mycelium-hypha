@@ -13,9 +13,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for selecting a release's inputs, on a listing shaped like the Release repository's.
-    /// </summary>
     [TestFixture]
     public class ReleaseInputsTests
     {
@@ -85,7 +82,7 @@ namespace Hypha.Knowledge.Tests
         public void Selects_the_model_library_but_not_its_xmi_kpar_siblings_or_chrome()
         {
             // As of #80: the standard libraries are normative model content, not merely an example,
-            // so they are selected - but only the .sysml/.kerml models, never the XMI/kpar forms of
+            // so they are selected, but only the .sysml/.kerml models, never the XMI/kpar forms of
             // the same content or the per-package project chrome that ships alongside them.
             var selected = ReleaseInputs.SelectTextual(Tree);
 

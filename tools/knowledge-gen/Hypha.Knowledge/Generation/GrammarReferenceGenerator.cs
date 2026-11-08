@@ -30,16 +30,28 @@ namespace Hypha.Knowledge.Generation
         /// <summary>The textual grammars, by their name in both the sources and the output.</summary>
         private static readonly string[] TextualGrammars = ["KerML", "SysML"];
 
+        /// <summary>The graphical grammar's file name, rendered to <c>grammar-graphical.md</c> when present.</summary>
         private const string GraphicalGrammar = "SysML-graphical-bnf.kgbnf";
 
+        /// <summary>Resolves the grammar inputs and the textual notation output folder.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Parses the textual and graphical grammars into productions.</summary>
         private readonly IGrammarParser parser;
+
+        /// <summary>Renders the parsed productions as grammar reference pages.</summary>
         private readonly IGrammarReference reference;
+
+        /// <summary>Receives the progress messages of <see cref="GenerationLog"/>.</summary>
         private readonly ILogger<GrammarReferenceGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GrammarReferenceGenerator"/> class.
         /// </summary>
+        /// <param name="layout">Resolves the grammar inputs and the output folder.</param>
+        /// <param name="parser">Parses the grammars.</param>
+        /// <param name="reference">Renders the grammar reference pages.</param>
+        /// <param name="logger">Receives the progress messages.</param>
         public GrammarReferenceGenerator(
             IKnowledgeLayout layout,
             IGrammarParser parser,
@@ -52,13 +64,30 @@ namespace Hypha.Knowledge.Generation
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>Gets the artifact name, <c>grammar-references</c>, used when reporting progress.</summary>
         public string Artifact => "grammar-references";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets this generator's place in a full run, <c>20</c>: after the metamodel, before the textual
+        /// notation.
+        /// </summary>
         public int Order => 20;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Writes <c>grammar-kerml.md</c>, <c>grammar-sysml.md</c> and <c>grammar-graphical.md</c> under
+        /// <c>knowledge/&lt;tag&gt;/textual-notation/</c>, one for each grammar the release ships.
+        /// </summary>
+        /// <param name="tag">The release to generate for.</param>
+        /// <param name="cancellationToken">Cancels the generation.</param>
+        /// <returns>
+        /// The written files, or a <see cref="GenerationOutcome.Skipped"/> result when the release has no
+        /// grammar folder or no grammar file in it.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// A textual grammar has no productions, or a production with no clause attribution: the grammar
+        /// changed shape and the reference would quietly lose its structure.
+        /// </exception>
         public async Task<GenerationResult> GenerateAsync(
             string tag, CancellationToken cancellationToken = default)
         {

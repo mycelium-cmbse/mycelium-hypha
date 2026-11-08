@@ -3,8 +3,8 @@
 """Reconstruct reading-ordered, style-aware lines from positioned characters.
 
 Working at the character level (rather than pdfplumber's pre-grouped words) lets us (a) rebuild
-inter-word spaces that get dropped in italic/bold runs, and (b) recover font styling — code, bold,
-italic — as inline spans. It still handles the structural quirks of the OMG spec PDFs: multi-column
+inter-word spaces that get dropped in italic/bold runs, and (b) recover font styling (code, bold,
+italic) as inline spans. It still handles the structural quirks of the OMG spec PDFs: multi-column
 body text (read left column fully, then right) and running headers/footers/page numbers (dropped).
 Everything here is a pure function of ``list[list[Char]]`` so it can be tested with synthetic chars.
 """
@@ -175,7 +175,7 @@ def _column_boundary(chars: list[Char], y_tolerance: float, min_fraction: float 
     """Detect a two-column gutter: the mean midpoint of central gaps shared by enough rows.
 
     A page is treated as two-column only when at least ``min_fraction`` of its rows have an uncovered
-    vertical band near the horizontal centre — so a full-width header line cannot mask real columns,
+    vertical band near the horizontal centre, so a full-width header line cannot mask real columns,
     and ordinary single-column prose (no consistent central gap) is left alone.
     """
     rows = _cluster_rows(chars, y_tolerance)

@@ -148,6 +148,7 @@ namespace Hypha.Tools
         /// <c>hypha api</c> and its verbs: the Systems Modeling API knowledge, versioned on its own
         /// axis and so driven by its own installer, generators and manifest.
         /// </summary>
+        /// <returns>The <c>api</c> command with every verb, each verb's action composing its services and running its handler.</returns>
         private static ApiCommand BuildApiCommand()
         {
             var api = new ApiCommand();
@@ -230,7 +231,7 @@ namespace Hypha.Tools
             }
             catch (InvalidOperationException exception)
             {
-                // Composition failed - almost always "this is not a hypha checkout". A stack trace
+                // Composition failed: almost always "this is not a hypha checkout". A stack trace
                 // would bury the one sentence that tells the user what to do about it.
                 return await Fail(parseResult, 1, exception.Message);
             }
@@ -242,7 +243,7 @@ namespace Hypha.Tools
             }
             catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
             {
-                // A file the verb reads - knowledge/versions.json most often - is corrupt, or is being
+                // A file the verb reads (knowledge/versions.json most often) is corrupt, or is being
                 // rewritten by another hypha at this moment.
                 return await Fail(parseResult, 1, $"A knowledge file could not be read: {exception.Message}",
                     hint: "If another hypha command is running, try again once it has finished; "
@@ -284,7 +285,7 @@ namespace Hypha.Tools
         }
 
         /// <summary>
-        /// Announces which build is running, unless asked not to - and never in front of a JSON
+        /// Announces which build is running, unless asked not to, and never in front of a JSON
         /// document, which has to be the only thing on standard output.
         /// </summary>
         /// <param name="parseResult">The parsed command line; <c>--no-logo</c> or <c>--json</c> suppresses the banner.</param>

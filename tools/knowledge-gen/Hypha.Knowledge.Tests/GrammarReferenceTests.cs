@@ -11,9 +11,6 @@ namespace Hypha.Knowledge.Tests
 {
     using Hypha.Knowledge.Grammar;
 
-    /// <summary>
-    /// Tests for the rendered grammar references.
-    /// </summary>
     [TestFixture]
     public class GrammarReferenceTests
     {

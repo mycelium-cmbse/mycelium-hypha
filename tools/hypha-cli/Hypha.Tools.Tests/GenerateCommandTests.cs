@@ -22,9 +22,6 @@ namespace Hypha.Tools.Tests
 
     using Moq;
 
-    /// <summary>
-    /// Suite of tests for the <see cref="GenerateCommand"/>.
-    /// </summary>
     [TestFixture]
     public class GenerateCommandTests
     {
@@ -200,7 +197,6 @@ namespace Hypha.Tools.Tests
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }
 
-        /// <summary>A generator that records the order it was called in and reports one written file.</summary>
         private static Mock<IKnowledgeGenerator> Generator(string artifact, int order, List<string> log)
         {
             var mock = new Mock<IKnowledgeGenerator>();

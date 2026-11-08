@@ -23,21 +23,6 @@ namespace Hypha.Tools.Tests
 
     using Microsoft.Extensions.DependencyInjection;
 
-    /// <summary>
-    /// Fetches one release fresh and generates it twice into independent scratch folders, proving the
-    /// generators are deterministic - the same input produces the same output every time.
-    /// </summary>
-    /// <remarks>
-    /// Nothing generated is committed to git (see <c>CLAUDE.md</c>), so there is no committed golden
-    /// left to diff a regeneration against - this proves self-consistency (determinism), not
-    /// correctness against a human-reviewed baseline, which is a real reduction in rigor and not a
-    /// hidden one. Hits the real network (fetches a real release), so this is
-    /// <b>Explicit</b> - never part of a normal run or CI - the same convention
-    /// <c>LiveReleaseFetchTests</c> already uses. Run it by hand after changing a generator:
-    /// <code>
-    /// dotnet test --filter "FullyQualifiedName~KnowledgeRegenerationTests"
-    /// </code>
-    /// </remarks>
     [TestFixture]
     [Explicit("Hits the network; run by hand when changing a generator.")]
     [Category("Live")]

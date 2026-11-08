@@ -27,7 +27,7 @@ namespace Hypha.MetamodelGen.Generators
     /// timestamp or machine path.
     /// </summary>
     /// <remarks>
-    /// Two filters keep the diagrams legible. Derived features are omitted entirely — they are
+    /// Two filters keep the diagrams legible. Derived features are omitted entirely: they are
     /// computed views over other features rather than structure, and they outnumber the structural
     /// ones roughly three to one. Of what remains, only metaclass-typed features become edges;
     /// primitive- and enumeration-typed features are drawn inside the class box, so that
@@ -53,6 +53,12 @@ namespace Hypha.MetamodelGen.Generators
         /// Builds the deterministic payloads, one per package that owns at least one metaclass,
         /// ordered by package name.
         /// </summary>
+        /// <remarks>
+        /// Same-named packages are merged into one payload, since the files are named after the package.
+        /// </remarks>
+        /// <param name="model">The model whose packages are drawn.</param>
+        /// <returns>The payloads, ordered ordinally by package name.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static IReadOnlyList<PackageDiagramPayload> CreatePayloads(XmiReaderResult model)
         {
             ArgumentNullException.ThrowIfNull(model);
@@ -65,8 +71,8 @@ namespace Hypha.MetamodelGen.Generators
                 .Concat(ElementCatalog.PrimitiveTypes(model).Select(element => element.Name))
                 .ToHashSet(StringComparer.Ordinal);
 
-            // Package *names* are not unique across the two metamodels - KerML::Kernel::Metadata and
-            // SysML::Systems::Metadata both exist - and the index groups by name, so merge same-named
+            // Package *names* are not unique across the two metamodels (KerML::Kernel::Metadata and
+            // SysML::Systems::Metadata both exist), and the index groups by name, so merge same-named
             // packages into one diagram rather than letting the second overwrite the first's file.
             return model.Packages
                 .SelectMany(ElementCatalog.ExpandPackages)
@@ -87,6 +93,16 @@ namespace Hypha.MetamodelGen.Generators
         /// Builds the payload for one package name. <paramref name="metaclassNames"/> decides which
         /// feature types become edges; <paramref name="boxTypeNames"/> which become box attributes.
         /// </summary>
+        /// <param name="packageName">The package name the diagram is drawn for.</param>
+        /// <param name="packagedClasses">The metaclasses the package (or its same-named packages) own.</param>
+        /// <param name="metaclassNames">The names of every metaclass of the model.</param>
+        /// <param name="boxTypeNames">The names of every enumeration and primitive type of the model.</param>
+        /// <returns>The payload.</returns>
+        /// <exception cref="ArgumentException"><paramref name="packageName"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="packagedClasses"/>, <paramref name="metaclassNames"/> or
+        /// <paramref name="boxTypeNames"/> is <c>null</c>.
+        /// </exception>
         public static PackageDiagramPayload CreatePayload(
             string packageName,
             IEnumerable<IClass> packagedClasses,
@@ -179,6 +195,9 @@ namespace Hypha.MetamodelGen.Generators
         public ModelVocabulary Vocabulary { get; init; } = ModelVocabulary.Metamodel;
 
         /// <summary>Renders the markdown (front matter, Mermaid block and element links) for a package.</summary>
+        /// <param name="payload">The package's diagram payload.</param>
+        /// <returns>The page's Markdown.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="payload"/> is <c>null</c>.</exception>
         public string GenerateDiagram(PackageDiagramPayload payload)
         {
             ArgumentNullException.ThrowIfNull(payload);
@@ -189,6 +208,12 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Renders every package diagram and writes it to <c>{outputDirectory}/diagrams/{Package}.md</c>.
         /// </summary>
+        /// <param name="model">The model whose packages are drawn.</param>
+        /// <param name="outputDirectory">The metamodel knowledge root the <c>diagrams/</c> folder is created in.</param>
+        /// <returns>A task that completes when every diagram has been written.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="model"/> or <paramref name="outputDirectory"/> is <c>null</c>.
+        /// </exception>
         public async Task GenerateAsync(XmiReaderResult model, DirectoryInfo outputDirectory)
         {
             ArgumentNullException.ThrowIfNull(outputDirectory);
@@ -207,6 +232,8 @@ namespace Hypha.MetamodelGen.Generators
         /// The structural features of a metaclass: owned attributes that are not derived, ordered by
         /// name. Derived features are computed views, not structure, and are left to the element files.
         /// </summary>
+        /// <param name="class">The metaclass whose features are read.</param>
+        /// <returns>The non-derived owned attributes, ordered ordinally by name.</returns>
         internal static IEnumerable<IProperty> StructuralFeatures(IClass @class) =>
             @class.OwnedAttribute
                 .Where(property => !property.IsDerived)
@@ -216,6 +243,9 @@ namespace Hypha.MetamodelGen.Generators
         /// Formats a property's multiplicity, either bare (<c>0..*</c>, for a Mermaid edge label) or
         /// bracketed (<c>[0..*]</c>, for a class-box attribute).
         /// </summary>
+        /// <param name="property">The property whose multiplicity is formatted.</param>
+        /// <param name="brackets">Whether to wrap the multiplicity in square brackets.</param>
+        /// <returns>The multiplicity; a single number when the lower and upper bounds are equal.</returns>
         internal static string FormatMultiplicity(IProperty property, bool brackets)
         {
             var lower = property.Lower;
@@ -235,6 +265,9 @@ namespace Hypha.MetamodelGen.Generators
         /// The non-derived features whose type is a primitive type or an enumeration, rendered inside
         /// the class box rather than as edges.
         /// </summary>
+        /// <param name="class">The metaclass whose box is drawn.</param>
+        /// <param name="boxTypeNames">The names of every enumeration and primitive type of the model.</param>
+        /// <returns>The box attributes, ordered ordinally by name.</returns>
         private static List<DiagramAttribute> BoxAttributes(IClass @class, IReadOnlySet<string> boxTypeNames) =>
             StructuralFeatures(@class)
                 .Where(property => property.Type?.Name is not null && boxTypeNames.Contains(property.Type.Name))
@@ -247,6 +280,8 @@ namespace Hypha.MetamodelGen.Generators
                 .ToList();
 
         /// <summary>The distinct, ordered names of a metaclass's direct supertypes.</summary>
+        /// <param name="class">The metaclass whose supertypes are read.</param>
+        /// <returns>The non-empty supertype names, ordered ordinally.</returns>
         private static IEnumerable<string> SupertypeNames(IClass @class) =>
             @class.SuperClass
                 .Select(super => super.Name)

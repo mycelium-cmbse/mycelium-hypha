@@ -19,7 +19,7 @@ namespace Hypha.Tools.Commands.Api
     /// </summary>
     /// <remarks>
     /// Runs the same loop as <see cref="GenerateCommand"/>, over the API generators and the installed
-    /// API versions instead of the language ones - see <see cref="Scope"/>.
+    /// API versions instead of the language ones (see <see cref="Scope"/>).
     /// </remarks>
     public sealed class ApiGenerateCommand : Command
     {
@@ -63,6 +63,11 @@ namespace Hypha.Tools.Commands.Api
         }
 
         /// <summary>What the shared generation loop runs over for the API.</summary>
+        /// <param name="layout">Resolves the installed API versions and the API knowledge root.</param>
+        /// <returns>
+        /// The scope: the installed API versions, the <c>knowledge/api/</c> root, the API wording and
+        /// this command's <see cref="Artifact"/> and <see cref="Tag"/>.
+        /// </returns>
         public static GenerateCommand.GenerationScope Scope(IApiLayout layout) => new(
             () => layout.InstalledTags,
             layout.VersionManifest.Directory!.FullName,

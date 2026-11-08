@@ -21,7 +21,7 @@ namespace Hypha.MetamodelGen.Generators
     /// <param name="ClassNounPlural">The plural of <paramref name="ClassNoun"/>.</param>
     public sealed record ModelVocabulary(string ModelNoun, string ClassNoun, string ClassNounPlural)
     {
-        /// <summary>The words for a metamodel - the default, and what KerML and SysML are.</summary>
+        /// <summary>The words for a metamodel: the default, and what KerML and SysML are.</summary>
         public static ModelVocabulary Metamodel { get; } = new("metamodel", "metaclass", "metaclasses");
 
         /// <summary>The words for an ordinary model, such as the Systems Modeling API PIM.</summary>

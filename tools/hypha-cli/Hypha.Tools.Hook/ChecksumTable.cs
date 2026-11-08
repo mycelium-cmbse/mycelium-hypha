@@ -24,10 +24,18 @@ namespace Hypha.Tools.Hook
     /// </remarks>
     public static partial class ChecksumTable
     {
+        /// <summary>
+        /// Matches one table row: the backtick-quoted <c>.zip</c> asset name (<c>name</c>) and its
+        /// 64-digit hexadecimal SHA256 (<c>sha</c>).
+        /// </summary>
+        /// <returns>The source-generated expression.</returns>
         [GeneratedRegex(@"`(?<name>[^`]+\.zip)`\s*\|\s*(?<sha>[0-9a-fA-F]{64})")]
         private static partial Regex RowPattern();
 
         /// <summary>The SHA256 recorded for <paramref name="assetName"/>, or <c>null</c> if absent.</summary>
+        /// <param name="releaseBody">The release notes, or <c>null</c> when the release has none.</param>
+        /// <param name="assetName">The asset's file name, matched ordinally.</param>
+        /// <returns>The first SHA256 recorded for the asset, in lowercase, or <c>null</c>.</returns>
         public static string? Find(string? releaseBody, string assetName)
         {
             if (string.IsNullOrEmpty(releaseBody))

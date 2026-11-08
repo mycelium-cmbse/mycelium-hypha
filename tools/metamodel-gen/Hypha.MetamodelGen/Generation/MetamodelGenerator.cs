@@ -38,13 +38,21 @@ namespace Hypha.MetamodelGen.Generation
         /// <summary>Where the per-element pages sit, under the metamodel directory.</summary>
         private const string ElementsFolder = "elements";
 
+        /// <summary>Resolves where a release's XMI is read from and its metamodel knowledge is written to.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Reads, and caches, a release's combined KerML + SysML model.</summary>
         private readonly IMetamodelModelLoader loader;
+
+        /// <summary>Reports the progress and the outcome of a run.</summary>
         private readonly ILogger<MetamodelGenerator> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MetamodelGenerator"/> class.
         /// </summary>
+        /// <param name="layout">Resolves the release's XMI and metamodel output folders.</param>
+        /// <param name="loader">Reads the release's metamodel.</param>
+        /// <param name="logger">Reports the progress and the outcome of a run.</param>
         public MetamodelGenerator(
             IKnowledgeLayout layout, IMetamodelModelLoader loader, ILogger<MetamodelGenerator> logger)
         {
@@ -53,13 +61,29 @@ namespace Hypha.MetamodelGen.Generation
             this.logger = logger;
         }
 
-        /// <inheritdoc/>
+        /// <summary>What this generator produces: <c>metamodel</c>. Used when reporting progress.</summary>
         public string Artifact => "metamodel";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Where this generator sits in a full run: <c>10</c>, first, because every later artifact reads
+        /// the metamodel index it writes.
+        /// </summary>
         public int Order => 10;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Generates <c>knowledge/&lt;tag&gt;/metamodel/</c> for <paramref name="tag"/>: the element
+        /// pages, the index, the JSON sidecars and the package diagrams.
+        /// </summary>
+        /// <param name="tag">The release to generate the metamodel knowledge for.</param>
+        /// <param name="cancellationToken">Observed once the files have been written.</param>
+        /// <returns>
+        /// Every file under the metamodel directory, or a <see cref="GenerationOutcome.Skipped"/> result
+        /// when the release's metamodel XMI has not been fetched.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="OperationCanceledException">
+        /// <paramref name="cancellationToken"/> was cancelled.
+        /// </exception>
         public async Task<GenerationResult> GenerateAsync(
             string tag, CancellationToken cancellationToken = default)
         {
@@ -101,6 +125,8 @@ namespace Hypha.MetamodelGen.Generation
         /// The primitive types are shared across releases, so they are read from the common
         /// <c>sources/</c> root rather than the tag folder.
         /// </remarks>
+        /// <param name="tag">The release whose XMI is hashed.</param>
+        /// <returns>The SHA-256 digest of the release's SysML, KerML and primitive-type XMI.</returns>
         public string SourceHash(string tag)
         {
             var xmi = this.layout.Xmi(tag);

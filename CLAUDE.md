@@ -6,13 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** standards (not UML):
 
-1. The **`hypha` Claude plugin** — `.claude-plugin/`, `skills/`, `agents/`, `commands/`, `hooks/`, and
+1. The **`hypha` Claude plugin**: `.claude-plugin/`, `skills/`, `agents/`, `commands/`, `hooks/`, and
    the `knowledge/` base the plugin reads at runtime. Nothing per-release under `knowledge/` is
    committed (see "Committed vs git-ignored" below): a plugin install fetches and generates it on the
    user's own machine, on request.
-2. The **VS Code extension prototype** in `extensions/vscode/` – a GitHub Copilot extension that
-   uses VS Code extension-global storage for the CLI and release knowledge, shared across workspaces
-   on the same extension host. It is not yet published to the Marketplace.
+2. The **VS Code extension** in `extensions/vscode/`: a GitHub Copilot extension that uses VS Code
+   extension-global storage for the CLI and release knowledge, shared across workspaces on the same
+   extension host. It is published on the Visual Studio Marketplace as a preview pre-release
+   (`mycelium-cmbse.mycelium-hypha`, for Windows x64 and Linux x64/arm64) by the manually started
+   *Publish VS Code extension* workflow (`.github/workflows/publish-vscode.yml`), through Marketplace
+   Trusted Publishing; see `extensions/vscode/DEVELOPMENT.md`.
 3. The **generation pipelines** in `tools/` that build `knowledge/` from upstream OMG sources in
    `sources/`. The pipelines are not shipped with the Claude plugin; the VS Code extension packages
    only the specification extraction project required by the standalone CLI.
@@ -45,7 +48,7 @@ pytest tests/test_clauses.py::test_detects_clauses_and_groups_body   # one test 
 ## The CLI generates, the tests verify
 
 Generation is driven by **`tools/hypha-cli`** (the `hypha` command), never by the test runner. No
-test writes into `knowledge/` — running `dotnet test` leaves the working tree clean, and a test that
+test writes into `knowledge/`: running `dotnet test` leaves the working tree clean, and a test that
 dirties it is a bug.
 
 ```sh
@@ -56,7 +59,7 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- fetch --tag 2026-05 # source
 
 **The orchestration lives in the library, not in the fixtures.** Each artifact is an
 `IKnowledgeGenerator` (`Artifact`, `Order`, `GenerateAsync(tag)`), registered as a collection, so a
-full run is a loop over `Order` — metamodel (10), grammar references (20), textual notation (30),
+full run is a loop over `Order`: metamodel (10), grammar references (20), textual notation (30),
 model library (35), cross-references (40, last, because it reads the index and the generated
 examples). The CLI resolves that collection; it does not know the artifact names, so adding a
 generator adds its verb.
@@ -67,23 +70,23 @@ this section's steps, then shells out to `dotnet test`/`pytest` as subordinate s
 specification text, re-blessing the `Hypha.MetamodelGen.Tests` `Expected/` fixtures, then a final
 self-consistency regeneration check) before pruning whichever locally-installed releases fall outside
 `--keep`. Nothing it does is committed automatically, and nothing it prunes was ever committed either
-- see `tools/hypha-cli/README.md`.
+(see `tools/hypha-cli/README.md`).
 
 Inputs are read from `RepositoryRoot`, output is written to `OutputRoot` (`--output`), which defaults
 to the same folder. That separation is what lets `KnowledgeRegenerationTests` fetch a release fresh
 and regenerate it twice into independent scratch folders, comparing the two runs **byte for byte**
 against *each other*: proof the generators are deterministic, not that they match a committed
-baseline - nothing per-release is committed to compare against any more (see "Committed vs
+baseline, since nothing per-release is committed to compare against any more (see "Committed vs
 git-ignored" below). After an intended format change, regenerate and review the diff by hand; the
 one real "matches a known-good baseline" check left is `Hypha.MetamodelGen.Tests`' `Expected/`
 golden files, re-blessed with its `[Explicit]` `Bless_expected_files` tests.
 
 - `spec-extract`'s `test_generate.py` writes the git-ignored `knowledge/<tag>/spec/` from
   `sources/<tag>/specs/*.pdf`. That is now all Python does here, and it is the one place the old
-  "tests write it" convention survives — because that output is never committed.
+  "tests write it" convention survives, because that output is never committed.
 - A generator whose inputs are absent returns `Skipped` with a reason, so CI stays green without the
-  copyrighted/optional inputs. Inputs that are present but would yield **wrong** output throw instead
-  — a missing metamodel index, a clause title reaching the cross-references, a slug collision.
+  copyrighted/optional inputs. Inputs that are present but would yield **wrong** output throw instead:
+  a missing metamodel index, a clause title reaching the cross-references, a slug collision.
 - "Interesting" metaclasses are discovered via `ModelInspector`, never hardcoded.
 
 ## The Systems Modeling API is a second version axis
@@ -102,30 +105,30 @@ to the release machinery rather than folded into it:
   earlier PSM. API-Services has not been tagged for every release since, so the newest API version is
   normally older than the newest release.
 - **Inputs:** the OpenAPI document (API-Services), the specification PDF (Release), the KerML XMI
-  (Pilot-Implementation), and the PIM XMI - the one input **not** in any repository, fetched from the
+  (Pilot-Implementation), and the PIM XMI: the one input **not** in any repository, fetched from the
   OMG document server (`HyphaKnowledgeOptions.PimAddress`) through a credential-free client.
 - **Generators:** `IApiKnowledgeGenerator`, the same contract as `IKnowledgeGenerator` but registered
-  as a **separate collection** - `pim` (10, in `tools/metamodel-gen`, reusing the metamodel
+  as a **separate collection**: `pim` (10, in `tools/metamodel-gen`, reusing the metamodel
   generators with `ModelVocabulary.Model`), `openapi` (20), `spec` (30), `cross-references` (40). A
   generator registered under the wrong interface would run against the wrong kind of tag.
 - **CLI:** `hypha api discover|fetch|generate|list|use|remove`. `generate` reuses
   `GenerateCommand.Handler` through a `GenerationScope`; `check`, `move-window` and the
   `SessionStart` hook know only the language releases.
 - **Cross-references:** `knowledge/api/<version>/cross-references.json` carries identifiers only,
-  never clause text, and every edge names the `method` that produced it - a link the specification or
+  never clause text, and every edge names the `method` that produced it; a link the specification or
   the OpenAPI document **states** (`mapping-table`, `type-constant`) is preferred over one matched on
   a name (`same-name`).
 
 ## Committed vs git-ignored (and why)
 
-Nothing per-release is committed any more, for anything — not a rolling window of it, not one
+Nothing per-release is committed any more, for anything: not a rolling window of it, not one
 release. Every release's inputs and generated knowledge live entirely on the user's own machine, one
 uniform model instead of the licensing-driven split this used to have. See `skills/version-management/
 SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface that drives it.
 
 - **Git-ignored, per release:** `sources/<tag>/` (fetched inputs: XMI, textual sources, specification
   PDFs) and `knowledge/<tag>/` (everything generated from them: metamodel, textual-notation,
-  model-library, cross-references.json, and - when the specifications are present - spec/), plus
+  model-library, cross-references.json, and, when the specifications are present, spec/), plus
   `knowledge/versions.json`, the manifest recording which releases are installed locally and which one
   is the default. `.gitignore`'s `/sources/*/` and `/knowledge/*/` patterns are root-anchored so they
   only match this per-repository-root layout, not the small, deliberately-committed XMI fixture under
@@ -134,14 +137,14 @@ SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface th
   `knowledge/model-library.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
   `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT binary the plugin's `SessionStart` hook
-  dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section) — the only
+  dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section), the only
   compiled binary this repository commits, and deliberately *not* under `bin/`, which `.gitignore`
   otherwise excludes at any depth.
 - **Committed as a test fixture, not a distributed one:** `tools/metamodel-gen/Hypha.MetamodelGen.Tests
   /Fixtures/xmi/` holds one real release's XMI (captured from `TestModel.FixtureTag`), so
   `Hypha.MetamodelGen.Tests` has something real to exercise the generators against without a network
   fetch. It lives under `tools/`, which is never shipped with the plugin (see "What this repo is"
-  above), so committing it does not reintroduce a distributed knowledge floor - it only means this one
+  above), so committing it does not reintroduce a distributed knowledge floor; it only means this one
   fixture release is no longer regression-tested against every other release, which is the accepted
   consequence of dropping the committed floor entirely.
 - **Git-ignored, never commit, for any release:** `sources/<tag>/specs/*.pdf` and the generated
@@ -149,7 +152,7 @@ SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface th
   redistributing it, so it is regenerated locally only. `hypha generate`'s `spec` artifact
   (`SpecGenerator`) drives this: it fetches and caches `uv`, which resolves or fetches a matching
   Python itself and runs `tools/spec-extract` through it, so this no longer needs a maintainer source
-  checkout or a pre-provisioned `.venv` - only the PDFs (`hypha fetch`, by default) and, the first time,
+  checkout or a pre-provisioned `.venv`, only the PDFs (`hypha fetch`, by default) and, the first time,
   network access to provision `uv`. The plugin's `SessionStart` hook (`Hypha.Tools.Hook`,
   `hooks/native/<rid>/hypha-hook`) tells the user when the PDFs are missing for the default release.
 - Exact upstream sources, commits and licenses are recorded in `sources/README.md` and `NOTICE`.
@@ -161,31 +164,31 @@ Anything generated must still be byte-stable: sort collections with `StringCompa
 (`.gitattributes` pins `knowledge/** eol=lf`), and include no timestamps, machine paths, or
 culture-sensitive formatting. JSON uses `System.Text.Json` with fixed options and `\r\n`→`\n`
 normalization. That property is what `KnowledgeRegenerationTests` checks now (two independent runs
-must match each other byte for byte - see "The CLI generates, the tests verify" above), and it is what
+must match each other byte for byte; see "The CLI generates, the tests verify" above), and it is what
 `Hypha.MetamodelGen.Tests`' `Expected/` golden files check against the committed XMI fixture; neither
 kind of test tolerates non-deterministic output.
 
 ## Knowledge-base shape (what the skills/agents consume)
 
-- `knowledge/metamodel/elements/<Name>.md` — one file per metaclass / enumeration / primitive: front
-  matter, Generalizations/Specializations, **Owned features**, an **Inherited features** table giving
-  the *full effective* feature set (read it directly — do not re-walk the generalization chain),
+- `knowledge/metamodel/elements/<Name>.md`: one file per metaclass / enumeration / primitive, with
+  front matter, Generalizations/Specializations, **Owned features**, an **Inherited features** table giving
+  the *full effective* feature set (read it directly; do not re-walk the generalization chain),
   **Operations** (signature + `bodyCondition` OCL), and Constraints (OCL). `index.md` + `index.json`
   resolve a name → element.
-- `knowledge/spec/{kerml,sysml2}/<clause>.md` — verbatim clause text + front matter
+- `knowledge/spec/{kerml,sysml2}/<clause>.md`: verbatim clause text + front matter
   (`clause`, `title`, `document`, `version`, `pages`, `normative`), plus `index.md` / `index.json`.
-- `knowledge/<tag>/textual-notation/grammar-{kerml,sysml,graphical}.md` — every production grouped by
+- `knowledge/<tag>/textual-notation/grammar-{kerml,sysml,graphical}.md`: every production grouped by
   specification clause, with the metaclass it builds, the clause it is defined in and the metamodel
   features it populates. All three are **stated by the grammar**, not matched on a name.
-- `knowledge/<tag>/textual-notation/index.md` — the release's keyword reference (read from its own
-  BNF) and a link to every example — and `examples/` — one page per model the release ships (309),
+- `knowledge/<tag>/textual-notation/index.md`: the release's keyword reference (read from its own
+  BNF) and a link to every example; and `examples/`, one page per model the release ships (309),
   each ` ```sysml ` / ` ```kerml ` block a **byte-exact copy** of a `sources/<tag>/textual/` model,
   with front matter naming its upstream path and the metaclasses it declares.
 
-- `knowledge/<tag>/cross-references.json` (+ `knowledge/cross-references.schema.json`) — element →
+- `knowledge/<tag>/cross-references.json` (+ `knowledge/cross-references.schema.json`): element →
   clause **identifier**, grammar production, the metamodel features its syntax populates, and worked
   examples. Every edge carries its provenance tier and the method that produced it. **Never contains
-  clause text** — that is what would have let it be committed while `knowledge/<tag>/spec/` could not,
+  clause text**: that is what would have let it be committed while `knowledge/<tag>/spec/` could not,
   back when a rolling window of releases was committed at all; the distinction no longer matters for
   what ships in git (nothing per-release does, see "Committed vs git-ignored" above), but it still
   matters for what a spec-citation answer may quote versus merely cite.
@@ -205,7 +208,7 @@ running header/footer stripping) → `clauses` (heading detection via a successo
 - **C#:** block-scoped namespaces with `using`s *inside* the namespace, one public type per file, NUnit,
   the classic `mycelium-hypha.sln`. Every source file opens with the Apache-2.0 `<copyright>` header
   (Starion Group S.A.).
-- **C# dependencies and DI:** well-established NuGet packages are welcome – prefer a maintained
+- **C# dependencies and DI:** well-established NuGet packages are welcome; prefer a maintained
   library over hand-rolling infrastructure. Services are registered through
   `Microsoft.Extensions.DependencyInjection` and resolved rather than constructed, so the CLI
   (see #81) composes them in one place. Keep constructors injectable and free of hidden statics.
@@ -213,4 +216,7 @@ running header/footer stripping) → `clauses` (heading detection via a successo
   `AddHyphaKnowledge`; anything a caller might want to watch goes through `ILogger`, not `Console`.
 - **Python:** ruff-clean, standard-library-friendly; each file carries the
   `# Copyright … / # SPDX-License-Identifier: Apache-2.0` header.
-- **Prose/docs** use a spaced en dash (` – `), not an em dash.
+- **Prose/docs, comments and XML docs** use no dashes as punctuation: neither the en dash nor the em
+  dash. Rewrite the sentence with a comma, a colon, parentheses, a semicolon or a full stop instead;
+  hyphens in compound words (`read-only`) are fine. This covers CHANGELOG entries, issues, PRs and
+  commit messages too.

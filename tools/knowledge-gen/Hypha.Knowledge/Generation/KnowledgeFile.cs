@@ -24,9 +24,16 @@ namespace Hypha.Knowledge.Generation
     /// </remarks>
     internal static class KnowledgeFile
     {
+        /// <summary>UTF-8 without a byte-order mark.</summary>
         private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
 
-        /// <summary>Writes <paramref name="content"/> to <paramref name="path"/>.</summary>
+        /// <summary>
+        /// Writes <paramref name="content"/> to <paramref name="path"/>, creating its folder first if needed.
+        /// </summary>
+        /// <param name="path">The file to write.</param>
+        /// <param name="content">The content, already with LF line endings.</param>
+        /// <param name="cancellationToken">Cancels the write.</param>
+        /// <returns>The written file, refreshed so its length and timestamps are current.</returns>
         public static async Task<FileInfo> WriteAsync(
             string path, string content, CancellationToken cancellationToken = default)
         {

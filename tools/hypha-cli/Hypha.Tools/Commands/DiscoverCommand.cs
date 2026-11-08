@@ -43,11 +43,14 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="DiscoverCommand"/>.</summary>
         public sealed class Handler
         {
+            /// <summary>Lists the releases both upstreams offer.</summary>
             private readonly IReleaseDiscovery discovery;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="discovery">Lists the releases both upstreams offer.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="discovery"/> is <c>null</c>.</exception>
             public Handler(IReleaseDiscovery discovery)
             {
                 ArgumentNullException.ThrowIfNull(discovery);
@@ -56,7 +59,10 @@ namespace Hypha.Tools.Commands
             }
 
             /// <summary>Lists the available releases.</summary>
+            /// <param name="parseResult">The parsed command line.</param>
+            /// <param name="cancellationToken">Cancels the discovery.</param>
             /// <returns>0 when at least one release was found, 1 when none was.</returns>
+            /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             public async Task<int> InvokeAsync(
                 ParseResult parseResult, CancellationToken cancellationToken = default)
             {

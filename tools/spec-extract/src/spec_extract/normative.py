@@ -4,11 +4,11 @@
 
 The split is lossless: every body line ends up in exactly one block. Code lines (set in the monospace
 font, flagged by the layout layer) group into ``code`` blocks. An informative block starts at a
-note/example label and runs until the next marker, a code line, or the clause end — matching the
+note/example label and runs until the next marker, a code line, or the clause end, matching the
 layout where notes and examples trail the normative text.
 
 Label detection is font-aware: the KerML/SysML PDFs render formal notes as a **bold** "Note." label
-(not uppercase "NOTE"), so a bold leading "Note"/"Example" token marks the block — which also avoids
+(not uppercase "NOTE"), so a bold leading "Note"/"Example" token marks the block, which also avoids
 mistaking ordinary prose ("Note that ...", in the regular font) for a note. A bare uppercase
 "NOTE"/"EXAMPLE" at the start of a line is still accepted as a fallback. A clause is flagged normative
 when any prose block contains "shall" or "must".

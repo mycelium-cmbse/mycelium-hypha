@@ -13,10 +13,6 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Releases;
 
-    /// <summary>
-    /// Tests for resolving the optional GitHub token, against an injected environment so the real
-    /// one is never read or mutated.
-    /// </summary>
     [TestFixture]
     public class GitHubTokenTests
     {

@@ -19,6 +19,12 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumerationPayload"/> class.
         /// </summary>
+        /// <param name="name">The enumeration name.</param>
+        /// <param name="package">The owning package name.</param>
+        /// <param name="fullyQualifiedName">The fully qualified name.</param>
+        /// <param name="visibility">The enumeration visibility (e.g. <c>public</c>).</param>
+        /// <param name="documentation">The enumeration documentation (may be empty).</param>
+        /// <param name="literals">The enumeration literals, in declaration order.</param>
         public EnumerationPayload(
             string name,
             string package,
@@ -62,6 +68,8 @@ namespace Hypha.MetamodelGen.Generators
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumerationLiteralEntry"/> class.
         /// </summary>
+        /// <param name="name">The literal name.</param>
+        /// <param name="documentation">The literal documentation (may be empty).</param>
         public EnumerationLiteralEntry(string name, string documentation)
         {
             this.Name = name;
