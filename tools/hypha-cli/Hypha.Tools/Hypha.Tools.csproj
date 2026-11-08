@@ -63,6 +63,8 @@
 
   <ItemGroup>
     <!-- Generates an SBOM for the shipped tool as part of build/pack (see release.yml). -->
+    <PackageReference Include="Handlebars.Net" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
     <PackageReference Include="Microsoft.Sbom.Targets">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

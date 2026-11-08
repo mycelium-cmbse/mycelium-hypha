@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="uml4net.Extensions" />
     <PackageReference Include="uml4net.xmi" />
