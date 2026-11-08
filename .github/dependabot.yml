@@ -53,7 +53,8 @@ updates:
       npm:
         update-types: [minor, patch]
 
-  # The specification extractor, which the CLI and the VS Code extension provision through uv.
+  # The specification extractor: uv.lock is what the CLI and the VS Code extension install through
+  # uv, and what CI installs to lint and test it, so an update here is tested as it ships.
   - package-ecosystem: uv
     directory: /tools/spec-extract
     target-branch: development

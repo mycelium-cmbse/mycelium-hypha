@@ -261,8 +261,8 @@ namespace Hypha.Tools.Commands
                 if (!File.Exists(PythonExecutable(specExtract)))
                 {
                     return "tools/spec-extract/.venv is not provisioned. From tools/spec-extract, run: "
-                        + "python -m venv .venv && . .venv/Scripts/activate && pip install -e .[dev] "
-                        + "(or the platform equivalent).";
+                        + "uv sync --extra dev (or, without uv: python -m venv .venv && "
+                        + ". .venv/Scripts/activate && pip install -e .[dev], or the platform equivalent).";
                 }
 
                 return null;

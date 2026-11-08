@@ -38,12 +38,14 @@ never in CI; set `GITHUB_TOKEN` before running it (the anonymous API allows 60 r
 **Python** (`tools/spec-extract`, Python ≥ 3.12), from `tools/spec-extract/`:
 
 ```sh
-python -m venv .venv && . .venv/Scripts/activate   # or source .venv/bin/activate
-pip install -e .[dev]
-ruff check .
-pytest
-pytest tests/test_clauses.py::test_detects_clauses_and_groups_body   # one test (or: pytest -k <expr>)
+uv sync --extra dev                  # .venv from uv.lock: the versions CI and hypha generate use
+uv run --extra dev ruff check .
+uv run --extra dev pytest
+uv run --extra dev pytest tests/test_clauses.py::test_detects_clauses_and_groups_body   # one test (or: -k <expr>)
 ```
+
+Without uv, `python -m venv .venv` and `pip install -e .[dev]` also work, but install the newest
+versions rather than the locked ones, so ruff and pytest may differ from CI.
 
 ## The CLI generates, the tests verify
 

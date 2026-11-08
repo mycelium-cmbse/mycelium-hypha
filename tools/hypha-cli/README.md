@@ -175,8 +175,8 @@ per-release is committed at all (see CLAUDE.md): the deletions only ever touch t
 
 It reports which step it is on as it goes and can take several minutes; specification extraction is
 the dominant cost. Unlike every other verb, **it needs a full source checkout with the .NET SDK and a
-provisioned `tools/spec-extract/.venv`** (`python -m venv .venv && pip install -e .[dev]`, from
-`tools/spec-extract/`): its re-bless and verify steps shell out to `dotnet test`, and specification
+provisioned `tools/spec-extract/.venv`** (`uv sync --extra dev`, or `python -m venv .venv && pip install
+-e .[dev]`, from `tools/spec-extract/`): its re-bless and verify steps shell out to `dotnet test`, and specification
 extraction shells out to `pytest`. It cannot run from the standalone distributed binary.
 
 ### Automatic version check
