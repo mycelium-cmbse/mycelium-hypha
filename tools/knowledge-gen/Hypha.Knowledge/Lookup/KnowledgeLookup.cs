@@ -108,8 +108,7 @@ namespace Hypha.Knowledge.Lookup
             if (!index.Exists)
             {
                 throw new KnowledgeLookupException(
-                    $"The {Describe(request.Kind)} of release {tag} has not been generated. "
-                    + $"Run 'hypha generate --tag {tag}'.");
+                    ReleaseAxis.Language.NotGenerated(Describe(request.Kind), tag));
             }
 
             var entries = ReadIndex(request.Kind, index, tag);
@@ -509,28 +508,8 @@ namespace Hypha.Knowledge.Lookup
         /// <exception cref="KnowledgeLookupException">
         /// The requested release is not installed, or none was requested and there is no default.
         /// </exception>
-        private string Release(string? requested)
-        {
-            var installed = this.layout.InstalledTags;
-
-            if (requested is null)
-            {
-                return this.layout.DefaultTag
-                       ?? throw new KnowledgeLookupException(
-                           installed.Count == 0
-                               ? "No release is installed. Run 'hypha fetch --tag <release>' and 'hypha generate'."
-                               : "No default release is selected. Run 'hypha use --tag <release>'.");
-            }
-
-            if (!installed.Contains(requested, StringComparer.Ordinal))
-            {
-                throw new KnowledgeLookupException(
-                    $"Release {requested} is not installed. Installed: "
-                    + (installed.Count == 0 ? "none" : string.Join(", ", installed)) + ".");
-            }
-
-            return requested;
-        }
+        private string Release(string? requested) =>
+            ReleaseAxis.Language.Resolve(this.layout.InstalledTags, this.layout.DefaultTag, requested);
 
         /// <summary>One index entry, with every name it answers to.</summary>
         /// <param name="Key">The entry's key in the index: an element name, or a declaration's qualified name.</param>

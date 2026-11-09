@@ -109,6 +109,8 @@ namespace Hypha.Knowledge.Tests
 
             public FileInfo MetamodelIndex(string tag) => inner.MetamodelIndex(tag);
 
+            public FileInfo MetamodelGraph(string tag) => inner.MetamodelGraph(tag);
+
             public DirectoryInfo TextualNotation(string tag) => inner.TextualNotation(tag);
 
             public DirectoryInfo Examples(string tag) => inner.Examples(tag);

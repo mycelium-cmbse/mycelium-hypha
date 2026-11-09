@@ -324,11 +324,13 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 
 ### Step 2: Build the query API
 
-- [ ] Collect every jq example from `skills/metamodel-lookup`, `skills/sysml-validation`, `skills/spec-citation`, `skills/api-lookup`, `skills/model-library-lookup`, `agents/metamodel-navigator.md` and `tools/metamodel-gen/README.md`.
-- [ ] Group them into roughly ten methods (section 1.7).
-- [ ] Add spec text access, search/addressing, grounding metadata and change detection.
-- [ ] Golden tests: on a fixture release, C# output equals jq output (jq in CI only).
-- [ ] Give `MetamodelJsonContext` the camel-case naming policy (or add a reader that supplies it), so `metamodel.json` and `index.json` read back through it; today only the generator's own options carry it, and a read through `MetamodelJsonContext.Default` binds nothing.
+- [x] Collect every jq example from `skills/metamodel-lookup`, `skills/sysml-validation`, `skills/spec-citation`, `skills/api-lookup`, `skills/model-library-lookup`, `agents/metamodel-navigator.md` and `tools/metamodel-gen/README.md` (24 queries).
+- [x] Group them into roughly ten methods (section 1.7): `IKnowledgeQuery` for a release, `IApiQuery` for an API version, in `Hypha.Knowledge.Query`.
+- [x] Grounding metadata (tier, release, source file) on every result, and change detection: each document is read again when its file changes, and the manifests are read on each access.
+- [x] Golden tests: on a fixture release, C# output equals jq output (`KnowledgeQueryJqTests`; required in CI through `HYPHA_REQUIRE_JQ`, skipped locally without jq).
+- [x] Give `MetamodelJsonContext` the camel-case naming policy, so `metamodel.json` and `index.json` read back through it.
+- [ ] Add spec text access, and search / `hypha://` addressing.
+- [ ] Report which artifacts each installed release has generated in the release inventory (section 1.7, item 2).
 
 ### Step 3: Prepare the write path and the CLI
 

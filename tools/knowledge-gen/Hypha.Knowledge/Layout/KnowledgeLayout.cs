@@ -232,6 +232,13 @@ namespace Hypha.Knowledge.Layout
         public FileInfo MetamodelIndex(string tag) =>
             new(Path.Combine(this.Metamodel(tag).FullName, "index.json"));
 
+        /// <summary>Resolves <c>knowledge/&lt;tag&gt;/metamodel/metamodel.json</c> under <see cref="OutputRoot"/>.</summary>
+        /// <param name="tag">The release tag.</param>
+        /// <returns>The release's metamodel graph, whether or not it exists.</returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        public FileInfo MetamodelGraph(string tag) =>
+            new(Path.Combine(this.Metamodel(tag).FullName, "metamodel.json"));
+
         /// <summary>Resolves <c>knowledge/&lt;tag&gt;/textual-notation</c> under <see cref="OutputRoot"/>.</summary>
         /// <param name="tag">The release tag.</param>
         /// <returns>The release's textual notation folder, whether or not it exists.</returns>

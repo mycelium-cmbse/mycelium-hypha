@@ -102,6 +102,9 @@ namespace Hypha.Knowledge.Layout
         /// <summary><c>knowledge/&lt;tag&gt;/metamodel/index.json</c>.</summary>
         FileInfo MetamodelIndex(string tag);
 
+        /// <summary><c>knowledge/&lt;tag&gt;/metamodel/metamodel.json</c>, the metamodel as one graph.</summary>
+        FileInfo MetamodelGraph(string tag);
+
         /// <summary><c>knowledge/&lt;tag&gt;/textual-notation</c>.</summary>
         DirectoryInfo TextualNotation(string tag);
 

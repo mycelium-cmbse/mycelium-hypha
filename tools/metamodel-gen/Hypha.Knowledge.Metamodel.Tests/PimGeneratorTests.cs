@@ -21,6 +21,9 @@ namespace Hypha.Knowledge.Metamodel.Tests
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Api.CrossReferences;
     using Hypha.Knowledge.Generation;
+    using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Query;
+    using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.Metamodel.Generation;
 
     using Microsoft.Extensions.DependencyInjection;
@@ -646,6 +649,53 @@ namespace Hypha.Knowledge.Metamodel.Tests
                 // The name is kept, but it must not be a link to a page that does not exist.
                 Assert.That(this.Read("elements/Commit.md"), Does.Not.Contain("(Element.md)"));
                 Assert.That(this.Read("elements/Data.md"), Does.Not.Contain("(Element.md)"));
+            });
+        }
+
+        [Test]
+        public async Task The_graph_reads_back_through_the_metamodel_contract()
+        {
+            // The query API reads the PIM as the same document type the language metamodel is written in,
+            // including the interfaces and data types only the PIM has.
+            await this.generator.GenerateAsync(Tag);
+
+            var pim = JsonSerializer.Deserialize(
+                File.ReadAllText(this.layout.PimGraph(Tag).FullName), MetamodelJsonContext.Default.MetamodelDocument)!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(pim.Classes.Select(@class => @class.Name), Is.EquivalentTo(new[] { "Commit", "Project", "Record" }));
+                Assert.That(pim.Interfaces!.Select(type => type.Name), Is.EquivalentTo(new[] { "Data", "Query" }));
+                Assert.That(pim.DataTypes!.Select(type => type.Name), Is.EquivalentTo(new[] { "Timestamp", "UUID" }));
+                Assert.That(pim.Classes.Single(@class => @class.Name == "Project").OwnedAttributes, Is.Not.Empty);
+            });
+        }
+
+        [Test]
+        public async Task The_query_api_answers_from_the_generated_pim()
+        {
+            await this.generator.GenerateAsync(Tag);
+
+            ApiVersionManifestFile.Write(
+                ApiVersionManifest.Build(
+                    Tag,
+                    [
+                        new InstalledApiVersion(
+                            Tag,
+                            new UpstreamReference(ApiUpstream.ServicesRepository, "abc"),
+                            new UpstreamReference(Releases.Upstream.ReleaseRepository, "def"),
+                            new UpstreamReference(Releases.Upstream.PilotRepository, "ghi"),
+                            ApiUpstream.PimDocument),
+                    ]),
+                this.layout.VersionManifest.FullName);
+
+            var project = new ApiQuery(this.layout, new KnowledgeLayout(this.workspace)).PimClass("Project");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(project.Found, Is.True);
+                Assert.That(project.Value!.OwnedAttributes.Select(attribute => attribute.Name), Does.Contain("commit"));
+                Assert.That(project.Grounding.Source, Is.EqualTo($"knowledge/api/{Tag}/pim/metamodel.json"));
             });
         }
 

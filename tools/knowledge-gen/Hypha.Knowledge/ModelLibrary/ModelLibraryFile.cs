@@ -10,10 +10,12 @@
 namespace Hypha.Knowledge.ModelLibrary
 {
     using System;
+    using System.IO;
+    using System.Text;
     using System.Text.Encodings.Web;
     using System.Text.Json;
 
-    /// <summary>Renders <c>knowledge/&lt;tag&gt;/model-library/index.json</c>.</summary>
+    /// <summary>Renders and reads <c>knowledge/&lt;tag&gt;/model-library/index.json</c>.</summary>
     public static class ModelLibraryFile
     {
         /// <summary>
@@ -39,6 +41,19 @@ namespace Hypha.Knowledge.ModelLibrary
             return JsonSerializer.Serialize(document, Contract.ModelLibraryDocument)
                 .Replace("\r\n", "\n", StringComparison.Ordinal)
                 + "\n";
+        }
+
+        /// <summary>Reads a generated index, or returns <c>null</c> when there is none.</summary>
+        /// <param name="path">The index file.</param>
+        /// <returns>The document, or <c>null</c> when the file does not exist.</returns>
+        /// <exception cref="JsonException">The file is not a model-library index.</exception>
+        public static ModelLibraryDocument? ReadIfPresent(string path)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+            return File.Exists(path)
+                ? JsonSerializer.Deserialize(File.ReadAllText(path, Encoding.UTF8), Contract.ModelLibraryDocument)
+                : null;
         }
     }
 }
