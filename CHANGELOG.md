@@ -16,7 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     subclasses (concrete or not), metaclasses with a feature typed by a type, a metaclass's full
     feature set with where each inherited feature comes from, redefinitions, an index entry, an
     element's cross-references, which elements' syntax fills in a feature, and a model-library
-    declaration.
+    declaration. For validating and citing, also: a metaclass's ancestors, whether one metaclass
+    specializes another and through which supertypes, the OCL constraints and the operations that
+    apply to a metaclass (its own and inherited, each naming where it is declared), an
+    enumeration's literals, subsettings, the elements a grammar production builds, and the
+    elements a specification clause treats (optionally with its subclauses).
   - `IApiQuery`, for a Systems Modeling API version: a PIM class, and the cross-references of a
     type or a service operation.
   - Every result carries its grounding: the tier (`NORMATIVE`, `MODEL` or `DERIVED`), the release

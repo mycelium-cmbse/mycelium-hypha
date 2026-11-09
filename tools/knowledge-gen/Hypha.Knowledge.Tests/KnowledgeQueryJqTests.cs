@@ -178,6 +178,165 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Ancestors_match()
+        {
+            var result = this.fixture.Query.Ancestors("PartUsage");
+
+            Assert.That(
+                result.Value,
+                Is.EqualTo(Jq.Lines(
+                    ".classes[] | select(.name==\"PartUsage\") | .allAncestors[]", this.Graph()).Sorted()).And.Not.Empty);
+        }
+
+        [TestCase("PartUsage", "Feature")]
+        [TestCase("PartUsage", "Element")]
+        [TestCase("PartUsage", "PartDefinition")]
+        [TestCase("Feature", "PartUsage")]
+        public void Whether_one_metaclass_specializes_another_matches(string specific, string general)
+        {
+            var answer = this.fixture.Query.Specializes(specific, general).Value!;
+            var expected = Jq.Lines(
+                $".classes[] | select(.name==\"{specific}\") | .allAncestors | index(\"{general}\") != null", this.Graph());
+
+            Assert.That(new[] { answer.Specializes ? "true" : "false" }, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void A_specialization_chain_follows_direct_generalizations()
+        {
+            var path = this.fixture.Query.Specializes("PartUsage", "Element").Value!.Path;
+            var extends = Jq.Lines(
+                    ".classes[] | \"\\(.name) \\(.extends | join(\",\"))\"", this.Graph())
+                .Select(line => line.Split(' '))
+                .ToDictionary(parts => parts[0], parts => parts.Length > 1 ? parts[1].Split(',') : []);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(path[0], Is.EqualTo("PartUsage"));
+                Assert.That(path[^1], Is.EqualTo("Element"));
+
+                foreach (var (from, to) in path.Zip(path.Skip(1)))
+                {
+                    Assert.That(extends[from], Does.Contain(to), $"{from} does not directly specialize {to}");
+                }
+            });
+        }
+
+        [Test]
+        public void Own_constraints_match_field_by_field()
+        {
+            var constraints = this.fixture.Query.Constraints("PartUsage", includeInherited: false).Value!;
+            var expected = constraints.Select(constraint => JsonSerializer.SerializeToNode(constraint.Member, Metamodel)!).ToList();
+
+            var actual = Jq.Lines(
+                    ".classes[] | select(.name==\"PartUsage\") | .constraints[] | tojson", this.Graph())
+                .Select(line => JsonNode.Parse(line)!)
+                .ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual, Has.Count.EqualTo(expected.Count).And.Not.Empty);
+                Assert.That(expected.Zip(actual).All(pair => JsonNode.DeepEquals(pair.First, pair.Second)), Is.True);
+                Assert.That(constraints.Select(constraint => constraint.DeclaredIn), Has.All.EqualTo("PartUsage"));
+            });
+        }
+
+        [Test]
+        public void Inherited_constraints_match()
+        {
+            var constraints = this.fixture.Query.Constraints("PartUsage").Value!;
+
+            Assert.That(
+                constraints.Select(constraint => $"{constraint.DeclaredIn} {constraint.Member.Name}"),
+                Is.EqualTo(Jq.Lines(Declared("PartUsage", "constraints"), this.Graph())).And.Not.Empty);
+        }
+
+        [Test]
+        public void Inherited_operations_match()
+        {
+            var operations = this.fixture.Query.Operations("PartUsage").Value!;
+
+            Assert.That(
+                operations.Select(operation => $"{operation.DeclaredIn} {operation.Member.Name}"),
+                Is.EqualTo(Jq.Lines(Declared("PartUsage", "ownedOperations"), this.Graph())).And.Not.Empty);
+        }
+
+        [Test]
+        public void Own_operations_match_field_by_field()
+        {
+            var operations = this.fixture.Query.Operations("ActionUsage", includeInherited: false).Value!;
+            var expected = operations.Select(operation => JsonSerializer.SerializeToNode(operation.Member, Metamodel)!).ToList();
+
+            var actual = Jq.Lines(
+                    ".classes[] | select(.name==\"ActionUsage\") | .ownedOperations[] | tojson", this.Graph())
+                .Select(line => JsonNode.Parse(line)!)
+                .ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual, Has.Count.EqualTo(expected.Count).And.Not.Empty);
+                Assert.That(expected.Zip(actual).All(pair => JsonNode.DeepEquals(pair.First, pair.Second)), Is.True);
+            });
+        }
+
+        [Test]
+        public void Enumeration_literals_match()
+        {
+            var result = this.fixture.Query.Literals("VisibilityKind");
+
+            Assert.That(
+                result.Value!.Select(literal => literal.Name),
+                Is.EqualTo(Jq.Lines(
+                    ".enumerations[] | select(.name==\"VisibilityKind\") | .literals[].name", this.Graph())).And.Not.Empty);
+        }
+
+        [Test]
+        public void Subsetting_features_match()
+        {
+            var result = this.fixture.Query.Subsettings("usage");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.Value!.Select(subsetting => $"{subsetting.Class}.{subsetting.Feature}"),
+                    Is.EqualTo(Jq.Lines(
+                        ".classes[] | . as $c | .ownedAttributes[]? | select(.subsets | index(\"usage\")) | \"\\($c.name).\\(.name)\"",
+                        this.Graph()).Sorted()).And.Not.Empty);
+                Assert.That(result.Value!.Select(subsetting => subsetting.Subsets), Has.All.EqualTo("usage"));
+            });
+        }
+
+        [Test]
+        public void The_elements_a_production_builds_match()
+        {
+            var result = this.fixture.Query.BuiltBy("PartUsage");
+
+            Assert.That(
+                result.Value!.Select(use => $"{use.Element} {use.Edge.Grammar}"),
+                Is.EqualTo(Jq.Lines(
+                    ".entries | to_entries[] | . as $e | $e.value.grammar[] | select(.production==\"PartUsage\") | \"\\($e.key) \\(.grammar)\"",
+                    this.CrossReferences()).Sorted()).And.Not.Empty);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void The_elements_a_clause_treats_match(bool includeSubclauses)
+        {
+            var clause = includeSubclauses ? "8.3" : "7.4.2";
+            var match = includeSubclauses
+                ? "(.clause==\"8.3\" or (.clause | startswith(\"8.3.\")))"
+                : ".clause==\"7.4.2\"";
+
+            var result = this.fixture.Query.ElementsInClause("kerml", clause, includeSubclauses);
+
+            Assert.That(
+                result.Value!.Select(use => $"{use.Element} {use.Edge.Clause}"),
+                Is.EqualTo(Jq.Lines(
+                    $".entries | to_entries[] | . as $e | $e.value.clauses[] | select(.document==\"kerml\" and {match}) | \"\\($e.key) \\(.clause)\"",
+                    this.CrossReferences()).Sorted()).And.Not.Empty);
+        }
+
+        [Test]
         public void An_index_entry_matches()
         {
             var result = this.fixture.Query.Element("PartUsage");
@@ -327,6 +486,12 @@ namespace Hypha.Knowledge.Tests
 
             Assert.That(JsonNode.DeepEquals(actual, expected), Is.True, $"query API: {actual}\njq: {expected}");
         }
+
+        // The members a metaclass declares and inherits, its own first, then its ancestors' in name order.
+        private static string Declared(string className, string members) =>
+            "(.classes | map({key: .name, value: .}) | from_entries) as $c"
+            + $" | $c[\"{className}\"] | ([.name] + (.allAncestors | sort))[] as $n"
+            + $" | $c[$n].{members}[]? | \"\\($n) \\(.name)\"";
 
         private System.IO.FileInfo Graph() => this.fixture.Layout.MetamodelGraph(QueryFixture.Tag);
 

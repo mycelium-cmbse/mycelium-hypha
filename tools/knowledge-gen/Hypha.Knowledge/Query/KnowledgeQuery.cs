@@ -197,6 +197,153 @@ namespace Hypha.Knowledge.Query
             return new(redefinitions, grounding);
         }
 
+        /// <summary>The metaclasses a metaclass specializes, directly or not.</summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The names, sorted, grounded as <see cref="Provenance.Derived"/> since they come from the ancestor
+        /// closure; <c>null</c> when <paramref name="className"/> is not a metaclass of the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<string>> Ancestors(string className, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+
+            var (graph, grounding) = this.Graph(tag, Provenance.Derived);
+            var node = ClassNamed(graph, className);
+
+            return new(node?.AllAncestors.Order(StringComparer.Ordinal).ToList(), grounding);
+        }
+
+        /// <summary>Whether one metaclass specializes another, and through which supertypes.</summary>
+        /// <param name="specific">The metaclass asked about.</param>
+        /// <param name="general">The metaclass it may specialize.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The answer with a shortest chain of direct generalizations, grounded as
+        /// <see cref="Provenance.Derived"/>; <c>null</c> when either name is not a metaclass of the
+        /// release. A metaclass specializes itself, with a chain of one.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="specific"/> or <paramref name="general"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<Specialization> Specializes(string specific, string general, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(specific);
+            ArgumentException.ThrowIfNullOrWhiteSpace(general);
+
+            var (graph, grounding) = this.Graph(tag, Provenance.Derived);
+            var classes = graph.Classes.ToDictionary(node => node.Name, StringComparer.Ordinal);
+
+            if (!classes.ContainsKey(specific) || !classes.ContainsKey(general))
+            {
+                return new(null, grounding);
+            }
+
+            return new(new Specialization(specific, general, ShortestPath(classes, specific, general)), grounding);
+        }
+
+        /// <summary>The OCL constraints that apply to a metaclass.</summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="includeInherited">Include the constraints its ancestors declare.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The constraints, the metaclass's own first and then its ancestors' in name order, each naming
+        /// the metaclass that declares it. Grounded as <see cref="Provenance.Model"/> for the metaclass's
+        /// own only, and as <see cref="Provenance.Derived"/> with the inherited ones, since those come
+        /// from the ancestor closure. <c>null</c> when <paramref name="className"/> is not a metaclass of
+        /// the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<DeclaredMember<ConstraintNode>>> Constraints(
+            string className, bool includeInherited = true, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+
+            return this.Declared(className, includeInherited, tag, node => node.Constraints);
+        }
+
+        /// <summary>The operations of a metaclass, with their signatures and OCL bodies.</summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="includeInherited">Include the operations its ancestors declare.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The operations, the metaclass's own first and then its ancestors' in name order, each naming
+        /// the metaclass that declares it. Grounded as <see cref="Provenance.Model"/> for the metaclass's
+        /// own only, and as <see cref="Provenance.Derived"/> with the inherited ones. <c>null</c> when
+        /// <paramref name="className"/> is not a metaclass of the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<DeclaredMember<OperationNode>>> Operations(
+            string className, bool includeInherited = true, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+
+            return this.Declared(className, includeInherited, tag, node => node.OwnedOperations);
+        }
+
+        /// <summary>The literals of an enumeration, in the order the metamodel declares them.</summary>
+        /// <param name="enumeration">The enumeration, such as <c>VisibilityKind</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The literals, grounded as <see cref="Provenance.Model"/>; <c>null</c> when the release has no
+        /// such enumeration.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="enumeration"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<EnumerationLiteralNode>> Literals(string enumeration, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(enumeration);
+
+            var (graph, grounding) = this.Graph(tag, Provenance.Model);
+            var node = graph.Enumerations.FirstOrDefault(candidate =>
+                string.Equals(candidate.Name, enumeration, StringComparison.Ordinal));
+
+            return new(node?.Literals, grounding);
+        }
+
+        /// <summary>The owned features that subset a feature of the given name.</summary>
+        /// <param name="feature">The subsetted feature's name.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The subsettings, sorted by metaclass and then feature, grounded as <see cref="Provenance.Model"/>;
+        /// empty when nothing subsets a feature of that name.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="feature"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<Subsetting>> Subsettings(string feature, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(feature);
+
+            var (graph, grounding) = this.Graph(tag, Provenance.Model);
+
+            IReadOnlyList<Subsetting> subsettings = graph.Classes
+                .SelectMany(node => node.OwnedAttributes
+                    .Where(attribute => attribute.Subsets.Contains(feature, StringComparer.Ordinal))
+                    .Select(attribute => new Subsetting(node.Name, attribute.Name, feature)))
+                .OrderBy(subsetting => subsetting.Class, StringComparer.Ordinal)
+                .ThenBy(subsetting => subsetting.Feature, StringComparer.Ordinal)
+                .ToList();
+
+            return new(subsettings, grounding);
+        }
+
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>
         /// <param name="name">The element's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
@@ -275,6 +422,73 @@ namespace Hypha.Knowledge.Query
             return new(assignments, grounding);
         }
 
+        /// <summary>The elements a grammar production builds.</summary>
+        /// <param name="production">The production, such as <c>PartUsage</c>.</param>
+        /// <param name="grammar">Only this grammar (<c>kerml</c>, <c>sysml</c>), or <c>null</c> for any.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The elements and the links, sorted by element and then grammar, grounded as
+        /// <see cref="Provenance.Derived"/>; empty when no element is built by that production.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="production"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<ProductionUse>> BuiltBy(string production, string? grammar = null, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(production);
+
+            var (document, grounding) = this.CrossReferences(tag);
+
+            IReadOnlyList<ProductionUse> uses = document.Entries
+                .SelectMany(entry => entry.Value.Grammar
+                    .Where(edge => string.Equals(edge.Production, production, StringComparison.Ordinal))
+                    .Where(edge => grammar is null || string.Equals(edge.Grammar, grammar, StringComparison.Ordinal))
+                    .Select(edge => new ProductionUse(entry.Key, edge)))
+                .OrderBy(use => use.Element, StringComparer.Ordinal)
+                .ThenBy(use => use.Edge.Grammar, StringComparer.Ordinal)
+                .ToList();
+
+            return new(uses, grounding);
+        }
+
+        /// <summary>The elements a specification clause treats.</summary>
+        /// <param name="document">The specification, as the cross-references key it (<c>kerml</c>, <c>sysml2</c>).</param>
+        /// <param name="clause">The clause number, such as <c>8.3.6</c>.</param>
+        /// <param name="includeSubclauses">Include the clauses below it, such as <c>8.3.6.3</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The elements and the links, sorted by element and then clause, grounded as
+        /// <see cref="Provenance.Derived"/>; each link keeps its own provenance and method. Empty when no
+        /// element is linked to the clause.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="document"/> or <paramref name="clause"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<ClauseUse>> ElementsInClause(
+            string document, string clause, bool includeSubclauses = false, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(document);
+            ArgumentException.ThrowIfNullOrWhiteSpace(clause);
+
+            var (crossReferences, grounding) = this.CrossReferences(tag);
+
+            IReadOnlyList<ClauseUse> uses = crossReferences.Entries
+                .SelectMany(entry => entry.Value.Clauses
+                    .Where(edge => string.Equals(edge.Document, document, StringComparison.Ordinal))
+                    .Where(edge => string.Equals(edge.Clause, clause, StringComparison.Ordinal)
+                                   || (includeSubclauses && edge.Clause.StartsWith(clause + ".", StringComparison.Ordinal)))
+                    .Select(edge => new ClauseUse(entry.Key, edge)))
+                .OrderBy(use => use.Element, StringComparer.Ordinal)
+                .ThenBy(use => use.Edge.Clause, StringComparer.Ordinal)
+                .ToList();
+
+            return new(uses, grounding);
+        }
+
         /// <summary>A standard-library declaration by qualified name: its kind, page and source file.</summary>
         /// <param name="qualifiedName">The qualified name, such as <c>ISQBase::mass</c>.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
@@ -301,6 +515,95 @@ namespace Hypha.Knowledge.Query
 
             return new(
                 index.Declarations.GetValueOrDefault(qualifiedName), this.Ground(Provenance.Derived, release, file));
+        }
+
+        /// <summary>The metaclass of a given name, or <c>null</c> when the graph has none.</summary>
+        /// <param name="graph">The metamodel graph.</param>
+        /// <param name="name">The metaclass name.</param>
+        /// <returns>The metaclass, or <c>null</c>.</returns>
+        private static ClassNode? ClassNamed(MetamodelDocument graph, string name) =>
+            graph.Classes.FirstOrDefault(node => string.Equals(node.Name, name, StringComparison.Ordinal));
+
+        /// <summary>A shortest chain of direct generalizations from one metaclass to another.</summary>
+        /// <param name="classes">The metaclasses, by name.</param>
+        /// <param name="specific">Where the chain starts.</param>
+        /// <param name="general">Where the chain ends.</param>
+        /// <returns>The chain, both ends included; empty when there is none.</returns>
+        private static IReadOnlyList<string> ShortestPath(
+            IReadOnlyDictionary<string, ClassNode> classes, string specific, string general)
+        {
+            // Breadth first over the direct supertypes, each visited in name order, so the chain found
+            // is a shortest one and the same one on every run.
+            var previous = new Dictionary<string, string?>(StringComparer.Ordinal) { [specific] = null };
+            var queue = new Queue<string>([specific]);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+
+                if (string.Equals(current, general, StringComparison.Ordinal))
+                {
+                    var path = new List<string>();
+
+                    for (var step = (string?)current; step is not null; step = previous[step])
+                    {
+                        path.Add(step);
+                    }
+
+                    path.Reverse();
+
+                    return path;
+                }
+
+                var supertypes = classes.TryGetValue(current, out var node) ? node.Extends : [];
+
+                foreach (var supertype in supertypes.Order(StringComparer.Ordinal))
+                {
+                    if (previous.TryAdd(supertype, current))
+                    {
+                        queue.Enqueue(supertype);
+                    }
+                }
+            }
+
+            return [];
+        }
+
+        /// <summary>The members of one kind a metaclass declares, and optionally those its ancestors declare.</summary>
+        /// <typeparam name="T">The member's type.</typeparam>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="includeInherited">Include the members its ancestors declare.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <param name="members">Selects the members from a metaclass.</param>
+        /// <returns>
+        /// The members, the metaclass's own first, then its ancestors' in name order; <c>null</c> when
+        /// <paramref name="className"/> is not a metaclass of the release.
+        /// </returns>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        private QueryResult<IReadOnlyList<DeclaredMember<T>>> Declared<T>(
+            string className, bool includeInherited, string? tag, Func<ClassNode, IReadOnlyList<T>> members)
+        {
+            var (graph, grounding) = this.Graph(tag, includeInherited ? Provenance.Derived : Provenance.Model);
+            var node = ClassNamed(graph, className);
+
+            if (node is null)
+            {
+                return new(null, grounding);
+            }
+
+            var classes = graph.Classes.ToDictionary(candidate => candidate.Name, StringComparer.Ordinal);
+            IEnumerable<string> declaring = includeInherited
+                ? new[] { node.Name }.Concat(node.AllAncestors.Order(StringComparer.Ordinal))
+                : [node.Name];
+
+            IReadOnlyList<DeclaredMember<T>> declared = declaring
+                .Where(classes.ContainsKey)
+                .SelectMany(name => members(classes[name]).Select(member => new DeclaredMember<T>(name, member)))
+                .ToList();
+
+            return new(declared, grounding);
         }
 
         /// <summary>Reads a release's <c>metamodel.json</c>.</summary>

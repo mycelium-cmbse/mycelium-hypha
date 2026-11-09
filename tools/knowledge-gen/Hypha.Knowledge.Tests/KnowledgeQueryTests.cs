@@ -69,6 +69,13 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(this.fixture.Query.Subclasses("NoSuchClass").Found, Is.False);
                 Assert.That(this.fixture.Query.Features("NoSuchClass").Found, Is.False);
                 Assert.That(this.fixture.Query.Element("NoSuchClass").Found, Is.False);
+                Assert.That(this.fixture.Query.Ancestors("NoSuchClass").Found, Is.False);
+                Assert.That(this.fixture.Query.Specializes("NoSuchClass", "Element").Found, Is.False);
+                Assert.That(this.fixture.Query.Specializes("PartUsage", "NoSuchClass").Found, Is.False);
+                Assert.That(this.fixture.Query.Constraints("NoSuchClass").Found, Is.False);
+                Assert.That(this.fixture.Query.Operations("NoSuchClass").Found, Is.False);
+                Assert.That(this.fixture.Query.Literals("NoSuchKind").Found, Is.False);
+                Assert.That(this.fixture.Query.Literals("PartUsage").Found, Is.False, "a metaclass is not an enumeration");
                 Assert.That(this.fixture.Query.CrossReference("NoSuchClass").Found, Is.False);
                 Assert.That(this.fixture.Query.Declaration("NoSuch::name").Found, Is.False);
                 Assert.That(this.fixture.Api.PimClass("NoSuchClass").Found, Is.False);
@@ -86,6 +93,12 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(this.fixture.Query.ClassesWithFeatureTyped("NoSuchType").Value, Is.Empty);
                 Assert.That(this.fixture.Query.Redefinitions("noSuchFeature").Value, Is.Empty);
                 Assert.That(this.fixture.Query.FeatureAssignments(feature: "noSuchFeature").Value, Is.Empty);
+                Assert.That(this.fixture.Query.Subsettings("noSuchFeature").Value, Is.Empty);
+                Assert.That(this.fixture.Query.BuiltBy("NoSuchProduction").Value, Is.Empty);
+                Assert.That(this.fixture.Query.BuiltBy("PartUsage", grammar: "kerml").Value, Is.Empty);
+                Assert.That(this.fixture.Query.ElementsInClause("kerml", "99").Value, Is.Empty);
+                Assert.That(this.fixture.Query.Specializes("PartUsage", "PartDefinition").Value!.Path, Is.Empty);
+                Assert.That(this.fixture.Query.Ancestors("Element").Value, Is.Empty);
             });
         }
 
@@ -101,6 +114,45 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(all, Has.Count.GreaterThan(concrete.Count));
                 Assert.That(all, Does.Not.Contain("Usage"), "a metaclass is not its own subclass");
                 Assert.That(all, Is.Ordered.Using((IComparer<string>)StringComparer.Ordinal));
+            });
+        }
+
+        [Test]
+        public void A_metaclass_specializes_itself_with_a_chain_of_one()
+        {
+            var answer = this.fixture.Query.Specializes("PartUsage", "PartUsage").Value!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(answer.Specializes, Is.True);
+                Assert.That(answer.Path, Is.EqualTo(new[] { "PartUsage" }));
+            });
+        }
+
+        [Test]
+        public void A_metaclass_declares_its_own_constraints_before_those_it_inherits()
+        {
+            var all = this.fixture.Query.Constraints("PartUsage").Value!;
+            var own = this.fixture.Query.Constraints("PartUsage", includeInherited: false).Value!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(all.Take(own.Count), Is.EqualTo(own));
+                Assert.That(all.Count, Is.GreaterThan(own.Count), "PartUsage inherits constraints from Usage and Feature");
+                Assert.That(all.Skip(own.Count).Select(constraint => constraint.DeclaredIn), Has.None.EqualTo("PartUsage"));
+            });
+        }
+
+        [Test]
+        public void A_clause_is_not_a_prefix_match()
+        {
+            // 7.4 includes 7.4.2 as a subclause, but 7.4 itself is not 7.4.2, and 7 is not 7.4.
+            Assert.Multiple(() =>
+            {
+                Assert.That(this.fixture.Query.ElementsInClause("kerml", "7.4").Value, Is.Empty);
+                Assert.That(this.fixture.Query.ElementsInClause("kerml", "7.4", includeSubclauses: true).Value, Is.Not.Empty);
+                Assert.That(this.fixture.Query.ElementsInClause("kerml", "7.4.", includeSubclauses: true).Value, Is.Empty);
+                Assert.That(this.fixture.Query.ElementsInClause("sysml2", "7.4.2").Value, Is.Empty, "the document must match too");
             });
         }
 
@@ -140,6 +192,18 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(query.CrossReference("PartUsage").Grounding, Is.EqualTo(Release(Provenance.Derived, crossReferences)));
                 Assert.That(query.FeatureAssignments().Grounding, Is.EqualTo(Release(Provenance.Derived, crossReferences)));
                 Assert.That(query.Declaration("ISQBase::mass").Grounding, Is.EqualTo(Release(Provenance.Derived, library)));
+                Assert.That(query.Ancestors("PartUsage").Grounding, Is.EqualTo(Release(Provenance.Derived, graph)));
+                Assert.That(query.Specializes("PartUsage", "Element").Grounding, Is.EqualTo(Release(Provenance.Derived, graph)));
+                Assert.That(query.Constraints("PartUsage").Grounding, Is.EqualTo(Release(Provenance.Derived, graph)));
+                Assert.That(
+                    query.Constraints("PartUsage", includeInherited: false).Grounding, Is.EqualTo(Release(Provenance.Model, graph)));
+                Assert.That(query.Operations("PartUsage").Grounding, Is.EqualTo(Release(Provenance.Derived, graph)));
+                Assert.That(
+                    query.Operations("PartUsage", includeInherited: false).Grounding, Is.EqualTo(Release(Provenance.Model, graph)));
+                Assert.That(query.Literals("VisibilityKind").Grounding, Is.EqualTo(Release(Provenance.Model, graph)));
+                Assert.That(query.Subsettings("usage").Grounding, Is.EqualTo(Release(Provenance.Model, graph)));
+                Assert.That(query.BuiltBy("PartUsage").Grounding, Is.EqualTo(Release(Provenance.Derived, crossReferences)));
+                Assert.That(query.ElementsInClause("kerml", "7.4.2").Grounding, Is.EqualTo(Release(Provenance.Derived, crossReferences)));
                 Assert.That(api.PimClass("PartUsage").Grounding, Is.EqualTo(Api(Provenance.Model, pim)));
                 Assert.That(api.Type("Commit").Grounding, Is.EqualTo(Api(Provenance.Derived, apiCrossReferences)));
                 Assert.That(
