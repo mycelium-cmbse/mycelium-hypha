@@ -13,6 +13,7 @@ namespace Hypha.Tools.Tests
     using System.Collections.Generic;
     using System.CommandLine;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -43,6 +44,8 @@ namespace Hypha.Tools.Tests
 
         private List<string> order = null!;
 
+        private List<string> dotnetArguments = null!;
+
         private int specExtractExitCode;
 
         private int reblessExitCode;
@@ -56,6 +59,7 @@ namespace Hypha.Tools.Tests
             this.root.Add(new MoveWindowCommand());
 
             this.order = [];
+            this.dotnetArguments = [];
             this.specExtractExitCode = 0;
             this.reblessExitCode = 0;
             this.verifyExitCode = 0;
@@ -108,6 +112,11 @@ namespace Hypha.Tools.Tests
                 .ReturnsAsync((string fileName, string arguments, DirectoryInfo _, IReadOnlyDictionary<string, string>? _,
                     CancellationToken _) =>
                 {
+                    if (fileName == "dotnet")
+                    {
+                        this.dotnetArguments.Add(arguments);
+                    }
+
                     if (arguments.Contains("pytest", StringComparison.Ordinal))
                     {
                         this.order.Add("extract-specifications");
@@ -148,6 +157,30 @@ namespace Hypha.Tools.Tests
                         "fetch:2026-06", "generate:2026-06", "extract-specifications",
                         "rebless-fixtures", "evict:2", "verify",
                     }));
+            });
+        }
+
+        [Test]
+        public async Task The_test_projects_it_runs_exist_in_the_checkout()
+        {
+            // The paths are hard-coded, and the process runner is mocked everywhere else, so a stale
+            // path after a rename would only show when a maintainer runs move-window.
+            await this.Invoke("move-window --tag 2026-06");
+
+            var projects = this.dotnetArguments
+                .Select(arguments => arguments.Split(' ')[1])
+                .ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(projects, Has.Count.EqualTo(2));
+                Assert.That(projects, Has.All.EndsWith(".csproj"));
+
+                foreach (var project in projects)
+                {
+                    Assert.That(
+                        File.Exists(Path.Combine(this.layout.Object.Root.FullName, project)), Is.True, project);
+                }
             });
         }
 

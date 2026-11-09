@@ -32,6 +32,9 @@ namespace Hypha.Knowledge.Api
         /// <summary>UTF-8 without a byte-order mark, the encoding the manifest is written in.</summary>
         private static readonly UTF8Encoding Utf8WithoutBom = new(false);
 
+        /// <summary>The source-generated contract, bound to the options above.</summary>
+        private static readonly ApiVersionManifestJsonContext Contract = new(SerializerOptions);
+
         /// <summary>Renders the manifest deterministically.</summary>
         /// <param name="manifest">The manifest to render.</param>
         /// <returns>The JSON text, with LF endings and a trailing newline.</returns>
@@ -40,7 +43,7 @@ namespace Hypha.Knowledge.Api
         {
             ArgumentNullException.ThrowIfNull(manifest);
 
-            return JsonSerializer.Serialize(manifest, SerializerOptions).Replace("\r\n", "\n") + "\n";
+            return JsonSerializer.Serialize(manifest, Contract.ApiVersionManifest).Replace("\r\n", "\n") + "\n";
         }
 
         /// <summary>Writes the manifest to <paramref name="path"/>, creating its folder.</summary>
@@ -74,7 +77,7 @@ namespace Hypha.Knowledge.Api
                 return null;
             }
 
-            return JsonSerializer.Deserialize<ApiVersionManifest>(File.ReadAllText(path), SerializerOptions)
+            return JsonSerializer.Deserialize(File.ReadAllText(path), Contract.ApiVersionManifest)
                    ?? throw new InvalidOperationException($"not a readable API version manifest: {path}");
         }
     }

@@ -99,7 +99,7 @@ namespace Hypha.Knowledge.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(edge.Provenance, Is.EqualTo(Provenance.Derived));
-                Assert.That(edge.Method, Is.EqualTo(CrossReferenceBuilder.ExactTitleMatch));
+                Assert.That(edge.Method, Is.EqualTo(ClauseEdge.ExactTitleMatch));
             });
         }
 
@@ -150,7 +150,7 @@ namespace Hypha.Knowledge.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(upgraded.Provenance, Is.EqualTo(Provenance.Model));
-                Assert.That(upgraded.Method, Is.EqualTo(CrossReferenceBuilder.GrammarClause));
+                Assert.That(upgraded.Method, Is.EqualTo(ClauseEdge.GrammarClause));
             });
         }
 
@@ -336,7 +336,7 @@ namespace Hypha.Knowledge.Tests
         {
             var carried = new Dictionary<string, IReadOnlyList<ClauseEdge>>(StringComparer.Ordinal)
             {
-                ["Removed"] = [new ClauseEdge("kerml", "9.9", Provenance.Derived, CrossReferenceBuilder.ExactTitleMatch)],
+                ["Removed"] = [new ClauseEdge("kerml", "9.9", Provenance.Derived, ClauseEdge.ExactTitleMatch)],
             };
 
             var document = this.builder.Build(

@@ -39,6 +39,9 @@ namespace Hypha.Knowledge.CrossReferences
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
+        /// <summary>The source-generated contract, bound to the format above.</summary>
+        private static readonly CrossReferenceJsonContext Contract = new(Format);
+
         /// <summary>Renders the document with LF endings, closing with a single newline.</summary>
         /// <remarks>
         /// The normalisation is not decorative: <see cref="JsonSerializer"/> indents with
@@ -49,7 +52,8 @@ namespace Hypha.Knowledge.CrossReferences
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            return JsonSerializer.Serialize(document, Format).Replace("\r\n", "\n", StringComparison.Ordinal)
+            return JsonSerializer.Serialize(document, Contract.CrossReferenceDocument)
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
                 + "\n";
         }
 
@@ -73,8 +77,8 @@ namespace Hypha.Knowledge.CrossReferences
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
             return File.Exists(path)
-                ? JsonSerializer.Deserialize<CrossReferenceDocument>(
-                    File.ReadAllText(path, Encoding.UTF8), Format)
+                ? JsonSerializer.Deserialize(
+                    File.ReadAllText(path, Encoding.UTF8), Contract.CrossReferenceDocument)
                 : null;
         }
 
@@ -101,7 +105,7 @@ namespace Hypha.Knowledge.CrossReferences
             {
                 var titleMatched = entry.Clauses
                     .Where(edge => string.Equals(
-                        edge.Method, CrossReferenceBuilder.ExactTitleMatch, StringComparison.Ordinal))
+                        edge.Method, ClauseEdge.ExactTitleMatch, StringComparison.Ordinal))
                     .ToList();
 
                 if (titleMatched.Count > 0)

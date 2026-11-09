@@ -185,7 +185,7 @@ namespace Hypha.Tools.Commands
                 }
 
                 if (!await Run(MoveWindowStep.ReblessFixtures, () => this.RunDotnetTestAsync(
-                        "tools/metamodel-gen/Hypha.MetamodelGen.Tests/Hypha.MetamodelGen.Tests.csproj",
+                        "tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Hypha.Knowledge.Metamodel.Tests.csproj",
                         "FullyQualifiedName~Bless_expected_files", cancellationToken)))
                 {
                     return 1;

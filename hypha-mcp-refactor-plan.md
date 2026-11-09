@@ -13,7 +13,7 @@ Decision: all knowledge (metamodel, grammar, cross-references, model library, sp
 1. **One binary**: a single `hypha` executable per platform, holding the CLI verbs and the MCP server (`hypha serve`). Writes run in-process; there is no second process to provision or keep in sync.
 2. **One interface for AI clients**: the MCP server. No client talks to the CLI, the files or `jq` directly.
 3. **Two portable layers**: the MCP server holds the capability (tools, resources, prompts); Agent Skills (`SKILL.md`) hold the procedure. Skills call MCP tools only.
-4. **Read and write separated in code**: reads through `Hypha.Knowledge.Query`, writes through `Hypha.Knowledge.Build`. A project boundary, not a process boundary.
+4. **Read and write separated in code**: one `Hypha.Knowledge` library, with reading (layout, inventory, lookup, query API) kept apart from writing (fetch, generation, install / use / remove) by namespace. Reading code never calls the write path. A namespace boundary, not a project or process boundary.
 5. **Safe concurrent writers**: every client starts its own server, so writes to the shared location go through one cross-process `ReleaseOperationLock`, and readers detect changes made by other processes.
 6. **One knowledge location** per user (`HYPHA_HOME`), shared by every client.
 7. **Shared contracts**: generators and readers use the same C# types for every JSON artifact.
@@ -32,17 +32,18 @@ Decision: all knowledge (metamodel, grammar, cross-references, model library, sp
 
 | Component | Kind | Role |
 | --- | --- | --- |
-| `Hypha.Knowledge.Query` | Library | Read side: layout, inventory, typed readers, lookup, query API, search, grounding |
-| `Hypha.Knowledge.Build` | Library | Write side: discovery, fetch, generator orchestration, install / use / remove, `ReleaseOperationLock` |
+| `Hypha.Knowledge` | Library | Reading: layout, inventory, contracts and typed readers, lookup, query API, search, grounding. Writing: discovery, fetch, generator orchestration, install / use / remove, `ReleaseOperationLock` |
 | `Hypha.Knowledge.Metamodel` | Library | XMI → metamodel artifacts (uml4net, Handlebars) |
-| `Hypha.Mcp` | Library | MCP tools, resources, prompts, instructions over `Query` and `Knowledge` |
+| `Hypha.Mcp` | Library | MCP tools, resources, prompts, instructions over `Hypha.Knowledge` |
 | `Hypha.Tools` | Executable `hypha` | Hosts everything: CLI verbs + `hypha serve` |
 | `Hypha.Launcher` | Executable `hypha-launch` (AOT, tiny) | The single entry point for every plugin format and the `.mcpb` bundle: downloads the matching `hypha` once, then runs `hypha serve` (replaces today's hook) |
-| `spec-extract` | Python | Spec PDFs → `spec/` text; run by `Hypha.Knowledge.Build` via uv |
+| `spec-extract` | Python | Spec PDFs → `spec/` text; run by `Hypha.Knowledge` via uv |
 | Agent Skills | Markdown | Grounding discipline, version choice, when to cite vs reason |
 | Client packages | Packaging | Claude plugin, VS Code extension, Cursor config |
 
-Naming: the three knowledge projects share the `Hypha.Knowledge.*` prefix (`Query` reads, `Build` produces and manages, `Metamodel` generates the metamodel). There is no bare `Hypha.Knowledge` project; it is only the namespace root. Today's `Hypha.Knowledge` becomes `Hypha.Knowledge.Build`, and `Hypha.MetamodelGen` becomes `Hypha.Knowledge.Metamodel`.
+Naming: the two knowledge libraries share the `Hypha.Knowledge` namespace root. `Hypha.Knowledge` reads, produces and manages the knowledge; `Hypha.Knowledge.Metamodel` (previously `Hypha.MetamodelGen`) generates the metamodel from XMI.
+
+Why one knowledge library and not a read project plus a write project: a split was built in step 1 and then dropped. Its main benefit, a read side that an AOT host could link without the generators, has no consumer: `hypha` is one non-AOT binary (section 1.2), the launcher references nothing in the repo, and `Hypha.Mcp` and `Hypha.Tools` need both halves anyway. Every write-side component also reads (the installers read `versions.json`, the cross-reference generator reads the index), so the split cost a project boundary to maintain without protecting anything. Read and write stay apart by namespace instead. Revisit only if a read-only consumer appears (see the last note at the end).
 
 Retired: `Hypha.Tools.Hook` (`hypha-hook`), `hooks/native/`, the three agents, the VS Code extension's own `vscode.lm` tools, `jq`.
 
@@ -64,8 +65,7 @@ flowchart TB
     subgraph H["hypha (self-contained, single file)"]
         CLI["CLI verbs<br/>fetch · generate · query · lookup · list · use · remove · move-window"]
         SRV["hypha serve<br/>Hypha.Mcp"]
-        Q["Hypha.Knowledge.Query"]
-        K["Hypha.Knowledge.Build"]
+        K["Hypha.Knowledge"]
         MG["Hypha.Knowledge.Metamodel"]
     end
 
@@ -80,13 +80,11 @@ flowchart TB
     CC & AP & GE -. "load" .-> SK
     SK -. "names tools" .-> SRV
 
-    SRV --> Q
     SRV --> K
-    CLI --> Q
     CLI --> K
-    K --> MG
+    K -- "runs generators" --> MG
     K --> SE
-    Q -- "read" --> HH
+    K -- "read" --> HH
     K -- "fetch" --> UP
     K & MG & SE -- "write (lock)" --> HH
 ```
@@ -95,29 +93,26 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    Query["Hypha.Knowledge.Query"]
-    Know["Hypha.Knowledge.Build"]
+    Know["Hypha.Knowledge"]
     MG["Hypha.Knowledge.Metamodel"]
     Mcp["Hypha.Mcp"]
     Tools["Hypha.Tools<br/>(exe: hypha)"]
     Launch["Hypha.Launcher<br/>(AOT exe)"]
 
-    Know --> Query
-    Know --> MG
-    MG --> Query
-    Mcp --> Query
+    MG --> Know
     Mcp --> Know
     Mcp --> SDK["ModelContextProtocol"]
     Tools --> Mcp
     Tools --> Know
-    Tools --> Query
+    Tools --> MG
     MG --> UML["uml4net"]
 ```
 
 Rules:
 
-- `Hypha.Knowledge.Query` depends on nothing in the repo and makes no network calls. Keep it `IsAotCompatible` so the read side stays portable.
-- `Hypha.Mcp` is a library; the executable that hosts it is `hypha`. CLI verbs and MCP tools call the same `Query` and `Knowledge` methods, so they return identical answers by construction.
+- `Hypha.Knowledge` depends on nothing in the repo, and on neither uml4net nor Handlebars. `Hypha.Knowledge.Metamodel` references it (for `IKnowledgeGenerator`, the layout and the metamodel contracts), never the reverse; `Hypha.Tools` registers the metamodel generators into the same collection at startup.
+- Inside `Hypha.Knowledge`, reading code (layout, inventory, lookup, query API) makes no network calls and never calls the write path.
+- `Hypha.Mcp` is a library; the executable that hosts it is `hypha`. CLI verbs and MCP tools call the same `Hypha.Knowledge` methods, so they return identical answers by construction.
 - `Hypha.Launcher` references nothing else in the repo.
 
 ### 1.6 Runtime flows
@@ -128,7 +123,7 @@ Rules:
 sequenceDiagram
     participant A as AI client
     participant S as hypha serve
-    participant Q as Query
+    participant Q as Knowledge (query API)
     participant H as HYPHA_HOME
     A->>S: tools/call subclasses {of: "Usage", concrete: true}
     S->>Q: Subclasses("Usage", concrete: true, tag: default)
@@ -151,21 +146,21 @@ sequenceDiagram
     K->>H: fetch sources/, generate knowledge/ (spec-extract via uv)
     K-->>S: progress events → MCP progress notifications
     K->>H: update versions.json, release lock
-    S->>S: invalidate Query cache for 2026-05
+    S->>S: invalidate the query cache for 2026-05
     S-->>A: installed, default = 2026-05, artifacts generated
 ```
 
 **Another client changed the knowledge**
 
 1. A second server (e.g. VS Code while Claude Code is open) installs or switches a release.
-2. `Query` notices `versions.json` changed (timestamp check on each request, or a file watcher) and drops its cached inventory and releases.
+2. The query API notices `versions.json` changed (timestamp check on each request, or a file watcher) and drops its cached inventory and releases.
 
 **Session start (replaces the SessionStart hook)**
 
 1. The client starts the server (directly, or through `hypha-launch`). At `initialize` the server sends its `instructions` (grounding rules).
 2. The model calls `release_status` when a skill or the user needs it. If nothing is installed, it offers `install_release`. No hook, no shell.
 
-### 1.7 `Hypha.Knowledge.Query`
+### 1.7 Reading in `Hypha.Knowledge`
 
 Read-only, no network, source-generated JSON, thread-safe. Loads each release lazily once and caches it.
 
@@ -178,11 +173,11 @@ Read-only, no network, source-generated JSON, thread-safe. Loads each release la
 7. **Search and addressing**: name/kind search; build, parse and resolve `hypha://{tag}/{kind}/{name}` only through the index.
 8. **Grounding metadata**: NORMATIVE (spec text), MODEL (metamodel) or DERIVED (closures, cross-references), plus release and source location, on every result.
 
-Stays out: discovery, fetch, generation, every write. Validation reasoning stays in the skill; `Query` supplies the facts.
+Stays out: discovery, fetch, generation, every write. Validation reasoning stays in the skill; the query API supplies the facts.
 
-### 1.8 `Hypha.Knowledge.Build`
+### 1.8 Writing in `Hypha.Knowledge`
 
-The write side, as today, plus:
+As today, plus:
 
 - Installer operations report progress through an `IProgress<T>` that both the CLI (console output) and the MCP server (progress notifications) consume.
 - `ReleaseOperationLock` is a cross-process lock on `HYPHA_HOME`, since several servers and the CLI can run at once.
@@ -244,11 +239,11 @@ Schemas for `metamodel.json`, `cross-references.json`, `model-library` and API c
 
 | Contract | Between | Defined in |
 | --- | --- | --- |
-| Knowledge artifact JSON + schemas | Generators ↔ readers | `Hypha.Knowledge.Query` DTOs + `knowledge/*.schema.json` |
+| Knowledge artifact JSON + schemas | Generators ↔ readers | `Hypha.Knowledge` DTOs and their source-generated contexts + `knowledge/*.schema.json` |
 | MCP tool names, arguments, results | Server ↔ AI clients and skills | `Hypha.Mcp` |
-| `hypha://{tag}/{kind}/{name}` | Resources, `search_spec` | `Hypha.Knowledge.Query` |
-| Grounding tags | Every answer | `Query` result types; rules in `instructions` and skills |
-| CLI `--json` output | `hypha` ↔ scripts and the VS Code extension's commands | `Query` / `Knowledge` result types |
+| `hypha://{tag}/{kind}/{name}` | Resources, `search_spec` | `Hypha.Knowledge` |
+| Grounding tags | Every answer | Query API result types; rules in `instructions` and skills |
+| CLI `--json` output | `hypha` ↔ scripts and the VS Code extension's commands | `Hypha.Knowledge` result types |
 | Launcher → `hypha` version | `hypha-launch` ↔ `hypha` | Same release version |
 | Client manifests | Repo ↔ each client | Generated from one source in CI (section 1.14) |
 
@@ -318,15 +313,14 @@ No client contains its own tools, agents, hooks or `jq` instructions.
 
 Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc `jq`) and the VS Code extension (two TypeScript `vscode.lm` tools shelling out to the CLI) expose Hypha in two separate ways that drift apart. Knowledge lives in the plugin root or in VS Code global storage.
 
-### Step 1: Split `Hypha.Knowledge` into `Query` and `Build`
+### Step 1: Prepare the knowledge libraries
 
-- [ ] Create `Hypha.Knowledge.Query` (`IsAotCompatible=true`, source-generated `JsonSerializerContext`s, no uml4net or network dependencies).
-- [ ] Move in `Layout/`, `Lookup/`, the version-manifest readers (`VersionManifest*`, `InstalledVersion`, `ReleaseTag`) and the readers for cross-references (`KnowledgeReader`, `CrossReferenceFile`), model library and API.
-- [ ] Rename the remaining `Hypha.Knowledge` project to `Hypha.Knowledge.Build`, and `Hypha.MetamodelGen` to `Hypha.Knowledge.Metamodel` (projects, namespaces, test projects, solution folders, CI paths, READMEs, `CLAUDE.md`).
-- [ ] Make `Hypha.Knowledge.Build` and `Hypha.Knowledge.Metamodel` reference `Query`.
-- [ ] Move the DTOs written by `MetamodelJsonGenerator` and the cross-reference generators into it.
-- [ ] Add the missing `knowledge/metamodel.schema.json`.
-- [ ] Keep `dotnet test` green and the working tree clean.
+- [x] Rename `Hypha.MetamodelGen` to `Hypha.Knowledge.Metamodel` (projects, namespaces, test projects, solution, CI paths, READMEs, `CLAUDE.md`).
+- [x] Serialize every knowledge JSON document through a source-generated `JsonSerializerContext`, next to its DTOs in `Hypha.Knowledge`.
+- [x] Move the DTOs written by `MetamodelJsonGenerator` into `Hypha.Knowledge`, so reading `metamodel.json` needs neither the generator nor uml4net.
+- [x] Add the missing `knowledge/metamodel.schema.json`.
+- [x] Keep `dotnet test` green and the working tree clean.
+- Dropped: splitting `Hypha.Knowledge` into `Hypha.Knowledge.Query` and `Hypha.Knowledge.Build`. It was built and reverted; see the naming note in section 1.3.
 
 ### Step 2: Build the query API
 
@@ -334,10 +328,11 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 - [ ] Group them into roughly ten methods (section 1.7).
 - [ ] Add spec text access, search/addressing, grounding metadata and change detection.
 - [ ] Golden tests: on a fixture release, C# output equals jq output (jq in CI only).
+- [ ] Give `MetamodelJsonContext` the camel-case naming policy (or add a reader that supplies it), so `metamodel.json` and `index.json` read back through it; today only the generator's own options carry it, and a read through `MetamodelJsonContext.Default` binds nothing.
 
-### Step 3: Prepare `Hypha.Knowledge.Build` and the CLI
+### Step 3: Prepare the write path and the CLI
 
-- [ ] Rewrite `lookup` and `list` over `Hypha.Knowledge.Query`; add `hypha query …` verbs.
+- [ ] Rewrite `lookup` and `list` over the query API; add `hypha query …` verbs.
 - [ ] Add `IProgress<T>` reporting to install / fetch / generate.
 - [ ] Make `ReleaseOperationLock` cross-process safe; add the concurrency test.
 - [ ] Make `HYPHA_HOME` the default location; keep checkout mode and `--output` for maintainers.
@@ -405,4 +400,4 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 - Retiring the hook removes the Git Bash requirement on Windows.
 - Open risks to settle early: platform dispatch from a single `mcp.json` path, and client network sandboxes. Prototype the launcher in two or three clients before steps 4–5 are finished.
 - Client support was checked in November 2026; formats move fast, so re-check before release.
-- If the single binary turns out too large or too slow to start, revisit: an AOT `hypha serve` for reads only, with writes delegated to the full binary.
+- If the single binary turns out too large or too slow to start, revisit: an AOT `hypha serve` for reads only, with writes delegated to the full binary. That read-only server is also the consumer that would justify splitting the reading code out of `Hypha.Knowledge` into its own AOT-compatible project; the namespace boundary of principle 4 keeps that split mechanical.

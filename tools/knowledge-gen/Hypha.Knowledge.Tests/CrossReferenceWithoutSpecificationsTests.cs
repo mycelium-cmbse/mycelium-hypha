@@ -87,6 +87,8 @@ namespace Hypha.Knowledge.Tests
 
             public FileInfo ModelLibrarySchema => inner.ModelLibrarySchema;
 
+            public FileInfo MetamodelSchema => inner.MetamodelSchema;
+
             public DirectoryInfo ReleaseSources(string tag) => inner.ReleaseSources(tag);
 
             public DirectoryInfo Xmi(string tag) => inner.Xmi(tag);

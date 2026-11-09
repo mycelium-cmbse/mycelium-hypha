@@ -1,0 +1,68 @@
+// ------------------------------------------------------------------------------------------------
+// <copyright file="MetamodelJsonGeneratorTests.cs" company="Starion Group S.A.">
+//
+//   Copyright 2026 Starion Group S.A.
+//   SPDX-License-Identifier: Apache-2.0
+//
+// </copyright>
+// ------------------------------------------------------------------------------------------------
+
+namespace Hypha.Knowledge.Metamodel.Tests
+{
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Hypha.Knowledge.Metamodel.Generators;
+
+    using NUnit.Framework;
+
+    [TestFixture]
+    public class MetamodelJsonGeneratorTests
+    {
+        [Test]
+        public async Task Generates_deterministic_sidecar_files()
+        {
+            var model = TestModel.Model;
+            if (model is null)
+            {
+                Assert.Ignore("No SysML *.uml model found under sources/<tag>/xmi/.");
+            }
+
+            var hash = JsonSidecarTestSupport.ComputeSourceHash();
+
+            var document = MetamodelJsonGenerator.BuildDocument(model!, hash);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(document.Metamodel, Is.EqualTo("SysML"));
+                Assert.That(document.ModelVersionUri, Does.StartWith("https://www.omg.org/spec/SysML"));
+                Assert.That(document.Counts.Classes, Is.GreaterThan(0));
+                Assert.That(document.Classes.Any(@class => @class.Name == "PartUsage"), Is.True);
+                Assert.That(document.Counts.Classes, Is.EqualTo(document.Classes.Count));
+            });
+
+            // Deterministic: the same model serializes byte-for-byte identically.
+            var first = MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildDocument(model!, hash));
+            var second = MetamodelJsonGenerator.Serialize(MetamodelJsonGenerator.BuildDocument(model!, hash));
+            Assert.That(second, Is.EqualTo(first));
+
+            // Produce the sidecar files for the fixture release.
+            foreach (var tag in TestModel.Tags)
+            {
+                var tagModel = TestModel.ModelFor(tag);
+                Assert.That(tagModel, Is.Not.Null, $"No model found for release {tag}.");
+
+                var outputDirectory = TestOutput.Directory(tag);
+                await MetamodelJsonGenerator.GenerateAsync(
+                    tagModel!, outputDirectory, JsonSidecarTestSupport.ComputeSourceHash());
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "metamodel.json")), Is.True);
+                    Assert.That(File.Exists(Path.Combine(outputDirectory.FullName, "index.json")), Is.True);
+                });
+            }
+        }
+    }
+}

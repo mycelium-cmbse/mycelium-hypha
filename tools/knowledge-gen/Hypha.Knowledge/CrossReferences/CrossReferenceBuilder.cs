@@ -24,12 +24,6 @@ namespace Hypha.Knowledge.CrossReferences
     /// </remarks>
     public sealed class CrossReferenceBuilder : ICrossReferenceBuilder
     {
-        /// <summary>A clause found by matching an element name against a clause title. A guess.</summary>
-        public const string ExactTitleMatch = "exact-title-match";
-
-        /// <summary>A clause the grammar's own <c>// Clause</c> comment states. Read, not guessed.</summary>
-        public const string GrammarClause = "grammar-clause";
-
         /// <summary>
         /// Assembles the whole document from <paramref name="inputs"/>: for every metamodel element, its
         /// specification clauses, grammar productions, populated features and worked examples, each edge
@@ -147,7 +141,7 @@ namespace Hypha.Knowledge.CrossReferences
                     if (wanted.Contains(title))
                     {
                         edges[title].Add(
-                            new ClauseEdge(document, clause, Provenance.Derived, ExactTitleMatch));
+                            new ClauseEdge(document, clause, Provenance.Derived, ClauseEdge.ExactTitleMatch));
                     }
                 }
             }
@@ -200,7 +194,7 @@ namespace Hypha.Knowledge.CrossReferences
         /// <summary>Replaces a guessed edge with the stated one, or records it as new.</summary>
         private static void Upgrade(List<ClauseEdge> bucket, string document, string clause)
         {
-            var stated = new ClauseEdge(document, clause, Provenance.Model, GrammarClause);
+            var stated = new ClauseEdge(document, clause, Provenance.Model, ClauseEdge.GrammarClause);
 
             var existing = bucket.FindIndex(edge =>
                 string.Equals(edge.Document, document, StringComparison.Ordinal)
@@ -344,7 +338,7 @@ namespace Hypha.Knowledge.CrossReferences
                 names.Count(name => examples[name].Count > 0),
                 names.Sum(name => clauses[name].Count),
                 names.Sum(name => clauses[name].Count(edge =>
-                    string.Equals(edge.Method, GrammarClause, StringComparison.Ordinal))),
+                    string.Equals(edge.Method, ClauseEdge.GrammarClause, StringComparison.Ordinal))),
                 names.Sum(name => grammar[name].Count),
                 names.Sum(name => features[name].Count),
                 names.Sum(name => examples[name].Count));

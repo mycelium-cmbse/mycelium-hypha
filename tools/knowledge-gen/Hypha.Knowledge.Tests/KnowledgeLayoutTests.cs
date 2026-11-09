@@ -110,6 +110,9 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     this.Relative(this.layout.ModelLibrarySchema),
                     Is.EqualTo("knowledge/model-library.schema.json"));
+                Assert.That(
+                    this.Relative(this.layout.MetamodelSchema),
+                    Is.EqualTo("knowledge/metamodel.schema.json"));
             });
         }
 

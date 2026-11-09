@@ -20,6 +20,15 @@ Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** st
    `sources/`. The pipelines are not shipped with the Claude plugin; the VS Code extension packages
    only the specification extraction project required by the standalone CLI.
 
+The two knowledge libraries share the `Hypha.Knowledge` namespace root. `Hypha.Knowledge`
+(`tools/knowledge-gen`) holds the layout and manifests, the contracts every generated artifact is
+written in, reading and looking names up, and discovery, fetching, generation and install / use /
+remove. `Hypha.Knowledge.Metamodel` (`tools/metamodel-gen`) generates the metamodel from XMI; it
+references `Hypha.Knowledge`, never the reverse, so uml4net and Handlebars stay out of the knowledge
+library. A generator and the code that reads its output use the same C# types, serialized through a
+source-generated `JsonSerializerContext` (one per artifact, next to its types), not a
+reflection-based `JsonSerializer` call.
+
 ## Build & test
 
 **.NET** (`tools/metamodel-gen`, `tools/knowledge-gen` and `tools/hypha-cli`, `net10.0`, NUnit), from
@@ -69,7 +78,7 @@ generator adds its verb.
 `hypha move-window --tag <release>` is the one verb that deliberately crosses the CLI/test split
 above: a maintainer-only, source-checkout-only convenience that drives fetch → generate → the rest of
 this section's steps, then shells out to `dotnet test`/`pytest` as subordinate steps (re-extracting
-specification text, re-blessing the `Hypha.MetamodelGen.Tests` `Expected/` fixtures, then a final
+specification text, re-blessing the `Hypha.Knowledge.Metamodel.Tests` `Expected/` fixtures, then a final
 self-consistency regeneration check) before pruning whichever locally-installed releases fall outside
 `--keep`. Nothing it does is committed automatically, and nothing it prunes was ever committed either
 (see `tools/hypha-cli/README.md`).
@@ -80,7 +89,7 @@ and regenerate it twice into independent scratch folders, comparing the two runs
 against *each other*: proof the generators are deterministic, not that they match a committed
 baseline, since nothing per-release is committed to compare against any more (see "Committed vs
 git-ignored" below). After an intended format change, regenerate and review the diff by hand; the
-one real "matches a known-good baseline" check left is `Hypha.MetamodelGen.Tests`' `Expected/`
+one real "matches a known-good baseline" check left is `Hypha.Knowledge.Metamodel.Tests`' `Expected/`
 golden files, re-blessed with its `[Explicit]` `Bless_expected_files` tests.
 
 - `spec-extract`'s `test_generate.py` writes the git-ignored `knowledge/<tag>/spec/` from
@@ -134,17 +143,17 @@ SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface th
   `knowledge/versions.json`, the manifest recording which releases are installed locally and which one
   is the default. `.gitignore`'s `/sources/*/` and `/knowledge/*/` patterns are root-anchored so they
   only match this per-repository-root layout, not the small, deliberately-committed XMI fixture under
-  `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/` (see below).
+  `tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/` (see below).
 - **Committed, not per release:** `knowledge/README.md`, `knowledge/cross-references.schema.json`,
-  `knowledge/model-library.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
+  `knowledge/model-library.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
   `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT binary the plugin's `SessionStart` hook
   dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section), the only
   compiled binary this repository commits, and deliberately *not* under `bin/`, which `.gitignore`
   otherwise excludes at any depth.
-- **Committed as a test fixture, not a distributed one:** `tools/metamodel-gen/Hypha.MetamodelGen.Tests
+- **Committed as a test fixture, not a distributed one:** `tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests
   /Fixtures/xmi/` holds one real release's XMI (captured from `TestModel.FixtureTag`), so
-  `Hypha.MetamodelGen.Tests` has something real to exercise the generators against without a network
+  `Hypha.Knowledge.Metamodel.Tests` has something real to exercise the generators against without a network
   fetch. It lives under `tools/`, which is never shipped with the plugin (see "What this repo is"
   above), so committing it does not reintroduce a distributed knowledge floor; it only means this one
   fixture release is no longer regression-tested against every other release, which is the accepted
@@ -167,7 +176,7 @@ Anything generated must still be byte-stable: sort collections with `StringCompa
 culture-sensitive formatting. JSON uses `System.Text.Json` with fixed options and `\r\n`→`\n`
 normalization. That property is what `KnowledgeRegenerationTests` checks now (two independent runs
 must match each other byte for byte; see "The CLI generates, the tests verify" above), and it is what
-`Hypha.MetamodelGen.Tests`' `Expected/` golden files check against the committed XMI fixture; neither
+`Hypha.Knowledge.Metamodel.Tests`' `Expected/` golden files check against the committed XMI fixture; neither
 kind of test tolerates non-deterministic output.
 
 ## Knowledge-base shape (what the skills/agents consume)

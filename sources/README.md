@@ -128,5 +128,5 @@ The XMI and textual sources are EPL-2.0; the OMG PDFs are copyrighted. Neither i
 repository (the OMG license forbids redistributing the PDFs; the XMI/textual sources are simply no
 longer part of what ships in git at all; see the repository [NOTICE](../NOTICE) for the full
 attribution and license terms). One release's real XMI is the exception: it is committed as a test
-fixture under `tools/metamodel-gen/Hypha.MetamodelGen.Tests/Fixtures/xmi/`, which never ships with the
+fixture under `tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/xmi/`, which never ships with the
 plugin (see `CLAUDE.md`'s "What this repo is").

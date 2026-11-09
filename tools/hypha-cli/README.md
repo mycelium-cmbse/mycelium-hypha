@@ -164,7 +164,7 @@ carries no credentials: `--token` is for GitHub and is never sent anywhere else.
 
 `hypha move-window --tag <release>` is a maintainer-only convenience for advancing to a newer upstream
 release in a source checkout: fetch → regenerate → re-extract specification text → re-bless
-`Hypha.MetamodelGen.Tests`' `Expected/` golden files against its committed XMI fixture (a fixed
+`Hypha.Knowledge.Metamodel.Tests`' `Expected/` golden files against its committed XMI fixture (a fixed
 regression fixture, unrelated to the release just fetched; see CLAUDE.md's "Committed vs
 git-ignored") → prune whatever falls outside the local `--keep` count → verify the result regenerates
 self-consistently. `--keep` (default 2) is just how many releases stay installed locally; whichever

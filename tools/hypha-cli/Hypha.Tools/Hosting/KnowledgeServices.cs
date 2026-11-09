@@ -16,7 +16,7 @@ namespace Hypha.Tools.Hosting
 
     using Hypha.Knowledge;
     using Hypha.Knowledge.Layout;
-    using Hypha.MetamodelGen;
+    using Hypha.Knowledge.Metamodel;
     using Hypha.Tools.Commands;
 
     using Microsoft.Extensions.DependencyInjection;
@@ -68,7 +68,7 @@ namespace Hypha.Tools.Hosting
                     options.ToolchainCacheRoot = parseResult.GetValue(GlobalOptions.ToolchainCacheRoot);
                     options.Token = token;
                 })
-                .AddHyphaMetamodelGen();
+                .AddHyphaMetamodel();
 
             // With --json, standard output carries the JSON document and nothing else, so every log
             // line goes to standard error instead.
