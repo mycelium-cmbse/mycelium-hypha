@@ -41,12 +41,15 @@ namespace Hypha.Knowledge.Releases
         /// <summary>UTF-8 without a byte-order mark.</summary>
         private static readonly UTF8Encoding Utf8WithoutBom = new(false);
 
+        /// <summary>The source-generated contract, bound to the options above.</summary>
+        private static readonly VersionManifestJsonContext Contract = new(SerializerOptions);
+
         /// <summary>Renders the manifest deterministically.</summary>
         public static string Render(VersionManifest manifest)
         {
             ArgumentNullException.ThrowIfNull(manifest);
 
-            return JsonSerializer.Serialize(manifest, SerializerOptions).Replace("\r\n", "\n") + "\n";
+            return JsonSerializer.Serialize(manifest, Contract.VersionManifest).Replace("\r\n", "\n") + "\n";
         }
 
         /// <summary>Writes the manifest as UTF-8 without a BOM, with LF endings.</summary>
@@ -70,7 +73,7 @@ namespace Hypha.Knowledge.Releases
 
             var content = File.ReadAllText(path);
 
-            return JsonSerializer.Deserialize<VersionManifest>(content, SerializerOptions)
+            return JsonSerializer.Deserialize(content, Contract.VersionManifest)
                    ?? throw new InvalidOperationException($"not a readable version manifest: {path}");
         }
 

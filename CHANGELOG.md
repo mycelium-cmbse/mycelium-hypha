@@ -28,6 +28,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
 
 ### Changed
+- **`Hypha.MetamodelGen` is now `Hypha.Knowledge.Metamodel`** (`fixes #193`), the first step of the
+  MCP refactor. Its test project is `Hypha.Knowledge.Metamodel.Tests`, and `AddHyphaMetamodelGen` is
+  now `AddHyphaMetamodel`. The `tools/metamodel-gen/` folder keeps its name, and `Hypha.Knowledge`
+  stays one library: reading and writing the knowledge are kept apart by namespace, not by project.
+  - Every generated JSON document (the version manifests, cross-references, model library, the
+    Systems Modeling API documents, `metamodel.json` and `index.json`) is written through a
+    source-generated `JsonSerializerContext` beside its types, instead of reflection, and the
+    documents the tools read back as typed objects are read through it too. `metamodel.json` and
+    `index.json` are not read back as typed objects yet; that comes with the query API (#194).
+  - The types `metamodel.json` and `index.json` are written in moved from the metamodel generator
+    into `Hypha.Knowledge` (namespace `Hypha.Knowledge.Metamodel`), so code that reads them needs
+    neither the generator nor uml4net.
+  - `knowledge/metamodel.schema.json` describes `metamodel.json`, which until now was the one
+    generated JSON document without a committed schema. `MetamodelSchemaTests` checks the produced
+    document against it.
+  - The file formats are unchanged: every generated document is written byte for byte as before.
 - **`Hypha.Tools` on nuget.org has a proper package page** (`fixes #160`): a package readme, the
   Mycelium icon, project and repository URLs, copyright, release notes that link to the
   `tools-v<version>` GitHub release, and a description and tags that cover the Systems Modeling API,

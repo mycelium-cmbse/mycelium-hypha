@@ -4,7 +4,7 @@
 # even though the content is identical. Pin the generated artifacts to LF so Git and the
 # generator agree and the spurious diffs stop.
 knowledge/** text eol=lf
-tools/metamodel-gen/Hypha.MetamodelGen.Tests/Expected/** text eol=lf
+tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Expected/** text eol=lf
 
 # Handlebars templates are read verbatim and their newlines flow into generated output;
 # keep them LF so generation is deterministic regardless of platform checkout settings.

@@ -19,7 +19,7 @@ namespace Hypha.Tools.Tests
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
-    using Hypha.MetamodelGen;
+    using Hypha.Knowledge.Metamodel;
 
     using Microsoft.Extensions.DependencyInjection;
 
@@ -122,7 +122,7 @@ namespace Hypha.Tools.Tests
                     options.RepositoryRoot = this.workspace;
                     options.OutputRoot = outputRoot;
                 })
-                .AddHyphaMetamodelGen()
+                .AddHyphaMetamodel()
                 .BuildServiceProvider();
     }
 }

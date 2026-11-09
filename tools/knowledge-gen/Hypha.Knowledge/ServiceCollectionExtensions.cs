@@ -167,7 +167,7 @@ namespace Hypha.Knowledge
             services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
 
             // Registered as a collection: a full run is a loop over Order, not a list of calls each
-            // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodelGen.
+            // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodel.
             services.AddSingleton<IKnowledgeGenerator, GrammarReferenceGenerator>();
             services.AddSingleton<IKnowledgeGenerator, TextualNotationGenerator>();
             services.AddSingleton<IKnowledgeGenerator, ModelLibraryGenerator>();

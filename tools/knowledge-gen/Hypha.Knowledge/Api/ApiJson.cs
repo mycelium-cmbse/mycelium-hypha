@@ -13,6 +13,7 @@ namespace Hypha.Knowledge.Api
     using System.Text.Encodings.Web;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
 
     /// <summary>
     /// The one JSON format the generated API documents are written in and read back with.
@@ -24,13 +25,17 @@ namespace Hypha.Knowledge.Api
     /// </remarks>
     public static class ApiJson
     {
-        /// <summary>The serializer options that define the format.</summary>
+        /// <summary>
+        /// The serializer options that define the format, resolving every document type through the
+        /// source-generated contract.
+        /// </summary>
         private static readonly JsonSerializerOptions Format = new()
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            TypeInfoResolver = new ApiJsonContext(),
         };
 
         /// <summary>Renders <paramref name="document"/> deterministically.</summary>
@@ -38,11 +43,15 @@ namespace Hypha.Knowledge.Api
         /// <param name="document">The document to render.</param>
         /// <returns>The JSON text, with LF endings and a single closing newline.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="document"/> is <c>null</c>.</exception>
+        /// <exception cref="NotSupportedException">
+        /// <typeparamref name="T"/> is not one of the declared document types.
+        /// </exception>
         public static string Render<T>(T document)
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            return JsonSerializer.Serialize(document, Format).Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+            return JsonSerializer.Serialize(document, Contract<T>())
+                .Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
         }
 
         /// <summary>Reads a document back.</summary>
@@ -52,12 +61,23 @@ namespace Hypha.Knowledge.Api
         /// <exception cref="ArgumentException"><paramref name="json"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="JsonException"><paramref name="json"/> is not valid JSON for <typeparamref name="T"/>.</exception>
         /// <exception cref="InvalidOperationException">The text is the JSON literal <c>null</c>.</exception>
+        /// <exception cref="NotSupportedException">
+        /// <typeparamref name="T"/> is not one of the declared document types.
+        /// </exception>
         public static T Read<T>(string json)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
-            return JsonSerializer.Deserialize<T>(json, Format)
+            return JsonSerializer.Deserialize(json, Contract<T>())
                    ?? throw new InvalidOperationException($"not a readable {typeof(T).Name}");
         }
+
+        /// <summary>The source-generated metadata for <typeparamref name="T"/>, in the format above.</summary>
+        /// <remarks>
+        /// Resolving the metadata instead of letting <see cref="JsonSerializer"/> reflect over the type
+        /// means a document type nobody declared fails here, where the message names it, rather than
+        /// being serialized by reflection unnoticed.
+        /// </remarks>
+        private static JsonTypeInfo<T> Contract<T>() => (JsonTypeInfo<T>)Format.GetTypeInfo(typeof(T));
     }
 }

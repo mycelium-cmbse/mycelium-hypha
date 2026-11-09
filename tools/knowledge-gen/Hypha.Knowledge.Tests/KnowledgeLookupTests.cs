@@ -647,7 +647,7 @@ namespace Hypha.Knowledge.Tests
         {
             var expected = new DirectoryInfo(Path.Combine(
                 (Repository.Layout ?? throw new InvalidOperationException("not run inside the repository")).Root.FullName,
-                "tools", "metamodel-gen", "Hypha.MetamodelGen.Tests", "Expected", "metamodel"));
+                "tools", "metamodel-gen", "Hypha.Knowledge.Metamodel.Tests", "Expected", "metamodel"));
             Copy(expected, this.layout.Metamodel(Tag));
 
             Assert.Multiple(() =>

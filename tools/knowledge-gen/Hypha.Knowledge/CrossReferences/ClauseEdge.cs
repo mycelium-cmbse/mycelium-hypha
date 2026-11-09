@@ -21,5 +21,12 @@ namespace Hypha.Knowledge.CrossReferences
     /// <param name="Clause">The clause number, e.g. <c>8.3.6.3</c>.</param>
     /// <param name="Provenance">Which tier this fact belongs to.</param>
     /// <param name="Method">How the edge was obtained.</param>
-    public sealed record ClauseEdge(string Document, string Clause, string Provenance, string Method);
+    public sealed record ClauseEdge(string Document, string Clause, string Provenance, string Method)
+    {
+        /// <summary>A clause found by matching an element name against a clause title. A guess.</summary>
+        public const string ExactTitleMatch = "exact-title-match";
+
+        /// <summary>A clause the grammar's own <c>// Clause</c> comment states. Read, not guessed.</summary>
+        public const string GrammarClause = "grammar-clause";
+    }
 }

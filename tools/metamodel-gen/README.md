@@ -12,8 +12,8 @@ generators and assert on scratch output; they no longer write the committed know
 
 | Project | Type | Purpose |
 | --- | --- | --- |
-| `Hypha.MetamodelGen` | class library | XMI reading + markdown / JSON generation |
-| `Hypha.MetamodelGen.Tests` | NUnit tests | exercises the generators and asserts their output |
+| `Hypha.Knowledge.Metamodel` | class library | XMI reading + markdown / JSON generation |
+| `Hypha.Knowledge.Metamodel.Tests` | NUnit tests | exercises the generators and asserts their output |
 
 Both target **net10.0** and are part of the root solution `mycelium-hypha.sln`.
 Package restore uses the repo-local `NuGet.config` (nuget.org only).
@@ -49,7 +49,7 @@ pass, so the two never drift), committed under `knowledge/metamodel/`:
   `allAncestors` / `allDescendants`, owned + inherited attributes, operations, constraints),
   enumerations, primitive types and packages. Schema: `metamodel.schema.json`.
 - **`index.json`**: a small flat name → `{kind, package, qualifiedName, …, file}` lookup for fast
-  resolution before drilling into the rich file. Schema: `index.schema.json`.
+  resolution before drilling into the rich file. It has no committed schema of its own.
 
 Multiplicity upper bound `-1` denotes unbounded (`*`); output is deterministic (sorted, LF, no
 timestamps) and golden-tested against the committed files.

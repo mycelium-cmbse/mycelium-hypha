@@ -22,7 +22,7 @@ namespace Hypha.Tools.Commands
         ExtractSpecifications,
 
         /// <summary>
-        /// Re-bless the <c>Hypha.MetamodelGen.Tests</c> <c>Expected/</c> golden files against its
+        /// Re-bless the <c>Hypha.Knowledge.Metamodel.Tests</c> <c>Expected/</c> golden files against its
         /// committed XMI fixture (a fixed regression fixture, independent of the release just fetched).
         /// </summary>
         ReblessFixtures,

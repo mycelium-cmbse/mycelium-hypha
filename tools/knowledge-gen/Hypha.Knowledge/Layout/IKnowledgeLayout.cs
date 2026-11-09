@@ -64,6 +64,9 @@ namespace Hypha.Knowledge.Layout
         /// <summary><c>knowledge/model-library.schema.json</c>, which is not per release.</summary>
         FileInfo ModelLibrarySchema { get; }
 
+        /// <summary><c>knowledge/metamodel.schema.json</c>, which is not per release.</summary>
+        FileInfo MetamodelSchema { get; }
+
         /// <summary><c>sources/</c> - the folder every release's inputs are fetched into.</summary>
         DirectoryInfo Sources { get; }
 

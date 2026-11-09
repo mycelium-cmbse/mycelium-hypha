@@ -19,7 +19,7 @@ namespace Hypha.Knowledge.Generation
     /// </summary>
     /// <remarks>
     /// Public because the generators no longer all live in this assembly: the metamodel one is in
-    /// <c>Hypha.MetamodelGen</c>, and it should report exactly as the others do.
+    /// <c>Hypha.Knowledge.Metamodel</c>, and it should report exactly as the others do.
     /// </remarks>
     public static class GenerationLog
     {

@@ -28,12 +28,16 @@ namespace Hypha.Knowledge.ModelLibrary
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
+        /// <summary>The source-generated contract, bound to the options above.</summary>
+        private static readonly ModelLibraryJsonContext Contract = new(Format);
+
         /// <summary>Renders the document with LF endings, closing with a single newline.</summary>
         public static string Render(ModelLibraryDocument document)
         {
             ArgumentNullException.ThrowIfNull(document);
 
-            return JsonSerializer.Serialize(document, Format).Replace("\r\n", "\n", StringComparison.Ordinal)
+            return JsonSerializer.Serialize(document, Contract.ModelLibraryDocument)
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
                 + "\n";
         }
     }

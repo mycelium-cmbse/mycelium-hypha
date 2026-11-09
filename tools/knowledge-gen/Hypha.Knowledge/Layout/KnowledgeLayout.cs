@@ -117,6 +117,13 @@ namespace Hypha.Knowledge.Layout
             this.FileAt(KnowledgeFolder, "model-library.schema.json");
 
         /// <summary>
+        /// Gets <c>knowledge/metamodel.schema.json</c> under <see cref="Root"/>, which is not per
+        /// release.
+        /// </summary>
+        public FileInfo MetamodelSchema =>
+            this.FileAt(KnowledgeFolder, "metamodel.schema.json");
+
+        /// <summary>
         /// Walks up from <paramref name="start"/> looking for a folder that holds both
         /// <c>sources/</c> and <c>knowledge/</c>.
         /// </summary>

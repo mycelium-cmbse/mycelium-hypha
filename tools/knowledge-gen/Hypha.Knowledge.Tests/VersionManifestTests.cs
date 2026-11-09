@@ -83,6 +83,31 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Render_uses_the_documented_property_names()
+        {
+            // Only VersionManifest's own members carry [JsonPropertyName]; the nested entries rely on
+            // the camel-case policy reaching the source-generated contract, and the VS Code extension
+            // reads these exact names.
+            var rendered = VersionManifestFile.Render(VersionManifest.Build("2026-05", TwoVersions()));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(rendered, Does.Contain("\"schemaVersion\": "));
+                Assert.That(rendered, Does.Contain("\"default\": \"2026-05\""));
+                Assert.That(rendered, Does.Contain("\"versions\": ["));
+                Assert.That(rendered, Does.Contain("\"tag\": \"2026-05\""));
+                Assert.That(rendered, Does.Contain("\"release\": {"));
+                Assert.That(rendered, Does.Contain("\"pilot\": {"));
+                Assert.That(rendered, Does.Contain("\"commit\": \"de1070ae\""));
+                Assert.That(
+                    rendered,
+                    Does.Contain("\"repo\": \"Systems-Modeling/SysML-v2-Release\""),
+                    "the repository is recorded as owner/name, unescaped");
+                Assert.That(rendered, Does.Not.Contain("\"Tag\""), "camel case, not the C# member name");
+            });
+        }
+
+        [Test]
         public void Render_is_deterministic_and_newline_terminated()
         {
             var first = VersionManifestFile.Render(VersionManifest.Build("2026-05", TwoVersions()));

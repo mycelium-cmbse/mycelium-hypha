@@ -125,7 +125,7 @@ jobs:
         #
         # Nothing is committed to fetch a release from any more (see #106): `generate` has nothing to
         # do until something is actually fetched first. 2026-05 is the same tag committed as
-        # Hypha.MetamodelGen.Tests' XMI fixture, so it is known-good; --no-specs skips the large,
+        # Hypha.Knowledge.Metamodel.Tests' XMI fixture, so it is known-good; --no-specs skips the large,
         # unneeded OMG specification PDFs.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Raises the anonymous API's 60 requests/hour limit

@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mycelium-cmbse/mycelium-hypha/blob/development/knowledge/metamodel.schema.json",
+  "title": "Hypha metamodel graph",
+  "description": "The whole KerML or SysML v2 abstract-syntax metamodel of one release as a graph: packages, metaclasses with their precomputed inheritance closures, owned and inherited attributes, operations and constraints, plus enumerations and primitive types. Generated from the OMG XMI by tools/metamodel-gen, alongside the flat name lookup in index.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "metamodel",
+    "modelVersionUri",
+    "sourceXmiSha256",
+    "counts",
+    "packages",
+    "classes",
+    "enumerations",
+    "primitiveTypes"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "metamodel": {
+      "description": "The name of the model's root package, e.g. \"KerML\" or \"SysML\".",
+      "type": "string"
+    },
+    "modelVersionUri": {
+      "description": "The URI of the model's root package, empty when it has none.",
+      "type": "string"
+    },
+    "sourceXmiSha256": {
+      "description": "The provenance digest of the input XMI: the per-file digests, combined in filename order.",
+      "type": "string"
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classes", "enumerations", "primitiveTypes", "packages"],
+      "properties": {
+        "classes": { "type": "integer" },
+        "enumerations": { "type": "integer" },
+        "primitiveTypes": { "type": "integer" },
+        "packages": { "type": "integer" }
+      }
+    },
+    "packages": {
+      "description": "Every named package, ordered by qualified name.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/package" }
+    },
+    "classes": {
+      "description": "Every metaclass, ordered by name.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/class" }
+    },
+    "enumerations": {
+      "description": "Every enumeration, ordered by name.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/enumeration" }
+    },
+    "primitiveTypes": {
+      "description": "Every primitive type, ordered by name.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/type" }
+    },
+    "interfaces": {
+      "description": "Present only for a model that declares interfaces, which neither KerML nor SysML v2 does.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/interface" }
+    },
+    "dataTypes": {
+      "description": "Data types that are neither primitive nor an enumeration. Present only for a model that declares them.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/type" }
+    }
+  },
+  "$defs": {
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "qualifiedName", "parent", "classes"],
+      "properties": {
+        "name": { "type": "string" },
+        "qualifiedName": { "type": "string" },
+        "parent": {
+          "description": "The name of the owning namespace, null for a root package.",
+          "type": ["string", "null"]
+        },
+        "classes": {
+          "description": "The names of the metaclasses the package directly contains, ordered.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "class": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "xmiId",
+        "package",
+        "qualifiedName",
+        "isAbstract",
+        "visibility",
+        "documentation",
+        "summary",
+        "extends",
+        "allAncestors",
+        "directSubclasses",
+        "allDescendants",
+        "ownedAttributes",
+        "inheritedAttributes",
+        "ownedOperations",
+        "constraints"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "xmiId": { "type": "string" },
+        "package": { "type": "string" },
+        "qualifiedName": { "type": "string" },
+        "isAbstract": { "type": "boolean" },
+        "visibility": {
+          "description": "The visibility as its lowercase name, e.g. \"public\".",
+          "type": "string"
+        },
+        "documentation": { "type": "string" },
+        "summary": {
+          "description": "The one-line summary of the documentation, may be empty.",
+          "type": "string"
+        },
+        "extends": {
+          "description": "The names of the direct supertypes, ordered.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "allAncestors": {
+          "description": "The names of every transitive supertype, ordered: the closure, so a reader never walks the generalization chain itself.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "directSubclasses": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "allDescendants": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ownedAttributes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/attribute" }
+        },
+        "inheritedAttributes": {
+          "description": "The full effective feature set inherited from supertypes, each tagged with the metaclass that declares it.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/inheritedAttribute" }
+        },
+        "ownedOperations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/operation" }
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/constraint" }
+        }
+      }
+    },
+    "attribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type",
+        "typeIsElement",
+        "visibility",
+        "lower",
+        "upper",
+        "isDerived",
+        "isComposite",
+        "isOrdered",
+        "redefines",
+        "subsets",
+        "documentation"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "type": {
+          "description": "The name of the attribute's type, null when it is untyped.",
+          "type": ["string", "null"]
+        },
+        "typeIsElement": {
+          "description": "Whether the type has an element of its own in this document.",
+          "type": "boolean"
+        },
+        "visibility": { "type": "string" },
+        "lower": { "type": "integer" },
+        "upper": {
+          "description": "The upper multiplicity bound, -1 when unbounded.",
+          "type": "integer"
+        },
+        "isDerived": { "type": "boolean" },
+        "isComposite": { "type": "boolean" },
+        "isOrdered": { "type": "boolean" },
+        "redefines": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "subsets": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "documentation": { "type": "string" }
+      }
+    },
+    "inheritedAttribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type",
+        "typeIsElement",
+        "visibility",
+        "lower",
+        "upper",
+        "isDerived",
+        "isComposite",
+        "isOrdered",
+        "redefines",
+        "subsets",
+        "documentation",
+        "inheritedFrom"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": ["string", "null"] },
+        "typeIsElement": { "type": "boolean" },
+        "visibility": { "type": "string" },
+        "lower": { "type": "integer" },
+        "upper": { "type": "integer" },
+        "isDerived": { "type": "boolean" },
+        "isComposite": { "type": "boolean" },
+        "isOrdered": { "type": "boolean" },
+        "redefines": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "subsets": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "documentation": { "type": "string" },
+        "inheritedFrom": {
+          "description": "The name of the supertype that declares the attribute.",
+          "type": "string"
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "returnType",
+        "returnLower",
+        "returnUpper",
+        "isQuery",
+        "parameters",
+        "documentation",
+        "body"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "returnType": {
+          "description": "The name of the return type, null when there is none or it is untyped.",
+          "type": ["string", "null"]
+        },
+        "returnLower": { "type": "integer" },
+        "returnUpper": {
+          "description": "The upper bound of the return multiplicity, -1 when unbounded.",
+          "type": "integer"
+        },
+        "isQuery": { "type": "boolean" },
+        "parameters": {
+          "description": "The non-return parameters, in declaration order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/parameter" }
+        },
+        "documentation": { "type": "string" },
+        "body": {
+          "description": "The OCL of the operation's bodyCondition, may be empty.",
+          "type": "string"
+        }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "direction", "lower", "upper"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": ["string", "null"] },
+        "direction": {
+          "description": "The direction as its lowercase name, e.g. \"in\".",
+          "type": "string"
+        },
+        "lower": { "type": "integer" },
+        "upper": { "type": "integer" }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "documentation", "ocl"],
+      "properties": {
+        "name": { "type": "string" },
+        "documentation": { "type": "string" },
+        "ocl": {
+          "description": "The constraint body, may be empty.",
+          "type": "string"
+        }
+      }
+    },
+    "interface": {
+      "description": "An interface and the classifiers that realize it. Present only for a model that declares interfaces, such as the Systems Modeling API PIM.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "xmiId",
+        "package",
+        "qualifiedName",
+        "visibility",
+        "documentation",
+        "summary",
+        "realizedBy",
+        "ownedOperations"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "xmiId": { "type": "string" },
+        "package": { "type": "string" },
+        "qualifiedName": { "type": "string" },
+        "visibility": { "type": "string" },
+        "documentation": { "type": "string" },
+        "summary": { "type": "string" },
+        "realizedBy": {
+          "description": "The names of the classifiers that realize the interface, ordered.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ownedOperations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/operation" }
+        }
+      }
+    },
+    "enumeration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "xmiId",
+        "package",
+        "qualifiedName",
+        "visibility",
+        "documentation",
+        "summary",
+        "literals"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "xmiId": { "type": "string" },
+        "package": { "type": "string" },
+        "qualifiedName": { "type": "string" },
+        "visibility": { "type": "string" },
+        "documentation": { "type": "string" },
+        "summary": { "type": "string" },
+        "literals": {
+          "description": "The literals, in declaration order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/literal" }
+        }
+      }
+    },
+    "literal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "documentation"],
+      "properties": {
+        "name": { "type": "string" },
+        "documentation": { "type": "string" }
+      }
+    },
+    "type": {
+      "description": "A primitive type or a plain data type: a named element with no features of its own.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "xmiId",
+        "package",
+        "qualifiedName",
+        "visibility",
+        "documentation",
+        "summary"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "xmiId": { "type": "string" },
+        "package": { "type": "string" },
+        "qualifiedName": { "type": "string" },
+        "visibility": { "type": "string" },
+        "documentation": { "type": "string" },
+        "summary": { "type": "string" }
+      }
+    }
+  }
+}

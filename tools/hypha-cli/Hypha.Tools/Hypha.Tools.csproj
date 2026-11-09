@@ -100,7 +100,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\knowledge-gen\Hypha.Knowledge\Hypha.Knowledge.csproj" />
-    <ProjectReference Include="..\..\metamodel-gen\Hypha.MetamodelGen\Hypha.MetamodelGen.csproj" />
+    <ProjectReference Include="..\..\metamodel-gen\Hypha.Knowledge.Metamodel\Hypha.Knowledge.Metamodel.csproj" />
   </ItemGroup>
 
 </Project>
