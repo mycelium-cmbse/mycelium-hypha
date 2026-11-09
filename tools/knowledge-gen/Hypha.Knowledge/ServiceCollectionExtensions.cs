@@ -24,6 +24,7 @@ namespace Hypha.Knowledge
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.ModelLibrary;
+    using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
     using Hypha.Knowledge.TextualNotation;
     using Hypha.Knowledge.Toolchain;
@@ -165,6 +166,10 @@ namespace Hypha.Knowledge
                 ownsToolchain: options.ToolchainCacheRoot is not null));
 
             services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
+
+            // Singletons on purpose: each holds the documents it has read until their files change.
+            services.AddSingleton<IKnowledgeQuery, KnowledgeQuery>();
+            services.AddSingleton<IApiQuery, ApiQuery>();
 
             // Registered as a collection: a full run is a loop over Order, not a list of calls each
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodel.

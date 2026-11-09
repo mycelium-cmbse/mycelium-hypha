@@ -6,7 +6,7 @@ shipped Claude plugin; they are developer tooling, run when the upstream OMG sou
 ```
 tools/
 ├── hypha-cli/       C#:     the `hypha` command, the entry point that drives everything below
-├── knowledge-gen/   C#:     `Hypha.Knowledge`: layout, manifests and contracts, lookup, release
+├── knowledge-gen/   C#:     `Hypha.Knowledge`: layout, manifests and contracts, lookup, query API, release
 │                            discovery/fetching, grammar, textual notation, cross-references
 ├── metamodel-gen/   C# (uml4net): `Hypha.Knowledge.Metamodel`, reads XMI → writes knowledge/<tag>/metamodel/
 └── spec-extract/    Python: reads PDFs → writes knowledge/<tag>/spec/ (git-ignored)

@@ -20,7 +20,13 @@ namespace Hypha.Knowledge.Metamodel
     /// The contract lives in the knowledge library, beside the types, so reading these documents does
     /// not need the generator or uml4net; the generator that writes them resolves the same metadata
     /// through it.
+    /// <para>
+    /// The camel-case naming policy is part of the file format, so it is declared here rather than
+    /// only in the generator's options: a read through <see cref="JsonSerializerContext"/>'s
+    /// <c>Default</c> instance binds every member.
+    /// </para>
     /// </remarks>
+    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
     [JsonSerializable(typeof(MetamodelDocument))]
     [JsonSerializable(typeof(MetamodelLookup))]
     public sealed partial class MetamodelJsonContext : JsonSerializerContext
