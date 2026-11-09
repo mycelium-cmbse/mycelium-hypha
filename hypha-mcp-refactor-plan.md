@@ -13,7 +13,7 @@ Decision: all knowledge (metamodel, grammar, cross-references, model library, sp
 1. **One binary**: a single `hypha` executable per platform, holding the CLI verbs and the MCP server (`hypha serve`). Writes run in-process; there is no second process to provision or keep in sync.
 2. **One interface for AI clients**: the MCP server. No client talks to the CLI, the files or `jq` directly.
 3. **Two portable layers**: the MCP server holds the capability (tools, resources, prompts); Agent Skills (`SKILL.md`) hold the procedure. Skills call MCP tools only.
-4. **Read and write separated in code**: reads through `Hypha.Knowledge.Query`, writes through `Hypha.Knowledge`. A project boundary, not a process boundary.
+4. **Read and write separated in code**: reads through `Hypha.Knowledge.Query`, writes through `Hypha.Knowledge.Build`. A project boundary, not a process boundary.
 5. **Safe concurrent writers**: every client starts its own server, so writes to the shared location go through one cross-process `ReleaseOperationLock`, and readers detect changes made by other processes.
 6. **One knowledge location** per user (`HYPHA_HOME`), shared by every client.
 7. **Shared contracts**: generators and readers use the same C# types for every JSON artifact.
@@ -33,14 +33,16 @@ Decision: all knowledge (metamodel, grammar, cross-references, model library, sp
 | Component | Kind | Role |
 | --- | --- | --- |
 | `Hypha.Knowledge.Query` | Library | Read side: layout, inventory, typed readers, lookup, query API, search, grounding |
-| `Hypha.Knowledge` | Library | Write side: discovery, fetch, generator orchestration, install / use / remove, `ReleaseOperationLock` |
-| `Hypha.MetamodelGen` | Library | XMI → metamodel artifacts (uml4net, Handlebars) |
+| `Hypha.Knowledge.Build` | Library | Write side: discovery, fetch, generator orchestration, install / use / remove, `ReleaseOperationLock` |
+| `Hypha.Knowledge.Metamodel` | Library | XMI → metamodel artifacts (uml4net, Handlebars) |
 | `Hypha.Mcp` | Library | MCP tools, resources, prompts, instructions over `Query` and `Knowledge` |
 | `Hypha.Tools` | Executable `hypha` | Hosts everything: CLI verbs + `hypha serve` |
 | `Hypha.Launcher` | Executable `hypha-launch` (AOT, tiny) | The single entry point for every plugin format and the `.mcpb` bundle: downloads the matching `hypha` once, then runs `hypha serve` (replaces today's hook) |
-| `spec-extract` | Python | Spec PDFs → `spec/` text; run by `Hypha.Knowledge` via uv |
+| `spec-extract` | Python | Spec PDFs → `spec/` text; run by `Hypha.Knowledge.Build` via uv |
 | Agent Skills | Markdown | Grounding discipline, version choice, when to cite vs reason |
 | Client packages | Packaging | Claude plugin, VS Code extension, Cursor config |
+
+Naming: the three knowledge projects share the `Hypha.Knowledge.*` prefix (`Query` reads, `Build` produces and manages, `Metamodel` generates the metamodel). There is no bare `Hypha.Knowledge` project; it is only the namespace root. Today's `Hypha.Knowledge` becomes `Hypha.Knowledge.Build`, and `Hypha.MetamodelGen` becomes `Hypha.Knowledge.Metamodel`.
 
 Retired: `Hypha.Tools.Hook` (`hypha-hook`), `hooks/native/`, the three agents, the VS Code extension's own `vscode.lm` tools, `jq`.
 
@@ -63,8 +65,8 @@ flowchart TB
         CLI["CLI verbs<br/>fetch · generate · query · lookup · list · use · remove · move-window"]
         SRV["hypha serve<br/>Hypha.Mcp"]
         Q["Hypha.Knowledge.Query"]
-        K["Hypha.Knowledge"]
-        MG["Hypha.MetamodelGen"]
+        K["Hypha.Knowledge.Build"]
+        MG["Hypha.Knowledge.Metamodel"]
     end
 
     SE["spec-extract<br/>(Python via uv)"]
@@ -94,8 +96,8 @@ flowchart TB
 ```mermaid
 flowchart LR
     Query["Hypha.Knowledge.Query"]
-    Know["Hypha.Knowledge"]
-    MG["Hypha.MetamodelGen"]
+    Know["Hypha.Knowledge.Build"]
+    MG["Hypha.Knowledge.Metamodel"]
     Mcp["Hypha.Mcp"]
     Tools["Hypha.Tools<br/>(exe: hypha)"]
     Launch["Hypha.Launcher<br/>(AOT exe)"]
@@ -178,7 +180,7 @@ Read-only, no network, source-generated JSON, thread-safe. Loads each release la
 
 Stays out: discovery, fetch, generation, every write. Validation reasoning stays in the skill; `Query` supplies the facts.
 
-### 1.8 `Hypha.Knowledge`
+### 1.8 `Hypha.Knowledge.Build`
 
 The write side, as today, plus:
 
@@ -316,11 +318,12 @@ No client contains its own tools, agents, hooks or `jq` instructions.
 
 Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc `jq`) and the VS Code extension (two TypeScript `vscode.lm` tools shelling out to the CLI) expose Hypha in two separate ways that drift apart. Knowledge lives in the plugin root or in VS Code global storage.
 
-### Step 1: Split `Hypha.Knowledge` into read and write
+### Step 1: Split `Hypha.Knowledge` into `Query` and `Build`
 
 - [ ] Create `Hypha.Knowledge.Query` (`IsAotCompatible=true`, source-generated `JsonSerializerContext`s, no uml4net or network dependencies).
 - [ ] Move in `Layout/`, `Lookup/`, the version-manifest readers (`VersionManifest*`, `InstalledVersion`, `ReleaseTag`) and the readers for cross-references (`KnowledgeReader`, `CrossReferenceFile`), model library and API.
-- [ ] Make `Hypha.Knowledge` and `Hypha.MetamodelGen` reference it.
+- [ ] Rename the remaining `Hypha.Knowledge` project to `Hypha.Knowledge.Build`, and `Hypha.MetamodelGen` to `Hypha.Knowledge.Metamodel` (projects, namespaces, test projects, solution folders, CI paths, READMEs, `CLAUDE.md`).
+- [ ] Make `Hypha.Knowledge.Build` and `Hypha.Knowledge.Metamodel` reference `Query`.
 - [ ] Move the DTOs written by `MetamodelJsonGenerator` and the cross-reference generators into it.
 - [ ] Add the missing `knowledge/metamodel.schema.json`.
 - [ ] Keep `dotnet test` green and the working tree clean.
@@ -332,7 +335,7 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 - [ ] Add spec text access, search/addressing, grounding metadata and change detection.
 - [ ] Golden tests: on a fixture release, C# output equals jq output (jq in CI only).
 
-### Step 3: Prepare `Hypha.Knowledge` and the CLI
+### Step 3: Prepare `Hypha.Knowledge.Build` and the CLI
 
 - [ ] Rewrite `lookup` and `list` over `Hypha.Knowledge.Query`; add `hypha query …` verbs.
 - [ ] Add `IProgress<T>` reporting to install / fetch / generate.
