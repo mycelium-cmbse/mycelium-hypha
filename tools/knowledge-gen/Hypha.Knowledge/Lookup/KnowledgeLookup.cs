@@ -359,33 +359,44 @@ namespace Hypha.Knowledge.Lookup
         /// <param name="root">The artifact's folder, which the page has to stay inside.</param>
         /// <param name="relative">The page path the index recorded, relative to <paramref name="root"/>, with <c>/</c> separators.</param>
         /// <param name="tag">The release the index belongs to, for the error message.</param>
+        /// <param name="owner">
+        /// What the index belongs to, for the error message, such as <c>API version 2026-04</c>; <c>null</c>
+        /// for the release <paramref name="tag"/> names.
+        /// </param>
+        /// <param name="regenerate">
+        /// The command that regenerates a missing page, for the error message; <c>null</c> for
+        /// <c>hypha generate --tag</c> with <paramref name="tag"/>.
+        /// </param>
         /// <returns>The page, which exists and lies inside <paramref name="root"/>.</returns>
         /// <exception cref="KnowledgeLookupException">The path is unsafe, leaves the folder, or the page is missing.</exception>
-        private static FileInfo ContainedFile(DirectoryInfo root, string relative, string tag)
+        internal static FileInfo ContainedFile(
+            DirectoryInfo root, string relative, string tag, string? owner = null, string? regenerate = null)
         {
+            owner ??= $"release {tag}";
+            regenerate ??= $"hypha generate --tag {tag}";
+
             if (string.IsNullOrWhiteSpace(relative) || Path.IsPathRooted(relative) || relative.Contains('\\'))
             {
-                throw new KnowledgeLookupException($"The index of release {tag} holds an unsafe page path '{relative}'.");
+                throw new KnowledgeLookupException($"The index of {owner} holds an unsafe page path '{relative}'.");
             }
 
             var file = new FileInfo(Path.GetFullPath(Path.Combine(root.FullName, relative)));
             if (!IsInside(root.FullName, file.FullName))
             {
-                throw new KnowledgeLookupException($"The index of release {tag} points outside its folder: '{relative}'.");
+                throw new KnowledgeLookupException($"The index of {owner} points outside its folder: '{relative}'.");
             }
 
             if (!file.Exists)
             {
-                throw new KnowledgeLookupException(
-                    $"The page '{relative}' of release {tag} is missing. Run 'hypha generate --tag {tag}'.");
+                throw new KnowledgeLookupException($"The page '{relative}' of {owner} is missing. Run '{regenerate}'.");
             }
 
             // Compared after resolving every link on both paths: a linked folder on the way is caught
             // as well as a linked page, and a release folder that itself sits behind a link (as the
             // temporary folder does on macOS) is not mistaken for an escape.
-            if (!IsInside(Canonical(root.FullName, tag), Canonical(file.FullName, tag)))
+            if (!IsInside(Canonical(root.FullName, owner), Canonical(file.FullName, owner)))
             {
-                throw new KnowledgeLookupException($"The page '{relative}' of release {tag} links outside its folder.");
+                throw new KnowledgeLookupException($"The page '{relative}' of {owner} links outside its folder.");
             }
 
             return file;
@@ -393,15 +404,15 @@ namespace Hypha.Knowledge.Lookup
 
         /// <summary>The path with every symbolic link or junction along it resolved.</summary>
         /// <param name="path">The path to resolve, absolute or relative to the current directory.</param>
-        /// <param name="tag">The release being read, for the error message.</param>
+        /// <param name="owner">What is being read, such as <c>release 2026-05</c>, for the error message.</param>
         /// <param name="depth">How many links have been followed so far; at most <see cref="MaxLinkDepth"/>.</param>
         /// <returns>The full path with no link left on it.</returns>
         /// <exception cref="KnowledgeLookupException">A link cannot be followed, or there are too many of them.</exception>
-        private static string Canonical(string path, string tag, int depth = 0)
+        private static string Canonical(string path, string owner, int depth = 0)
         {
             if (depth > MaxLinkDepth)
             {
-                throw new KnowledgeLookupException($"The knowledge of release {tag} is reached through too many links ('{path}').");
+                throw new KnowledgeLookupException($"The knowledge of {owner} is reached through too many links ('{path}').");
             }
 
             try
@@ -425,7 +436,7 @@ namespace Hypha.Knowledge.Lookup
                     var target = info.ResolveLinkTarget(returnFinalTarget: true);
                     if (target is not null)
                     {
-                        current = Canonical(target.FullName, tag, depth + 1);
+                        current = Canonical(target.FullName, owner, depth + 1);
                     }
                 }
 
@@ -434,7 +445,7 @@ namespace Hypha.Knowledge.Lookup
             catch (IOException exception)
             {
                 throw new KnowledgeLookupException(
-                    $"A link on the way to the knowledge of release {tag} cannot be followed: {exception.Message}",
+                    $"A link on the way to the knowledge of {owner} cannot be followed: {exception.Message}",
                     exception);
             }
         }

@@ -329,8 +329,10 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 - [x] Grounding metadata (tier, release, source file) on every result, and change detection: each document is read again when its file changes, and the manifests are read on each access.
 - [x] Golden tests: on a fixture release, C# output equals jq output (`KnowledgeQueryJqTests`; required in CI through `HYPHA_REQUIRE_JQ`, skipped locally without jq).
 - [x] Give `MetamodelJsonContext` the camel-case naming policy, so `metamodel.json` and `index.json` read back through it.
-- [ ] Add spec text access, and search / `hypha://` addressing.
-- [ ] Report which artifacts each installed release has generated in the release inventory (section 1.7, item 2).
+- [x] Add spec text access (`Clause`, with an explicit `Unavailable` when the PDFs were never processed), and search / `hypha://` addressing (`Search`, `HyphaAddress`, `Resolve`).
+- [x] Report which artifacts each installed release has generated in the release inventory (section 1.7, item 2).
+- [x] Validation and citation queries beyond the documented jq: ancestors and specialization, constraints and operations, enumeration literals, subsettings, the elements a production builds or a clause treats.
+- Deferred: a keyword query (#205), which needs the keyword index as JSON, and a diff between two releases (#206).
 
 ### Step 3: Prepare the write path and the CLI
 

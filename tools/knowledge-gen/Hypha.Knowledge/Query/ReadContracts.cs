@@ -17,6 +17,7 @@ namespace Hypha.Knowledge.Query
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Metamodel;
     using Hypha.Knowledge.ModelLibrary;
+    using Hypha.Knowledge.Specification;
 
     /// <summary>
     /// The source-generated contracts the query API reads the generated documents through, set to
@@ -51,6 +52,10 @@ namespace Hypha.Knowledge.Query
         /// <summary>Gets the contract for an API version's <c>cross-references.json</c>.</summary>
         public static JsonTypeInfo<ApiCrossReferenceDocument> ApiCrossReferences { get; } =
             new ApiJsonContext(Strict(requireMembers: false)).ApiCrossReferenceDocument;
+
+        /// <summary>Gets the contract for a specification's <c>index.json</c>, of a release or an API version.</summary>
+        public static JsonTypeInfo<SpecificationIndex> Specification { get; } =
+            new SpecificationJsonContext(Strict(requireMembers: true)).SpecificationIndex;
 
         /// <summary>The reading options: the file format's camel-case names, and no silent <c>null</c>s.</summary>
         /// <param name="requireMembers">Whether every constructor parameter must be present in the document.</param>

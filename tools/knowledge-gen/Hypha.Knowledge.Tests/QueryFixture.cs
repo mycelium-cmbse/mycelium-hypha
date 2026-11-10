@@ -38,8 +38,11 @@ namespace Hypha.Knowledge.Tests
                 Path.Combine(Path.GetTempPath(), $"hypha-query-{Guid.NewGuid():N}"));
             this.Layout = new KnowledgeLayout(this.Root);
             this.ApiLayout = new ApiLayout(this.Layout);
-            this.Query = new KnowledgeQuery(this.Layout, this.ApiLayout);
-            this.Api = new ApiQuery(this.ApiLayout, this.Layout);
+            // One cache for both queries, as AddHyphaKnowledge registers them.
+            this.Documents = new DocumentCache();
+            var specifications = new SpecificationReader(this.Documents);
+            this.Query = new KnowledgeQuery(this.Layout, this.ApiLayout, this.Documents, specifications);
+            this.Api = new ApiQuery(this.ApiLayout, this.Layout, this.Documents, specifications);
 
             KnowledgeLookupTests.Install(this.Layout, Tag);
             this.InstallApiVersion();
@@ -49,10 +52,20 @@ namespace Hypha.Knowledge.Tests
             File.Copy(Path.Combine(golden.FullName, "metamodel.json"), this.Layout.MetamodelGraph(Tag).FullName);
             File.Copy(Path.Combine(golden.FullName, "index.json"), this.Layout.MetamodelIndex(Tag).FullName);
 
+            // The golden pages cover a subset of the metaclasses (Feature, Usage, Element, ...), not PartUsage.
+            var elements = Directory.CreateDirectory(Path.Combine(this.Layout.Metamodel(Tag).FullName, "elements"));
+            foreach (var page in new DirectoryInfo(Path.Combine(golden.FullName, "elements")).EnumerateFiles("*.md"))
+            {
+                page.CopyTo(Path.Combine(elements.FullName, page.Name));
+            }
+
             CrossReferenceFile.Write(CrossReferences(), this.Layout.CrossReferences(Tag).FullName);
 
             Directory.CreateDirectory(this.Layout.ModelLibrary(Tag).FullName);
             File.WriteAllText(this.Layout.ModelLibraryIndex(Tag).FullName, ModelLibraryFile.Render(ModelLibrary()));
+            var packages = Directory.CreateDirectory(this.Layout.ModelLibraryPackages(Tag).FullName);
+            File.WriteAllText(Path.Combine(packages.FullName, "ISQBase.md"), "```sysml\nattribute mass;\n```\n");
+            File.WriteAllText(Path.Combine(packages.FullName, "ScalarValues.md"), "```kerml\ndatatype Real;\n```\n");
 
             // The fixture XMI has no Systems Modeling API classes, so the golden metamodel stands in for
             // the PIM: the PIM's metamodel.json is the same document type, written by the same generator.
@@ -61,6 +74,75 @@ namespace Hypha.Knowledge.Tests
 
             Directory.CreateDirectory(this.ApiLayout.Knowledge(ApiVersion).FullName);
             File.WriteAllText(this.ApiLayout.CrossReferences(ApiVersion).FullName, ApiJson.Render(ApiCrossReferences()));
+
+            // The specification text spec-extract would write: an index and one page per clause, with the
+            // same front matter. The clause numbers and titles match the cross-reference fixture's.
+            WriteSpecification(
+                this.Layout.SpecificationCatalog(Tag, "kerml"),
+                "KerML",
+                ("2", "Conformance", "29", true, "02-conformance.md"),
+                ("7.4.2", "Feature", "45-47", true, "07.04.02-feature.md"),
+                ("8.3.3.1.8", "Feature", "212", true, "08.03.03.01.08-feature.md"));
+            WriteSpecification(
+                this.Layout.SpecificationCatalog(Tag, "sysml2"),
+                "SysML",
+                ("1", "Scope", "1-2", false, "01-scope.md"),
+                ("8.3.6.3", "PartUsage", "120-121", true, "08.03.06.03-partusage.md"));
+            WriteSpecification(
+                this.ApiLayout.SpecificationCatalog(ApiVersion),
+                "Systems Modeling API and Services",
+                ("7.1.4", "Commit", "30", true, "07.01.04-commit.md"));
+        }
+
+        public DocumentCache Documents { get; }
+
+        // A query of its own, with a cache of its own, over another layout.
+        public static KnowledgeQuery NewQuery(IKnowledgeLayout layout, IApiLayout apiLayout)
+        {
+            var documents = new DocumentCache();
+
+            return new KnowledgeQuery(layout, apiLayout, documents, new SpecificationReader(documents));
+        }
+
+        public static ApiQuery NewApi(IApiLayout apiLayout, IKnowledgeLayout layout)
+        {
+            var documents = new DocumentCache();
+
+            return new ApiQuery(apiLayout, layout, documents, new SpecificationReader(documents));
+        }
+
+        public static string ClauseText(string document, string clause) =>
+            $"# {clause}\n\nThe text of clause {clause} of {document}.\n";
+
+        // Written as text in the shape spec-extract's render_index_json writes (json.dumps with indent=2),
+        // not through the C# contract, so a reader that drifts from the Python output fails here.
+        public static void WriteSpecification(
+            FileInfo index,
+            string document,
+            params (string Clause, string Title, string Pages, bool Normative, string File)[] clauses)
+        {
+            Directory.CreateDirectory(index.DirectoryName!);
+
+            var entries = new List<string>();
+
+            foreach (var (clause, title, pages, normative, file) in clauses)
+            {
+                var flag = normative ? "true" : "false";
+
+                entries.Add(
+                    $"    \"{clause}\": {{\n      \"title\": \"{title}\",\n      \"pages\": \"{pages}\",\n"
+                    + $"      \"normative\": {flag},\n      \"file\": \"{file}\"\n    }}");
+                File.WriteAllText(
+                    Path.Combine(index.DirectoryName!, file),
+                    $"---\nclause: \"{clause}\"\ntitle: \"{title}\"\ndocument: \"{document}\"\nversion: \"1.0\"\n"
+                    + $"pages: \"{pages}\"\nnormative: {flag}\n---\n\n"
+                    + ClauseText(document, clause));
+            }
+
+            File.WriteAllText(
+                index.FullName,
+                $"{{\n  \"schemaVersion\": \"1.0.0\",\n  \"document\": \"{document}\",\n  \"version\": \"1.0\",\n"
+                + $"  \"clauses\": {clauses.Length},\n  \"entries\": {{\n{string.Join(",\n", entries)}\n  }}\n}}\n");
         }
 
         public DirectoryInfo Root { get; }

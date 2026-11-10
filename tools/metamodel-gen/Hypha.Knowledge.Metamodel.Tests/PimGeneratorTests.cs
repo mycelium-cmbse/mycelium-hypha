@@ -689,7 +689,9 @@ namespace Hypha.Knowledge.Metamodel.Tests
                     ]),
                 this.layout.VersionManifest.FullName);
 
-            var project = new ApiQuery(this.layout, new KnowledgeLayout(this.workspace)).PimClass("Project");
+            var documents = new DocumentCache();
+            var project = new ApiQuery(
+                this.layout, new KnowledgeLayout(this.workspace), documents, new SpecificationReader(documents)).PimClass("Project");
 
             Assert.Multiple(() =>
             {
