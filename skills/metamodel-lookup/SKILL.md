@@ -73,11 +73,22 @@ documentation.
 `knowledge/<tag>/metamodel/metamodel.json` holds every element as a node with its closures precomputed:
 `allAncestors`, `allDescendants`, `directSubclasses`, and `inheritedAttributes` carrying the
 declaring type in `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper` (`-1` is
-unbounded), `isDerived`, `isComposite`, `isOrdered`, `redefines` and `subsets`; classes also carry
-`ownedOperations` (each with `documentation` and `body`, the OCL of its `bodyCondition`) and
-`constraints` with their OCL.
+unbounded), `isDerived`, `isDerivedUnion`, `isComposite`, `isOrdered`, `isUnique`, `isReadOnly`,
+`defaultValue`, `redefines`, `subsets` and `opposite`. A reference to another feature (in
+`redefines`, `subsets`, `opposite` and `redefinedBy`) is an object naming its owner,
+`{ "class": "Relationship", "association": null, "feature": "source" }`, because several metaclasses
+declare a feature of the same name; an end an association owns has `association` set instead of
+`class`. An inherited attribute's `redefinedBy` names the feature that redefines it in that
+metaclass, or is `null` when it applies as inherited.
 
-It is ~8 MB, so **never read it whole**; query it. `jq` is *recommended* for this; when it is not
+Classes also carry `ownedOperations` (each with `documentation`, `body`, the OCL of its
+`bodyCondition`, and the operations it `redefines`) and `constraints` with their OCL and
+`constrainedElements`. `inheritedOperations` and `inheritedConstraints` are references,
+`{ "class", "operation", "redefinedBy" }` and `{ "class", "constraint" }`: read the body from the
+declaring class. An inherited operation whose `redefinedBy` is set does not apply; its redefinition
+does.
+
+It is ~16 MB, so **never read it whole**; query it. `jq` is *recommended* for this; when it is not
 installed, fall back to the markdown route described under [Procedure](#procedure), which is slower
 and reads more files but always works.
 
@@ -92,6 +103,17 @@ jq -r '.classes[] | select(.ownedAttributes[]? | .type=="Expression") | .name' \
 
 # Where does PartUsage's `name` come from?
 jq -r '.classes[] | select(.name=="PartUsage") | .inheritedAttributes[] | select(.name=="name") | .inheritedFrom' \
+  knowledge/<tag>/metamodel/metamodel.json
+
+# Who redefines Feature's `type` (not FeatureTyping's, which has the same name)?
+jq -r '.classes[] | . as $c | .ownedAttributes[] | . as $a | .redefines[]
+       | select(.feature=="type" and .class=="Feature") | "\($c.name)::\($a.name)"' \
+  knowledge/<tag>/metamodel/metamodel.json
+
+# The operations that apply to ConstraintUsage, each with the class whose body applies
+jq -r '.classes[] | select(.name=="ConstraintUsage")
+       | (.ownedOperations[] | "ConstraintUsage::\(.name)"),
+         (.inheritedOperations[] | select(.redefinedBy == null) | "\(.class)::\(.operation)")' \
   knowledge/<tag>/metamodel/metamodel.json
 ```
 

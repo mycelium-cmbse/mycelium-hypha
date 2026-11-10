@@ -110,7 +110,9 @@
         "ownedAttributes",
         "inheritedAttributes",
         "ownedOperations",
-        "constraints"
+        "inheritedOperations",
+        "constraints",
+        "inheritedConstraints"
       ],
       "properties": {
         "name": { "type": "string" },
@@ -150,7 +152,7 @@
           "items": { "$ref": "#/$defs/attribute" }
         },
         "inheritedAttributes": {
-          "description": "The full effective feature set inherited from supertypes, each tagged with the metaclass that declares it.",
+          "description": "The features inherited from supertypes, each tagged with the metaclass that declares it and with the feature that redefines it in this metaclass's context, if any. A feature whose name an owned attribute reuses is left out.",
           "type": "array",
           "items": { "$ref": "#/$defs/inheritedAttribute" }
         },
@@ -158,9 +160,19 @@
           "type": "array",
           "items": { "$ref": "#/$defs/operation" }
         },
+        "inheritedOperations": {
+          "description": "A reference to every operation the supertypes declare, ordered by name and then declaring metaclass; the signature and body are in that metaclass's ownedOperations.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/inheritedOperation" }
+        },
         "constraints": {
           "type": "array",
           "items": { "$ref": "#/$defs/constraint" }
+        },
+        "inheritedConstraints": {
+          "description": "A reference to every constraint the supertypes declare, ordered by name and then declaring metaclass; the body is in that metaclass's constraints.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/inheritedConstraint" }
         }
       }
     },
@@ -175,10 +187,15 @@
         "lower",
         "upper",
         "isDerived",
+        "isDerivedUnion",
         "isComposite",
         "isOrdered",
+        "isUnique",
+        "isReadOnly",
+        "defaultValue",
         "redefines",
         "subsets",
+        "opposite",
         "documentation"
       ],
       "properties": {
@@ -198,15 +215,31 @@
           "type": "integer"
         },
         "isDerived": { "type": "boolean" },
+        "isDerivedUnion": {
+          "description": "Whether the attribute is a derived union of the attributes that subset it.",
+          "type": "boolean"
+        },
         "isComposite": { "type": "boolean" },
         "isOrdered": { "type": "boolean" },
+        "isUnique": { "type": "boolean" },
+        "isReadOnly": { "type": "boolean" },
+        "defaultValue": {
+          "description": "The default value as the model writes it (a literal, or an enumeration literal's name), null when it has none.",
+          "type": ["string", "null"]
+        },
         "redefines": {
+          "description": "The attributes it redefines, each with its owner.",
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "$ref": "#/$defs/featureReference" }
         },
         "subsets": {
+          "description": "The attributes it subsets, each with its owner.",
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "$ref": "#/$defs/featureReference" }
+        },
+        "opposite": {
+          "description": "The other end of the binary association the attribute is an end of; null when it is not one, or when the other end cannot be named because it, or the association that owns it, has no name (as in the Systems Modeling API PIM).",
+          "oneOf": [{ "$ref": "#/$defs/featureReference" }, { "type": "null" }]
         },
         "documentation": { "type": "string" }
       }
@@ -222,12 +255,18 @@
         "lower",
         "upper",
         "isDerived",
+        "isDerivedUnion",
         "isComposite",
         "isOrdered",
+        "isUnique",
+        "isReadOnly",
+        "defaultValue",
         "redefines",
         "subsets",
+        "opposite",
         "documentation",
-        "inheritedFrom"
+        "inheritedFrom",
+        "redefinedBy"
       ],
       "properties": {
         "name": { "type": "string" },
@@ -237,21 +276,70 @@
         "lower": { "type": "integer" },
         "upper": { "type": "integer" },
         "isDerived": { "type": "boolean" },
+        "isDerivedUnion": { "type": "boolean" },
         "isComposite": { "type": "boolean" },
         "isOrdered": { "type": "boolean" },
+        "isUnique": { "type": "boolean" },
+        "isReadOnly": { "type": "boolean" },
+        "defaultValue": { "type": ["string", "null"] },
         "redefines": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "$ref": "#/$defs/featureReference" }
         },
         "subsets": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "$ref": "#/$defs/featureReference" }
+        },
+        "opposite": {
+          "oneOf": [{ "$ref": "#/$defs/featureReference" }, { "type": "null" }]
         },
         "documentation": { "type": "string" },
         "inheritedFrom": {
           "description": "The name of the supertype that declares the attribute.",
           "type": "string"
+        },
+        "redefinedBy": {
+          "description": "The attribute that redefines this one in the inheriting metaclass's context, owned by it or by one of its supertypes; null when none does, so the attribute applies as inherited.",
+          "oneOf": [{ "$ref": "#/$defs/featureReference" }, { "type": "null" }]
         }
+      }
+    },
+    "featureReference": {
+      "description": "An attribute by its owner: a classifier for an owned attribute, an association for an end the association owns. Exactly one of class and association is set.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "association", "feature"],
+      "properties": {
+        "class": { "type": ["string", "null"] },
+        "association": { "type": ["string", "null"] },
+        "feature": { "type": "string" }
+      }
+    },
+    "operationReference": {
+      "description": "An operation by the classifier that owns it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "operation"],
+      "properties": {
+        "class": { "type": "string" },
+        "operation": { "type": "string" }
+      }
+    },
+    "elementReference": {
+      "description": "A model element by its UML metaclass, owner and name.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "owner", "name"],
+      "properties": {
+        "kind": {
+          "description": "The element's UML metaclass, camel-cased: class, property, operation, and so on.",
+          "type": "string"
+        },
+        "owner": {
+          "description": "The classifier or association that owns the element, null for an element owned by a package.",
+          "type": ["string", "null"]
+        },
+        "name": { "type": "string" }
       }
     },
     "operation": {
@@ -264,6 +352,7 @@
         "returnUpper",
         "isQuery",
         "parameters",
+        "redefines",
         "documentation",
         "body"
       ],
@@ -284,10 +373,34 @@
           "type": "array",
           "items": { "$ref": "#/$defs/parameter" }
         },
+        "redefines": {
+          "description": "The operations it redefines, each with its owner.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/operationReference" }
+        },
         "documentation": { "type": "string" },
         "body": {
           "description": "The OCL of the operation's bodyCondition, may be empty.",
           "type": "string"
+        }
+      }
+    },
+    "inheritedOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "operation", "redefinedBy"],
+      "properties": {
+        "class": {
+          "description": "The supertype that declares the operation.",
+          "type": "string"
+        },
+        "operation": {
+          "description": "The operation name, unique among the operations its metaclass owns.",
+          "type": "string"
+        },
+        "redefinedBy": {
+          "description": "The operation that redefines this one in the inheriting metaclass's context, owned by it or by one of its supertypes; null when none does, so this one applies.",
+          "oneOf": [{ "$ref": "#/$defs/operationReference" }, { "type": "null" }]
         }
       }
     },
@@ -309,12 +422,32 @@
     "constraint": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "documentation", "ocl"],
+      "required": ["name", "documentation", "ocl", "constrainedElements"],
       "properties": {
         "name": { "type": "string" },
         "documentation": { "type": "string" },
         "ocl": {
           "description": "The constraint body, may be empty.",
+          "type": "string"
+        },
+        "constrainedElements": {
+          "description": "The elements the constraint constrains, in model order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/elementReference" }
+        }
+      }
+    },
+    "inheritedConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "constraint"],
+      "properties": {
+        "class": {
+          "description": "The supertype that declares the constraint.",
+          "type": "string"
+        },
+        "constraint": {
+          "description": "The constraint name, unique among the constraints its metaclass owns.",
           "type": "string"
         }
       }

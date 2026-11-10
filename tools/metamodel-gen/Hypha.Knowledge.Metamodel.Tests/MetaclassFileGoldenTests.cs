@@ -44,8 +44,9 @@ namespace Hypha.Knowledge.Metamodel.Tests
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
             var linkableTypeNames = ElementCatalog.LinkableTypeNames(model!);
+            var owners = ModelOwners.Build(model!);
             var metaclass = metaclasses.Single(@class => @class.Name == metaclassName);
-            var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass, subtypeIndex, linkableTypeNames));
+            var generated = Normalize(new MetaclassFileGenerator().GenerateElement(metaclass, subtypeIndex, linkableTypeNames, owners));
 
             var expectedPath = Path.Combine(
                 TestContext.CurrentContext.TestDirectory, "Expected", "metamodel", "elements", $"{metaclassName}.md");
@@ -74,11 +75,12 @@ namespace Hypha.Knowledge.Metamodel.Tests
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
             var linkableTypeNames = ElementCatalog.LinkableTypeNames(model!);
+            var owners = ModelOwners.Build(model!);
 
             foreach (var name in InterestingMetaclassNames())
             {
                 var metaclass = metaclasses.Single(@class => @class.Name == name);
-                var content = generator.GenerateElement(metaclass, subtypeIndex, linkableTypeNames);
+                var content = generator.GenerateElement(metaclass, subtypeIndex, linkableTypeNames, owners);
 
                 File.WriteAllText(Path.Combine(expectedDirectory, $"{name}.md"), content, new UTF8Encoding(false));
             }

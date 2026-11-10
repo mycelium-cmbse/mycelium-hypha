@@ -38,7 +38,7 @@ Redefines [definition](Usage.md#definition)
 
 Always true for an AttributeUsage.
 
-Redefines [isReference](#isreference)
+Redefines [isReference](Usage.md#isreference)
 
 
 ## Inherited features

@@ -14,6 +14,7 @@ namespace Hypha.Knowledge.Tests
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
@@ -118,6 +119,24 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void The_second_argument_of_redefinitions_and_subsettings_is_still_the_release()
+        {
+            // The owner filter came after tag, so a call written before it still names the release.
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    this.fixture.Query.Redefinitions("definition", QueryFixture.Tag).Value,
+                    Is.EqualTo(this.fixture.Query.Redefinitions("definition").Value).And.Not.Empty);
+                Assert.That(
+                    this.fixture.Query.Subsettings("usage", QueryFixture.Tag).Value,
+                    Is.EqualTo(this.fixture.Query.Subsettings("usage").Value).And.Not.Empty);
+                Assert.That(
+                    () => this.fixture.Query.Redefinitions("definition", "2020-01"),
+                    Throws.TypeOf<KnowledgeLookupException>());
+            });
+        }
+
+        [Test]
         public void A_metaclass_specializes_itself_with_a_chain_of_one()
         {
             var answer = this.fixture.Query.Specializes("PartUsage", "PartUsage").Value!;
@@ -127,6 +146,81 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(answer.Specializes, Is.True);
                 Assert.That(answer.Path, Is.EqualTo(new[] { "PartUsage" }));
             });
+        }
+
+        [Test]
+        public void Whether_a_metaclass_specializes_another_is_the_generated_closure()
+        {
+            Assert.Multiple(() =>
+            {
+                var yes = this.fixture.Query.Specializes("PartUsage", "Element").Value!;
+                Assert.That(yes.Specializes, Is.True);
+                Assert.That(yes.Path[0], Is.EqualTo("PartUsage"));
+                Assert.That(yes.Path[^1], Is.EqualTo("Element"));
+
+                var no = this.fixture.Query.Specializes("Element", "PartUsage").Value!;
+                Assert.That(no.Specializes, Is.False);
+                Assert.That(no.Path, Is.Empty);
+            });
+        }
+
+        [Test]
+        public void An_inherited_feature_says_which_feature_redefines_it()
+        {
+            var features = this.fixture.Query.Features("Dependency").Value!.ToDictionary(feature => feature.Name);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(features["source"].InheritedFrom, Is.EqualTo("Relationship"));
+                Assert.That(features["source"].RedefinedBy, Is.EqualTo(new FeatureReference("Dependency", null, "client")));
+                Assert.That(features["client"].Redefines, Is.EqualTo(new[] { new FeatureReference("Relationship", null, "source") }));
+                Assert.That(features["client"].RedefinedBy, Is.Null, "an owned feature is not redefined in its own context");
+            });
+        }
+
+        [Test]
+        public void A_feature_says_what_its_opposite_end_is()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    this.fixture.Query.Features("Type", "ownedFeature").Value!.Single().Opposite,
+                    Is.EqualTo(new FeatureReference("Feature", null, "owningType")));
+                Assert.That(this.fixture.Query.Features("Element", "isImpliedIncluded").Value!.Single().Opposite, Is.Null);
+            });
+        }
+
+        [Test]
+        public void A_metamodel_that_names_an_inherited_member_its_metaclass_does_not_own_is_refused()
+        {
+            var graph = this.fixture.Layout.MetamodelGraph(QueryFixture.Tag);
+            var document = JsonNode.Parse(File.ReadAllText(graph.FullName))!;
+            var partUsage = document["classes"]!.AsArray().Single(node => (string?)node!["name"] == "PartUsage")!;
+            partUsage["inheritedConstraints"]![0]!["constraint"] = "noSuchConstraint";
+            File.WriteAllText(graph.FullName, document.ToJsonString());
+
+            Assert.That(
+                () => this.fixture.Query.Constraints("PartUsage"),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("inconsistent"));
+        }
+
+        [Test]
+        public void A_metamodel_in_the_previous_format_is_refused_and_says_to_regenerate()
+        {
+            // A release generated before schema 2.0.0 has no inherited operations or constraints.
+            var graph = this.fixture.Layout.MetamodelGraph(QueryFixture.Tag);
+            var document = JsonNode.Parse(File.ReadAllText(graph.FullName))!;
+            foreach (var node in document["classes"]!.AsArray())
+            {
+                node!.AsObject().Remove("inheritedOperations");
+                node.AsObject().Remove("inheritedConstraints");
+            }
+
+            File.WriteAllText(graph.FullName, document.ToJsonString());
+
+            Assert.That(
+                () => this.fixture.Query.Subclasses("Usage"),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains($"hypha generate --tag {QueryFixture.Tag}"));
         }
 
         [Test]

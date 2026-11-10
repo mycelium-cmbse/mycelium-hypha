@@ -34,7 +34,7 @@ Redefines [variant](Definition.md#variant)
 
 An EnumerationDefinition is considered semantically to be a variation whose allowed variants are its enumerationValues.
 
-Redefines [isVariation](#isvariation)
+Redefines [isVariation](Definition.md#isvariation)
 
 
 ## Inherited features

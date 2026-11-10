@@ -29,6 +29,13 @@ library. A generator and the code that reads its output use the same C# types, s
 source-generated `JsonSerializerContext` (one per artifact, next to its types), not a
 reflection-based `JsonSerializer` call.
 
+**uml4net computes the UML semantics; the query API only reads them.** Inheritance closures,
+inherited members, the owner of a redefined or subsetted feature, opposite ends and what redefines a
+member in a metaclass's context are computed by `metamodel-gen` with uml4net and written to
+`metamodel.json`. `Hypha.Knowledge.Query` reads, filters and shapes those facts; it never re-derives
+them (no walking ancestors to collect members, no resolving a feature by its bare name). A question
+that needs a fact the JSON does not hold is a generator change first.
+
 ## Build & test
 
 **.NET** (`tools/metamodel-gen`, `tools/knowledge-gen` and `tools/hypha-cli`, `net10.0`, NUnit), from

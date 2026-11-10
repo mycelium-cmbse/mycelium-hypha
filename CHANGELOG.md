@@ -72,6 +72,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
 
 ### Changed
+- **`metamodel.json` 2.0.0: the generator writes the UML semantics, the query API reads them**
+  (`fixes #208`). uml4net already computed them; the query API had been working some of them out a
+  second time. **Regenerate every installed release** (`hypha generate --tag <release>`, and
+  `hypha api generate --tag <version>` for an API version): a 1.0.0 document is refused with that
+  advice.
+  - `redefines` and `subsets` name the feature's owner, `{ "class", "association", "feature" }`,
+    instead of a bare name, which several metaclasses share (66 of the 140 redefinitions in a release
+    named such a feature). An end an association owns has `association` set instead of `class`.
+  - New per attribute: `opposite` (the other association end; `null` when that end, or its
+    association, has no name, as in the Systems Modeling API PIM), `isDerivedUnion`, `isUnique`,
+    `isReadOnly` and `defaultValue`; per inherited attribute, `redefinedBy`, the feature that
+    redefines it in that metaclass.
+  - New per class: `inheritedOperations` and `inheritedConstraints`, as references to the declaring
+    class's entry, each inherited operation with `redefinedBy`. Owned operations list what they
+    `redefines`, and constraints their `constrainedElements`. The file grows from about 8 MB to
+    about 16 MB; copying every inherited operation and constraint in full would have made it 26 MB.
+  - `Constraints` and `Operations` read the inherited members from the document instead of walking
+    the ancestors. `Operations` leaves out an inherited operation that the metaclass's context
+    redefines, so it no longer lists two OCL bodies for one operation (such as `namingFeature` for a
+    `ConstraintUsage`).
+  - `Redefinitions` and `Subsettings` take an optional `owner`, after `tag` so a call written for the
+    previous signature still means the release, and their results name the owner of the redefined
+    or subsetted feature. `Features` returns the new facts. `Specializes` answers from
+    the generated `allAncestors` (a metaclass conforms to itself) and returns `Specializes` as a
+    field; the chain of generalizations stays as an explanation.
+  - The metaclass pages link a redefined or subsetted feature to the page of the metaclass that
+    owns it. A feature that redefines an inherited one of the same name used to link to itself.
+  - The skills' and the metamodel-navigator agent's `jq` recipes follow the new shape.
 - **`Hypha.MetamodelGen` is now `Hypha.Knowledge.Metamodel`** (`fixes #193`), the first step of the
   MCP refactor. Its test project is `Hypha.Knowledge.Metamodel.Tests`, and `AddHyphaMetamodelGen` is
   now `AddHyphaMetamodel`. The `tools/metamodel-gen/` folder keeps its name, and `Hypha.Knowledge`

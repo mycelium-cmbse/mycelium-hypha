@@ -73,11 +73,12 @@ namespace Hypha.Knowledge.Metamodel.Tests
             var metaclasses = MetaclassFileGenerator.QueryMetaclasses(model!);
             var subtypeIndex = MetaclassFileGenerator.BuildSubtypeIndex(metaclasses);
             var linkableTypeNames = ElementCatalog.LinkableTypeNames(model!);
+            var owners = ModelOwners.Build(model!);
             var withBody = 0;
 
             foreach (var metaclass in metaclasses.Where(@class => @class.OwnedOperation.Count > 0))
             {
-                var content = this.generator.GenerateElement(metaclass, subtypeIndex, linkableTypeNames).Replace("\r\n", "\n");
+                var content = this.generator.GenerateElement(metaclass, subtypeIndex, linkableTypeNames, owners).Replace("\r\n", "\n");
 
                 Assert.That(content, Does.Contain("\n## Operations\n"), metaclass.Name);
 

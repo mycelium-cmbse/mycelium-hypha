@@ -69,7 +69,8 @@ Three things the metamodel pages do not have:
 
 `pim/metamodel.json` holds the same content with the inheritance closures computed
 (`.classes[] | {name, ownedAttributes, inheritedAttributes, ownedOperations}`); an attribute carries
-`lower`, `upper` (`-1` is unbounded), `isDerived`, `redefines` and `subsets`.
+`lower`, `upper` (`-1` is unbounded), `isDerived`, `redefines` and `subsets`, each reference an object
+naming the feature and its owner (`{ "class", "association", "feature" }`).
 
 ```sh
 jq '.classes[] | select(.name=="Project") | .ownedAttributes[] | {name, lower, upper, isDerived, subsets}' \

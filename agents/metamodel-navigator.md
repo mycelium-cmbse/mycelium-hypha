@@ -21,10 +21,16 @@ KerML and SysML v2 are **combined** under one tree:
 
 - `knowledge/<tag>/metamodel/metamodel.json`: **the graph, and your default tool.** Every element as a
   node with its closures already computed: `allAncestors`, `allDescendants`, `directSubclasses`, and
-  `inheritedAttributes` carrying `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper`
-  (`-1` = unbounded), `isDerived`, `isComposite`, `isOrdered`, `redefines`, `subsets`; classes also
-  carry `ownedOperations` (each with `documentation` and its `body`, the OCL of its `bodyCondition`)
-  and `constraints` (with OCL).
+  `inheritedAttributes` carrying `inheritedFrom` and `redefinedBy` (the feature that redefines it in
+  that metaclass, or `null`). Owned attributes carry `type`, `lower`/`upper` (`-1` = unbounded),
+  `isDerived`, `isDerivedUnion`, `isComposite`, `isOrdered`, `isUnique`, `isReadOnly`,
+  `defaultValue`, `redefines`, `subsets` and `opposite`; a reference to another feature is an object
+  naming its owner, `{ "class", "association", "feature" }` (exactly one owner set), since several
+  metaclasses declare a feature of the same name. Classes also carry `ownedOperations` (each with
+  `documentation`, its `body`, the OCL of its `bodyCondition`, and what it `redefines`) and
+  `constraints` (with OCL and `constrainedElements`); `inheritedOperations` and
+  `inheritedConstraints` are references to the declaring class's entry, and an inherited operation
+  with `redefinedBy` set does not apply.
 - `knowledge/<tag>/metamodel/elements/<Name>.md`: one file per element: metaclasses, enumerations
   (`kind: enumeration`) and primitive types (`kind: primitive`). The citable surface.
 - `knowledge/<tag>/metamodel/index.md`: the manifest, with metaclasses by package, plus `## Enumeration types` and
@@ -51,7 +57,7 @@ inherited set with each feature's declaring `Owner`; read it directly, never re-
 ## How to work
 
 1. **Query `metamodel.json` first.** Nearly every breadth question is one pass over the graph, and
-   the closures mean you never walk the generalization chain by hand. The file is ~8 MB, so never read
+   the closures mean you never walk the generalization chain by hand. The file is ~16 MB, so never read
    it whole; query it. `jq` is recommended:
 
    ```sh
@@ -63,8 +69,9 @@ inherited set with each feature's declaring `Owner`; read it directly, never re-
    jq -r '.classes[] | select(.allAncestors | index("Usage")) | select(.isAbstract|not) | .name' \
      knowledge/<tag>/metamodel/metamodel.json
 
-   # Trace a redefinition: who redefines `name`, and from where
-   jq -r '.classes[] | . as $c | .ownedAttributes[]? | select(.redefines | index("name")) | $c.name' \
+   # Trace a redefinition: who redefines an `owningType`, and whose `owningType` it is
+   jq -r '.classes[] | . as $c | .ownedAttributes[] | . as $a | .redefines[]
+          | select(.feature=="owningType") | "\($c.name)::\($a.name) redefines \(.class // .association)::owningType"' \
      knowledge/<tag>/metamodel/metamodel.json
    ```
 
