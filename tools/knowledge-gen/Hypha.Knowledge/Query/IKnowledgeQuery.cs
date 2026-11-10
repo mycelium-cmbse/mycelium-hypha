@@ -26,7 +26,7 @@ namespace Hypha.Knowledge.Query
     /// </remarks>
     public interface IKnowledgeQuery
     {
-        /// <summary>The installed releases and API versions, and the default of each.</summary>
+        /// <summary>The installed releases and API versions, the default of each, and which artifacts each has generated.</summary>
         /// <returns>The inventory; empty lists when nothing is installed.</returns>
         ReleaseInventory Releases();
 
@@ -214,5 +214,63 @@ namespace Hypha.Knowledge.Query
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
         QueryResult<ModelLibraryDeclarationEntry> Declaration(string qualifiedName, string? tag = null);
+
+        /// <summary>One clause of the KerML or SysML specification, with its verbatim text.</summary>
+        /// <param name="document">The specification: <c>kerml</c> or <c>sysml2</c>.</param>
+        /// <param name="clause">The clause number, such as <c>7.4.2</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The clause; <c>null</c> when the specification has no such clause. When the release has not
+        /// generated the specification text, which needs the OMG PDFs, the result is not an error but
+        /// <see cref="QueryResult{T}.Unavailable"/>, saying how to generate it.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// <paramref name="document"/> is not <c>kerml</c> or <c>sysml2</c>, or <paramref name="clause"/> is
+        /// <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, or its specification index or page is invalid.
+        /// </exception>
+        QueryResult<SpecificationClause> Clause(string document, string clause, string? tag = null);
+
+        /// <summary>
+        /// Searches the release's metaclasses, standard-library declarations and specification clauses by
+        /// name, qualified name, clause number or title.
+        /// </summary>
+        /// <param name="text">The text to look for.</param>
+        /// <param name="kind">Only hits of this kind, one of <see cref="HyphaAddress.Kinds"/>, or <c>null</c> for any.</param>
+        /// <param name="limit">The most hits returned, from 1 to <c>200</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The hits, closest match first, then by kind and name; empty when nothing matches. A clause whose
+        /// title is the text matches as closely as one whose number is. The model library and the
+        /// specification text are searched when they have been generated.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// <paramref name="text"/> is <c>null</c>, empty or white space, <paramref name="kind"/> is not a
+        /// known kind, or <paramref name="limit"/> is out of range.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not generated its metamodel, or its documents
+        /// are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<SearchHit>> Search(string text, string? kind = null, int limit = 20, string? tag = null);
+
+        /// <summary>Resolves an address to the generated page it names, through the release's indexes.</summary>
+        /// <param name="address">The address.</param>
+        /// <returns>
+        /// The page; <c>null</c> when the release has no such element, declaration or clause.
+        /// <see cref="QueryResult{T}.Unavailable"/> for a clause of a specification the release has not generated.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException"><paramref name="address"/> is <c>null</c>.</exception>
+        /// <exception cref="System.ArgumentException">
+        /// The address's kind is not one of <see cref="HyphaAddress.Kinds"/>, which only an address built
+        /// directly rather than parsed can have.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The address's release is not installed, has not generated the artifact, or its index points at a
+        /// page that is missing or outside the release's folder.
+        /// </exception>
+        QueryResult<ResolvedAddress> Resolve(HyphaAddress address);
     }
 }

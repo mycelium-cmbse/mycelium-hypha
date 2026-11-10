@@ -32,7 +32,7 @@ namespace Hypha.Knowledge.Query
     /// JSON, or JSON of the wrong shape.
     /// </para>
     /// </remarks>
-    internal sealed class DocumentCache
+    public sealed class DocumentCache : IDocumentCache
     {
         /// <summary>The largest generated document read, the same bound the lookup applies.</summary>
         private const long MaxFileBytes = KnowledgeLookup.MaxFileBytes;
@@ -77,7 +77,7 @@ namespace Hypha.Knowledge.Query
                 return value;
             }
 
-            var document = Parse(file, Read(file), contract, regenerate);
+            var document = Parse(file, this.ReadText(file), contract, regenerate);
 
             if (!isWhole(document))
             {
@@ -90,11 +90,11 @@ namespace Hypha.Knowledge.Query
             return document;
         }
 
-        /// <summary>Reads a generated file as UTF-8 text.</summary>
-        /// <param name="file">The file.</param>
-        /// <returns>The file's text.</returns>
-        /// <exception cref="KnowledgeLookupException">The file cannot be read.</exception>
-        private static string Read(FileInfo file)
+        /// <summary>Reads a generated page as UTF-8 text, without keeping it.</summary>
+        /// <param name="file">The page.</param>
+        /// <returns>The page's text.</returns>
+        /// <exception cref="KnowledgeLookupException">The page cannot be read.</exception>
+        public string ReadText(FileInfo file)
         {
             try
             {

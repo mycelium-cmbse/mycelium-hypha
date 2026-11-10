@@ -31,6 +31,9 @@ namespace Hypha.Knowledge.Query
     /// </remarks>
     public sealed class ApiQuery : IApiQuery
     {
+        /// <summary>The name a clause of the API specification gives its document.</summary>
+        public const string Document = "api";
+
         /// <summary>Where each API version's generated knowledge lives, and which versions are installed.</summary>
         private readonly IApiLayout layout;
 
@@ -38,19 +41,32 @@ namespace Hypha.Knowledge.Query
         private readonly IKnowledgeLayout knowledgeLayout;
 
         /// <summary>The documents read so far.</summary>
-        private readonly DocumentCache documents = new();
+        private readonly IDocumentCache documents;
+
+        /// <summary>Reads the specification text.</summary>
+        private readonly ISpecificationReader specifications;
 
         /// <summary>Initializes a new instance of the <see cref="ApiQuery"/> class.</summary>
         /// <param name="layout">Where each API version's generated knowledge lives, and which versions are installed.</param>
         /// <param name="knowledgeLayout">The knowledge layout, whose output root the grounding names files relative to.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="layout"/> or <paramref name="knowledgeLayout"/> is <c>null</c>.</exception>
-        public ApiQuery(IApiLayout layout, IKnowledgeLayout knowledgeLayout)
+        /// <param name="documents">The documents read so far, shared with the other queries.</param>
+        /// <param name="specifications">Reads the specification text.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="layout"/>, <paramref name="knowledgeLayout"/>, <paramref name="documents"/> or
+        /// <paramref name="specifications"/> is <c>null</c>.
+        /// </exception>
+        public ApiQuery(
+            IApiLayout layout, IKnowledgeLayout knowledgeLayout, IDocumentCache documents, ISpecificationReader specifications)
         {
             ArgumentNullException.ThrowIfNull(layout);
             ArgumentNullException.ThrowIfNull(knowledgeLayout);
+            ArgumentNullException.ThrowIfNull(documents);
+            ArgumentNullException.ThrowIfNull(specifications);
 
             this.layout = layout;
             this.knowledgeLayout = knowledgeLayout;
+            this.documents = documents;
+            this.specifications = specifications;
         }
 
         /// <summary>A PIM class with its owned and inherited attributes and its operations.</summary>
@@ -123,6 +139,38 @@ namespace Hypha.Knowledge.Query
             var (document, grounding) = this.CrossReferences(version);
 
             return new(document.Operations.GetValueOrDefault(name), grounding);
+        }
+
+        /// <summary>One clause of the Systems Modeling API and Services specification, with its verbatim text.</summary>
+        /// <param name="clause">The clause number, such as <c>7.1.4</c>.</param>
+        /// <param name="version">The API version, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The clause, its document named <c>api</c>, grounded as <see cref="Provenance.Normative"/> and naming
+        /// its page; <c>null</c> when the specification has no such clause. When the version has not
+        /// generated the specification text, the result is <see cref="QueryResult{T}.Unavailable"/>, saying
+        /// how to generate it.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="clause"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The version is not installed, has no default, or its specification index or page is invalid.
+        /// </exception>
+        public QueryResult<SpecificationClause> Clause(string clause, string? version = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(clause);
+
+            var resolved = this.Version(version);
+            var command = $"hypha api generate spec --tag {resolved}";
+
+            return this.specifications.Read(
+                this.layout.SpecificationCatalog(resolved),
+                Document,
+                clause.Trim(),
+                resolved,
+                $"API version {resolved}",
+                command,
+                $"The specification text of API version {resolved} has not been generated. It needs the OMG "
+                + $"specification PDF: run 'hypha api fetch --tag {resolved}', then '{command}'.",
+                file => this.Ground(Provenance.Normative, resolved, file));
         }
 
         /// <summary>Reads an API version's <c>cross-references.json</c>.</summary>

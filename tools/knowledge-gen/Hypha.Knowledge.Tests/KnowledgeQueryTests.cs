@@ -230,7 +230,7 @@ namespace Hypha.Knowledge.Tests
                 Directory.CreateDirectory(layout.Metamodel(QueryFixture.Tag).FullName);
                 File.Copy(this.fixture.Layout.MetamodelGraph(QueryFixture.Tag).FullName, layout.MetamodelGraph(QueryFixture.Tag).FullName);
 
-                var result = new KnowledgeQuery(layout, new ApiLayout(layout)).Subclasses("Usage");
+                var result = QueryFixture.NewQuery(layout, new ApiLayout(layout)).Subclasses("Usage");
 
                 Assert.Multiple(() =>
                 {
@@ -269,9 +269,9 @@ namespace Hypha.Knowledge.Tests
             apiLayout.SetupGet(mock => mock.DefaultTag).Returns((string?)null);
 
             var release = Assert.Throws<KnowledgeLookupException>(
-                () => new KnowledgeQuery(layout.Object, apiLayout.Object).Subclasses("Usage"));
+                () => QueryFixture.NewQuery(layout.Object, apiLayout.Object).Subclasses("Usage"));
             var api = Assert.Throws<KnowledgeLookupException>(
-                () => new ApiQuery(apiLayout.Object, layout.Object).Type("Commit"));
+                () => QueryFixture.NewApi(apiLayout.Object, layout.Object).Type("Commit"));
 
             Assert.Multiple(() =>
             {
@@ -303,9 +303,9 @@ namespace Hypha.Knowledge.Tests
                 var apiLayout = new ApiLayout(layout);
 
                 var release = Assert.Throws<KnowledgeLookupException>(
-                    () => new KnowledgeQuery(layout, apiLayout).Subclasses("Usage"));
-                var api = Assert.Throws<KnowledgeLookupException>(() => new ApiQuery(apiLayout, layout).Type("Commit"));
-                var inventory = new KnowledgeQuery(layout, apiLayout).Releases();
+                    () => QueryFixture.NewQuery(layout, apiLayout).Subclasses("Usage"));
+                var api = Assert.Throws<KnowledgeLookupException>(() => QueryFixture.NewApi(apiLayout, layout).Type("Commit"));
+                var inventory = QueryFixture.NewQuery(layout, apiLayout).Releases();
 
                 Assert.Multiple(() =>
                 {
@@ -456,7 +456,7 @@ namespace Hypha.Knowledge.Tests
         public void Queries_from_several_threads_at_once_give_the_same_answer()
         {
             var expected = this.fixture.Query.Subclasses("Usage").Value;
-            var fresh = new KnowledgeQuery(this.fixture.Layout, this.fixture.ApiLayout);
+            var fresh = QueryFixture.NewQuery(this.fixture.Layout, this.fixture.ApiLayout);
 
             var answers = new IReadOnlyList<string>?[32];
             Parallel.For(0, answers.Length, i => answers[i] = fresh.Subclasses("Usage").Value);
@@ -517,12 +517,53 @@ namespace Hypha.Knowledge.Tests
 
             var first = provider.GetRequiredService<IKnowledgeQuery>();
             var second = provider.GetRequiredService<IKnowledgeQuery>();
+            var documents = provider.GetRequiredService<IDocumentCache>();
 
             Assert.Multiple(() =>
             {
                 Assert.That(first.Releases().Default, Is.EqualTo(QueryFixture.Tag));
                 Assert.That(provider.GetRequiredService<IApiQuery>().Type("Commit").Found, Is.True);
                 Assert.That(first, Is.SameAs(second));
+                Assert.That(provider.GetRequiredService<IDocumentCache>(), Is.SameAs(documents));
+                Assert.That(provider.GetRequiredService<ISpecificationReader>(), Is.InstanceOf<SpecificationReader>());
+            });
+        }
+
+        [Test]
+        public void A_query_reads_through_the_cache_it_is_given()
+        {
+            var documents = new Mock<IDocumentCache>();
+            documents
+                .Setup(mock => mock.Get(
+                    It.IsAny<FileInfo>(),
+                    It.IsAny<System.Text.Json.Serialization.Metadata.JsonTypeInfo<MetamodelDocument>>(),
+                    It.IsAny<Func<MetamodelDocument, bool>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                .Throws(new KnowledgeLookupException("refused by the cache"));
+            var query = new KnowledgeQuery(
+                this.fixture.Layout, this.fixture.ApiLayout, documents.Object, new SpecificationReader(documents.Object));
+
+            Assert.That(
+                () => query.Subclasses("Usage"),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.EqualTo("refused by the cache"));
+        }
+
+        [Test]
+        public void A_query_needs_every_collaborator()
+        {
+            var layout = this.fixture.Layout;
+            var apiLayout = this.fixture.ApiLayout;
+            var documents = this.fixture.Documents;
+            var specifications = new SpecificationReader(documents);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, null!, specifications), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, null!), Throws.ArgumentNullException);
+                Assert.That(() => new ApiQuery(apiLayout, layout, null!, specifications), Throws.ArgumentNullException);
+                Assert.That(() => new ApiQuery(apiLayout, layout, documents, null!), Throws.ArgumentNullException);
+                Assert.That(() => new SpecificationReader(null!), Throws.ArgumentNullException);
             });
         }
 

@@ -52,5 +52,19 @@ namespace Hypha.Knowledge.Query
         /// The version is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
         QueryResult<ApiOperationEntry> Operation(string name, string? version = null);
+
+        /// <summary>One clause of the Systems Modeling API and Services specification, with its verbatim text.</summary>
+        /// <param name="clause">The clause number, such as <c>7.1.4</c>.</param>
+        /// <param name="version">The API version, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The clause, its document named <c>api</c>; <c>null</c> when the specification has no such
+        /// clause. When the version has not generated the specification text, the result is
+        /// <see cref="QueryResult{T}.Unavailable"/>, saying how to generate it.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="clause"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The version is not installed, has no default, or its specification index or page is invalid.
+        /// </exception>
+        QueryResult<SpecificationClause> Clause(string clause, string? version = null);
     }
 }

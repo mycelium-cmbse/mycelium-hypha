@@ -44,10 +44,10 @@ namespace Hypha.Knowledge.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(
-                    new[] { inventory.Default! }.Concat(inventory.Releases),
+                    new[] { inventory.Default! }.Concat(inventory.Releases.Select(release => release.Tag)),
                     Is.EqualTo(Jq.Lines(".default, (.versions[].tag)", this.fixture.Layout.VersionManifest)));
                 Assert.That(
-                    new[] { inventory.ApiDefault! }.Concat(inventory.ApiVersions),
+                    new[] { inventory.ApiDefault! }.Concat(inventory.ApiVersions.Select(version => version.Tag)),
                     Is.EqualTo(Jq.Lines(".default, (.versions[].tag)", this.fixture.ApiLayout.VersionManifest)));
             });
         }
@@ -334,6 +334,26 @@ namespace Hypha.Knowledge.Tests
                 Is.EqualTo(Jq.Lines(
                     $".entries | to_entries[] | . as $e | $e.value.clauses[] | select(.document==\"kerml\" and {match}) | \"\\($e.key) \\(.clause)\"",
                     this.CrossReferences()).Sorted()).And.Not.Empty);
+        }
+
+        [Test]
+        public void A_specification_clause_matches_its_index_entry()
+        {
+            var clause = this.fixture.Query.Clause("kerml", "7.4.2").Value!;
+            var expected = new JsonObject
+            {
+                ["title"] = clause.Title,
+                ["pages"] = clause.Pages,
+                ["normative"] = clause.Normative,
+            };
+
+            Assert.That(
+                JsonNode.DeepEquals(
+                    expected,
+                    Jq.Json(
+                        ".entries[\"7.4.2\"] | {title, pages, normative}",
+                        this.fixture.Layout.SpecificationCatalog(QueryFixture.Tag, "kerml"))),
+                Is.True);
         }
 
         [Test]

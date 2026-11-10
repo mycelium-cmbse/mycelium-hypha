@@ -167,7 +167,10 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
 
-            // Singletons on purpose: each holds the documents it has read until their files change.
+            // Singletons on purpose: the one cache holds the documents read until their files change,
+            // and both queries share it.
+            services.AddSingleton<IDocumentCache, DocumentCache>();
+            services.AddSingleton<ISpecificationReader, SpecificationReader>();
             services.AddSingleton<IKnowledgeQuery, KnowledgeQuery>();
             services.AddSingleton<IApiQuery, ApiQuery>();
 
