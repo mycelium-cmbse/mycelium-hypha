@@ -85,11 +85,7 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="QualifiedName">The fully qualified name.</param>
     /// <param name="Parent">The name of the owning namespace, or <c>null</c> for a root package.</param>
     /// <param name="Classes">The names of the metaclasses the package directly contains, ordered.</param>
-    public sealed record PackageNode(
-        string Name,
-        string QualifiedName,
-        string? Parent,
-        IReadOnlyList<string> Classes);
+    public sealed record PackageNode(string Name, string QualifiedName, string? Parent, IReadOnlyList<string> Classes);
 
     /// <summary>A metaclass with its precomputed inheritance closures, features and constraints.</summary>
     /// <param name="Name">The element name.</param>
@@ -107,7 +103,14 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="OwnedAttributes">The owned attributes, ordered by name.</param>
     /// <param name="InheritedAttributes">The attributes inherited from supertypes, ordered by name.</param>
     /// <param name="OwnedOperations">The owned operations, ordered by name.</param>
+    /// <param name="InheritedOperations">
+    /// A reference to every operation the supertypes declare, ordered by name and then declaring
+    /// metaclass, each saying which operation redefines it in this metaclass's context, if any.
+    /// </param>
     /// <param name="Constraints">The owned constraints, ordered by name.</param>
+    /// <param name="InheritedConstraints">
+    /// A reference to every constraint the supertypes declare, ordered by name and then declaring metaclass.
+    /// </param>
     public sealed record ClassNode(
         string Name,
         string XmiId,
@@ -124,7 +127,9 @@ namespace Hypha.Knowledge.Metamodel
         IReadOnlyList<AttributeNode> OwnedAttributes,
         IReadOnlyList<InheritedAttributeNode> InheritedAttributes,
         IReadOnlyList<OperationNode> OwnedOperations,
-        IReadOnlyList<ConstraintNode> Constraints);
+        IReadOnlyList<InheritedOperationNode> InheritedOperations,
+        IReadOnlyList<ConstraintNode> Constraints,
+        IReadOnlyList<InheritedConstraintNode> InheritedConstraints);
 
     /// <summary>An owned attribute (property) of a metaclass.</summary>
     /// <param name="Name">The attribute name.</param>
@@ -134,10 +139,18 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="Lower">The lower multiplicity bound.</param>
     /// <param name="Upper">The upper multiplicity bound, <c>-1</c> when unbounded.</param>
     /// <param name="IsDerived">Whether the attribute is derived.</param>
+    /// <param name="IsDerivedUnion">Whether the attribute is a derived union of the attributes that subset it.</param>
     /// <param name="IsComposite">Whether the attribute is composite.</param>
     /// <param name="IsOrdered">Whether the attribute is ordered.</param>
-    /// <param name="Redefines">The names of the attributes it redefines.</param>
-    /// <param name="Subsets">The names of the attributes it subsets.</param>
+    /// <param name="IsUnique">Whether the attribute's values are unique.</param>
+    /// <param name="IsReadOnly">Whether the attribute is read-only.</param>
+    /// <param name="DefaultValue">The default value as written in the model, or <c>null</c> when it has none.</param>
+    /// <param name="Redefines">The attributes it redefines, each with its owner.</param>
+    /// <param name="Subsets">The attributes it subsets, each with its owner.</param>
+    /// <param name="Opposite">
+    /// The other end of the binary association the attribute is an end of; <c>null</c> when it is not one,
+    /// or when the other end cannot be named because it, or the association that owns it, has no name.
+    /// </param>
     /// <param name="Documentation">The documentation (may be empty).</param>
     public sealed record AttributeNode(
         string Name,
@@ -147,10 +160,15 @@ namespace Hypha.Knowledge.Metamodel
         int Lower,
         int Upper,
         bool IsDerived,
+        bool IsDerivedUnion,
         bool IsComposite,
         bool IsOrdered,
-        IReadOnlyList<string> Redefines,
-        IReadOnlyList<string> Subsets,
+        bool IsUnique,
+        bool IsReadOnly,
+        string? DefaultValue,
+        IReadOnlyList<FeatureReference> Redefines,
+        IReadOnlyList<FeatureReference> Subsets,
+        FeatureReference? Opposite,
         string Documentation);
 
     /// <summary>An attribute inherited from a supertype, tagged with the declaring metaclass.</summary>
@@ -161,12 +179,24 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="Lower">The lower multiplicity bound.</param>
     /// <param name="Upper">The upper multiplicity bound, <c>-1</c> when unbounded.</param>
     /// <param name="IsDerived">Whether the attribute is derived.</param>
+    /// <param name="IsDerivedUnion">Whether the attribute is a derived union of the attributes that subset it.</param>
     /// <param name="IsComposite">Whether the attribute is composite.</param>
     /// <param name="IsOrdered">Whether the attribute is ordered.</param>
-    /// <param name="Redefines">The names of the attributes it redefines.</param>
-    /// <param name="Subsets">The names of the attributes it subsets.</param>
+    /// <param name="IsUnique">Whether the attribute's values are unique.</param>
+    /// <param name="IsReadOnly">Whether the attribute is read-only.</param>
+    /// <param name="DefaultValue">The default value as written in the model, or <c>null</c> when it has none.</param>
+    /// <param name="Redefines">The attributes it redefines, each with its owner.</param>
+    /// <param name="Subsets">The attributes it subsets, each with its owner.</param>
+    /// <param name="Opposite">
+    /// The other end of the binary association the attribute is an end of; <c>null</c> when it is not one,
+    /// or when the other end cannot be named because it, or the association that owns it, has no name.
+    /// </param>
     /// <param name="Documentation">The documentation (may be empty).</param>
     /// <param name="InheritedFrom">The name of the supertype that declares the attribute.</param>
+    /// <param name="RedefinedBy">
+    /// The attribute that redefines this one in the inheriting metaclass's context, owned by it or by one
+    /// of its supertypes, or <c>null</c> when none does, so the attribute applies as inherited.
+    /// </param>
     public sealed record InheritedAttributeNode(
         string Name,
         string? Type,
@@ -175,12 +205,18 @@ namespace Hypha.Knowledge.Metamodel
         int Lower,
         int Upper,
         bool IsDerived,
+        bool IsDerivedUnion,
         bool IsComposite,
         bool IsOrdered,
-        IReadOnlyList<string> Redefines,
-        IReadOnlyList<string> Subsets,
+        bool IsUnique,
+        bool IsReadOnly,
+        string? DefaultValue,
+        IReadOnlyList<FeatureReference> Redefines,
+        IReadOnlyList<FeatureReference> Subsets,
+        FeatureReference? Opposite,
         string Documentation,
-        string InheritedFrom);
+        string InheritedFrom,
+        FeatureReference? RedefinedBy);
 
     /// <summary>
     /// An owned operation. The return is captured separately from the (non-return) parameters;
@@ -192,6 +228,7 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="ReturnUpper">The upper bound of the return multiplicity, <c>-1</c> when unbounded.</param>
     /// <param name="IsQuery">Whether the operation is a query.</param>
     /// <param name="Parameters">The non-return parameters, in declaration order.</param>
+    /// <param name="Redefines">The operations it redefines, each with its owner.</param>
     /// <param name="Documentation">The documentation (may be empty).</param>
     /// <param name="Body">The OCL of the <c>bodyCondition</c> (may be empty).</param>
     public sealed record OperationNode(
@@ -201,8 +238,21 @@ namespace Hypha.Knowledge.Metamodel
         int ReturnUpper,
         bool IsQuery,
         IReadOnlyList<OperationParameterNode> Parameters,
+        IReadOnlyList<OperationReference> Redefines,
         string Documentation,
         string Body);
+
+    /// <summary>
+    /// An operation a supertype declares, by reference: its signature and body are in the declaring
+    /// metaclass's <see cref="ClassNode.OwnedOperations"/>.
+    /// </summary>
+    /// <param name="Class">The supertype that declares the operation.</param>
+    /// <param name="Operation">The operation name, unique among the operations its metaclass owns.</param>
+    /// <param name="RedefinedBy">
+    /// The operation that redefines this one in the inheriting metaclass's context, owned by it or by one
+    /// of its supertypes, or <c>null</c> when none does, so this one applies.
+    /// </param>
+    public sealed record InheritedOperationNode(string Class, string Operation, OperationReference? RedefinedBy);
 
     /// <summary>A single (non-return) operation parameter.</summary>
     /// <param name="Name">The parameter name.</param>
@@ -221,7 +271,41 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="Name">The constraint name.</param>
     /// <param name="Documentation">The documentation (may be empty).</param>
     /// <param name="Ocl">The constraint body (may be empty).</param>
-    public sealed record ConstraintNode(string Name, string Documentation, string Ocl);
+    /// <param name="ConstrainedElements">The elements the constraint constrains, in model order.</param>
+    public sealed record ConstraintNode(
+        string Name, string Documentation, string Ocl, IReadOnlyList<ElementReference> ConstrainedElements);
+
+    /// <summary>
+    /// A constraint a supertype declares, by reference: its documentation, body and constrained elements
+    /// are in the declaring metaclass's <see cref="ClassNode.Constraints"/>.
+    /// </summary>
+    /// <param name="Class">The supertype that declares the constraint.</param>
+    /// <param name="Constraint">The constraint name, unique among the constraints its metaclass owns.</param>
+    public sealed record InheritedConstraintNode(string Class, string Constraint);
+
+    /// <summary>
+    /// A reference to an attribute by its owner: a classifier for an owned attribute, an association for
+    /// an end the association owns. Exactly one of the two owners is set.
+    /// </summary>
+    /// <param name="Class">The classifier that owns the attribute, or <c>null</c> when an association does.</param>
+    /// <param name="Association">The association that owns the end, or <c>null</c> when a classifier does.</param>
+    /// <param name="Feature">The attribute name.</param>
+    public sealed record FeatureReference(string? Class, string? Association, string Feature);
+
+    /// <summary>A reference to an operation by the classifier that owns it.</summary>
+    /// <param name="Class">The classifier that owns the operation.</param>
+    /// <param name="Operation">The operation name.</param>
+    public sealed record OperationReference(string Class, string Operation);
+
+    /// <summary>A reference to a model element by kind, owner and name.</summary>
+    /// <param name="Kind">
+    /// The element's UML metaclass, camel-cased: <c>class</c>, <c>property</c>, <c>operation</c>, and so on.
+    /// </param>
+    /// <param name="Owner">
+    /// The classifier or association that owns the element, or <c>null</c> for an element owned by a package.
+    /// </param>
+    /// <param name="Name">The element name.</param>
+    public sealed record ElementReference(string Kind, string? Owner, string Name);
 
     /// <summary>An enumeration and its literals (declaration order).</summary>
     /// <param name="Name">The element name.</param>

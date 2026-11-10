@@ -69,11 +69,18 @@ namespace Hypha.Knowledge.Query
         /// <summary>The owned features that redefine a feature of the given name.</summary>
         /// <param name="feature">The redefined feature's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
-        /// <returns>The redefinitions, sorted by metaclass and then feature.</returns>
+        /// <param name="owner">
+        /// Only the redefinitions of the feature this metaclass or association owns, or <c>null</c> for
+        /// every feature of that name; several metaclasses declare a feature of the same name.
+        /// </param>
+        /// <returns>
+        /// The redefinitions, each naming the owner of the redefined feature, sorted by metaclass and then feature.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="feature"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="Lookup.KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        QueryResult<IReadOnlyList<Redefinition>> Redefinitions(string feature, string? tag = null);
+        QueryResult<IReadOnlyList<Redefinition>> Redefinitions(string feature, string? tag = null, string? owner = null);
 
         /// <summary>The metaclasses a metaclass specializes, directly or not.</summary>
         /// <param name="className">The metaclass.</param>
@@ -90,8 +97,9 @@ namespace Hypha.Knowledge.Query
         /// <param name="general">The metaclass it may specialize.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
-        /// The answer with a shortest chain of generalizations; <c>null</c> when either name is not a
-        /// metaclass of the release. A metaclass specializes itself, with a chain of one.
+        /// The answer: whether <paramref name="general"/> is one of the ancestors the generator computed,
+        /// or the metaclass itself (a metaclass conforms to itself), and then a shortest chain of direct
+        /// generalizations as an explanation; <c>null</c> when either name is not a metaclass of the release.
         /// </returns>
         /// <exception cref="System.ArgumentException"><paramref name="specific"/> or <paramref name="general"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="Lookup.KnowledgeLookupException">
@@ -104,32 +112,33 @@ namespace Hypha.Knowledge.Query
         /// <param name="includeInherited">Include the constraints its ancestors declare.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
-        /// The constraints, the metaclass's own first and then its ancestors' in name order, each naming
-        /// the metaclass that declares it; <c>null</c> when <paramref name="className"/> is not a
-        /// metaclass of the release.
+        /// The constraints, the metaclass's own first and then the inherited ones by declaring metaclass
+        /// and name, each naming the metaclass that declares it; <c>null</c> when
+        /// <paramref name="className"/> is not a metaclass of the release.
         /// </returns>
         /// <exception cref="System.ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="Lookup.KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        QueryResult<IReadOnlyList<DeclaredMember<ConstraintNode>>> Constraints(
-            string className, bool includeInherited = true, string? tag = null);
+        QueryResult<IReadOnlyList<DeclaredMember<ConstraintNode>>> Constraints(string className, bool includeInherited = true, string? tag = null);
 
         /// <summary>The operations of a metaclass, with their signatures and OCL bodies.</summary>
         /// <param name="className">The metaclass.</param>
-        /// <param name="includeInherited">Include the operations its ancestors declare.</param>
+        /// <param name="includeInherited">
+        /// Include the operations its ancestors declare that apply to it: an inherited operation that an
+        /// operation of its own context redefines is left out, since the redefinition's body applies.
+        /// </param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
-        /// The operations, the metaclass's own first and then its ancestors' in name order, each naming
-        /// the metaclass that declares it; <c>null</c> when <paramref name="className"/> is not a
-        /// metaclass of the release.
+        /// The operations, the metaclass's own first and then the inherited ones by declaring metaclass
+        /// and name, each naming the metaclass that declares it; <c>null</c> when
+        /// <paramref name="className"/> is not a metaclass of the release.
         /// </returns>
         /// <exception cref="System.ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="Lookup.KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        QueryResult<IReadOnlyList<DeclaredMember<OperationNode>>> Operations(
-            string className, bool includeInherited = true, string? tag = null);
+        QueryResult<IReadOnlyList<DeclaredMember<OperationNode>>> Operations(string className, bool includeInherited = true, string? tag = null);
 
         /// <summary>The literals of an enumeration, in the order the metamodel declares them.</summary>
         /// <param name="enumeration">The enumeration, such as <c>VisibilityKind</c>.</param>
@@ -144,12 +153,18 @@ namespace Hypha.Knowledge.Query
         /// <summary>The owned features that subset a feature of the given name.</summary>
         /// <param name="feature">The subsetted feature's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
-        /// <returns>The subsettings, sorted by metaclass and then feature.</returns>
+        /// <param name="owner">
+        /// Only the subsettings of the feature this metaclass or association owns, or <c>null</c> for
+        /// every feature of that name; several metaclasses declare a feature of the same name.
+        /// </param>
+        /// <returns>
+        /// The subsettings, each naming the owner of the subsetted feature, sorted by metaclass and then feature.
+        /// </returns>
         /// <exception cref="System.ArgumentException"><paramref name="feature"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="Lookup.KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        QueryResult<IReadOnlyList<Subsetting>> Subsettings(string feature, string? tag = null);
+        QueryResult<IReadOnlyList<Subsetting>> Subsettings(string feature, string? tag = null, string? owner = null);
 
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>
         /// <param name="name">The element's name.</param>
@@ -203,8 +218,7 @@ namespace Hypha.Knowledge.Query
         /// <exception cref="Lookup.KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        QueryResult<IReadOnlyList<ClauseUse>> ElementsInClause(
-            string document, string clause, bool includeSubclauses = false, string? tag = null);
+        QueryResult<IReadOnlyList<ClauseUse>> ElementsInClause(string document, string clause, bool includeSubclauses = false, string? tag = null);
 
         /// <summary>A standard-library declaration by qualified name: its kind, page and source file.</summary>
         /// <param name="qualifiedName">The qualified name, such as <c>ISQBase::mass</c>.</param>

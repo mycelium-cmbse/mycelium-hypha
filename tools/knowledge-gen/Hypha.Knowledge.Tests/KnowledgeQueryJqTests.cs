@@ -120,8 +120,9 @@ namespace Hypha.Knowledge.Tests
             var expected = features.Select(feature => JsonSerializer.SerializeToNode(feature, Metamodel)!).ToList();
 
             var actual = Jq.Lines(
-                    ".classes[] | select(.name==\"PartUsage\") | (.ownedAttributes[] + {inheritedFrom: null}), .inheritedAttributes[]"
-                    + " | {name, type, lower, upper, isDerived, isComposite, redefines, subsets, inheritedFrom} | tojson",
+                    ".classes[] | select(.name==\"PartUsage\") | (.ownedAttributes[] + {inheritedFrom: null, redefinedBy: null}), .inheritedAttributes[]"
+                    + " | {name, type, lower, upper, isDerived, isDerivedUnion, isComposite, isOrdered, isUnique, isReadOnly,"
+                    + " defaultValue, redefines, subsets, opposite, inheritedFrom, redefinedBy} | tojson",
                     this.Graph())
                 .Select(line => JsonNode.Parse(line)!)
                 .ToList();
@@ -156,9 +157,7 @@ namespace Hypha.Knowledge.Tests
 
             Assert.That(
                 result.Value!.Select(redefinition => redefinition.Class),
-                Is.EqualTo(Jq.Lines(
-                    ".classes[] | . as $c | .ownedAttributes[]? | select(.redefines | index(\"definition\")) | $c.name",
-                    this.Graph()).Sorted()).And.Not.Empty);
+                Is.EqualTo(Jq.Lines(References("redefines", "definition", "$c.name"), this.Graph()).Sorted()).And.Not.Empty);
         }
 
         [Test]
@@ -171,9 +170,26 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     result.Value!.Select(redefinition => $"{redefinition.Class}.{redefinition.Feature}"),
                     Is.EqualTo(Jq.Lines(
-                        ".classes[] | . as $c | .ownedAttributes[]? | select(.redefines | index(\"definition\")) | \"\\($c.name).\\(.name)\"",
-                        this.Graph()).Sorted()).And.Not.Empty);
-                Assert.That(result.Value!.Select(redefinition => redefinition.Redefines), Has.All.EqualTo("definition"));
+                        References("redefines", "definition", "\"\\($c.name).\\($a.name)\""), this.Graph()).Sorted()).And.Not.Empty);
+                Assert.That(result.Value!.Select(redefinition => redefinition.Redefines.Feature), Has.All.EqualTo("definition"));
+            });
+        }
+
+        [TestCase("type", "Feature")]
+        [TestCase("type", "FeatureTyping")]
+        public void Redefinitions_of_a_feature_one_owner_declares_match(string feature, string owner)
+        {
+            // Both Feature and FeatureTyping declare a 'type'; each is redefined by different features.
+            var result = this.fixture.Query.Redefinitions(feature, owner: owner);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.Value!.Select(redefinition => $"{redefinition.Class}.{redefinition.Feature}"),
+                    Is.EqualTo(Jq.Lines(
+                        References("redefines", feature, "\"\\($c.name).\\($a.name)\"", owner), this.Graph()).Sorted()).And.Not.Empty);
+                Assert.That(result.Value!.Select(redefinition => redefinition.Redefines.Class), Has.All.EqualTo(owner));
+                Assert.That(result.Value, Has.Count.LessThan(this.fixture.Query.Redefinitions(feature).Value!.Count));
             });
         }
 
@@ -248,17 +264,54 @@ namespace Hypha.Knowledge.Tests
 
             Assert.That(
                 constraints.Select(constraint => $"{constraint.DeclaredIn} {constraint.Member.Name}"),
-                Is.EqualTo(Jq.Lines(Declared("PartUsage", "constraints"), this.Graph())).And.Not.Empty);
+                Is.EqualTo(Jq.Lines(
+                    ".classes[] | select(.name==\"PartUsage\") | (.constraints[] | \"PartUsage \\(.name)\"),"
+                    + " (.inheritedConstraints | sort_by(.class, .constraint)[] | \"\\(.class) \\(.constraint)\")",
+                    this.Graph())).And.Not.Empty);
+        }
+
+        [Test]
+        public void An_inherited_constraint_reads_its_body_from_the_metaclass_that_declares_it()
+        {
+            var inherited = this.fixture.Query.Constraints("PartUsage").Value!.First(constraint => constraint.DeclaredIn != "PartUsage");
+            var expected = Jq.Lines(
+                $".classes[] | select(.name==\"{inherited.DeclaredIn}\") | .constraints[] | select(.name==\"{inherited.Member.Name}\") | tojson",
+                this.Graph()).Single();
+
+            Assert.That(JsonNode.DeepEquals(JsonSerializer.SerializeToNode(inherited.Member, Metamodel), JsonNode.Parse(expected)), Is.True);
         }
 
         [Test]
         public void Inherited_operations_match()
         {
-            var operations = this.fixture.Query.Operations("PartUsage").Value!;
+            var operations = this.fixture.Query.Operations("ConstraintUsage").Value!;
 
             Assert.That(
                 operations.Select(operation => $"{operation.DeclaredIn} {operation.Member.Name}"),
-                Is.EqualTo(Jq.Lines(Declared("PartUsage", "ownedOperations"), this.Graph())).And.Not.Empty);
+                Is.EqualTo(Jq.Lines(
+                    ".classes[] | select(.name==\"ConstraintUsage\") | (.ownedOperations[] | \"ConstraintUsage \\(.name)\"),"
+                    + " (.inheritedOperations | map(select(.redefinedBy == null)) | sort_by(.class, .operation)[] | \"\\(.class) \\(.operation)\")",
+                    this.Graph())).And.Not.Empty);
+        }
+
+        [Test]
+        public void An_inherited_operation_a_metaclass_redefines_gives_way_to_the_redefinition()
+        {
+            // Feature declares namingFeature, Usage redefines it and ConstraintUsage redefines it again:
+            // only ConstraintUsage's body applies to a ConstraintUsage.
+            var naming = this.fixture.Query.Operations("ConstraintUsage").Value!
+                .Where(operation => operation.Member.Name == "namingFeature")
+                .ToList();
+            var redefinedBy = Jq.Lines(
+                ".classes[] | select(.name==\"ConstraintUsage\") | .inheritedOperations[] | select(.operation==\"namingFeature\")"
+                + " | \"\\(.class) \\(.redefinedBy.class)\"",
+                this.Graph());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(naming.Select(operation => operation.DeclaredIn), Is.EqualTo(new[] { "ConstraintUsage" }));
+                Assert.That(redefinedBy, Is.EquivalentTo(new[] { "Feature Usage", "Usage ConstraintUsage" }));
+            });
         }
 
         [Test]
@@ -300,10 +353,22 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     result.Value!.Select(subsetting => $"{subsetting.Class}.{subsetting.Feature}"),
                     Is.EqualTo(Jq.Lines(
-                        ".classes[] | . as $c | .ownedAttributes[]? | select(.subsets | index(\"usage\")) | \"\\($c.name).\\(.name)\"",
-                        this.Graph()).Sorted()).And.Not.Empty);
-                Assert.That(result.Value!.Select(subsetting => subsetting.Subsets), Has.All.EqualTo("usage"));
+                        References("subsets", "usage", "\"\\($c.name).\\($a.name)\""), this.Graph()).Sorted()).And.Not.Empty);
+                Assert.That(result.Value!.Select(subsetting => subsetting.Subsets.Feature), Has.All.EqualTo("usage"));
             });
+        }
+
+        [TestCase("usage", "Definition")]
+        [TestCase("annotation", "A_annotatedElement_annotation")]
+        public void Subsettings_of_a_feature_one_owner_declares_match(string feature, string owner)
+        {
+            // The second owner is an association: the end it owns is subsetted too.
+            var result = this.fixture.Query.Subsettings(feature, owner: owner);
+
+            Assert.That(
+                result.Value!.Select(subsetting => $"{subsetting.Class}.{subsetting.Feature}"),
+                Is.EqualTo(Jq.Lines(
+                    References("subsets", feature, "\"\\($c.name).\\($a.name)\"", owner), this.Graph()).Sorted()).And.Not.Empty);
         }
 
         [Test]
@@ -508,10 +573,12 @@ namespace Hypha.Knowledge.Tests
         }
 
         // The members a metaclass declares and inherits, its own first, then its ancestors' in name order.
-        private static string Declared(string className, string members) =>
-            "(.classes | map({key: .name, value: .}) | from_entries) as $c"
-            + $" | $c[\"{className}\"] | ([.name] + (.allAncestors | sort))[] as $n"
-            + $" | $c[$n].{members}[]? | \"\\($n) \\(.name)\"";
+        // One line per reference to the feature (an attribute may name two features of that name), the
+        // owner matched on either a class or an association.
+        private static string References(string list, string feature, string output, string? owner = null) =>
+            $".classes[] | . as $c | .ownedAttributes[] | . as $a | .{list}[] | select(.feature==\"{feature}\")"
+            + (owner is null ? string.Empty : $" | select(.class==\"{owner}\" or .association==\"{owner}\")")
+            + $" | {output}";
 
         private System.IO.FileInfo Graph() => this.fixture.Layout.MetamodelGraph(QueryFixture.Tag);
 

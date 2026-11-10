@@ -286,7 +286,8 @@ namespace Hypha.Knowledge.Metamodel.Tests
                 .GenerateElement(
                     classes.Single(@class => @class.Name == name),
                     MetaclassFileGenerator.BuildSubtypeIndex(classes),
-                    ElementCatalog.LinkableTypeNames(model))
+                    ElementCatalog.LinkableTypeNames(model),
+                    ModelOwners.Build(model))
                 .Replace("\r\n", "\n");
         }
 

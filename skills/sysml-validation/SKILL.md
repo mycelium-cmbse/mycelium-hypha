@@ -54,7 +54,9 @@ instead of reasoning from prose. `jq` is recommended; without it, read the eleme
 
 **Reachability**: is a `redefines` / `subsets` target actually inherited? A feature is reachable
 from a metaclass when it appears in that metaclass's `inheritedAttributes` (or its own
-`ownedAttributes`); `inheritedFrom` names the declaring type, which is what you cite:
+`ownedAttributes`); `inheritedFrom` names the declaring type, which is what you cite. When its
+`redefinedBy` is set, a feature of that metaclass redefines it, and the redefining feature is the
+one that applies:
 
 ```sh
 jq -r '.classes[] | select(.name=="PartUsage")

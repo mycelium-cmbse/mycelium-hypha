@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "2.0.0",
   "metamodel": "SysML",
   "modelVersionUri": "https://www.omg.org/spec/SysML/20250201",
   "entries": {

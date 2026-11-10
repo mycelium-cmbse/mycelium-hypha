@@ -63,13 +63,15 @@ namespace Hypha.Knowledge.Metamodel.Generators
         public string GenerateElement(
             IClass @class,
             IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,
-            IReadOnlySet<string> linkableTypeNames)
+            IReadOnlySet<string> linkableTypeNames,
+            ModelOwners owners)
         {
             ArgumentNullException.ThrowIfNull(@class);
             ArgumentNullException.ThrowIfNull(subtypeIndex);
             ArgumentNullException.ThrowIfNull(linkableTypeNames);
+            ArgumentNullException.ThrowIfNull(owners);
 
-            var payload = CreatePayload(@class, subtypeIndex, linkableTypeNames);
+            var payload = CreatePayload(@class, subtypeIndex, linkableTypeNames, owners);
             payload.Vocabulary = this.Vocabulary;
 
             return this.Templates[TemplateName](payload);
@@ -93,10 +95,11 @@ namespace Hypha.Knowledge.Metamodel.Generators
             var metaclasses = QueryMetaclasses(model);
             var subtypeIndex = BuildSubtypeIndex(metaclasses);
             var linkableTypeNames = ElementCatalog.LinkableTypeNames(model);
+            var owners = ModelOwners.Build(model);
 
             foreach (var @class in metaclasses)
             {
-                var content = this.GenerateElement(@class, subtypeIndex, linkableTypeNames);
+                var content = this.GenerateElement(@class, subtypeIndex, linkableTypeNames, owners);
 
                 await WriteAsync(content, outputDirectory, $"{@class.Name}.md");
             }
@@ -161,11 +164,13 @@ namespace Hypha.Knowledge.Metamodel.Generators
         /// <param name="class">The metaclass the payload describes.</param>
         /// <param name="subtypeIndex">Each metaclass name mapped to its direct subtype names.</param>
         /// <param name="linkableTypeNames">The type names that have a page of their own to link to.</param>
+        /// <param name="owners">The owner of every attribute, association end and operation of the model.</param>
         /// <returns>The payload, every collection in it ordered by name.</returns>
         private static MetaclassPayload CreatePayload(
             IClass @class,
             IReadOnlyDictionary<string, IReadOnlyList<string>> subtypeIndex,
-            IReadOnlySet<string> linkableTypeNames)
+            IReadOnlySet<string> linkableTypeNames,
+            ModelOwners owners)
         {
             var generalizations = @class.SuperClass
                 .Select(super => super.Name)
@@ -198,11 +203,6 @@ namespace Hypha.Knowledge.Metamodel.Generators
                 .OrderBy(feature => feature.Name, StringComparer.Ordinal)
                 .ToList();
 
-            // Resolve a redefined/subsetted feature name to the supertype that declares it, so the
-            // reference can link to that owner's element file (#anchor when it is owned locally).
-            var inheritedOwners = inheritedFeatures.ToDictionary(
-                feature => feature.Name, feature => feature.Owner, StringComparer.Ordinal);
-
             var features = @class.OwnedAttribute
                 .OrderBy(property => property.Name, StringComparer.Ordinal)
                 .Select(property => new MetaclassFeature
@@ -213,8 +213,8 @@ namespace Hypha.Knowledge.Metamodel.Generators
                     Multiplicity = property.QueryFormattedMultiplicity(),
                     Modifiers = string.Join(", ", QueryModifierTokens(property)),
                     Documentation = property.QueryDocumentationText(),
-                    Redefines = property.RedefinedProperty.Select(redefined => RenderFeatureReference(redefined.Name, ownedNames, inheritedOwners)).ToList(),
-                    Subsets = property.SubsettedProperty.Select(subsetted => RenderFeatureReference(subsetted.Name, ownedNames, inheritedOwners)).ToList(),
+                    Redefines = property.RedefinedProperty.Select(redefined => RenderFeatureReference(redefined, @class, owners, linkableTypeNames)).ToList(),
+                    Subsets = property.SubsettedProperty.Select(subsetted => RenderFeatureReference(subsetted, @class, owners, linkableTypeNames)).ToList(),
                 })
                 .ToList();
 
@@ -322,30 +322,34 @@ namespace Hypha.Knowledge.Metamodel.Generators
         }
 
         /// <summary>
-        /// Renders a redefined/subsetted feature reference as a markdown link: a same-file anchor when
-        /// the feature is owned locally, the declaring supertype's element file when it is inherited,
-        /// otherwise plain backtick text when the target is outside this metaclass' feature set.
+        /// Renders a redefined/subsetted feature reference as a markdown link to the feature uml4net says
+        /// it is: a same-file anchor when this metaclass owns it, the owner's element file when another
+        /// metaclass with a page does, otherwise plain backtick text (an association end, for example).
         /// </summary>
-        /// <param name="featureName">The name of the redefined or subsetted feature.</param>
-        /// <param name="ownedNames">The names of the metaclass' own features.</param>
-        /// <param name="inheritedOwners">Each inherited feature name mapped to the supertype that declares it.</param>
+        /// <param name="feature">The redefined or subsetted feature.</param>
+        /// <param name="class">The metaclass whose page is rendered.</param>
+        /// <param name="owners">The owner of every attribute, association end and operation of the model.</param>
+        /// <param name="linkableTypeNames">The type names that have a page of their own to link to.</param>
         /// <returns>The reference as Markdown.</returns>
         private static string RenderFeatureReference(
-            string featureName,
-            HashSet<string> ownedNames,
-            Dictionary<string, string> inheritedOwners)
+            IProperty feature,
+            IClass @class,
+            ModelOwners owners,
+            IReadOnlySet<string> linkableTypeNames)
         {
-            if (ownedNames.Contains(featureName))
+            var owner = owners.TryFeature(feature)?.Class;
+
+            if (string.Equals(owner, @class.Name, StringComparison.Ordinal))
             {
-                return $"[{featureName}](#{Slug(featureName)})";
+                return $"[{feature.Name}](#{Slug(feature.Name)})";
             }
 
-            if (inheritedOwners.TryGetValue(featureName, out var owner))
+            if (owner is not null && linkableTypeNames.Contains(owner))
             {
-                return $"[{featureName}]({owner}.md#{Slug(featureName)})";
+                return $"[{feature.Name}]({owner}.md#{Slug(feature.Name)})";
             }
 
-            return $"`{featureName}`";
+            return $"`{feature.Name}`";
         }
 
         /// <summary>

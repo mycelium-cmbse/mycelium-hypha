@@ -145,6 +145,34 @@ namespace Hypha.Knowledge.Metamodel.Tests
         }
 
         [Test]
+        public void The_references_match_the_schema()
+        {
+            var classes = this.produced.RootElement.GetProperty("classes").EnumerateArray().ToList();
+            var attributes = classes.SelectMany(@class => @class.GetProperty("ownedAttributes").EnumerateArray()).ToList();
+
+            var feature = attributes.SelectMany(attribute => attribute.GetProperty("redefines").EnumerateArray()).First();
+            var opposite = attributes.Select(attribute => attribute.GetProperty("opposite")).First(value => value.ValueKind == JsonValueKind.Object);
+            var operation = classes.SelectMany(@class => @class.GetProperty("ownedOperations").EnumerateArray())
+                .SelectMany(candidate => candidate.GetProperty("redefines").EnumerateArray())
+                .First();
+            var inheritedOperation = classes.SelectMany(@class => @class.GetProperty("inheritedOperations").EnumerateArray()).First();
+            var inheritedConstraint = classes.SelectMany(@class => @class.GetProperty("inheritedConstraints").EnumerateArray()).First();
+            var element = classes.SelectMany(@class => @class.GetProperty("constraints").EnumerateArray())
+                .SelectMany(constraint => constraint.GetProperty("constrainedElements").EnumerateArray())
+                .First();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(Keys(feature), Is.EqualTo(Required(this.Definition("featureReference"))));
+                Assert.That(Keys(opposite), Is.EqualTo(Required(this.Definition("featureReference"))));
+                Assert.That(Keys(operation), Is.EqualTo(Required(this.Definition("operationReference"))));
+                Assert.That(Keys(inheritedOperation), Is.EqualTo(Required(this.Definition("inheritedOperation"))));
+                Assert.That(Keys(inheritedConstraint), Is.EqualTo(Required(this.Definition("inheritedConstraint"))));
+                Assert.That(Keys(element), Is.EqualTo(Required(this.Definition("elementReference"))));
+            });
+        }
+
+        [Test]
         public void An_enumeration_literal_matches_the_schema()
         {
             var literal = this.produced.RootElement.GetProperty("enumerations").EnumerateArray()

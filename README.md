@@ -91,7 +91,7 @@ download the self-contained executable for your platform from the
 Install [`jq`](https://jqlang.github.io/jq/): `brew install jq`, `sudo apt install jq`, or
 `winget install jqlang.jq`.
 
-The metamodel ships as a structural graph (`knowledge/<tag>/metamodel/metamodel.json`, ~8 MB) with the
+The metamodel ships as a structural graph (`knowledge/<tag>/metamodel/metamodel.json`, ~16 MB) with the
 inheritance closures precomputed. Set-shaped and cross-cutting questions (*"which metaclasses have a
 feature typed by `Expression`"*, *"every concrete subclass of `Usage`"*) are one query against it,
 and `jq` is how the skills run that query. It is a small standalone binary with no runtime behind it.

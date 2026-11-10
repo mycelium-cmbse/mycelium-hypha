@@ -24,7 +24,7 @@ A SelectExpression is an OperatorExpression whose operator is "select", which re
 
 `+` [String](String.md) · `[1..1]`
 
-Redefines [operator](#operator)
+Redefines [operator](OperatorExpression.md#operator)
 
 
 ## Inherited features

@@ -56,8 +56,7 @@ namespace Hypha.Knowledge.Query
         /// <paramref name="layout"/>, <paramref name="apiLayout"/>, <paramref name="documents"/> or
         /// <paramref name="specifications"/> is <c>null</c>.
         /// </exception>
-        public KnowledgeQuery(
-            IKnowledgeLayout layout, IApiLayout apiLayout, IDocumentCache documents, ISpecificationReader specifications)
+        public KnowledgeQuery(IKnowledgeLayout layout, IApiLayout apiLayout, IDocumentCache documents, ISpecificationReader specifications)
         {
             ArgumentNullException.ThrowIfNull(layout);
             ArgumentNullException.ThrowIfNull(apiLayout);
@@ -75,10 +74,7 @@ namespace Hypha.Knowledge.Query
         /// The inventory, read from the manifests and the knowledge folders on each call; empty lists when
         /// nothing is installed.
         /// </returns>
-        public ReleaseInventory Releases() => new(
-            this.layout.DefaultTag,
-            ReleaseStatus.ReadAll(this.layout),
-            this.apiLayout.DefaultTag,
+        public ReleaseInventory Releases() => new(this.layout.DefaultTag, ReleaseStatus.ReadAll(this.layout), this.apiLayout.DefaultTag,
             ApiVersionStatus.ReadAll(this.apiLayout));
 
         /// <summary>The metaclasses that specialize a metaclass, directly or not.</summary>
@@ -126,8 +122,7 @@ namespace Hypha.Knowledge.Query
         /// <exception cref="KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        public QueryResult<IReadOnlyList<string>> ClassesWithFeatureTyped(
-            string type, bool compositeOnly = false, string? tag = null)
+        public QueryResult<IReadOnlyList<string>> ClassesWithFeatureTyped(string type, bool compositeOnly = false, string? tag = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(type);
 
@@ -175,11 +170,39 @@ namespace Hypha.Knowledge.Query
             }
 
             var owned = node.OwnedAttributes.Select(attribute => new FeatureInfo(
-                attribute.Name, attribute.Type, attribute.Lower, attribute.Upper, attribute.IsDerived,
-                attribute.IsComposite, attribute.Redefines, attribute.Subsets, InheritedFrom: null));
+                attribute.Name,
+                attribute.Type,
+                attribute.Lower,
+                attribute.Upper,
+                attribute.IsDerived,
+                attribute.IsDerivedUnion,
+                attribute.IsComposite,
+                attribute.IsOrdered,
+                attribute.IsUnique,
+                attribute.IsReadOnly,
+                attribute.DefaultValue,
+                attribute.Redefines,
+                attribute.Subsets,
+                attribute.Opposite,
+                InheritedFrom: null,
+                RedefinedBy: null));
             var inherited = node.InheritedAttributes.Select(attribute => new FeatureInfo(
-                attribute.Name, attribute.Type, attribute.Lower, attribute.Upper, attribute.IsDerived,
-                attribute.IsComposite, attribute.Redefines, attribute.Subsets, attribute.InheritedFrom));
+                attribute.Name,
+                attribute.Type,
+                attribute.Lower,
+                attribute.Upper,
+                attribute.IsDerived,
+                attribute.IsDerivedUnion,
+                attribute.IsComposite,
+                attribute.IsOrdered,
+                attribute.IsUnique,
+                attribute.IsReadOnly,
+                attribute.DefaultValue,
+                attribute.Redefines,
+                attribute.Subsets,
+                attribute.Opposite,
+                attribute.InheritedFrom,
+                attribute.RedefinedBy));
 
             IReadOnlyList<FeatureInfo> features = owned.Concat(inherited)
                 .Where(feature => name is null || string.Equals(feature.Name, name, StringComparison.Ordinal))
@@ -191,15 +214,19 @@ namespace Hypha.Knowledge.Query
         /// <summary>The owned features that redefine a feature of the given name.</summary>
         /// <param name="feature">The redefined feature's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <param name="owner">
+        /// Only the redefinitions of the feature this metaclass or association owns, or <c>null</c> for
+        /// every feature of that name; several metaclasses declare a feature of the same name.
+        /// </param>
         /// <returns>
-        /// The redefinitions, sorted by metaclass and then feature, grounded as <see cref="Provenance.Model"/>;
-        /// empty when nothing redefines a feature of that name.
+        /// The redefinitions, each naming the owner of the redefined feature, sorted by metaclass and then
+        /// feature, grounded as <see cref="Provenance.Model"/>; empty when nothing redefines such a feature.
         /// </returns>
         /// <exception cref="ArgumentException"><paramref name="feature"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        public QueryResult<IReadOnlyList<Redefinition>> Redefinitions(string feature, string? tag = null)
+        public QueryResult<IReadOnlyList<Redefinition>> Redefinitions(string feature, string? tag = null, string? owner = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(feature);
 
@@ -207,8 +234,9 @@ namespace Hypha.Knowledge.Query
 
             IReadOnlyList<Redefinition> redefinitions = graph.Classes
                 .SelectMany(node => node.OwnedAttributes
-                    .Where(attribute => attribute.Redefines.Contains(feature, StringComparer.Ordinal))
-                    .Select(attribute => new Redefinition(node.Name, attribute.Name, feature)))
+                    .SelectMany(attribute => attribute.Redefines
+                        .Where(reference => Names(reference, feature, owner))
+                        .Select(reference => new Redefinition(node.Name, attribute.Name, reference))))
                 .OrderBy(redefinition => redefinition.Class, StringComparer.Ordinal)
                 .ThenBy(redefinition => redefinition.Feature, StringComparer.Ordinal)
                 .ToList();
@@ -242,9 +270,10 @@ namespace Hypha.Knowledge.Query
         /// <param name="general">The metaclass it may specialize.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
-        /// The answer with a shortest chain of direct generalizations, grounded as
-        /// <see cref="Provenance.Derived"/>; <c>null</c> when either name is not a metaclass of the
-        /// release. A metaclass specializes itself, with a chain of one.
+        /// The answer, grounded as <see cref="Provenance.Derived"/>: whether <paramref name="general"/> is
+        /// one of the ancestors the generator computed, or the metaclass itself (a metaclass conforms to
+        /// itself), and then a shortest chain of direct generalizations as an explanation. <c>null</c> when
+        /// either name is not a metaclass of the release.
         /// </returns>
         /// <exception cref="ArgumentException">
         /// <paramref name="specific"/> or <paramref name="general"/> is <c>null</c>, empty or white space.
@@ -260,12 +289,19 @@ namespace Hypha.Knowledge.Query
             var (graph, grounding) = this.Graph(tag, Provenance.Derived);
             var classes = graph.Classes.ToDictionary(node => node.Name, StringComparer.Ordinal);
 
-            if (!classes.ContainsKey(specific) || !classes.ContainsKey(general))
+            if (!classes.TryGetValue(specific, out var node) || !classes.ContainsKey(general))
             {
                 return new(null, grounding);
             }
 
-            return new(new Specialization(specific, general, ShortestPath(classes, specific, general)), grounding);
+            // The answer is the generator's closure; the chain only explains it, following the generated
+            // direct generalizations, so no UML rule is applied here.
+            var specializes = string.Equals(specific, general, StringComparison.Ordinal)
+                              || node.AllAncestors.Contains(general, StringComparer.Ordinal);
+
+            return new(
+                new Specialization(specific, general, specializes, specializes ? ShortestPath(classes, specific, general) : []),
+                grounding);
         }
 
         /// <summary>The OCL constraints that apply to a metaclass.</summary>
@@ -273,44 +309,90 @@ namespace Hypha.Knowledge.Query
         /// <param name="includeInherited">Include the constraints its ancestors declare.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
-        /// The constraints, the metaclass's own first and then its ancestors' in name order, each naming
-        /// the metaclass that declares it. Grounded as <see cref="Provenance.Model"/> for the metaclass's
-        /// own only, and as <see cref="Provenance.Derived"/> with the inherited ones, since those come
-        /// from the ancestor closure. <c>null</c> when <paramref name="className"/> is not a metaclass of
-        /// the release.
-        /// </returns>
-        /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
-        /// <exception cref="KnowledgeLookupException">
-        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
-        /// </exception>
-        public QueryResult<IReadOnlyList<DeclaredMember<ConstraintNode>>> Constraints(
-            string className, bool includeInherited = true, string? tag = null)
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(className);
-
-            return this.Declared(className, includeInherited, tag, node => node.Constraints);
-        }
-
-        /// <summary>The operations of a metaclass, with their signatures and OCL bodies.</summary>
-        /// <param name="className">The metaclass.</param>
-        /// <param name="includeInherited">Include the operations its ancestors declare.</param>
-        /// <param name="tag">The release, or <c>null</c> for the default.</param>
-        /// <returns>
-        /// The operations, the metaclass's own first and then its ancestors' in name order, each naming
-        /// the metaclass that declares it. Grounded as <see cref="Provenance.Model"/> for the metaclass's
-        /// own only, and as <see cref="Provenance.Derived"/> with the inherited ones. <c>null</c> when
+        /// The constraints, the metaclass's own first and then the inherited ones by declaring metaclass
+        /// and name, each naming the metaclass that declares it. Grounded as <see cref="Provenance.Model"/>
+        /// for the metaclass's own only, and as <see cref="Provenance.Derived"/> with the inherited ones,
+        /// which the generator computed from the ancestor closure. <c>null</c> when
         /// <paramref name="className"/> is not a metaclass of the release.
         /// </returns>
         /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        public QueryResult<IReadOnlyList<DeclaredMember<OperationNode>>> Operations(
-            string className, bool includeInherited = true, string? tag = null)
+        public QueryResult<IReadOnlyList<DeclaredMember<ConstraintNode>>> Constraints(string className, bool includeInherited = true, string? tag = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(className);
 
-            return this.Declared(className, includeInherited, tag, node => node.OwnedOperations);
+            var (graph, grounding) = this.Graph(tag, includeInherited ? Provenance.Derived : Provenance.Model);
+            var node = ClassNamed(graph, className);
+
+            if (node is null)
+            {
+                return new(null, grounding);
+            }
+
+            IEnumerable<DeclaredMember<ConstraintNode>> inherited = includeInherited
+                ? node.InheritedConstraints
+                    .Select(reference => new DeclaredMember<ConstraintNode>(
+                        reference.Class,
+                        Member(graph, reference.Class, reference.Constraint, declaring => declaring.Constraints, constraint => constraint.Name)))
+                    .OrderBy(member => member.DeclaredIn, StringComparer.Ordinal)
+                    .ThenBy(member => member.Member.Name, StringComparer.Ordinal)
+                : [];
+
+            IReadOnlyList<DeclaredMember<ConstraintNode>> constraints = node.Constraints
+                .Select(constraint => new DeclaredMember<ConstraintNode>(node.Name, constraint))
+                .Concat(inherited)
+                .ToList();
+
+            return new(constraints, grounding);
+        }
+
+        /// <summary>The operations of a metaclass, with their signatures and OCL bodies.</summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="includeInherited">
+        /// Include the operations its ancestors declare that apply to it: an inherited operation that an
+        /// operation of its own context redefines is left out, since the redefinition's body applies.
+        /// </param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The operations, the metaclass's own first and then the inherited ones by declaring metaclass
+        /// and name, each naming the metaclass that declares it. Grounded as <see cref="Provenance.Model"/>
+        /// for the metaclass's own only, and as <see cref="Provenance.Derived"/> with the inherited ones.
+        /// <c>null</c> when <paramref name="className"/> is not a metaclass of the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<DeclaredMember<OperationNode>>> Operations(string className, bool includeInherited = true, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+
+            var (graph, grounding) = this.Graph(tag, includeInherited ? Provenance.Derived : Provenance.Model);
+            var node = ClassNamed(graph, className);
+
+            if (node is null)
+            {
+                return new(null, grounding);
+            }
+
+            IEnumerable<DeclaredMember<OperationNode>> inherited = includeInherited
+                ? node.InheritedOperations
+                    .Where(reference => reference.RedefinedBy is null)
+                    .Select(reference => new DeclaredMember<OperationNode>(
+                        reference.Class,
+                        Member(graph, reference.Class, reference.Operation, declaring => declaring.OwnedOperations, operation => operation.Name)))
+                    .OrderBy(member => member.DeclaredIn, StringComparer.Ordinal)
+                    .ThenBy(member => member.Member.Name, StringComparer.Ordinal)
+                : [];
+
+            IReadOnlyList<DeclaredMember<OperationNode>> operations = node.OwnedOperations
+                .Select(operation => new DeclaredMember<OperationNode>(node.Name, operation))
+                .Concat(inherited)
+                .ToList();
+
+            return new(operations, grounding);
         }
 
         /// <summary>The literals of an enumeration, in the order the metamodel declares them.</summary>
@@ -338,15 +420,19 @@ namespace Hypha.Knowledge.Query
         /// <summary>The owned features that subset a feature of the given name.</summary>
         /// <param name="feature">The subsetted feature's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <param name="owner">
+        /// Only the subsettings of the feature this metaclass or association owns, or <c>null</c> for
+        /// every feature of that name; several metaclasses declare a feature of the same name.
+        /// </param>
         /// <returns>
-        /// The subsettings, sorted by metaclass and then feature, grounded as <see cref="Provenance.Model"/>;
-        /// empty when nothing subsets a feature of that name.
+        /// The subsettings, each naming the owner of the subsetted feature, sorted by metaclass and then
+        /// feature, grounded as <see cref="Provenance.Model"/>; empty when nothing subsets such a feature.
         /// </returns>
         /// <exception cref="ArgumentException"><paramref name="feature"/> is <c>null</c>, empty or white space.</exception>
         /// <exception cref="KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        public QueryResult<IReadOnlyList<Subsetting>> Subsettings(string feature, string? tag = null)
+        public QueryResult<IReadOnlyList<Subsetting>> Subsettings(string feature, string? tag = null, string? owner = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(feature);
 
@@ -354,8 +440,9 @@ namespace Hypha.Knowledge.Query
 
             IReadOnlyList<Subsetting> subsettings = graph.Classes
                 .SelectMany(node => node.OwnedAttributes
-                    .Where(attribute => attribute.Subsets.Contains(feature, StringComparer.Ordinal))
-                    .Select(attribute => new Subsetting(node.Name, attribute.Name, feature)))
+                    .SelectMany(attribute => attribute.Subsets
+                        .Where(reference => Names(reference, feature, owner))
+                        .Select(reference => new Subsetting(node.Name, attribute.Name, reference))))
                 .OrderBy(subsetting => subsetting.Class, StringComparer.Ordinal)
                 .ThenBy(subsetting => subsetting.Feature, StringComparer.Ordinal)
                 .ToList();
@@ -420,8 +507,7 @@ namespace Hypha.Knowledge.Query
         /// <exception cref="KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        public QueryResult<IReadOnlyList<FeatureAssignment>> FeatureAssignments(
-            string? feature = null, string? assignmentOperator = null, string? tag = null)
+        public QueryResult<IReadOnlyList<FeatureAssignment>> FeatureAssignments(string? feature = null, string? assignmentOperator = null, string? tag = null)
         {
             var (document, grounding) = this.CrossReferences(tag);
 
@@ -483,8 +569,7 @@ namespace Hypha.Knowledge.Query
         /// <exception cref="KnowledgeLookupException">
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
-        public QueryResult<IReadOnlyList<ClauseUse>> ElementsInClause(
-            string document, string clause, bool includeSubclauses = false, string? tag = null)
+        public QueryResult<IReadOnlyList<ClauseUse>> ElementsInClause(string document, string clause, bool includeSubclauses = false, string? tag = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(document);
             ArgumentException.ThrowIfNullOrWhiteSpace(clause);
@@ -755,6 +840,40 @@ namespace Hypha.Knowledge.Query
                 : null;
         }
 
+        /// <summary>The member an inherited reference names, read from the metaclass that declares it.</summary>
+        /// <typeparam name="T">The member's type.</typeparam>
+        /// <param name="graph">The metamodel graph.</param>
+        /// <param name="className">The declaring metaclass.</param>
+        /// <param name="name">The member's name.</param>
+        /// <param name="members">Selects the members of that kind from a metaclass.</param>
+        /// <param name="nameOf">The name of a member.</param>
+        /// <returns>The member.</returns>
+        /// <exception cref="KnowledgeLookupException">
+        /// The graph names a member its declaring metaclass does not own, so it is inconsistent.
+        /// </exception>
+        private static T Member<T>(MetamodelDocument graph, string className, string name, Func<ClassNode, IReadOnlyList<T>> members, Func<T, string> nameOf)
+        {
+            var declaring = ClassNamed(graph, className);
+            var member = declaring is null
+                ? default
+                : members(declaring).FirstOrDefault(candidate => string.Equals(nameOf(candidate), name, StringComparison.Ordinal));
+
+            return member ?? throw new KnowledgeLookupException(
+                $"The metamodel names '{className}::{name}' as inherited, but '{className}' does not own it. "
+                + "The metamodel is inconsistent; regenerate it.");
+        }
+
+        /// <summary>Whether a reference names a feature, and the owner asked for if one is.</summary>
+        /// <param name="reference">The reference.</param>
+        /// <param name="feature">The feature name.</param>
+        /// <param name="owner">The metaclass or association that must own it, or <c>null</c> for any.</param>
+        /// <returns>Whether the reference names that feature.</returns>
+        private static bool Names(FeatureReference reference, string feature, string? owner) =>
+            string.Equals(reference.Feature, feature, StringComparison.Ordinal)
+            && (owner is null
+                || string.Equals(reference.Class, owner, StringComparison.Ordinal)
+                || string.Equals(reference.Association, owner, StringComparison.Ordinal));
+
         /// <summary>Checks a specification name.</summary>
         /// <param name="document">The specification, which must be <c>kerml</c> or <c>sysml2</c>.</param>
         /// <exception cref="ArgumentException"><paramref name="document"/> is neither.</exception>
@@ -792,8 +911,7 @@ namespace Hypha.Knowledge.Query
         /// <param name="specific">Where the chain starts.</param>
         /// <param name="general">Where the chain ends.</param>
         /// <returns>The chain, both ends included; empty when there is none.</returns>
-        private static IReadOnlyList<string> ShortestPath(
-            IReadOnlyDictionary<string, ClassNode> classes, string specific, string general)
+        private static IReadOnlyList<string> ShortestPath(IReadOnlyDictionary<string, ClassNode> classes, string specific, string general)
         {
             // Breadth first over the direct supertypes, each visited in name order, so the chain found
             // is a shortest one and the same one on every run.
@@ -832,43 +950,6 @@ namespace Hypha.Knowledge.Query
             return [];
         }
 
-        /// <summary>The members of one kind a metaclass declares, and optionally those its ancestors declare.</summary>
-        /// <typeparam name="T">The member's type.</typeparam>
-        /// <param name="className">The metaclass.</param>
-        /// <param name="includeInherited">Include the members its ancestors declare.</param>
-        /// <param name="tag">The release, or <c>null</c> for the default.</param>
-        /// <param name="members">Selects the members from a metaclass.</param>
-        /// <returns>
-        /// The members, the metaclass's own first, then its ancestors' in name order; <c>null</c> when
-        /// <paramref name="className"/> is not a metaclass of the release.
-        /// </returns>
-        /// <exception cref="KnowledgeLookupException">
-        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
-        /// </exception>
-        private QueryResult<IReadOnlyList<DeclaredMember<T>>> Declared<T>(
-            string className, bool includeInherited, string? tag, Func<ClassNode, IReadOnlyList<T>> members)
-        {
-            var (graph, grounding) = this.Graph(tag, includeInherited ? Provenance.Derived : Provenance.Model);
-            var node = ClassNamed(graph, className);
-
-            if (node is null)
-            {
-                return new(null, grounding);
-            }
-
-            var classes = graph.Classes.ToDictionary(candidate => candidate.Name, StringComparer.Ordinal);
-            IEnumerable<string> declaring = includeInherited
-                ? new[] { node.Name }.Concat(node.AllAncestors.Order(StringComparer.Ordinal))
-                : [node.Name];
-
-            IReadOnlyList<DeclaredMember<T>> declared = declaring
-                .Where(classes.ContainsKey)
-                .SelectMany(name => members(classes[name]).Select(member => new DeclaredMember<T>(name, member)))
-                .ToList();
-
-            return new(declared, grounding);
-        }
-
         /// <summary>Reads a release's metamodel <c>index.json</c>.</summary>
         /// <param name="release">The release.</param>
         /// <returns>The index.</returns>
@@ -904,8 +985,7 @@ namespace Hypha.Knowledge.Query
         /// </param>
         /// <returns>The resolved address.</returns>
         /// <exception cref="KnowledgeLookupException">The page is missing or outside the folder.</exception>
-        private QueryResult<ResolvedAddress> Resolved(
-            HyphaAddress address, string title, DirectoryInfo root, string file, string tier, string? regenerate = null)
+        private QueryResult<ResolvedAddress> Resolved(HyphaAddress address, string title, DirectoryInfo root, string file, string tier, string? regenerate = null)
         {
             var page = KnowledgeLookup.ContainedFile(root, file, address.Tag, regenerate: regenerate);
 

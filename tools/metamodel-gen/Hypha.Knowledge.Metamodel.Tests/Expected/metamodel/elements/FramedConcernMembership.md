@@ -26,7 +26,7 @@ A FramedConcernMembership is a RequirementConstraintMembership for a framed Conc
 
 The kind of an FramedConcernMembership must be requirement.
 
-Redefines [kind](#kind)
+Redefines [kind](RequirementConstraintMembership.md#kind)
 
 ### ownedConcern
 
