@@ -20,9 +20,10 @@ namespace Hypha.Knowledge.Query
     /// </param>
     /// <param name="CrossReferences">
     /// The changes to where the elements found in both releases are treated: clauses, grammar
-    /// productions, the features their syntax populates and worked examples, sorted by element, facet,
-    /// edge, kind and then field. <c>null</c> when either release has not generated its
-    /// <c>cross-references.json</c>, so it cannot be told from "nothing changed".
+    /// productions, the features their syntax populates and worked examples, sorted by element, element
+    /// kind, facet, edge, kind and then field. <c>null</c> when either release has not generated its
+    /// <c>cross-references.json</c> or the two were written in different schema versions (regenerate
+    /// both with the same hypha to compare them), so it cannot be told from "nothing changed".
     /// </param>
     public sealed record ReleaseDiff(
         DiffSide From,

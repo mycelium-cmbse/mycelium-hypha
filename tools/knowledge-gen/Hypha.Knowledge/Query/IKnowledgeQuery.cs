@@ -336,7 +336,8 @@ namespace Hypha.Knowledge.Query
         /// </exception>
         /// <exception cref="Lookup.KnowledgeLookupException">
         /// Either release is not installed or has not been generated, its documents are invalid, or the two
-        /// documents have different schema versions.
+        /// metamodel documents have different schema versions. Two cross-reference documents of different
+        /// schema versions are not an error: the cross-reference part is <c>null</c> instead.
         /// </exception>
         QueryResult<ReleaseDiff> Diff(string from, string to, string? element = null);
 

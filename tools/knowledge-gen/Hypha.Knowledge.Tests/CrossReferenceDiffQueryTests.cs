@@ -166,13 +166,61 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Cross_references_of_different_schema_versions_are_refused()
+        public void Cross_references_of_different_schema_versions_are_null_and_the_metamodel_is_still_compared()
         {
-            this.Install(crossReferences: document => document["schemaVersion"] = "9.9.9");
+            this.Install(
+                metamodel: document => document["classes"]!.AsArray().Single(node => (string?)node!["name"] == "Element")!["isAbstract"] = false,
+                crossReferences: document => document["schemaVersion"] = "9.9.9");
 
-            Assert.That(
-                () => this.Diff(),
-                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("cross-references schema 1.0.0 and '2026-08' has 9.9.9").And.Message.Contains($"hypha generate --tag {Newer}"));
+            var diff = this.Diff();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(diff.CrossReferences, Is.Null);
+                Assert.That(diff.Metamodel.Select(change => $"{change.Element} {change.Field}"), Is.EqualTo(new[] { "Element isAbstract" }));
+                Assert.That(this.fixture.Query.Diff(QueryFixture.Tag, Newer, "NoSuchElement").Found, Is.False);
+            });
+        }
+
+        [Test]
+        public void An_element_in_neither_release_is_not_found_before_the_cross_references_are_read()
+        {
+            this.Install(crossReferences: _ => { });
+            File.WriteAllText(this.fixture.Layout.CrossReferences(Newer).FullName, "{}");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(this.fixture.Query.Diff(QueryFixture.Tag, Newer, "NoSuchElement").Found, Is.False);
+                Assert.That(() => this.Diff(), Throws.TypeOf<KnowledgeLookupException>());
+            });
+        }
+
+        [Test]
+        public void A_renamed_member_does_not_hide_the_cross_reference_changes_of_its_owner()
+        {
+            string attribute = null!;
+
+            this.Install(
+                metamodel: document =>
+                {
+                    var owned = document["classes"]!.AsArray().Single(node => (string?)node!["name"] == "Feature")!["ownedAttributes"]![0]!;
+                    attribute = (string)owned["name"]!;
+                    owned["name"] = "renamedMember";
+                },
+                crossReferences: document =>
+                    Entry(document, "Feature")["clauses"]!.AsArray().Single(edge => (string?)edge!["clause"] == "7.4.2")!["provenance"] = Provenance.Model);
+
+            var diff = this.Diff();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    diff.Metamodel,
+                    Is.EqualTo(new[] { new MetamodelChange("Feature", "class", "renamedMember", "attribute", "renamed", "name", attribute, "renamedMember") }));
+                Assert.That(
+                    diff.CrossReferences,
+                    Is.EqualTo(new[] { new CrossReferenceChange("Feature", "class", "clause", "kerml 7.4.2", "changed", "provenance", Provenance.Derived, Provenance.Model) }));
+            });
         }
 
         [Test]

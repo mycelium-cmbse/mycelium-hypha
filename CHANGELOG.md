@@ -63,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `cross-references.json` edge by edge: the clauses, grammar productions, features the syntax
     populates and worked examples, each added, removed or changed in its provenance, method or
     productions, with a renamed element compared under both names. That part is `null` when either
-    release has not generated its cross-references. The comparisons are `IMetamodelDiffer` and
+    release has not generated its cross-references or the two have different schema versions; the
+    metamodel diff is still returned. The comparisons are `IMetamodelDiffer` and
     `ICrossReferenceDiffer`, which `AddHyphaKnowledge` registers and `KnowledgeQuery` takes in its
     constructor.
   - `IApiQuery`, for a Systems Modeling API version: a PIM class, the cross-references of a type or a

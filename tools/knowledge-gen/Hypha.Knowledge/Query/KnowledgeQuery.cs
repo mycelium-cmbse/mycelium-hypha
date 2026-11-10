@@ -834,7 +834,8 @@ namespace Hypha.Knowledge.Query
         /// </exception>
         /// <exception cref="KnowledgeLookupException">
         /// Either release is not installed or has not been generated, its documents are invalid, or the two
-        /// documents have different schema versions.
+        /// metamodel documents have different schema versions. Two cross-reference documents of different
+        /// schema versions are not an error: the cross-reference part is <c>null</c> instead.
         /// </exception>
         public QueryResult<ReleaseDiff> Diff(string from, string to, string? element = null)
         {
@@ -865,15 +866,15 @@ namespace Hypha.Knowledge.Query
                 .GroupBy(change => change.From!, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.First().Element, StringComparer.Ordinal);
 
+            if (element is not null && !Declares(older, element) && !Declares(newer, element))
+            {
+                return new(null, grounding);
+            }
+
             var crossReferences = this.CompareCrossReferences(from, to, renames);
 
             if (element is not null)
             {
-                if (!Declares(older, element) && !Declares(newer, element))
-                {
-                    return new(null, grounding);
-                }
-
                 // An element renamed between the releases is written under its newer name.
                 var renamed = renames.GetValueOrDefault(element);
 
@@ -897,10 +898,11 @@ namespace Hypha.Knowledge.Query
         /// <param name="from">The older release.</param>
         /// <param name="to">The newer release.</param>
         /// <param name="renames">The elements renamed between the releases, older name to newer name.</param>
-        /// <returns>The changes, or <c>null</c> when either release has no <c>cross-references.json</c>.</returns>
-        /// <exception cref="KnowledgeLookupException">
-        /// A document is invalid, or the two documents have different schema versions.
-        /// </exception>
+        /// <returns>
+        /// The changes, or <c>null</c> when either release has no <c>cross-references.json</c> or the two
+        /// have different schema versions, so the metamodel diff is still returned.
+        /// </returns>
+        /// <exception cref="KnowledgeLookupException">A document exists but is invalid.</exception>
         private IReadOnlyList<CrossReferenceChange>? CompareCrossReferences(
             string from, string to, IReadOnlyDictionary<string, string> renames)
         {
@@ -912,15 +914,9 @@ namespace Hypha.Knowledge.Query
             var (older, _) = this.CrossReferences(from);
             var (newer, _) = this.CrossReferences(to);
 
-            if (!string.Equals(older.SchemaVersion, newer.SchemaVersion, StringComparison.Ordinal))
-            {
-                throw new KnowledgeLookupException(
-                    $"Release '{from}' has cross-references schema {older.SchemaVersion} and '{to}' has {newer.SchemaVersion}, "
-                    + "so they cannot be compared. Regenerate both with the same hypha "
-                    + $"('hypha generate --tag {from}' and 'hypha generate --tag {to}').");
-            }
-
-            return this.crossReferenceDiffer.Compare(older, newer, renames);
+            return string.Equals(older.SchemaVersion, newer.SchemaVersion, StringComparison.Ordinal)
+                ? this.crossReferenceDiffer.Compare(older, newer, renames)
+                : null;
         }
 
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>
