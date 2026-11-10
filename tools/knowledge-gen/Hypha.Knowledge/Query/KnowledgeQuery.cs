@@ -50,34 +50,42 @@ namespace Hypha.Knowledge.Query
         /// <summary>Compares two releases' metamodels, for the release diff.</summary>
         private readonly IMetamodelDiffer differ;
 
+        /// <summary>Compares two releases' cross-references, for the release diff.</summary>
+        private readonly ICrossReferenceDiffer crossReferenceDiffer;
+
         /// <summary>Initializes a new instance of the <see cref="KnowledgeQuery"/> class.</summary>
         /// <param name="layout">Where each release's generated knowledge lives, and which releases are installed.</param>
         /// <param name="apiLayout">Which API versions are installed.</param>
         /// <param name="documents">The documents read so far, shared with the other queries.</param>
         /// <param name="specifications">Reads the specification text.</param>
         /// <param name="differ">Compares two releases' metamodels, for the release diff.</param>
+        /// <param name="crossReferenceDiffer">Compares two releases' cross-references, for the release diff.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="layout"/>, <paramref name="apiLayout"/>, <paramref name="documents"/>,
-        /// <paramref name="specifications"/> or <paramref name="differ"/> is <c>null</c>.
+        /// <paramref name="specifications"/>, <paramref name="differ"/> or
+        /// <paramref name="crossReferenceDiffer"/> is <c>null</c>.
         /// </exception>
         public KnowledgeQuery(
             IKnowledgeLayout layout,
             IApiLayout apiLayout,
             IDocumentCache documents,
             ISpecificationReader specifications,
-            IMetamodelDiffer differ)
+            IMetamodelDiffer differ,
+            ICrossReferenceDiffer crossReferenceDiffer)
         {
             ArgumentNullException.ThrowIfNull(layout);
             ArgumentNullException.ThrowIfNull(apiLayout);
             ArgumentNullException.ThrowIfNull(documents);
             ArgumentNullException.ThrowIfNull(specifications);
             ArgumentNullException.ThrowIfNull(differ);
+            ArgumentNullException.ThrowIfNull(crossReferenceDiffer);
 
             this.layout = layout;
             this.apiLayout = apiLayout;
             this.documents = documents;
             this.specifications = specifications;
             this.differ = differ;
+            this.crossReferenceDiffer = crossReferenceDiffer;
         }
 
         /// <summary>The installed releases and API versions, the default of each, and which artifacts each has generated.</summary>
@@ -805,6 +813,9 @@ namespace Hypha.Knowledge.Query
         /// upstream regenerated every one between 2025-04 and 2025-06, so across that gap a rename reads
         /// as a removal plus an addition. Inherited members are not compared, since they follow from what
         /// their declaring metaclass owns.
+        /// For the elements found in both releases it also compares the clauses, grammar productions,
+        /// features and examples <c>cross-references.json</c> links them to, when both releases have
+        /// generated it.
         /// </summary>
         /// <param name="from">The older release.</param>
         /// <param name="to">The newer release.</param>
@@ -823,7 +834,8 @@ namespace Hypha.Knowledge.Query
         /// </exception>
         /// <exception cref="KnowledgeLookupException">
         /// Either release is not installed or has not been generated, its documents are invalid, or the two
-        /// documents have different schema versions.
+        /// metamodel documents have different schema versions. Two cross-reference documents of different
+        /// schema versions are not an error: the cross-reference part is <c>null</c> instead.
         /// </exception>
         public QueryResult<ReleaseDiff> Diff(string from, string to, string? element = null)
         {
@@ -848,32 +860,63 @@ namespace Hypha.Knowledge.Query
 
             var changes = this.differ.Compare(older, newer);
 
+            // The elements renamed between the releases, older name to newer name.
+            var renames = changes
+                .Where(change => change is { Member: null, Kind: MetamodelChange.Renamed })
+                .GroupBy(change => change.From!, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.First().Element, StringComparer.Ordinal);
+
+            if (element is not null && !Declares(older, element) && !Declares(newer, element))
+            {
+                return new(null, grounding);
+            }
+
+            var crossReferences = this.CompareCrossReferences(from, to, renames);
+
             if (element is not null)
             {
-                if (!Declares(older, element) && !Declares(newer, element))
-                {
-                    return new(null, grounding);
-                }
-
                 // An element renamed between the releases is written under its newer name.
-                var renamed = changes
-                    .Where(change => change is { Member: null, Kind: MetamodelChange.Renamed }
-                                     && string.Equals(change.From, element, StringComparison.Ordinal))
-                    .Select(change => change.Element)
-                    .FirstOrDefault();
+                var renamed = renames.GetValueOrDefault(element);
 
-                changes = changes
-                    .Where(change => string.Equals(change.Element, element, StringComparison.Ordinal)
-                                     || string.Equals(change.Element, renamed, StringComparison.Ordinal))
-                    .ToList();
+                bool Concerns(string name) =>
+                    string.Equals(name, element, StringComparison.Ordinal) || string.Equals(name, renamed, StringComparison.Ordinal);
+
+                changes = changes.Where(change => Concerns(change.Element)).ToList();
+                crossReferences = crossReferences?.Where(change => Concerns(change.Element)).ToList();
             }
 
             return new(
                 new ReleaseDiff(
                     new DiffSide(olderGrounding.Release, olderGrounding.Source, older.SourceXmiSha256),
                     new DiffSide(grounding.Release, grounding.Source, newer.SourceXmiSha256),
-                    changes),
+                    changes,
+                    crossReferences),
                 grounding);
+        }
+
+        /// <summary>Compares the cross-references of two releases, when both have generated them.</summary>
+        /// <param name="from">The older release.</param>
+        /// <param name="to">The newer release.</param>
+        /// <param name="renames">The elements renamed between the releases, older name to newer name.</param>
+        /// <returns>
+        /// The changes, or <c>null</c> when either release has no <c>cross-references.json</c> or the two
+        /// have different schema versions, so the metamodel diff is still returned.
+        /// </returns>
+        /// <exception cref="KnowledgeLookupException">A document exists but is invalid.</exception>
+        private IReadOnlyList<CrossReferenceChange>? CompareCrossReferences(
+            string from, string to, IReadOnlyDictionary<string, string> renames)
+        {
+            if (!this.layout.CrossReferences(this.Release(from)).Exists || !this.layout.CrossReferences(this.Release(to)).Exists)
+            {
+                return null;
+            }
+
+            var (older, _) = this.CrossReferences(from);
+            var (newer, _) = this.CrossReferences(to);
+
+            return string.Equals(older.SchemaVersion, newer.SchemaVersion, StringComparison.Ordinal)
+                ? this.crossReferenceDiffer.Compare(older, newer, renames)
+                : null;
         }
 
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>

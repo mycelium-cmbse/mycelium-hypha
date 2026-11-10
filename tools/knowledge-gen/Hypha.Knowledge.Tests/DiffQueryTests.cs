@@ -583,7 +583,7 @@ namespace Hypha.Knowledge.Tests
             var differ = new Mock<IMetamodelDiffer>();
             differ.Setup(mock => mock.Compare(It.IsAny<MetamodelDocument>(), It.IsAny<MetamodelDocument>())).Returns(new[] { change });
             var query = new KnowledgeQuery(
-                this.fixture.Layout, this.fixture.ApiLayout, this.fixture.Documents, new SpecificationReader(this.fixture.Documents), differ.Object);
+                this.fixture.Layout, this.fixture.ApiLayout, this.fixture.Documents, new SpecificationReader(this.fixture.Documents), differ.Object, new CrossReferenceDiffer());
 
             Assert.That(query.Diff(QueryFixture.Tag, Newer).Value!.Metamodel, Is.EqualTo(new[] { change }));
             differ.Verify(mock => mock.Compare(It.IsAny<MetamodelDocument>(), It.IsAny<MetamodelDocument>()), Times.Once);
