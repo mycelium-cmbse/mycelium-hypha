@@ -133,6 +133,7 @@ namespace Hypha.Knowledge.Metamodel
 
     /// <summary>An owned attribute (property) of a metaclass.</summary>
     /// <param name="Name">The attribute name.</param>
+    /// <param name="XmiId">The attribute's XMI id (empty when it has none). It normally stays the same across releases, so a renamed attribute is still the same one.</param>
     /// <param name="Type">The name of the attribute's type, or <c>null</c> when it is untyped.</param>
     /// <param name="TypeIsElement">Whether the type has an element of its own in the document.</param>
     /// <param name="Visibility">The visibility as its lowercase name (e.g. <c>public</c>).</param>
@@ -154,6 +155,7 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="Documentation">The documentation (may be empty).</param>
     public sealed record AttributeNode(
         string Name,
+        string XmiId,
         string? Type,
         bool TypeIsElement,
         string Visibility,
@@ -223,6 +225,7 @@ namespace Hypha.Knowledge.Metamodel
     /// <see cref="Body"/> is the OCL of its <c>bodyCondition</c> (empty when it has none).
     /// </summary>
     /// <param name="Name">The operation name.</param>
+    /// <param name="XmiId">The operation's XMI id (empty when it has none). It normally stays the same across releases, so a renamed operation is still the same one.</param>
     /// <param name="ReturnType">The name of the return type, or <c>null</c> when there is none or it is untyped.</param>
     /// <param name="ReturnLower">The lower bound of the return multiplicity.</param>
     /// <param name="ReturnUpper">The upper bound of the return multiplicity, <c>-1</c> when unbounded.</param>
@@ -233,6 +236,7 @@ namespace Hypha.Knowledge.Metamodel
     /// <param name="Body">The OCL of the <c>bodyCondition</c> (may be empty).</param>
     public sealed record OperationNode(
         string Name,
+        string XmiId,
         string? ReturnType,
         int ReturnLower,
         int ReturnUpper,
@@ -256,12 +260,14 @@ namespace Hypha.Knowledge.Metamodel
 
     /// <summary>A single (non-return) operation parameter.</summary>
     /// <param name="Name">The parameter name.</param>
+    /// <param name="XmiId">The parameter's XMI id (empty when it has none). It normally stays the same across releases, so a renamed parameter is still the same one.</param>
     /// <param name="Type">The name of the parameter's type, or <c>null</c> when it is untyped.</param>
     /// <param name="Direction">The direction as its lowercase name (e.g. <c>in</c>).</param>
     /// <param name="Lower">The lower multiplicity bound.</param>
     /// <param name="Upper">The upper multiplicity bound, <c>-1</c> when unbounded.</param>
     public sealed record OperationParameterNode(
         string Name,
+        string XmiId,
         string? Type,
         string Direction,
         int Lower,
@@ -269,11 +275,12 @@ namespace Hypha.Knowledge.Metamodel
 
     /// <summary>An owned constraint and its (OCL) body.</summary>
     /// <param name="Name">The constraint name.</param>
+    /// <param name="XmiId">The constraint's XMI id (empty when it has none). It normally stays the same across releases, so a renamed constraint is still the same one.</param>
     /// <param name="Documentation">The documentation (may be empty).</param>
     /// <param name="Ocl">The constraint body (may be empty).</param>
     /// <param name="ConstrainedElements">The elements the constraint constrains, in model order.</param>
     public sealed record ConstraintNode(
-        string Name, string Documentation, string Ocl, IReadOnlyList<ElementReference> ConstrainedElements);
+        string Name, string XmiId, string Documentation, string Ocl, IReadOnlyList<ElementReference> ConstrainedElements);
 
     /// <summary>
     /// A constraint a supertype declares, by reference: its documentation, body and constrained elements
@@ -328,8 +335,9 @@ namespace Hypha.Knowledge.Metamodel
 
     /// <summary>A single enumeration literal.</summary>
     /// <param name="Name">The literal name.</param>
+    /// <param name="XmiId">The literal's XMI id (empty when it has none). It normally stays the same across releases, so a renamed literal is still the same one.</param>
     /// <param name="Documentation">The documentation (may be empty).</param>
-    public sealed record EnumerationLiteralNode(string Name, string Documentation);
+    public sealed record EnumerationLiteralNode(string Name, string XmiId, string Documentation);
 
     /// <summary>A primitive type.</summary>
     /// <param name="Name">The element name.</param>

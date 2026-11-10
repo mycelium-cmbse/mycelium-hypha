@@ -73,6 +73,27 @@ namespace Hypha.Knowledge.Metamodel.Tests
         }
 
         [Test]
+        public void Every_owned_member_has_its_own_xmi_id()
+        {
+            // A diff between two releases matches a renamed member on its id.
+            var document = ReadDocument();
+            var ids = document.Classes
+                .SelectMany(@class => @class.OwnedAttributes.Select(attribute => attribute.XmiId)
+                    .Concat(@class.OwnedOperations.Select(operation => operation.XmiId))
+                    .Concat(@class.OwnedOperations.SelectMany(operation => operation.Parameters).Select(parameter => parameter.XmiId))
+                    .Concat(@class.Constraints.Select(constraint => constraint.XmiId)))
+                .Concat(document.Enumerations.SelectMany(enumeration => enumeration.Literals).Select(literal => literal.XmiId))
+                .ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ids, Is.Not.Empty);
+                Assert.That(ids, Has.None.Empty);
+                Assert.That(ids, Is.Unique);
+            });
+        }
+
+        [Test]
         public void Multiplicity_bounds_are_sane()
         {
             var document = ReadDocument();

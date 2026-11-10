@@ -662,6 +662,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(first, Is.SameAs(second));
                 Assert.That(provider.GetRequiredService<IDocumentCache>(), Is.SameAs(documents));
                 Assert.That(provider.GetRequiredService<ISpecificationReader>(), Is.InstanceOf<SpecificationReader>());
+                Assert.That(provider.GetRequiredService<IMetamodelDiffer>(), Is.InstanceOf<MetamodelDiffer>());
             });
         }
 
@@ -678,7 +679,7 @@ namespace Hypha.Knowledge.Tests
                     It.IsAny<string>()))
                 .Throws(new KnowledgeLookupException("refused by the cache"));
             var query = new KnowledgeQuery(
-                this.fixture.Layout, this.fixture.ApiLayout, documents.Object, new SpecificationReader(documents.Object));
+                this.fixture.Layout, this.fixture.ApiLayout, documents.Object, new SpecificationReader(documents.Object), new MetamodelDiffer());
 
             Assert.That(
                 () => query.Subclasses("Usage"),
@@ -692,11 +693,13 @@ namespace Hypha.Knowledge.Tests
             var apiLayout = this.fixture.ApiLayout;
             var documents = this.fixture.Documents;
             var specifications = new SpecificationReader(documents);
+            var differ = new MetamodelDiffer();
 
             Assert.Multiple(() =>
             {
-                Assert.That(() => new KnowledgeQuery(layout, apiLayout, null!, specifications), Throws.ArgumentNullException);
-                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, null!), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, null!, specifications, differ), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, null!, differ), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, specifications, null!), Throws.ArgumentNullException);
                 Assert.That(() => new ApiQuery(apiLayout, layout, null!, specifications), Throws.ArgumentNullException);
                 Assert.That(() => new ApiQuery(apiLayout, layout, documents, null!), Throws.ArgumentNullException);
                 Assert.That(() => new SpecificationReader(null!), Throws.ArgumentNullException);

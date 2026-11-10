@@ -308,6 +308,35 @@ namespace Hypha.Knowledge.Query
         /// </exception>
         QueryResult<IReadOnlyList<Contribution>> Contributors(string className, string feature, string? tag = null);
 
+        /// <summary>
+        /// What changed between two installed releases: metaclasses, enumerations and primitive types
+        /// added, removed, renamed or moved, and what changed in the attributes, operations, parameters,
+        /// constraints and literals they own. An element or member is matched on its XMI id, so a rename
+        /// is reported as one, and on its name when the ids differ. The ids normally stay the same, but
+        /// upstream regenerated every one between 2025-04 and 2025-06, so across that gap a rename reads
+        /// as a removal plus an addition. Inherited members are not compared.
+        /// </summary>
+        /// <param name="from">The older release.</param>
+        /// <param name="to">The newer release.</param>
+        /// <param name="element">
+        /// Only the changes to this element and its members, by its name in either release, or <c>null</c>
+        /// for every change.
+        /// </param>
+        /// <returns>
+        /// Both releases and the changes, sorted by element, member, kind and then field, grounded as
+        /// derived on <paramref name="to"/>; empty when nothing changed. <c>null</c> when
+        /// <paramref name="element"/> is in neither release.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// <paramref name="from"/> or <paramref name="to"/> is <c>null</c>, empty or white space, or
+        /// <paramref name="element"/> is empty or white space.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// Either release is not installed or has not been generated, its documents are invalid, or the two
+        /// documents have different schema versions.
+        /// </exception>
+        QueryResult<ReleaseDiff> Diff(string from, string to, string? element = null);
+
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>
         /// <param name="name">The element's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>

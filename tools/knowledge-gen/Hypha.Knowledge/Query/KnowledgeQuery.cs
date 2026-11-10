@@ -47,26 +47,37 @@ namespace Hypha.Knowledge.Query
         /// <summary>Reads the specification text.</summary>
         private readonly ISpecificationReader specifications;
 
+        /// <summary>Compares two releases' metamodels, for the release diff.</summary>
+        private readonly IMetamodelDiffer differ;
+
         /// <summary>Initializes a new instance of the <see cref="KnowledgeQuery"/> class.</summary>
         /// <param name="layout">Where each release's generated knowledge lives, and which releases are installed.</param>
         /// <param name="apiLayout">Which API versions are installed.</param>
         /// <param name="documents">The documents read so far, shared with the other queries.</param>
         /// <param name="specifications">Reads the specification text.</param>
+        /// <param name="differ">Compares two releases' metamodels, for the release diff.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="layout"/>, <paramref name="apiLayout"/>, <paramref name="documents"/> or
-        /// <paramref name="specifications"/> is <c>null</c>.
+        /// <paramref name="layout"/>, <paramref name="apiLayout"/>, <paramref name="documents"/>,
+        /// <paramref name="specifications"/> or <paramref name="differ"/> is <c>null</c>.
         /// </exception>
-        public KnowledgeQuery(IKnowledgeLayout layout, IApiLayout apiLayout, IDocumentCache documents, ISpecificationReader specifications)
+        public KnowledgeQuery(
+            IKnowledgeLayout layout,
+            IApiLayout apiLayout,
+            IDocumentCache documents,
+            ISpecificationReader specifications,
+            IMetamodelDiffer differ)
         {
             ArgumentNullException.ThrowIfNull(layout);
             ArgumentNullException.ThrowIfNull(apiLayout);
             ArgumentNullException.ThrowIfNull(documents);
             ArgumentNullException.ThrowIfNull(specifications);
+            ArgumentNullException.ThrowIfNull(differ);
 
             this.layout = layout;
             this.apiLayout = apiLayout;
             this.documents = documents;
             this.specifications = specifications;
+            this.differ = differ;
         }
 
         /// <summary>The installed releases and API versions, the default of each, and which artifacts each has generated.</summary>
@@ -786,6 +797,85 @@ namespace Hypha.Knowledge.Query
             return new(sorted, grounding);
         }
 
+        /// <summary>
+        /// What changed between two installed releases: metaclasses, enumerations and primitive types
+        /// added, removed, renamed or moved, and what changed in the attributes, operations, parameters,
+        /// constraints and literals they own. An element or member is matched on its XMI id, so a rename
+        /// is reported as one, and on its name when the ids differ. The ids normally stay the same, but
+        /// upstream regenerated every one between 2025-04 and 2025-06, so across that gap a rename reads
+        /// as a removal plus an addition. Inherited members are not compared, since they follow from what
+        /// their declaring metaclass owns.
+        /// </summary>
+        /// <param name="from">The older release.</param>
+        /// <param name="to">The newer release.</param>
+        /// <param name="element">
+        /// Only the changes to this element and its members, by its name in either release, or <c>null</c>
+        /// for every change.
+        /// </param>
+        /// <returns>
+        /// Both releases and the changes, sorted by element, member, kind and then field, grounded as
+        /// <see cref="Provenance.Derived"/> on <paramref name="to"/>; empty when nothing changed.
+        /// <c>null</c> when <paramref name="element"/> is in neither release.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="from"/> or <paramref name="to"/> is <c>null</c>, empty or white space, or
+        /// <paramref name="element"/> is empty or white space.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// Either release is not installed or has not been generated, its documents are invalid, or the two
+        /// documents have different schema versions.
+        /// </exception>
+        public QueryResult<ReleaseDiff> Diff(string from, string to, string? element = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(from);
+            ArgumentException.ThrowIfNullOrWhiteSpace(to);
+
+            if (element is not null)
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(element);
+            }
+
+            var (older, olderGrounding) = this.Graph(from, Provenance.Derived);
+            var (newer, grounding) = this.Graph(to, Provenance.Derived);
+
+            if (!string.Equals(older.SchemaVersion, newer.SchemaVersion, StringComparison.Ordinal))
+            {
+                throw new KnowledgeLookupException(
+                    $"Release '{from}' has metamodel schema {older.SchemaVersion} and '{to}' has {newer.SchemaVersion}, "
+                    + "so they cannot be compared. Regenerate both with the same hypha "
+                    + $"('hypha generate --tag {from}' and 'hypha generate --tag {to}').");
+            }
+
+            var changes = this.differ.Compare(older, newer);
+
+            if (element is not null)
+            {
+                if (!Declares(older, element) && !Declares(newer, element))
+                {
+                    return new(null, grounding);
+                }
+
+                // An element renamed between the releases is written under its newer name.
+                var renamed = changes
+                    .Where(change => change is { Member: null, Kind: MetamodelChange.Renamed }
+                                     && string.Equals(change.From, element, StringComparison.Ordinal))
+                    .Select(change => change.Element)
+                    .FirstOrDefault();
+
+                changes = changes
+                    .Where(change => string.Equals(change.Element, element, StringComparison.Ordinal)
+                                     || string.Equals(change.Element, renamed, StringComparison.Ordinal))
+                    .ToList();
+            }
+
+            return new(
+                new ReleaseDiff(
+                    new DiffSide(olderGrounding.Release, olderGrounding.Source, older.SourceXmiSha256),
+                    new DiffSide(grounding.Release, grounding.Source, newer.SourceXmiSha256),
+                    changes),
+                grounding);
+        }
+
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>
         /// <param name="name">The element's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
@@ -1175,6 +1265,15 @@ namespace Hypha.Knowledge.Query
                 ? SearchMatch.Contains
                 : null;
         }
+
+        /// <summary>Whether a document has a metaclass, enumeration or primitive type of a name.</summary>
+        /// <param name="graph">The document.</param>
+        /// <param name="name">The name.</param>
+        /// <returns><c>true</c> when one of the three has that name.</returns>
+        private static bool Declares(MetamodelDocument graph, string name) =>
+            graph.Classes.Any(node => string.Equals(node.Name, name, StringComparison.Ordinal))
+            || graph.Enumerations.Any(node => string.Equals(node.Name, name, StringComparison.Ordinal))
+            || graph.PrimitiveTypes.Any(node => string.Equals(node.Name, name, StringComparison.Ordinal));
 
         /// <summary>The features a metaclass declares itself, with their types.</summary>
         /// <param name="node">The metaclass.</param>

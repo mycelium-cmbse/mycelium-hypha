@@ -171,6 +171,7 @@ namespace Hypha.Knowledge
             // and both queries share it.
             services.AddSingleton<IDocumentCache, DocumentCache>();
             services.AddSingleton<ISpecificationReader, SpecificationReader>();
+            services.AddSingleton<IMetamodelDiffer, MetamodelDiffer>();
             services.AddSingleton<IKnowledgeQuery, KnowledgeQuery>();
             services.AddSingleton<IApiQuery, ApiQuery>();
 

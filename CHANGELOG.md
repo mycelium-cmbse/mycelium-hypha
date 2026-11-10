@@ -49,6 +49,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `Contributors`: the features that subset or redefine a feature, directly or through another
       contributor, each saying which, such as the 82 that contribute to `Namespace::ownedMember`
       (`EnumerationDefinition::enumeratedValue` by redefining `Definition::variant`).
+  - `Diff` (`refs #206`): what changed in the metamodel between two installed releases, for every
+    element or for one, by its name in either release. Metaclasses, enumerations and primitive types
+    added, removed, renamed or moved; per metaclass `isAbstract`, `visibility` and `extends`; and
+    the attributes, operations, parameters, constraints and literals they own, added, removed,
+    renamed or changed field by field. An element or member is matched on its XMI id, so a rename
+    is one change, not a removal and an addition; when the ids differ it is matched on its name.
+    Upstream regenerated every id between `2025-04` and `2025-06`, so across that gap a rename
+    reads as a removal plus an addition. A rewritten documentation text is one
+    `documentation` change, without the texts. Inherited members are not compared. Each change is
+    a fact; whether it breaks a model is left to the caller. Two documents of different schema
+    versions are refused. The comparison itself is `IMetamodelDiffer`, which `AddHyphaKnowledge`
+    registers and `KnowledgeQuery` takes in its constructor.
   - `IApiQuery`, for a Systems Modeling API version: a PIM class, the cross-references of a type or a
     service operation, and a clause of the API specification.
   - Every result carries its grounding: the tier (`NORMATIVE`, `MODEL` or `DERIVED`), the release
@@ -90,6 +102,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
 
 ### Changed
+- **`metamodel.json` 2.1.0: every owned attribute, operation, parameter, constraint and enumeration
+  literal carries its `xmiId`** (`refs #206`), so a diff between two releases recognizes a renamed
+  member. **Regenerate every installed release** (`hypha generate --tag <release>`, and
+  `hypha api generate --tag <version>` for an API version): a 2.0.0 document is refused with that
+  advice.
 - **`metamodel.json` 2.0.0: the generator writes the UML semantics, the query API reads them**
   (`fixes #208`). uml4net already computed them; the query API had been working some of them out a
   second time. **Regenerate every installed release** (`hypha generate --tag <release>`, and
