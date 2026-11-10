@@ -371,6 +371,151 @@ namespace Hypha.Knowledge.Tests
                     References("subsets", feature, "\"\\($c.name).\\($a.name)\"", owner), this.Graph()).Sorted()).And.Not.Empty);
         }
 
+        [TestCase("PartUsage")]
+        [TestCase("Feature")]
+        public void Containers_match(string element)
+        {
+            var result = this.fixture.Query.Containers(element);
+
+            Assert.That(
+                result.Value!.Select(feature => $"{feature.Class}::{feature.Feature}"),
+                Is.EqualTo(Jq.Lines(Accepted(element) + " | .classes[] | . as $k | .ownedAttributes[]"
+                    + " | select(.isComposite and (.type as $t | $ok | index($t))) | \"\\($k.name)::\\(.name)\"", this.Graph()).Sorted())
+                    .And.Not.Empty);
+        }
+
+        [Test]
+        public void Containers_within_one_metaclass_match_its_effective_features()
+        {
+            var result = this.fixture.Query.Containers("PartUsage", "ActorMembership");
+
+            // The whole row, so a field taken from the wrong place in either branch shows.
+            Assert.That(
+                result.Value!.Select(feature =>
+                    $"{feature.Class}::{feature.Feature} {feature.Type} {feature.Lower}..{feature.Upper} {feature.IsComposite} {feature.IsDerived}"),
+                Is.EqualTo(Jq.Lines(Accepted("PartUsage") + " | .classes[] | select(.name==\"ActorMembership\") | "
+                    + Effective("ActorMembership") + " | select(.isComposite and (.type as $t | $ok | index($t)))"
+                    + " | \"\\(.c)::\\(.name) \\(.type) \\(.lower)..\\(.upper) \\(if .isComposite then \"True\" else \"False\" end)"
+                    + " \\(if .isDerived then \"True\" else \"False\" end)\"",
+                    this.Graph()).Sorted()).And.Not.Empty);
+        }
+
+        [Test]
+        public void Features_accepting_a_metaclass_match()
+        {
+            var result = this.fixture.Query.FeaturesAccepting("PartUsage");
+
+            Assert.That(
+                result.Value!.Select(feature => $"{feature.Class}::{feature.Feature}"),
+                Is.EqualTo(Jq.Lines(Accepted("PartUsage") + " | .classes[] | . as $k | .ownedAttributes[]"
+                    + " | select(.type as $t | $ok | index($t)) | \"\\($k.name)::\\(.name)\"", this.Graph()).Sorted()).And.Not.Empty);
+        }
+
+        [Test]
+        public void Features_accepting_a_primitive_type_match()
+        {
+            var result = this.fixture.Query.FeaturesAccepting("Boolean");
+
+            Assert.That(
+                result.Value!.Select(feature => $"{feature.Class}::{feature.Feature}"),
+                Is.EqualTo(Jq.Lines(
+                    ".classes[] | . as $k | .ownedAttributes[] | select(.type==\"Boolean\") | \"\\($k.name)::\\(.name)\"",
+                    this.Graph()).Sorted()).And.Not.Empty);
+        }
+
+        [Test]
+        public void Neighbours_match()
+        {
+            var result = this.fixture.Query.Neighbours("PartUsage").Value!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.Outgoing.Select(feature => feature.Feature),
+                    Is.EqualTo(Jq.Lines(
+                        "(.classes | map(.name)) as $names | .classes[] | select(.name==\"PartUsage\") | .ownedAttributes[]"
+                        + " | select(.type as $t | $names | index($t)) | .name",
+                        this.Graph()).Sorted()).And.Not.Empty);
+                Assert.That(
+                    result.Incoming.Select(feature => $"{feature.Class}::{feature.Feature}"),
+                    Is.EqualTo(Jq.Lines(
+                        ".classes[] | select(.name!=\"PartUsage\") | . as $k | .ownedAttributes[] | select(.type==\"PartUsage\")"
+                        + " | \"\\($k.name)::\\(.name)\"",
+                        this.Graph()).Sorted()).And.Not.Empty);
+            });
+        }
+
+        [Test]
+        public void A_package_matches()
+        {
+            var package = this.fixture.Query.Package("KerML::Core").Value!.Single();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    package.Packages,
+                    Is.EqualTo(Jq.Lines(".packages[] | select(.parent==\"Core\") | .qualifiedName", this.Graph()).Sorted()).And.Not.Empty);
+                Assert.That(
+                    package.AllClasses,
+                    Is.EqualTo(Jq.Lines(
+                        ".packages[] | select(.qualifiedName==\"KerML::Core\" or (.qualifiedName | startswith(\"KerML::Core::\"))) | .classes[]",
+                        this.Graph()).Sorted()).And.Not.Empty);
+            });
+        }
+
+        [Test]
+        public void Effective_features_match()
+        {
+            var result = this.fixture.Query.EffectiveFeatures("Dependency");
+
+            Assert.That(
+                result.Value!.Select(feature => feature.Name),
+                Is.EqualTo(Jq.Lines(
+                    ".classes[] | select(.name==\"Dependency\") | (.ownedAttributes + (.inheritedAttributes | map(select(.redefinedBy == null))))[].name",
+                    this.Graph())).And.Not.Empty);
+        }
+
+        [TestCase("Type", "ownedFeature")]
+        [TestCase("PartUsage", "owningType")]
+        public void An_opposite_end_matches(string className, string feature)
+        {
+            var result = this.fixture.Query.Opposite(className, feature).Value!;
+            var expected = Jq.Lines(
+                    $".classes[] | select(.name==\"{className}\") | (.ownedAttributes[], .inheritedAttributes[]) | select(.name==\"{feature}\")"
+                    + " | .opposite | tojson",
+                    this.Graph())
+                .Single();
+
+            Assert.That(
+                JsonNode.DeepEquals(JsonSerializer.SerializeToNode(result.Other, Metamodel), JsonNode.Parse(expected)),
+                Is.True,
+                $"query API: {JsonSerializer.Serialize(result.Other, Metamodel)}\njq: {expected}");
+        }
+
+        [Test]
+        public void Contributors_to_a_derived_union_match()
+        {
+            var result = this.fixture.Query.Contributors("Namespace", "ownedMember");
+
+            // jq follows the subsets and redefines references the same way, recursively; a contributor
+            // reached along two paths is the same reference, so the jq side is made unique.
+            var expected = Jq.Lines(
+                    "[.classes[] | . as $k | .ownedAttributes[] | . as $a"
+                    + " | ((.subsets[] | {k: \"subsets\", r: .}), (.redefines[] | {k: \"redefines\", r: .}))"
+                    + " | {c: $k.name, f: $a.name, k: .k, o: (.r.class // .r.association), s: .r.feature}] as $e"
+                    + " | def contributors($o; $s): $e[] | select(.o==$o and .s==$s) | ., contributors(.c; .f);"
+                    + " [contributors(\"Namespace\"; \"ownedMember\")] | unique[] | \"\\(.c)::\\(.f) \\(.k) \\(.o)::\\(.s)\"",
+                    this.Graph())
+                .Sorted();
+
+            Assert.That(
+                result.Value!.Select(contribution =>
+                    $"{contribution.Class}::{contribution.Feature} {contribution.Through} "
+                    + $"{contribution.Contributes.Class ?? contribution.Contributes.Association}::{contribution.Contributes.Feature}")
+                    .Sorted(),
+                Is.EqualTo(expected).And.Not.Empty);
+        }
+
         [Test]
         public void The_elements_a_production_builds_match()
         {
@@ -572,7 +717,14 @@ namespace Hypha.Knowledge.Tests
             Assert.That(JsonNode.DeepEquals(actual, expected), Is.True, $"query API: {actual}\njq: {expected}");
         }
 
-        // The members a metaclass declares and inherits, its own first, then its ancestors' in name order.
+        // The names a value of the type conforms to: the type and its ancestors, as $ok.
+        private static string Accepted(string type) =>
+            $"(.classes[] | select(.name==\"{type}\") | .allAncestors + [\"{type}\"]) as $ok";
+
+        // A metaclass's effective features, each tagged with its declaring class as .c.
+        private static string Effective(string className) =>
+            $"((.ownedAttributes[] | . + {{c: \"{className}\"}}), (.inheritedAttributes[] | select(.redefinedBy == null) | . + {{c: .inheritedFrom}}))";
+
         // One line per reference to the feature (an attribute may name two features of that name), the
         // owner matched on either a class or an association.
         private static string References(string list, string feature, string output, string? owner = null) =>
