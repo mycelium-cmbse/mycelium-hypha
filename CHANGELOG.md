@@ -31,6 +31,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `HyphaAddress` names a generated page as `hypha://{tag}/{kind}/{name}` (kinds `metamodel`,
     `model-library`, `kerml`, `sysml2`), and `Resolve` turns an address into its page through the
     release's indexes, never a path given by the caller.
+  - Structural queries (`fixes #209`), modelled on what uml4net's extensions and reports ask of a
+    metamodel, all reading facts the generator wrote:
+    - `Containers`: the composite features through which an element can be owned, typed by it or
+      by one of its ancestors ("where can a `PartUsage` be nested?"). `FeaturesAccepting`: every
+      feature that can hold a value of a type. Both list a feature once, where it is declared; with
+      a `className`, only that metaclass's effective features, so a feature it redefines is left out.
+    - `Neighbours`: the metaclasses its own features are typed by, and the features of other
+      metaclasses typed by it.
+    - `Package`: a package by qualified name or name (`Metadata` is two packages), with its
+      metaclasses, its nested packages and every metaclass below it.
+    - `EffectiveFeatures`: owned features and the inherited ones no feature of the metaclass
+      redefines. `Opposite`: the other end of a feature's association, and the feature that
+      redefines it in the metaclass, when one does.
+    - `FeatureConstraints`: the constraints that name a feature among what they constrain; none
+      does in the releases so far, since their constraints name their metaclass.
+    - `Contributors`: the features that subset or redefine a feature, directly or through another
+      contributor, each saying which, such as the 82 that contribute to `Namespace::ownedMember`
+      (`EnumerationDefinition::enumeratedValue` by redefining `Definition::variant`).
   - `IApiQuery`, for a Systems Modeling API version: a PIM class, the cross-references of a type or a
     service operation, and a clause of the API specification.
   - Every result carries its grounding: the tier (`NORMATIVE`, `MODEL` or `DERIVED`), the release

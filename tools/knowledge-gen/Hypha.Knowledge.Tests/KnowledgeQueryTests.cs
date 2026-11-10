@@ -205,6 +205,48 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void A_metamodel_that_names_an_inherited_operation_of_a_metaclass_it_lacks_is_refused()
+        {
+            var graph = this.fixture.Layout.MetamodelGraph(QueryFixture.Tag);
+            var document = JsonNode.Parse(File.ReadAllText(graph.FullName))!;
+            var usage = document["classes"]!.AsArray().Single(node => (string?)node!["name"] == "ConstraintUsage")!;
+            usage["inheritedOperations"]!.AsArray().First(node => node!["redefinedBy"] is null)!["class"] = "NoSuchClass";
+            File.WriteAllText(graph.FullName, document.ToJsonString());
+
+            Assert.That(
+                () => this.fixture.Query.Operations("ConstraintUsage"),
+                Throws.TypeOf<KnowledgeLookupException>().With.Message.Contains("inconsistent"));
+        }
+
+        [Test]
+        public void An_owner_that_declares_no_such_feature_gives_no_redefinitions_or_subsettings()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(this.fixture.Query.Redefinitions("type", owner: "PartUsage").Value, Is.Empty);
+                Assert.That(this.fixture.Query.Subsettings("usage", owner: "NoSuchClass").Value, Is.Empty);
+            });
+        }
+
+        [Test]
+        public void A_feature_that_redefines_two_features_of_one_name_gives_one_redefinition_for_each()
+        {
+            var graph = this.fixture.Layout.MetamodelGraph(QueryFixture.Tag);
+            var document = JsonNode.Parse(File.ReadAllText(graph.FullName))!;
+            var dependency = document["classes"]!.AsArray().Single(node => (string?)node!["name"] == "Dependency")!;
+            dependency["ownedAttributes"]!.AsArray().Single(node => (string?)node!["name"] == "client")!["redefines"]!.AsArray()
+                .Add(new JsonObject { ["class"] = "Element", ["association"] = null, ["feature"] = "source" });
+            File.WriteAllText(graph.FullName, document.ToJsonString());
+
+            var client = this.fixture.Query.Redefinitions("source").Value!
+                .Where(redefinition => redefinition is { Class: "Dependency", Feature: "client" })
+                .Select(redefinition => redefinition.Redefines.Class)
+                .ToList();
+
+            Assert.That(client, Is.EquivalentTo(new[] { "Relationship", "Element" }));
+        }
+
+        [Test]
         public void A_metamodel_in_the_previous_format_is_refused_and_says_to_regenerate()
         {
             // A release generated before schema 2.0.0 has no inherited operations or constraints.

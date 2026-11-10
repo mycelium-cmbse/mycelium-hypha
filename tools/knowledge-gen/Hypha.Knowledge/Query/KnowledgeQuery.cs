@@ -450,6 +450,342 @@ namespace Hypha.Knowledge.Query
             return new(subsettings, grounding);
         }
 
+        /// <summary>The composite features through which an element can be owned.</summary>
+        /// <param name="element">The element owned, such as <c>PartUsage</c>.</param>
+        /// <param name="className">
+        /// Only the features this metaclass has, owned or inherited and not redefined in its context, or
+        /// <c>null</c> for every feature where it is declared.
+        /// </param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The composite features typed by the element or by one of its ancestors, each naming the
+        /// metaclass that declares it, sorted by metaclass and then feature; grounded as
+        /// <see cref="Provenance.Derived"/>, since conformance comes from the ancestor closure. A feature
+        /// declared once applies to every metaclass that inherits it, unless that metaclass redefines it.
+        /// <c>null</c> when the element, or <paramref name="className"/>, is not an element of the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="element"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<TypedFeature>> Containers(string element, string? className = null, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(element);
+
+            return this.Accepting(element, className, tag, compositeOnly: true);
+        }
+
+        /// <summary>The features that can hold a value of a type.</summary>
+        /// <param name="type">The type of the value, such as <c>PartUsage</c> or <c>Boolean</c>.</param>
+        /// <param name="className">
+        /// Only the features this metaclass has, owned or inherited and not redefined in its context, or
+        /// <c>null</c> for every feature where it is declared.
+        /// </param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The features typed by the type or, for a metaclass, by one of its ancestors, each naming the
+        /// metaclass that declares it, sorted by metaclass and then feature; grounded as
+        /// <see cref="Provenance.Derived"/>. A feature declared once applies to every metaclass that
+        /// inherits it, unless that metaclass redefines it. <c>null</c> when the type, or
+        /// <paramref name="className"/>, is not an element of the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="type"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<TypedFeature>> FeaturesAccepting(string type, string? className = null, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(type);
+
+            return this.Accepting(type, className, tag, compositeOnly: false);
+        }
+
+        /// <summary>
+        /// The metaclasses around a metaclass: those its own features are typed by, and those whose own
+        /// features are typed by it.
+        /// </summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The features both ways, owned features only, with their multiplicity and whether they are
+        /// composite, grounded as <see cref="Provenance.Model"/>; <c>null</c> when
+        /// <paramref name="className"/> is not a metaclass of the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<Neighbourhood> Neighbours(string className, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+
+            var (graph, grounding) = this.Graph(tag, Provenance.Model);
+            var node = ClassNamed(graph, className);
+
+            if (node is null)
+            {
+                return new(null, grounding);
+            }
+
+            var metaclasses = graph.Classes.Select(candidate => candidate.Name).ToHashSet(StringComparer.Ordinal);
+
+            IReadOnlyList<TypedFeature> outgoing = Declared(node)
+                .Where(feature => feature.Type is not null && metaclasses.Contains(feature.Type))
+                .OrderBy(feature => feature.Feature, StringComparer.Ordinal)
+                .ToList();
+
+            IReadOnlyList<TypedFeature> incoming = graph.Classes
+                .Where(candidate => !string.Equals(candidate.Name, className, StringComparison.Ordinal))
+                .SelectMany(Declared)
+                .Where(feature => string.Equals(feature.Type, className, StringComparison.Ordinal))
+                .OrderBy(feature => feature.Class, StringComparer.Ordinal)
+                .ThenBy(feature => feature.Feature, StringComparer.Ordinal)
+                .ToList();
+
+            return new(new Neighbourhood(className, outgoing, incoming), grounding);
+        }
+
+        /// <summary>The packages of a name, each with the metaclasses in it and in its nested packages.</summary>
+        /// <param name="name">
+        /// The package's qualified name, such as <c>KerML::Kernel::Metadata</c>, or its name, such as
+        /// <c>Metadata</c>, which more than one package can have.
+        /// </param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The package with that qualified name, or else every package with that name, sorted by qualified
+        /// name, grounded as <see cref="Provenance.Model"/>; <c>null</c> when no package has it.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="name"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<PackageContents>> Package(string name, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+            var (graph, grounding) = this.Graph(tag, Provenance.Model);
+
+            var matches = graph.Packages
+                .Where(package => string.Equals(package.QualifiedName, name, StringComparison.Ordinal))
+                .ToList();
+
+            if (matches.Count == 0)
+            {
+                matches = graph.Packages.Where(package => string.Equals(package.Name, name, StringComparison.Ordinal)).ToList();
+            }
+
+            if (matches.Count == 0)
+            {
+                return new(null, grounding);
+            }
+
+            IReadOnlyList<PackageContents> packages = matches
+                .OrderBy(package => package.QualifiedName, StringComparer.Ordinal)
+                .Select(package =>
+                {
+                    var prefix = package.QualifiedName + "::";
+                    var nested = graph.Packages
+                        .Where(candidate => candidate.QualifiedName.StartsWith(prefix, StringComparison.Ordinal))
+                        .ToList();
+
+                    return new PackageContents(
+                        package.Name,
+                        package.QualifiedName,
+                        package.Classes.Order(StringComparer.Ordinal).ToList(),
+                        nested
+                            .Where(candidate => !candidate.QualifiedName[prefix.Length..].Contains("::", StringComparison.Ordinal))
+                            .Select(candidate => candidate.QualifiedName)
+                            .Order(StringComparer.Ordinal)
+                            .ToList(),
+                        package.Classes.Concat(nested.SelectMany(candidate => candidate.Classes))
+                            .Distinct(StringComparer.Ordinal)
+                            .Order(StringComparer.Ordinal)
+                            .ToList());
+                })
+                .ToList();
+
+            return new(packages, grounding);
+        }
+
+        /// <summary>
+        /// The features a metaclass really has: its own, and the inherited ones no feature of its context
+        /// redefines.
+        /// </summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The features, owned first and then inherited, in the order the metamodel lists them, grounded as
+        /// <see cref="Provenance.Derived"/>; <c>null</c> when <paramref name="className"/> is not a
+        /// metaclass of the release.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<FeatureInfo>> EffectiveFeatures(string className, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+
+            var features = this.Features(className, tag: tag);
+
+            return new(features.Value?.Where(feature => feature.RedefinedBy is null).ToList(), features.Grounding);
+        }
+
+        /// <summary>The other end of the association a feature is an end of.</summary>
+        /// <param name="className">The metaclass, which owns or inherits the feature.</param>
+        /// <param name="feature">The feature, such as <c>ownedFeature</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The feature with its declaring metaclass, its other end and, when the metaclass's context
+        /// redefines the inherited feature, the feature that does, grounded as
+        /// <see cref="Provenance.Derived"/>; the other end is <c>null</c> when the feature is not an
+        /// association end, or that end cannot be named. <c>null</c> when the metaclass has no such
+        /// feature, owned or inherited.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="className"/> or <paramref name="feature"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<OppositeEnd> Opposite(string className, string feature, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+            ArgumentException.ThrowIfNullOrWhiteSpace(feature);
+
+            var features = this.Features(className, feature, tag);
+            var found = features.Value?.FirstOrDefault();
+
+            return new(
+                found is null
+                    ? null
+                    : new OppositeEnd(className, feature, found.InheritedFrom ?? className, found.Opposite, found.RedefinedBy),
+                features.Grounding);
+        }
+
+        /// <summary>The constraints that name a feature among the elements they constrain.</summary>
+        /// <param name="className">The metaclass, which owns or inherits the feature.</param>
+        /// <param name="feature">The feature.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The constraints, each naming the metaclass that declares it, sorted by metaclass and then name,
+        /// grounded as <see cref="Provenance.Model"/> for a feature the metaclass owns and as
+        /// <see cref="Provenance.Derived"/> for one it inherits; empty when none constrains the feature, which in
+        /// the KerML and SysML releases so far is always the case, since their constraints name their
+        /// metaclass. <c>null</c> when the metaclass has no such feature, owned or inherited.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="className"/> or <paramref name="feature"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<DeclaredMember<ConstraintNode>>> FeatureConstraints(
+            string className, string feature, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+            ArgumentException.ThrowIfNullOrWhiteSpace(feature);
+
+            var owner = this.DeclaringClass(className, feature, tag);
+
+            // An inherited feature is found through the generated inheritance closure.
+            var (graph, grounding) = this.Graph(
+                tag,
+                owner is null || string.Equals(owner, className, StringComparison.Ordinal) ? Provenance.Model : Provenance.Derived);
+
+            if (owner is null)
+            {
+                return new(null, grounding);
+            }
+
+            IReadOnlyList<DeclaredMember<ConstraintNode>> constraints = graph.Classes
+                .SelectMany(node => node.Constraints
+                    .Where(constraint => constraint.ConstrainedElements.Any(element =>
+                        string.Equals(element.Kind, "property", StringComparison.Ordinal)
+                        && string.Equals(element.Owner, owner, StringComparison.Ordinal)
+                        && string.Equals(element.Name, feature, StringComparison.Ordinal)))
+                    .Select(constraint => new DeclaredMember<ConstraintNode>(node.Name, constraint)))
+                .OrderBy(member => member.DeclaredIn, StringComparer.Ordinal)
+                .ThenBy(member => member.Member.Name, StringComparer.Ordinal)
+                .ToList();
+
+            return new(constraints, grounding);
+        }
+
+        /// <summary>
+        /// The features that contribute to a feature by subsetting or redefining it, directly or through
+        /// another contributor, such as everything that contributes to the derived union
+        /// <c>Namespace::ownedMember</c>. A redefining feature contributes too: its values are values of the
+        /// feature it redefines, as <c>EnumerationDefinition::enumeratedValue</c>'s are of
+        /// <c>Definition::variant</c>.
+        /// </summary>
+        /// <param name="className">The metaclass, which owns or inherits the feature.</param>
+        /// <param name="feature">The feature contributed to, such as <c>ownedMember</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// One contribution for each subsets or redefines reference to the feature or to one of its
+        /// contributors, sorted by metaclass, feature, kind and then the owner referred to, grounded as
+        /// <see cref="Provenance.Derived"/>, since the indirect ones follow the generated references;
+        /// empty when nothing contributes. <c>null</c> when the metaclass has no such feature, owned or
+        /// inherited.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="className"/> or <paramref name="feature"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<Contribution>> Contributors(string className, string feature, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(className);
+            ArgumentException.ThrowIfNullOrWhiteSpace(feature);
+
+            var owner = this.DeclaringClass(className, feature, tag);
+            var (graph, grounding) = this.Graph(tag, Provenance.Derived);
+
+            if (owner is null)
+            {
+                return new(null, grounding);
+            }
+
+            // Breadth first over the generated subsets and redefines references: no UML rule is applied,
+            // the edges are the generator's.
+            var edges = graph.Classes
+                .SelectMany(node => node.OwnedAttributes.SelectMany(attribute =>
+                    attribute.Subsets.Select(reference => new Contribution(node.Name, attribute.Name, "subsets", reference))
+                        .Concat(attribute.Redefines.Select(reference =>
+                            new Contribution(node.Name, attribute.Name, "redefines", reference)))))
+                .ToList();
+
+            var seen = new HashSet<(string, string)> { (owner, feature) };
+            var queue = new Queue<(string Owner, string Feature)>([(owner, feature)]);
+            var contributors = new List<Contribution>();
+
+            while (queue.Count > 0)
+            {
+                var (targetOwner, target) = queue.Dequeue();
+
+                foreach (var edge in edges.Where(candidate => Names(candidate.Contributes, target, targetOwner)))
+                {
+                    contributors.Add(edge);
+
+                    if (seen.Add((edge.Class, edge.Feature)))
+                    {
+                        queue.Enqueue((edge.Class, edge.Feature));
+                    }
+                }
+            }
+
+            IReadOnlyList<Contribution> sorted = contributors
+                .OrderBy(contribution => contribution.Class, StringComparer.Ordinal)
+                .ThenBy(contribution => contribution.Feature, StringComparer.Ordinal)
+                .ThenBy(contribution => contribution.Through, StringComparer.Ordinal)
+                .ThenBy(contribution => contribution.Contributes.Class ?? contribution.Contributes.Association, StringComparer.Ordinal)
+                .ToList();
+
+            return new(sorted, grounding);
+        }
+
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>
         /// <param name="name">The element's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
@@ -839,6 +1175,98 @@ namespace Hypha.Knowledge.Query
                 ? SearchMatch.Contains
                 : null;
         }
+
+        /// <summary>The features a metaclass declares itself, with their types.</summary>
+        /// <param name="node">The metaclass.</param>
+        /// <returns>Its owned features, in the order the metamodel lists them.</returns>
+        private static IEnumerable<TypedFeature> Declared(ClassNode node) =>
+            node.OwnedAttributes.Select(attribute => new TypedFeature(
+                node.Name, attribute.Name, attribute.Type, attribute.Lower, attribute.Upper, attribute.IsComposite, attribute.IsDerived));
+
+        /// <summary>
+        /// The features a metaclass really has: its own, and the inherited ones no feature of its context
+        /// redefines, each naming the metaclass that declares it.
+        /// </summary>
+        /// <param name="node">The metaclass.</param>
+        /// <returns>The features, owned first.</returns>
+        private static IEnumerable<TypedFeature> Effective(ClassNode node) =>
+            Declared(node).Concat(node.InheritedAttributes
+                .Where(attribute => attribute.RedefinedBy is null)
+                .Select(attribute => new TypedFeature(
+                    attribute.InheritedFrom,
+                    attribute.Name,
+                    attribute.Type,
+                    attribute.Lower,
+                    attribute.Upper,
+                    attribute.IsComposite,
+                    attribute.IsDerived)));
+
+        /// <summary>Which feature types accept a value of a type.</summary>
+        /// <param name="graph">The metamodel graph.</param>
+        /// <param name="type">The type of the value.</param>
+        /// <returns>
+        /// A test of a feature type: for a metaclass, the metaclass and its ancestors from the generated
+        /// closure; for any other element, the element itself. <c>null</c> when the release has no
+        /// element of that name.
+        /// </returns>
+        private static Func<string?, bool>? Acceptor(MetamodelDocument graph, string type)
+        {
+            if (ClassNamed(graph, type) is { } node)
+            {
+                var accepted = new HashSet<string>(node.AllAncestors, StringComparer.Ordinal) { type };
+
+                return candidate => candidate is not null && accepted.Contains(candidate);
+            }
+
+            var names = graph.Enumerations.Select(enumeration => enumeration.Name)
+                .Concat(graph.PrimitiveTypes.Select(primitive => primitive.Name))
+                .Concat((graph.DataTypes ?? []).Select(dataType => dataType.Name))
+                .Concat((graph.Interfaces ?? []).Select(@interface => @interface.Name));
+
+            return names.Contains(type, StringComparer.Ordinal)
+                ? candidate => string.Equals(candidate, type, StringComparison.Ordinal)
+                : null;
+        }
+
+        /// <summary>The features that accept a value of a type, for <see cref="Containers"/> and <see cref="FeaturesAccepting"/>.</summary>
+        /// <param name="type">The type of the value.</param>
+        /// <param name="className">Only the effective features of this metaclass, or <c>null</c> for every declared feature.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <param name="compositeOnly">Only composite features.</param>
+        /// <returns>The features, sorted by declaring metaclass and then feature; <c>null</c> when a name is unknown.</returns>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        private QueryResult<IReadOnlyList<TypedFeature>> Accepting(string type, string? className, string? tag, bool compositeOnly)
+        {
+            var (graph, grounding) = this.Graph(tag, Provenance.Derived);
+            var accepts = Acceptor(graph, type);
+            var scope = className is null ? null : ClassNamed(graph, className);
+
+            if (accepts is null || (className is not null && scope is null))
+            {
+                return new(null, grounding);
+            }
+
+            IReadOnlyList<TypedFeature> features = (scope is null ? graph.Classes.SelectMany(Declared) : Effective(scope))
+                .Where(feature => accepts(feature.Type) && (!compositeOnly || feature.IsComposite))
+                .OrderBy(feature => feature.Class, StringComparer.Ordinal)
+                .ThenBy(feature => feature.Feature, StringComparer.Ordinal)
+                .ToList();
+
+            return new(features, grounding);
+        }
+
+        /// <summary>The metaclass that declares a feature a metaclass owns or inherits.</summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="feature">The feature.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>The declaring metaclass, or <c>null</c> when the metaclass has no such feature.</returns>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        private string? DeclaringClass(string className, string feature, string? tag) =>
+            this.Features(className, feature, tag).Value?.FirstOrDefault() is { } found ? found.InheritedFrom ?? className : null;
 
         /// <summary>The member an inherited reference names, read from the metaclass that declares it.</summary>
         /// <typeparam name="T">The member's type.</typeparam>

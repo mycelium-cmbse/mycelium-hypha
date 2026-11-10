@@ -166,6 +166,148 @@ namespace Hypha.Knowledge.Query
         /// </exception>
         QueryResult<IReadOnlyList<Subsetting>> Subsettings(string feature, string? tag = null, string? owner = null);
 
+        /// <summary>The composite features through which an element can be owned.</summary>
+        /// <param name="element">The element owned, such as <c>PartUsage</c>.</param>
+        /// <param name="className">
+        /// Only the features this metaclass has, owned or inherited and not redefined in its context, or
+        /// <c>null</c> for every feature where it is declared.
+        /// </param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The composite features typed by the element or by one of its ancestors, each naming the
+        /// metaclass that declares it, sorted by metaclass and then feature. A feature declared once
+        /// applies to every metaclass that inherits it, unless that metaclass redefines it. <c>null</c>
+        /// when the element, or <paramref name="className"/>, is not an element of the release.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="element"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<TypedFeature>> Containers(string element, string? className = null, string? tag = null);
+
+        /// <summary>The features that can hold a value of a type.</summary>
+        /// <param name="type">The type of the value, such as <c>PartUsage</c> or <c>Boolean</c>.</param>
+        /// <param name="className">
+        /// Only the features this metaclass has, owned or inherited and not redefined in its context, or
+        /// <c>null</c> for every feature where it is declared.
+        /// </param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The features typed by the type or, for a metaclass, by one of its ancestors, each naming the
+        /// metaclass that declares it, sorted by metaclass and then feature. A feature declared once
+        /// applies to every metaclass that inherits it, unless that metaclass redefines it. <c>null</c>
+        /// when the type, or <paramref name="className"/>, is not an element of the release.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="type"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<TypedFeature>> FeaturesAccepting(string type, string? className = null, string? tag = null);
+
+        /// <summary>
+        /// The metaclasses around a metaclass: those its own features are typed by, and those whose own
+        /// features are typed by it.
+        /// </summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The features both ways, owned features only; <c>null</c> when <paramref name="className"/> is
+        /// not a metaclass of the release.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<Neighbourhood> Neighbours(string className, string? tag = null);
+
+        /// <summary>The packages of a name, each with the metaclasses in it and in its nested packages.</summary>
+        /// <param name="name">
+        /// The package's qualified name, such as <c>KerML::Kernel::Metadata</c>, or its name, such as
+        /// <c>Metadata</c>, which more than one package can have.
+        /// </param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The package with that qualified name, or else every package with that name, sorted by qualified
+        /// name; <c>null</c> when no package has it.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="name"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<PackageContents>> Package(string name, string? tag = null);
+
+        /// <summary>
+        /// The features a metaclass really has: its own, and the inherited ones no feature of its context
+        /// redefines.
+        /// </summary>
+        /// <param name="className">The metaclass.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The features, owned first and then inherited; <c>null</c> when <paramref name="className"/> is
+        /// not a metaclass of the release.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="className"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<FeatureInfo>> EffectiveFeatures(string className, string? tag = null);
+
+        /// <summary>The other end of the association a feature is an end of.</summary>
+        /// <param name="className">The metaclass, which owns or inherits the feature.</param>
+        /// <param name="feature">The feature, such as <c>ownedFeature</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The feature with its declaring metaclass, its other end, which is <c>null</c> when the feature
+        /// is not an association end or that end cannot be named, and the feature that redefines it in the
+        /// metaclass's context, if any; <c>null</c> when the metaclass has no such feature, owned or inherited.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// <paramref name="className"/> or <paramref name="feature"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<OppositeEnd> Opposite(string className, string feature, string? tag = null);
+
+        /// <summary>The constraints that name a feature among the elements they constrain.</summary>
+        /// <param name="className">The metaclass, which owns or inherits the feature.</param>
+        /// <param name="feature">The feature.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The constraints, each naming the metaclass that declares it, sorted by metaclass and then name,
+        /// grounded as model for a feature the metaclass owns and as derived for one it inherits; empty when
+        /// none constrains the feature. <c>null</c> when the metaclass has no such feature.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// <paramref name="className"/> or <paramref name="feature"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<DeclaredMember<ConstraintNode>>> FeatureConstraints(
+            string className, string feature, string? tag = null);
+
+        /// <summary>
+        /// The features that contribute to a feature by subsetting or redefining it, directly or through
+        /// another contributor, such as everything that contributes to the derived union
+        /// <c>Namespace::ownedMember</c>.
+        /// </summary>
+        /// <param name="className">The metaclass, which owns or inherits the feature.</param>
+        /// <param name="feature">The feature contributed to, such as <c>ownedMember</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// One contribution for each subsets or redefines reference to the feature or to one of its
+        /// contributors, sorted by metaclass, feature, kind and then the owner referred to; empty when
+        /// nothing contributes; <c>null</c> when the metaclass has no such feature.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// <paramref name="className"/> or <paramref name="feature"/> is <c>null</c>, empty or white space.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<Contribution>> Contributors(string className, string feature, string? tag = null);
+
         /// <summary>One element's entry in the metamodel index: its kind, package, supertypes and page.</summary>
         /// <param name="name">The element's name.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>

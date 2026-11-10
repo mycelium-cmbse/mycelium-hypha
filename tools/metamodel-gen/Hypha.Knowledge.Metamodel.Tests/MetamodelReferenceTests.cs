@@ -18,7 +18,9 @@ namespace Hypha.Knowledge.Metamodel.Tests
     using NUnit.Framework;
 
     using uml4net.Classification;
+    using uml4net.CommonStructure;
     using uml4net.Packages;
+    using uml4net.SimpleClassifiers;
     using uml4net.StructuredClassifiers;
     using uml4net.xmi.Readers;
 
@@ -294,6 +296,65 @@ namespace Hypha.Knowledge.Metamodel.Tests
         }
 
         [Test]
+        public void A_constraint_names_each_kind_of_element_it_constrains()
+        {
+            // The releases so far only constrain metaclasses; the other kinds are built here.
+            var attribute = new Property { Name = "size", XmiId = "size" };
+            var operation = new Operation { Name = "check", XmiId = "check" };
+            var @class = new Class { Name = "Constrained", XmiId = "class" };
+            @class.OwnedAttribute.Add(attribute);
+            @class.OwnedOperation.Add(operation);
+
+            var rule = new Constraint { Name = "rule", XmiId = "rule" };
+            rule.ConstrainedElement.Add(attribute);
+            rule.ConstrainedElement.Add(operation);
+            rule.ConstrainedElement.Add(@class);
+            @class.OwnedRule.Add(rule);
+
+            var document = MetamodelJsonGenerator.BuildDocument(Model(@class), "digest");
+
+            Assert.That(
+                document.Classes.Single().Constraints.Single().ConstrainedElements,
+                Is.EqualTo(new[]
+                {
+                    new ElementReference("property", "Constrained", "size"),
+                    new ElementReference("operation", "Constrained", "check"),
+                    new ElementReference("class", null, "Constrained"),
+                }));
+        }
+
+        [Test]
+        public void A_reference_to_an_attribute_a_data_type_owns_names_the_data_type()
+        {
+            var value = new Property { Name = "value", XmiId = "value" };
+            var quantity = new DataType { Name = "Quantity", XmiId = "quantity" };
+            quantity.OwnedAttribute.Add(value);
+
+            var attribute = new Property { Name = "amount", XmiId = "amount" };
+            attribute.SubsettedProperty.Add(value);
+            var @class = new Class { Name = "Measured", XmiId = "class" };
+            @class.OwnedAttribute.Add(attribute);
+
+            var document = MetamodelJsonGenerator.BuildDocument(Model(@class, quantity), "digest");
+
+            Assert.That(
+                document.Classes.Single().OwnedAttributes.Single().Subsets,
+                Is.EqualTo(new[] { new FeatureReference("Quantity", null, "value") }));
+        }
+
+        [Test]
+        public void A_metaclass_owning_two_constraints_of_one_name_is_refused()
+        {
+            var @class = new Class { Name = "Duplicated", XmiId = "class" };
+            @class.OwnedRule.Add(new Constraint { Name = "check", XmiId = "first" });
+            @class.OwnedRule.Add(new Constraint { Name = "check", XmiId = "second" });
+
+            Assert.That(
+                () => MetamodelJsonGenerator.BuildDocument(Model(@class), "digest"),
+                Throws.InvalidOperationException.With.Message.Contains("more than one constraint named 'check'"));
+        }
+
+        [Test]
         public void A_metaclass_owning_two_operations_of_one_name_is_refused()
         {
             // An inherited operation is written as a reference by name, which two of the same name would make ambiguous.
@@ -309,6 +370,18 @@ namespace Hypha.Knowledge.Metamodel.Tests
             Assert.That(
                 () => MetamodelJsonGenerator.BuildDocument(model, "digest"),
                 Throws.InvalidOperationException.With.Message.Contains("more than one operation named 'check'"));
+        }
+
+        private static XmiReaderResult Model(params IPackageableElement[] elements)
+        {
+            var package = new Package { Name = "Root", XmiId = "root" };
+
+            foreach (var element in elements)
+            {
+                package.PackagedElement.Add(element);
+            }
+
+            return new XmiReaderResult { Packages = [package] };
         }
 
         private AttributeNode Attribute(string className, string name) =>
