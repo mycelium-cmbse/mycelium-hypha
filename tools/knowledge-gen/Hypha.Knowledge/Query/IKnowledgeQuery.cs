@@ -315,6 +315,9 @@ namespace Hypha.Knowledge.Query
         /// is reported as one, and on its name when the ids differ. The ids normally stay the same, but
         /// upstream regenerated every one between 2025-04 and 2025-06, so across that gap a rename reads
         /// as a removal plus an addition. Inherited members are not compared.
+        /// For the elements found in both releases it also compares the clauses, grammar productions,
+        /// features and examples <c>cross-references.json</c> links them to, when both releases have
+        /// generated it.
         /// </summary>
         /// <param name="from">The older release.</param>
         /// <param name="to">The newer release.</param>

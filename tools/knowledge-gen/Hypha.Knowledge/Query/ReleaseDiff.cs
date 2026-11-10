@@ -18,5 +18,15 @@ namespace Hypha.Knowledge.Query
     /// The changes to the metamodel's metaclasses, enumerations and primitive types and to what they own,
     /// sorted by element, member, kind and then field.
     /// </param>
-    public sealed record ReleaseDiff(DiffSide From, DiffSide To, IReadOnlyList<MetamodelChange> Metamodel);
+    /// <param name="CrossReferences">
+    /// The changes to where the elements found in both releases are treated: clauses, grammar
+    /// productions, the features their syntax populates and worked examples, sorted by element, facet,
+    /// edge, kind and then field. <c>null</c> when either release has not generated its
+    /// <c>cross-references.json</c>, so it cannot be told from "nothing changed".
+    /// </param>
+    public sealed record ReleaseDiff(
+        DiffSide From,
+        DiffSide To,
+        IReadOnlyList<MetamodelChange> Metamodel,
+        IReadOnlyList<CrossReferenceChange>? CrossReferences);
 }

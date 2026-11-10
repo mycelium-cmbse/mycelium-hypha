@@ -663,6 +663,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(provider.GetRequiredService<IDocumentCache>(), Is.SameAs(documents));
                 Assert.That(provider.GetRequiredService<ISpecificationReader>(), Is.InstanceOf<SpecificationReader>());
                 Assert.That(provider.GetRequiredService<IMetamodelDiffer>(), Is.InstanceOf<MetamodelDiffer>());
+                Assert.That(provider.GetRequiredService<ICrossReferenceDiffer>(), Is.InstanceOf<CrossReferenceDiffer>());
             });
         }
 
@@ -679,7 +680,7 @@ namespace Hypha.Knowledge.Tests
                     It.IsAny<string>()))
                 .Throws(new KnowledgeLookupException("refused by the cache"));
             var query = new KnowledgeQuery(
-                this.fixture.Layout, this.fixture.ApiLayout, documents.Object, new SpecificationReader(documents.Object), new MetamodelDiffer());
+                this.fixture.Layout, this.fixture.ApiLayout, documents.Object, new SpecificationReader(documents.Object), new MetamodelDiffer(), new CrossReferenceDiffer());
 
             Assert.That(
                 () => query.Subclasses("Usage"),
@@ -694,12 +695,14 @@ namespace Hypha.Knowledge.Tests
             var documents = this.fixture.Documents;
             var specifications = new SpecificationReader(documents);
             var differ = new MetamodelDiffer();
+            var crossReferenceDiffer = new CrossReferenceDiffer();
 
             Assert.Multiple(() =>
             {
-                Assert.That(() => new KnowledgeQuery(layout, apiLayout, null!, specifications, differ), Throws.ArgumentNullException);
-                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, null!, differ), Throws.ArgumentNullException);
-                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, specifications, null!), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, null!, specifications, differ, crossReferenceDiffer), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, null!, differ, crossReferenceDiffer), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, specifications, null!, crossReferenceDiffer), Throws.ArgumentNullException);
+                Assert.That(() => new KnowledgeQuery(layout, apiLayout, documents, specifications, differ, null!), Throws.ArgumentNullException);
                 Assert.That(() => new ApiQuery(apiLayout, layout, null!, specifications), Throws.ArgumentNullException);
                 Assert.That(() => new ApiQuery(apiLayout, layout, documents, null!), Throws.ArgumentNullException);
                 Assert.That(() => new SpecificationReader(null!), Throws.ArgumentNullException);

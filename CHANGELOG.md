@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `Contributors`: the features that subset or redefine a feature, directly or through another
       contributor, each saying which, such as the 82 that contribute to `Namespace::ownedMember`
       (`EnumerationDefinition::enumeratedValue` by redefining `Definition::variant`).
-  - `Diff` (`refs #206`): what changed in the metamodel between two installed releases, for every
+  - `Diff` (`fixes #206`): what changed in the metamodel between two installed releases, for every
     element or for one, by its name in either release. Metaclasses, enumerations and primitive types
     added, removed, renamed or moved; per metaclass `isAbstract`, `visibility` and `extends`; and
     the attributes, operations, parameters, constraints and literals they own, added, removed,
@@ -59,8 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     reads as a removal plus an addition. A rewritten documentation text is one
     `documentation` change, without the texts. Inherited members are not compared. Each change is
     a fact; whether it breaks a model is left to the caller. Two documents of different schema
-    versions are refused. The comparison itself is `IMetamodelDiffer`, which `AddHyphaKnowledge`
-    registers and `KnowledgeQuery` takes in its constructor.
+    versions are refused. For the elements found in both releases it also compares
+    `cross-references.json` edge by edge: the clauses, grammar productions, features the syntax
+    populates and worked examples, each added, removed or changed in its provenance, method or
+    productions, with a renamed element compared under both names. That part is `null` when either
+    release has not generated its cross-references. The comparisons are `IMetamodelDiffer` and
+    `ICrossReferenceDiffer`, which `AddHyphaKnowledge` registers and `KnowledgeQuery` takes in its
+    constructor.
   - `IApiQuery`, for a Systems Modeling API version: a PIM class, the cross-references of a type or a
     service operation, and a clause of the API specification.
   - Every result carries its grounding: the tier (`NORMATIVE`, `MODEL` or `DERIVED`), the release
