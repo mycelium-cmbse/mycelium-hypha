@@ -41,7 +41,7 @@ namespace Hypha.Knowledge.Tests
             // One cache for both queries, as AddHyphaKnowledge registers them.
             this.Documents = new DocumentCache();
             var specifications = new SpecificationReader(this.Documents);
-            this.Query = new KnowledgeQuery(this.Layout, this.ApiLayout, this.Documents, specifications);
+            this.Query = new KnowledgeQuery(this.Layout, this.ApiLayout, this.Documents, specifications, new MetamodelDiffer());
             this.Api = new ApiQuery(this.ApiLayout, this.Layout, this.Documents, specifications);
 
             KnowledgeLookupTests.Install(this.Layout, Tag);
@@ -101,7 +101,7 @@ namespace Hypha.Knowledge.Tests
         {
             var documents = new DocumentCache();
 
-            return new KnowledgeQuery(layout, apiLayout, documents, new SpecificationReader(documents));
+            return new KnowledgeQuery(layout, apiLayout, documents, new SpecificationReader(documents), new MetamodelDiffer());
         }
 
         public static ApiQuery NewApi(IApiLayout apiLayout, IKnowledgeLayout layout)

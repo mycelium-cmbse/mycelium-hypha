@@ -34,7 +34,7 @@ namespace Hypha.Knowledge.Metamodel.Generators
     public class MetamodelJsonGenerator : Generator
     {
         /// <summary>The version of the JSON shape produced by this generator.</summary>
-        public const string SchemaVersion = "2.0.0";
+        public const string SchemaVersion = "2.1.0";
 
         /// <summary>
         /// The fixed serializer options: indented, camel-cased property names and relaxed escaping, so
@@ -351,6 +351,7 @@ namespace Hypha.Knowledge.Metamodel.Generators
                 .OrderBy(rule => rule.Name, StringComparer.Ordinal)
                 .Select(rule => new ConstraintNode(
                     rule.Name,
+                    rule.XmiId ?? string.Empty,
                     rule.QueryDocumentationText(),
                     rule.QueryConstraintBody(),
                     rule.ConstrainedElement.Select(owners.Element).ToList()))
@@ -396,6 +397,7 @@ namespace Hypha.Knowledge.Metamodel.Generators
 
             return new AttributeNode(
                 property.Name,
+                property.XmiId ?? string.Empty,
                 typeName,
                 typeName is not null && linkable.Contains(typeName),
                 ElementCatalog.VisibilityName(property.Visibility),
@@ -477,6 +479,7 @@ namespace Hypha.Knowledge.Metamodel.Generators
 
             return new OperationNode(
                 operation.Name,
+                operation.XmiId ?? string.Empty,
                 returnType,
                 returnLower,
                 returnUpper,
@@ -524,6 +527,7 @@ namespace Hypha.Knowledge.Metamodel.Generators
                 .Where(parameter => parameter.Direction != ParameterDirectionKind.Return)
                 .Select(parameter => new OperationParameterNode(
                     parameter.Name,
+                    parameter.XmiId ?? string.Empty,
                     parameter.Type?.Name,
                     parameter.Direction.ToString().ToLowerInvariant(),
                     parameter.Lower,
@@ -543,7 +547,7 @@ namespace Hypha.Knowledge.Metamodel.Generators
         private static EnumerationNode BuildEnumeration(IEnumeration enumeration)
         {
             var literals = enumeration.OwnedLiteral
-                .Select(literal => new EnumerationLiteralNode(literal.Name, literal.QueryDocumentationText()))
+                .Select(literal => new EnumerationLiteralNode(literal.Name, literal.XmiId ?? string.Empty, literal.QueryDocumentationText()))
                 .ToList();
 
             return new EnumerationNode(

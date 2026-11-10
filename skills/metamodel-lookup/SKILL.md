@@ -74,7 +74,11 @@ documentation.
 `allAncestors`, `allDescendants`, `directSubclasses`, and `inheritedAttributes` carrying the
 declaring type in `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper` (`-1` is
 unbounded), `isDerived`, `isDerivedUnion`, `isComposite`, `isOrdered`, `isUnique`, `isReadOnly`,
-`defaultValue`, `redefines`, `subsets` and `opposite`. A reference to another feature (in
+`defaultValue`, `redefines`, `subsets` and `opposite`. Every element and owned member also has an
+`xmiId`, which normally stays the same across releases, so two releases can be compared even across
+a rename. The ids are not always kept: upstream regenerated every one between `2025-04` and
+`2025-06`, so across that gap members are matched on their names and a rename reads as a removal
+plus an addition. A reference to another feature (in
 `redefines`, `subsets`, `opposite` and `redefinedBy`) is an object naming its owner,
 `{ "class": "Relationship", "association": null, "feature": "source" }`, because several metaclasses
 declare a feature of the same name; an end an association owns has `association` set instead of

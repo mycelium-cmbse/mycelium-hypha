@@ -181,6 +181,7 @@
       "additionalProperties": false,
       "required": [
         "name",
+        "xmiId",
         "type",
         "typeIsElement",
         "visibility",
@@ -200,6 +201,10 @@
       ],
       "properties": {
         "name": { "type": "string" },
+        "xmiId": {
+          "description": "The XMI id, empty when it has none. It normally stays the same across releases, so a renamed member is still matched; where upstream regenerated the ids, members are matched on their names.",
+          "type": "string"
+        },
         "type": {
           "description": "The name of the attribute's type, null when it is untyped.",
           "type": ["string", "null"]
@@ -347,6 +352,7 @@
       "additionalProperties": false,
       "required": [
         "name",
+        "xmiId",
         "returnType",
         "returnLower",
         "returnUpper",
@@ -358,6 +364,10 @@
       ],
       "properties": {
         "name": { "type": "string" },
+        "xmiId": {
+          "description": "The XMI id, empty when it has none. It normally stays the same across releases, so a renamed member is still matched; where upstream regenerated the ids, members are matched on their names.",
+          "type": "string"
+        },
         "returnType": {
           "description": "The name of the return type, null when there is none or it is untyped.",
           "type": ["string", "null"]
@@ -407,9 +417,13 @@
     "parameter": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "type", "direction", "lower", "upper"],
+      "required": ["name", "xmiId", "type", "direction", "lower", "upper"],
       "properties": {
         "name": { "type": "string" },
+        "xmiId": {
+          "description": "The XMI id, empty when it has none. It normally stays the same across releases, so a renamed member is still matched; where upstream regenerated the ids, members are matched on their names.",
+          "type": "string"
+        },
         "type": { "type": ["string", "null"] },
         "direction": {
           "description": "The direction as its lowercase name, e.g. \"in\".",
@@ -422,9 +436,13 @@
     "constraint": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "documentation", "ocl", "constrainedElements"],
+      "required": ["name", "xmiId", "documentation", "ocl", "constrainedElements"],
       "properties": {
         "name": { "type": "string" },
+        "xmiId": {
+          "description": "The XMI id, empty when it has none. It normally stays the same across releases, so a renamed member is still matched; where upstream regenerated the ids, members are matched on their names.",
+          "type": "string"
+        },
         "documentation": { "type": "string" },
         "ocl": {
           "description": "The constraint body, may be empty.",
@@ -517,9 +535,13 @@
     "literal": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "documentation"],
+      "required": ["name", "xmiId", "documentation"],
       "properties": {
         "name": { "type": "string" },
+        "xmiId": {
+          "description": "The XMI id, empty when it has none. It normally stays the same across releases, so a renamed member is still matched; where upstream regenerated the ids, members are matched on their names.",
+          "type": "string"
+        },
         "documentation": { "type": "string" }
       }
     },
