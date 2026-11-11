@@ -15,6 +15,7 @@ namespace Hypha.Tools.Commands
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Query;
 
     using Spectre.Console;
 
@@ -40,18 +41,24 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="ListCommand"/>.</summary>
         public sealed class Handler
         {
-            /// <summary>Locates the knowledge folder and reads the installed releases and the default from it.</summary>
+            /// <summary>Reads the installed releases, the default and what each has generated.</summary>
+            private readonly IKnowledgeQuery query;
+
+            /// <summary>Locates the knowledge folder, named when nothing is installed in it.</summary>
             private readonly IKnowledgeLayout layout;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
+            /// <param name="query">Reads the release inventory.</param>
             /// <param name="layout">The knowledge layout whose installed releases are listed.</param>
-            /// <exception cref="ArgumentNullException"><paramref name="layout"/> is <c>null</c>.</exception>
-            public Handler(IKnowledgeLayout layout)
+            /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+            public Handler(IKnowledgeQuery query, IKnowledgeLayout layout)
             {
+                ArgumentNullException.ThrowIfNull(query);
                 ArgumentNullException.ThrowIfNull(layout);
 
+                this.query = query;
                 this.layout = layout;
             }
 
@@ -69,11 +76,12 @@ namespace Hypha.Tools.Commands
                 ArgumentNullException.ThrowIfNull(parseResult);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var releases = ReleaseStatus.ReadAll(this.layout);
+                var inventory = this.query.Releases();
+                var releases = inventory.Releases;
 
                 if (parseResult.GetValue(Json))
                 {
-                    await JsonOutput.WriteAsync(new ListResult(this.layout.DefaultTag, releases));
+                    await JsonOutput.WriteAsync(new ListResult(inventory.Default, releases));
 
                     return 0;
                 }

@@ -332,11 +332,11 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 - [x] Add spec text access (`Clause`, with an explicit `Unavailable` when the PDFs were never processed), and search / `hypha://` addressing (`Search`, `HyphaAddress`, `Resolve`).
 - [x] Report which artifacts each installed release has generated in the release inventory (section 1.7, item 2).
 - [x] Validation and citation queries beyond the documented jq: ancestors and specialization, constraints and operations, enumeration literals, subsettings, the elements a production builds or a clause treats.
-- Deferred: a keyword query (#205), which needs the keyword index as JSON, and a diff between two releases (#206).
+- [x] A keyword query (#205), from a keyword index generated as JSON, and a diff between two releases (#206).
 
 ### Step 3: Prepare the write path and the CLI
 
-- [ ] Rewrite `lookup` and `list` over the query API; add `hypha query …` verbs.
+- [x] Rewrite `lookup` and `list` over the query API; add `hypha query …` verbs.
 - [ ] Add `IProgress<T>` reporting to install / fetch / generate.
 - [ ] Make `ReleaseOperationLock` cross-process safe; add the concurrency test.
 - [ ] Make `HYPHA_HOME` the default location; keep checkout mode and `--output` for maintainers.

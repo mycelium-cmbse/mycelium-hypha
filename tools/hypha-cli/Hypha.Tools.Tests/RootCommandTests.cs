@@ -33,7 +33,7 @@ namespace Hypha.Tools.Tests
                 verbs,
                 Is.EquivalentTo(new[]
                 {
-                    "discover", "fetch", "generate", "list", "lookup", "move-window", "use", "remove", "check",
+                    "discover", "fetch", "generate", "list", "lookup", "query", "move-window", "use", "remove", "check",
                     "api",
                 }));
         }

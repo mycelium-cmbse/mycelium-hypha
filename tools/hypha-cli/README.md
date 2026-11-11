@@ -47,6 +47,7 @@ editor extension, passes this option.
 | `hypha generate [artifact]` | Generates the knowledge base. Every artifact for every installed release when nothing is narrowed. |
 | `hypha list [--json]` | Lists the installed releases, which one answers by default, and which of their artifacts have been generated. |
 | `hypha lookup --kind <metamodel\|model-library> --name <name> [--tag <release>] [--start-line N] [--max-lines N] [--json]` | Prints one page of a metamodel element's or model-library declaration's generated page. Read-only. |
+| `hypha query <question> [options] [--tag <release>] [--json]` | Answers a structural question about a release from its generated knowledge, one verb per question (`subclasses`, `features`, `keyword`, `diff`, ...), and `hypha query api <question> [--tag <version>]` about an API version. Read-only. |
 | `hypha move-window --tag <release> [--keep N]` | Maintainer-only: fetches, regenerates, re-extracts specifications, re-blesses the metamodel-gen fixtures, verifies, then prunes locally-installed releases beyond `--keep` (default 2). |
 | `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
 | `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
@@ -91,9 +92,38 @@ An index path that leaves the release folder (absolute, through `..`, or through
 anywhere on the way) is refused, and so is an index that is not what the generators write; both ask
 for `hypha generate`.
 
+### Asking a question
+
+`hypha query` answers the questions of the query API (`IKnowledgeQuery`, `IApiQuery`), the same
+facts the skills read with `jq`, one verb per question. `hypha query --help` lists them; each verb's
+`--help` lists its options.
+
+```sh
+hypha query subclasses --of Usage --concrete-only
+hypha query features --class PartUsage --name name
+hypha query keyword --word ':>>' --grammar sysml
+hypha query constraints --class PartUsage --own-only
+hypha query diff --from 2026-02 --to 2026-05 --element PartUsage
+hypha query search --text Feature --kind metamodel
+hypha query resolve --address hypha://2026-05/metamodel/PartUsage
+hypha query api type --name Commit
+```
+
+Every answer says where it comes from: its tier (`NORMATIVE` for specification text, `MODEL` for a
+fact read from the metamodel, `DERIVED` for a closure, a cross-reference or a match), the release and
+the generated file it was read from. Without `--json` that is the first line, followed by the answer
+as indented JSON. With `--json` the whole result is one line: `value` (the answer, `null` when the
+release has no such element), `grounding`, `unavailable` (why an optional artifact, such as the
+specification text, cannot answer, and how to generate it; otherwise `null`), `found` and
+`available`. An answer that finds nothing exits 0; a release that is not installed or generated, or
+an argument a question refuses, exits 1.
+
+`lookup` and `query` read the indexes through the same typed contracts and cache, so an index the
+generators could not have written is refused by both.
+
 ### JSON output
 
-`check`, `list`, `lookup` and `api list` take `--json`, for editors, language-model tools and scripts. Every
+`check`, `list`, `lookup`, `query` and `api list` take `--json`, for editors, language-model tools and scripts. Every
 `--json` document follows the same rules:
 
 - standard output holds exactly one line with one JSON document, with no banner and no wrapping, and every

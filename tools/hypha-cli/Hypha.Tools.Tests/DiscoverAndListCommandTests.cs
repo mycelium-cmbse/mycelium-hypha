@@ -95,7 +95,7 @@ namespace Hypha.Tools.Tests
             using var knowledge = new TemporaryKnowledge().Install("2026-05", "2026-04");
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(knowledge.Layout).InvokeAsync(this.root.Parse("list"), CancellationToken.None);
+            var result = await new ListCommand.Handler(knowledge.Query, knowledge.Layout).InvokeAsync(this.root.Parse("list"), CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -112,7 +112,7 @@ namespace Hypha.Tools.Tests
             using var knowledge = new TemporaryKnowledge();
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(knowledge.Layout).InvokeAsync(this.root.Parse("list"), CancellationToken.None);
+            var result = await new ListCommand.Handler(knowledge.Query, knowledge.Layout).InvokeAsync(this.root.Parse("list"), CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -132,7 +132,7 @@ namespace Hypha.Tools.Tests
                 .Write("2026-09", "cross-references.json", "{}");
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(knowledge.Layout)
+            var result = await new ListCommand.Handler(knowledge.Query, knowledge.Layout)
                 .InvokeAsync(this.root.Parse("list --json"), CancellationToken.None);
 
             var line = console.Output.TrimEnd('\r', '\n');
@@ -170,7 +170,7 @@ namespace Hypha.Tools.Tests
             using var knowledge = new TemporaryKnowledge();
             using var console = new RecordedConsole();
 
-            var result = await new ListCommand.Handler(knowledge.Layout)
+            var result = await new ListCommand.Handler(knowledge.Query, knowledge.Layout)
                 .InvokeAsync(this.root.Parse("list --json"), CancellationToken.None);
 
             using var document = JsonDocument.Parse(console.Output);

@@ -1564,25 +1564,13 @@ namespace Hypha.Knowledge.Query
         /// <param name="release">The release.</param>
         /// <returns>The index.</returns>
         /// <exception cref="KnowledgeLookupException">The release has not generated its metamodel, or the index is invalid.</exception>
-        private MetamodelLookup MetamodelIndex(string release) =>
-            this.documents.Get(
-                this.layout.MetamodelIndex(release),
-                ReadContracts.MetamodelIndex,
-                document => document.Entries is not null,
-                ReleaseAxis.Language.NotGenerated("metamodel", release),
-                ReleaseAxis.Language.GenerateCommand(release));
+        private MetamodelLookup MetamodelIndex(string release) => ReleaseIndexes.Metamodel(this.documents, this.layout, release);
 
         /// <summary>Reads a release's model-library <c>index.json</c>.</summary>
         /// <param name="release">The release.</param>
         /// <returns>The index.</returns>
         /// <exception cref="KnowledgeLookupException">The release has not generated its model library, or the index is invalid.</exception>
-        private ModelLibraryDocument ModelLibraryIndex(string release) =>
-            this.documents.Get(
-                this.layout.ModelLibraryIndex(release),
-                ReadContracts.ModelLibrary,
-                document => document.Declarations is not null,
-                ReleaseAxis.Language.NotGenerated("model library", release),
-                ReleaseAxis.Language.GenerateCommand(release));
+        private ModelLibraryDocument ModelLibraryIndex(string release) => ReleaseIndexes.ModelLibrary(this.documents, this.layout, release);
 
         /// <summary>The page an index entry names, checked to stay inside its artifact's folder.</summary>
         /// <param name="address">The address being resolved.</param>

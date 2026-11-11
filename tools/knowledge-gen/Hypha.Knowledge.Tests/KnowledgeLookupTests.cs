@@ -13,9 +13,11 @@ namespace Hypha.Knowledge.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text.Json.Serialization.Metadata;
 
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
+    using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
 
     [TestFixture]
@@ -35,7 +37,7 @@ namespace Hypha.Knowledge.Tests
             this.root = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-lookup-" + Guid.NewGuid().ToString("N")));
             this.root.Create();
             this.layout = new KnowledgeLayout(this.root);
-            this.lookup = new KnowledgeLookup(this.layout);
+            this.lookup = new KnowledgeLookup(this.layout, new DocumentCache());
 
             Install(this.layout, Tag);
 
@@ -117,6 +119,20 @@ namespace Hypha.Knowledge.Tests
             {
                 this.root.Delete(recursive: true);
             }
+        }
+
+        [Test]
+        public void Both_indexes_are_read_through_the_document_cache_the_query_shares()
+        {
+            var documents = new RecordingCache();
+            var lookup = new KnowledgeLookup(this.layout, documents);
+
+            lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "PartUsage"));
+            lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ScalarValues::Real"));
+
+            Assert.That(
+                documents.Read,
+                Is.EqualTo(new[] { this.layout.MetamodelIndex(Tag).FullName, this.layout.ModelLibraryIndex(Tag).FullName }));
         }
 
         [Test]
@@ -952,11 +968,29 @@ namespace Hypha.Knowledge.Tests
         private string PathOf(string relative) =>
             Path.Combine(this.root.FullName, "knowledge", Tag, relative.Replace('/', Path.DirectorySeparatorChar));
 
+        // Records which documents went through the cache, and reads them with a real one.
+        private sealed class RecordingCache : IDocumentCache
+        {
+            private readonly DocumentCache inner = new();
+
+            public List<string> Read { get; } = [];
+
+            public T Get<T>(FileInfo file, JsonTypeInfo<T> contract, Func<T, bool> isWhole, string missing, string regenerate)
+                where T : class
+            {
+                this.Read.Add(file.FullName);
+
+                return this.inner.Get(file, contract, isWhole, missing, regenerate);
+            }
+
+            public string ReadText(FileInfo file) => this.inner.ReadText(file);
+        }
+
         private void Write(string relative, string content)
         {
             var path = this.PathOf(relative);
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.WriteAllText(path, content.Replace("\r\n", "\n", StringComparison.Ordinal));
+            File.WriteAllText(path, GeneratedIndex.Complete(relative, content.Replace("\r\n", "\n", StringComparison.Ordinal)));
         }
     }
 }

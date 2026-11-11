@@ -247,7 +247,9 @@ namespace Hypha.Tools.Tests
             using var knowledge = new TemporaryKnowledge()
                 .Install("2026-09")
                 .Write("2026-09", "metamodel/index.json",
-                    "{\"entries\":{\"PartUsage\":{\"kind\":\"class\",\"file\":\"elements/PartUsage.md\"}}}")
+                    "{\"schemaVersion\":\"1.0.0\",\"metamodel\":\"SysML\",\"modelVersionUri\":\"https://www.omg.org/spec/SysML/20250201\","
+                    + "\"entries\":{\"PartUsage\":{\"kind\":\"class\",\"package\":\"Parts\",\"qualifiedName\":\"SysML::Parts::PartUsage\","
+                    + "\"isAbstract\":false,\"summary\":\"\",\"extends\":[],\"file\":\"elements/PartUsage.md\"}}}")
                 .Write("2026-09", "metamodel/elements/PartUsage.md", "a\nb\n");
             using var console = new RecordedConsole();
 

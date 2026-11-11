@@ -13,7 +13,9 @@ namespace Hypha.Tools.Tests
     using System.IO;
     using System.Linq;
 
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
 
     internal sealed class TemporaryKnowledge : IDisposable
@@ -28,6 +30,24 @@ namespace Hypha.Tools.Tests
         public DirectoryInfo Root { get; }
 
         public KnowledgeLayout Layout { get; }
+
+        // A query over this folder, built as AddHyphaKnowledge builds it: one document cache shared by
+        // the query and its specification reader.
+        public KnowledgeQuery Query
+        {
+            get
+            {
+                var documents = new DocumentCache();
+
+                return new KnowledgeQuery(
+                    this.Layout,
+                    new ApiLayout(this.Layout),
+                    documents,
+                    new SpecificationReader(documents),
+                    new MetamodelDiffer(),
+                    new CrossReferenceDiffer());
+            }
+        }
 
         public TemporaryKnowledge Install(params string[] tags)
         {

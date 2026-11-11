@@ -74,6 +74,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     expression keywords and operators (`and`, `istype`, `true`, `+`) come from the KerML
     expressions SysML calls, and `SyntaxFrom` says so; a KerML declaration keyword such as
     `classifier` is not SysML syntax, so asking SysML about it finds nothing.
+  - `hypha query` (`refs #195`): one verb per question of `IKnowledgeQuery` and `IApiQuery`
+    (`hypha query subclasses --of Usage`, `hypha query keyword --word ':>>'`,
+    `hypha query api type --name Commit`), each with `--tag`/`-t` (a release, or for `api` an API
+    version) and `--json`. With `--json` it prints the whole result: the answer, its grounding (tier, release, source file) and,
+    when an optional artifact was never generated, why. The results are written through
+    `QueryJsonContext`, a source-generated contract in camel case that the MCP server will reuse.
+    `hypha list` now reads the release inventory through the query API, and `hypha lookup` reads the
+    metamodel and model-library indexes through the query API's typed contracts and document cache,
+    so both read an index once while it is unchanged and both refuse one the generators could not
+    have written (`hypha lookup --json` output is unchanged).
   - `IApiQuery`, for a Systems Modeling API version: a PIM class, the cross-references of a type or a
     service operation, and a clause of the API specification.
   - Every result carries its grounding: the tier (`NORMATIVE`, `MODEL` or `DERIVED`), the release
