@@ -32,7 +32,7 @@
           }
         },
         "entries": {
-          "description": "Keyed by the literal as the grammar writes it, e.g. \"ref\" or \":>>\". Plain punctuation (; , { } ( ) [ ]) and the literals of the lexical productions declared before RESERVED_KEYWORD are left out.",
+          "description": "Keyed by the literal as the grammar writes it, e.g. \"ref\" or \":>>\". Plain punctuation (; , { } ( ) [ ]) and the literals of the lexical productions declared before RESERVED_KEYWORD are left out. The sysml table also holds the literals of the KerML productions it calls without defining, unless SysML writes them itself; the counts include them.",
           "type": "object",
           "additionalProperties": { "$ref": "#/$defs/entry" }
         }
@@ -41,14 +41,18 @@
     "entry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "productions", "metaclasses"],
+      "required": ["kind", "syntaxFrom", "productions", "metaclasses"],
       "properties": {
         "kind": {
           "description": "\"reserved\" when RESERVED_KEYWORD declares the word, \"contextual\" for another word, \"operator\" for a symbol.",
           "enum": ["reserved", "contextual", "operator"]
         },
+        "syntaxFrom": {
+          "description": "The grammar whose productions write the literal: the grammar holding the entry, or \"kerml\" in the sysml table for a literal only the KerML productions SysML calls without defining (its expressions) write, such as \"and\" or \"+\".",
+          "type": "string"
+        },
         "productions": {
-          "description": "The productions whose own text writes the literal. Empty for a reserved keyword no production uses.",
+          "description": "The productions of syntaxFrom whose own text writes the literal. Empty for a reserved keyword no production uses.",
           "type": "array",
           "items": { "type": "string" }
         },

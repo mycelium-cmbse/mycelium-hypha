@@ -15,6 +15,7 @@ namespace Hypha.Knowledge.Query
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Api.CrossReferences;
     using Hypha.Knowledge.CrossReferences;
+    using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Metamodel;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Specification;
@@ -48,6 +49,10 @@ namespace Hypha.Knowledge.Query
         /// <summary>Gets the contract for the model library's <c>index.json</c>.</summary>
         public static JsonTypeInfo<ModelLibraryDocument> ModelLibrary { get; } =
             new ModelLibraryJsonContext(Strict(requireMembers: true)).ModelLibraryDocument;
+
+        /// <summary>Gets the contract for a release's <c>textual-notation/keywords.json</c>.</summary>
+        public static JsonTypeInfo<KeywordDocument> Keywords { get; } =
+            new KeywordJsonContext(Strict(requireMembers: true)).KeywordDocument;
 
         /// <summary>Gets the contract for an API version's <c>cross-references.json</c>.</summary>
         public static JsonTypeInfo<ApiCrossReferenceDocument> ApiCrossReferences { get; } =

@@ -31,7 +31,7 @@ namespace Hypha.Knowledge.Keywords
         IReadOnlyDictionary<string, KeywordGrammar> Grammars)
     {
         /// <summary>The schema version this generator emits.</summary>
-        public const string CurrentSchemaVersion = "1.0.0";
+        public const string CurrentSchemaVersion = "1.1.0";
 
         /// <summary>The file name, relative to a release's <c>textual-notation</c> directory.</summary>
         public const string FileName = "keywords.json";

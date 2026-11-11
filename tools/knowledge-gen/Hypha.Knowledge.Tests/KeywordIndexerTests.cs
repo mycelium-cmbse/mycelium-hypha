@@ -79,7 +79,10 @@ namespace Hypha.Knowledge.Tests
             ["PartUsage"] = Set("Usage", "Feature", "Element"),
             ["Redefinition"] = Set("Element"),
             ["Expression"] = Set("Feature", "Element"),
+            ["Invariant"] = Set("Expression", "Feature", "Element"),
         };
+
+        private const string Own = "test";
 
         private readonly GrammarParser parser = new();
 
@@ -147,6 +150,7 @@ namespace Hypha.Knowledge.Tests
                 this.table.Entries[":>>"],
                 Is.EqualTo(new KeywordEntry(
                     "operator",
+                    Own,
                     ["REDEFINES"],
                     [
                         Metaclass("Feature", "helper", ["Redefinition"], ["REDEFINES"]),
@@ -182,7 +186,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     this.table.Entries["expr"].Metaclasses,
                     Is.EqualTo(new[] { Metaclass("Expression", "direct", ["Expression"], ["Expression"]) }).Using<KeywordMetaclass>(Same));
-                Assert.That(this.table.Entries["lit"], Is.EqualTo(new KeywordEntry("contextual", ["Literal"], [])).Using<KeywordEntry>(Same));
+                Assert.That(this.table.Entries["lit"], Is.EqualTo(new KeywordEntry("contextual", Own, ["Literal"], [])).Using<KeywordEntry>(Same));
             });
         }
 
@@ -236,7 +240,7 @@ namespace Hypha.Knowledge.Tests
                     NAME ( '::' NAME )*
                 """);
 
-            Assert.That(table.Entries["::"], Is.EqualTo(new KeywordEntry("operator", ["QualifiedName"], [])).Using<KeywordEntry>(Same));
+            Assert.That(table.Entries["::"], Is.EqualTo(new KeywordEntry("operator", Own, ["QualifiedName"], [])).Using<KeywordEntry>(Same));
         }
 
         [Test]
@@ -287,7 +291,7 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void A_reserved_keyword_no_production_writes_is_listed_with_nothing()
         {
-            Assert.That(this.table.Entries["unused"], Is.EqualTo(new KeywordEntry("reserved", [], [])).Using<KeywordEntry>(Same));
+            Assert.That(this.table.Entries["unused"], Is.EqualTo(new KeywordEntry("reserved", Own, [], [])).Using<KeywordEntry>(Same));
         }
 
         [Test]
@@ -327,6 +331,90 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void A_grammar_lists_what_the_shared_productions_it_calls_write_and_keeps_its_own()
+        {
+            // As SysML calls KerML's OwnedExpression: the expressions' subclauses are followed, but not
+            // the function body they refer to, so neither 'return' nor the Invariant's 'true' is taken.
+            // ':>>' is written by both grammars.
+            const string shared =
+                """
+                RESERVED_KEYWORD =
+                    'true'
+
+                // Clause 8.2.5.8 Expressions
+
+                OwnedExpression : Expression =
+                    OperatorExpression
+
+                OperatorExpression : Expression =
+                    operand += Primary ( 'and' | '+' | 'new' | ':>>' )
+
+                // Clause 8.2.5.8.2 Primary Expressions
+
+                Primary : Expression =
+                    'true' | ownedRelationship += FunctionBody
+
+                // Clause 8.2.4.7 Functions
+
+                FunctionBody =
+                    'return' Invariant
+
+                Invariant : Invariant =
+                    'inv' 'true'
+
+                Unreached =
+                    'classifier'
+                """;
+            const string own =
+                """
+                RESERVED_KEYWORD =
+                    'and' | 'new' | 'part' | 'true' | 'variation'
+
+                PartUsage =
+                    'part' ':>>' value = OwnedExpression
+                """;
+
+            var table = new KeywordIndexer().Build(
+                "sysml",
+                this.parser.Parse(own),
+                this.parser.ReservedKeywords(own),
+                Ancestors,
+                new SharedGrammar("kerml", this.parser.Parse(shared)));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    table.Entries.Select(entry => $"{entry.Key} {entry.Value.Kind} {entry.Value.SyntaxFrom} {string.Join(",", entry.Value.Productions)}"),
+                    Is.EqualTo(new[]
+                    {
+                        "+ operator kerml OperatorExpression",
+                        ":>> operator sysml PartUsage",
+                        "and reserved kerml OperatorExpression",
+                        "new reserved kerml OperatorExpression",
+                        "part reserved sysml PartUsage",
+                        "true reserved kerml Primary",
+                        "variation reserved sysml ",
+                    }));
+                Assert.That(
+                    table.Entries["and"].Metaclasses,
+                    Is.EqualTo(new[] { Metaclass("Expression", "direct", ["OperatorExpression", "OwnedExpression"], ["OperatorExpression"]) }).Using<KeywordMetaclass>(Same));
+                Assert.That(table.Counts, Is.EqualTo(new KeywordCounts(Reserved: 5, Contextual: 0, Operators: 2)));
+            });
+        }
+
+        [Test]
+        public void Without_a_shared_grammar_a_reserved_word_no_production_writes_stays_empty()
+        {
+            var table = new KeywordIndexer().Build(
+                "sysml",
+                this.parser.Parse("RESERVED_KEYWORD =\n    'and'\n\nPartUsage =\n    'part' value = OwnedExpression\n"),
+                ["and"],
+                Ancestors);
+
+            Assert.That(table.Entries["and"], Is.EqualTo(new KeywordEntry("reserved", "sysml", [], [])).Using<KeywordEntry>(Same));
+        }
+
+        [Test]
         public void The_indexer_needs_every_argument()
         {
             var indexer = new KeywordIndexer();
@@ -334,9 +422,10 @@ namespace Hypha.Knowledge.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(() => indexer.Build(null!, [], Ancestors), Throws.ArgumentNullException);
-                Assert.That(() => indexer.Build(productions, null!, Ancestors), Throws.ArgumentNullException);
-                Assert.That(() => indexer.Build(productions, [], null!), Throws.ArgumentNullException);
+                Assert.That(() => indexer.Build(Own, null!, [], Ancestors), Throws.ArgumentNullException);
+                Assert.That(() => indexer.Build(Own, productions, null!, Ancestors), Throws.ArgumentNullException);
+                Assert.That(() => indexer.Build(Own, productions, [], null!), Throws.ArgumentNullException);
+                Assert.That(() => indexer.Build(" ", productions, [], Ancestors), Throws.ArgumentException);
             });
         }
 
@@ -348,6 +437,7 @@ namespace Hypha.Knowledge.Tests
         // The records hold lists, which compare by reference, so entries are compared field by field.
         private static bool Same(KeywordEntry expected, KeywordEntry actual) =>
             expected.Kind == actual.Kind
+            && expected.SyntaxFrom == actual.SyntaxFrom
             && expected.Productions.SequenceEqual(actual.Productions)
             && expected.Metaclasses.Count == actual.Metaclasses.Count
             && expected.Metaclasses.Zip(actual.Metaclasses).All(pair => Same(pair.First, pair.Second));
@@ -359,6 +449,6 @@ namespace Hypha.Knowledge.Tests
             && expected.Through.SequenceEqual(actual.Through);
 
         private KeywordGrammar Build(string grammar) =>
-            new KeywordIndexer().Build(this.parser.Parse(grammar), this.parser.ReservedKeywords(grammar), Ancestors);
+            new KeywordIndexer().Build(Own, this.parser.Parse(grammar), this.parser.ReservedKeywords(grammar), Ancestors);
     }
 }

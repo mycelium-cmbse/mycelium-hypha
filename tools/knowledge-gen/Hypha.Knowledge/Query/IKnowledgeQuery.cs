@@ -383,6 +383,22 @@ namespace Hypha.Knowledge.Query
         /// </exception>
         QueryResult<IReadOnlyList<ProductionUse>> BuiltBy(string production, string? grammar = null, string? tag = null);
 
+        /// <summary>
+        /// What a keyword or operator, such as <c>ref</c>, <c>individual</c> or <c>:&gt;&gt;</c>, does in each
+        /// grammar: the productions that write it and the metaclasses whose syntax includes it.
+        /// </summary>
+        /// <param name="word">The keyword or operator, matched exactly.</param>
+        /// <param name="grammar">Only this grammar (<c>kerml</c>, <c>sysml</c>), or <c>null</c> for any.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// One use per grammar that lists the word, ordered by grammar; <c>null</c> when none does.
+        /// </returns>
+        /// <exception cref="System.ArgumentException"><paramref name="word"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<KeywordUse>> Keyword(string word, string? grammar = null, string? tag = null);
+
         /// <summary>The elements a specification clause treats.</summary>
         /// <param name="document">The specification, as the cross-references key it (<c>kerml</c>, <c>sysml2</c>).</param>
         /// <param name="clause">The clause number, such as <c>8.3.6</c>.</param>

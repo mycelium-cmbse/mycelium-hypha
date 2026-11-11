@@ -21,17 +21,25 @@ namespace Hypha.Knowledge.Keywords
     public interface IKeywordIndexer
     {
         /// <summary>Builds the keyword table of one grammar.</summary>
+        /// <param name="grammar">The grammar's key, such as <c>sysml</c>, written as the <see cref="KeywordEntry.SyntaxFrom"/> of its own entries.</param>
         /// <param name="productions">The grammar's parsed productions, in document order.</param>
         /// <param name="reserved">The keywords its <c>RESERVED_KEYWORD</c> production declares.</param>
         /// <param name="ancestors">
         /// Each metaclass of the metamodel with the names of all its supertypes; nothing outside these is
         /// reported as a metaclass.
         /// </param>
+        /// <param name="shared">
+        /// The grammar whose productions this one calls without defining them, or <c>null</c> for none.
+        /// The literals its reachable productions write are listed too, unless this grammar writes them itself.
+        /// </param>
         /// <returns>The grammar's entries, keyed and ordered ordinally by literal, with their counts.</returns>
-        /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="productions"/>, <paramref name="reserved"/> or <paramref name="ancestors"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="grammar"/> is <c>null</c>, empty or white space.</exception>
         KeywordGrammar Build(
+            string grammar,
             IReadOnlyList<Production> productions,
             IReadOnlyList<string> reserved,
-            IReadOnlyDictionary<string, IReadOnlySet<string>> ancestors);
+            IReadOnlyDictionary<string, IReadOnlySet<string>> ancestors,
+            SharedGrammar? shared = null);
     }
 }

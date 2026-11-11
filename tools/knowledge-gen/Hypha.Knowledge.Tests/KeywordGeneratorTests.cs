@@ -110,6 +110,46 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task SysML_lists_what_the_KerML_productions_it_calls_write_and_without_KerML_nothing()
+        {
+            const string sysml =
+                """
+                RESERVED_KEYWORD =
+                    'part' | 'and'
+
+                PartUsage =
+                    'part' value = OwnedExpression
+                """;
+
+            this.WriteGrammar("SysML-textual-bnf.kebnf", sysml);
+            this.WriteGraph();
+
+            await this.Generator().GenerateAsync(Tag);
+            var alone = Entry(await File.ReadAllTextAsync(this.layout.Keywords(Tag).FullName), "and");
+
+            this.WriteGrammar("KerML-textual-bnf.kebnf", KerML + "\n\nOwnedExpression =\n    'and'\n");
+            await this.Generator().GenerateAsync(Tag);
+            var text = await File.ReadAllTextAsync(this.layout.Keywords(Tag).FullName);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(alone, Is.EqualTo("reserved sysml "));
+                Assert.That(Entry(text, "and"), Is.EqualTo("reserved kerml OwnedExpression"));
+                Assert.That(Entry(text, "part"), Is.EqualTo("reserved sysml PartUsage"));
+                Assert.That(text, Does.Contain("\":>\"").And.Not.Contain("\\u003E"));
+            });
+
+            static string Entry(string text, string word)
+            {
+                using var document = JsonDocument.Parse(text);
+                var entry = document.RootElement.GetProperty("grammars").GetProperty("sysml").GetProperty("entries").GetProperty(word);
+
+                return $"{entry.GetProperty("kind").GetString()} {entry.GetProperty("syntaxFrom").GetString()} "
+                       + string.Join(",", entry.GetProperty("productions").EnumerateArray().Select(production => production.GetString()));
+            }
+        }
+
+        [Test]
         public async Task Two_runs_over_the_same_inputs_write_the_same_bytes()
         {
             this.WriteGrammar("KerML-textual-bnf.kebnf", KerML);
