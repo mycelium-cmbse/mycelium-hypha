@@ -205,7 +205,9 @@ kind of test tolerates non-deterministic output.
 - `knowledge/<tag>/textual-notation/keywords.json` (+ `knowledge/keywords.schema.json`): per grammar,
   each keyword and operator with the productions that write it and the metaclasses whose syntax
   includes it, following only **bare calls** (a reference that is not an assignment's value) into
-  productions that build nothing, the same metaclass or a supertype.
+  productions that build nothing, the same metaclass or a supertype. The `sysml` table also holds
+  what the KerML expressions SysML calls without defining write (`syntaxFrom: "kerml"`), followed
+  only within the clauses that define them. `IKnowledgeQuery.Keyword` reads it.
 
 - `knowledge/<tag>/cross-references.json` (+ `knowledge/cross-references.schema.json`): element →
   clause **identifier**, grammar production, the metamodel features its syntax populates, and worked

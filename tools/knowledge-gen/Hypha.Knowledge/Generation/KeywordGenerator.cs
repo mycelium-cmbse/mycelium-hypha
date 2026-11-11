@@ -28,7 +28,13 @@ namespace Hypha.Knowledge.Generation
     /// </summary>
     public sealed class KeywordGenerator : IKnowledgeGenerator
     {
-        /// <summary>The textual grammars, by their key in the document and their file in the sources.</summary>
+        /// <summary>The grammar whose productions the grammars after it call without defining them.</summary>
+        private const string SharedGrammarKey = "kerml";
+
+        /// <summary>
+        /// The textual grammars, by their key in the document and their file in the sources, the shared
+        /// grammar first.
+        /// </summary>
         private static readonly (string Key, string File)[] Grammars =
         [
             ("kerml", "KerML-textual-bnf.kebnf"),
@@ -123,12 +129,21 @@ namespace Hypha.Knowledge.Generation
 
             var ancestors = this.reader.ReadAncestors(graph);
             var grammars = new SortedDictionary<string, KeywordGrammar>(StringComparer.Ordinal);
+            SharedGrammar? shared = null;
 
+            // KerML comes first: SysML calls KerML's expressions without defining them, so its table
+            // includes the literals they write.
             foreach (var (key, file) in present)
             {
                 var text = await File.ReadAllTextAsync(this.layout.Grammar(tag, file).FullName, cancellationToken);
+                var productions = this.parser.Parse(text);
 
-                grammars[key] = this.indexer.Build(this.parser.Parse(text), this.parser.ReservedKeywords(text), ancestors);
+                grammars[key] = this.indexer.Build(key, productions, this.parser.ReservedKeywords(text), ancestors, shared);
+
+                if (string.Equals(key, SharedGrammarKey, StringComparison.Ordinal))
+                {
+                    shared = new SharedGrammar(key, productions);
+                }
             }
 
             var written = await KnowledgeFile.WriteAsync(

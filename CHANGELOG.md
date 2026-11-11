@@ -67,6 +67,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     metamodel diff is still returned. The comparisons are `IMetamodelDiffer` and
     `ICrossReferenceDiffer`, which `AddHyphaKnowledge` registers and `KnowledgeQuery` takes in its
     constructor.
+  - `Keyword` (`fixes #205`): what a keyword or operator such as `ref`, `individual` or `:>>`
+    does, read from `keywords.json`. One use per grammar that lists it (optionally only one
+    grammar), with its kind, the productions that write it and the metaclasses whose syntax
+    includes it, each written directly or through a helper, grounded as `DERIVED`. In SysML, the
+    expression keywords and operators (`and`, `istype`, `true`, `+`) come from the KerML
+    expressions SysML calls, and `SyntaxFrom` says so; a KerML declaration keyword such as
+    `classifier` is not SysML syntax, so asking SysML about it finds nothing.
   - `IApiQuery`, for a Systems Modeling API version: a PIM class, the cross-references of a type or a
     service operation, and a clause of the API specification.
   - Every result carries its grounding: the tier (`NORMATIVE`, `MODEL` or `DERIVED`), the release
@@ -115,7 +122,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   follows only bare calls, a reference that is not the value of an assignment, into productions
   that build nothing, the same metaclass or a supertype, so a selector handing over to a subtype
   and an assigned owned element do not count. A literal that is only ever an assigned value, such
-  as `private`, or `+` in KerML, lists its productions and no metaclass.
+  as `private`, or `+` in KerML, lists its productions and no metaclass. The SysML grammar calls
+  six KerML productions without defining them (`OwnedExpression` and four more expressions, and
+  `MetadataFeature`), so the `sysml` table also lists what they write, such as `and`, `istype`, `true` or `+`, with KerML's productions and
+  `syntaxFrom: "kerml"` (schema 1.1.0); a literal SysML writes itself keeps its own entry. Only the
+  clauses that define the called productions are followed, so KerML's declarations, which its
+  expression bodies lead on to, do not count: `true` comes from `BooleanValue`, not `Invariant`.
 
 ### Changed
 - **`metamodel.json` 2.1.0: every owned attribute, operation, parameter, constraint and enumeration

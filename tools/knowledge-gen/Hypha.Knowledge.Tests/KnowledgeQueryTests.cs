@@ -312,6 +312,7 @@ namespace Hypha.Knowledge.Tests
             var index = $"knowledge/{QueryFixture.Tag}/metamodel/index.json";
             var crossReferences = $"knowledge/{QueryFixture.Tag}/cross-references.json";
             var library = $"knowledge/{QueryFixture.Tag}/model-library/index.json";
+            var keywords = $"knowledge/{QueryFixture.Tag}/textual-notation/keywords.json";
             var pim = $"knowledge/api/{QueryFixture.ApiVersion}/pim/metamodel.json";
             var apiCrossReferences = $"knowledge/api/{QueryFixture.ApiVersion}/cross-references.json";
 
@@ -339,6 +340,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(query.Literals("VisibilityKind").Grounding, Is.EqualTo(Release(Provenance.Model, graph)));
                 Assert.That(query.Subsettings("usage").Grounding, Is.EqualTo(Release(Provenance.Model, graph)));
                 Assert.That(query.BuiltBy("PartUsage").Grounding, Is.EqualTo(Release(Provenance.Derived, crossReferences)));
+                Assert.That(query.Keyword("part").Grounding, Is.EqualTo(Release(Provenance.Derived, keywords)));
                 Assert.That(query.ElementsInClause("kerml", "7.4.2").Grounding, Is.EqualTo(Release(Provenance.Derived, crossReferences)));
                 Assert.That(api.PimClass("PartUsage").Grounding, Is.EqualTo(Api(Provenance.Model, pim)));
                 Assert.That(api.Type("Commit").Grounding, Is.EqualTo(Api(Provenance.Derived, apiCrossReferences)));

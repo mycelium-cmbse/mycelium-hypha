@@ -17,6 +17,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Api.CrossReferences;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
+    using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Query;
@@ -60,6 +61,9 @@ namespace Hypha.Knowledge.Tests
             }
 
             CrossReferenceFile.Write(CrossReferences(), this.Layout.CrossReferences(Tag).FullName);
+
+            Directory.CreateDirectory(this.Layout.TextualNotation(Tag).FullName);
+            File.WriteAllText(this.Layout.Keywords(Tag).FullName, KeywordFile.Render(Keywords(this.Layout.MetamodelGraph(Tag))));
 
             Directory.CreateDirectory(this.Layout.ModelLibrary(Tag).FullName);
             File.WriteAllText(this.Layout.ModelLibraryIndex(Tag).FullName, ModelLibraryFile.Render(ModelLibrary()));
@@ -199,6 +203,64 @@ namespace Hypha.Knowledge.Tests
                         },
                     },
                 });
+
+        // Two small grammars shaped like the real ones. SysML calls KerML's OwnedExpression, so its table
+        // holds what KerML's expressions write: 'and' and 'new' (reserved in SysML; 'new' contextual in
+        // KerML), '+', and 'true' (which KerML's Invariant writes too, but SysML never reaches it).
+        // ':>>' is written by both, 'part' and 'ref' (through a helper) by SysML only, 'feature' by KerML
+        // only, and SysML reserves 'variation' but writes it nowhere.
+        private static KeywordDocument Keywords(FileInfo graph)
+        {
+            const string kerml =
+                """
+                RESERVED_KEYWORD =
+                    'and' | 'feature' | 'inv' | 'true'
+
+                Feature =
+                    'feature' FeatureDeclaration
+
+                FeatureDeclaration =
+                    ':>>'
+
+                Invariant : Invariant =
+                    'inv' 'true'
+
+                OwnedExpression : Expression =
+                    OperatorExpression
+
+                OperatorExpression : Expression =
+                    'and' | '+' | 'new' | 'true'
+                """;
+            const string sysml =
+                """
+                RESERVED_KEYWORD =
+                    'and' | 'new' | 'part' | 'ref' | 'true' | 'variation'
+
+                PartUsage =
+                    UsagePrefix 'part' ':>>' ownedRelationship += OwnedExpression
+
+                UsagePrefix : Usage =
+                    ( isReference ?= 'ref' )?
+                """;
+
+            var parser = new GrammarParser();
+            var indexer = new KeywordIndexer();
+            var ancestors = new KnowledgeReader().ReadAncestors(graph);
+
+            return new KeywordDocument(
+                KeywordDocument.CurrentSchemaVersion,
+                Tag,
+                new SortedDictionary<string, KeywordGrammar>(StringComparer.Ordinal)
+                {
+                    ["kerml"] = indexer.Build("kerml", parser.Parse(kerml), parser.ReservedKeywords(kerml), ancestors),
+                    ["sysml"] = indexer.Build(
+                        "sysml",
+                        parser.Parse(sysml),
+                        parser.ReservedKeywords(sysml),
+                        ancestors,
+                        new SharedGrammar("kerml", parser.Parse(kerml))),
+                });
+        }
 
         private static ModelLibraryDocument ModelLibrary() =>
             new(

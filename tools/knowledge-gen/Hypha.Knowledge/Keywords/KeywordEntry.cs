@@ -12,14 +12,22 @@ namespace Hypha.Knowledge.Keywords
     using System.Collections.Generic;
 
     /// <summary>One keyword or operator: the productions that write it and the metaclasses it introduces.</summary>
-    /// <param name="Kind"><see cref="Reserved"/>, <see cref="Contextual"/> or <see cref="Operator"/>.</param>
+    /// <param name="Kind">
+    /// <see cref="Reserved"/>, <see cref="Contextual"/> or <see cref="Operator"/>, as the grammar holding
+    /// the entry classifies it.
+    /// </param>
+    /// <param name="SyntaxFrom">
+    /// The grammar whose productions write the literal: the grammar holding the entry, or the grammar it
+    /// calls without defining (<c>kerml</c> for the expressions in SysML text, such as <c>and</c> or <c>+</c>).
+    /// </param>
     /// <param name="Productions">
-    /// The productions whose own text writes the literal, ordered ordinally. Empty for a reserved keyword
-    /// no production uses.
+    /// The productions of <paramref name="SyntaxFrom"/> whose own text writes the literal, ordered
+    /// ordinally. Empty for a reserved keyword no production uses.
     /// </param>
     /// <param name="Metaclasses">The metaclasses whose syntax includes the literal, ordered by name.</param>
     public sealed record KeywordEntry(
         string Kind,
+        string SyntaxFrom,
         IReadOnlyList<string> Productions,
         IReadOnlyList<KeywordMetaclass> Metaclasses)
     {

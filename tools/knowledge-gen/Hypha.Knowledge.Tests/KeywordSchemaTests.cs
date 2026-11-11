@@ -32,7 +32,7 @@ namespace Hypha.Knowledge.Tests
 
             var entries = new SortedDictionary<string, KeywordEntry>(StringComparer.Ordinal)
             {
-                ["ref"] = new(KeywordEntry.Reserved, ["BasicUsagePrefix"], [new KeywordMetaclass("PartUsage", KeywordMetaclass.Helper, ["PartUsage"], ["BasicUsagePrefix"])]),
+                ["ref"] = new(KeywordEntry.Reserved, "sysml", ["BasicUsagePrefix"], [new KeywordMetaclass("PartUsage", KeywordMetaclass.Helper, ["PartUsage"], ["BasicUsagePrefix"])]),
             };
             var document = new KeywordDocument(
                 KeywordDocument.CurrentSchemaVersion,

@@ -38,6 +38,17 @@ namespace Hypha.Knowledge.Keywords
     /// a part usage, but <c>StructureUsageElement : Usage = ... | PartUsage</c> hands over to a part
     /// usage, which is not a usage's syntax. Visits are tracked, so a recursive grammar cannot loop.
     /// </para>
+    /// <para>
+    /// A grammar can call productions it does not define: the SysML grammar calls KerML's
+    /// <c>OwnedExpression</c>, for example, so SysML text holds KerML's expressions. Given that
+    /// <see cref="SharedGrammar"/>, the table also lists every literal the shared productions reachable
+    /// from those calls write. Every reference is followed, assigned or not, since an expression is made
+    /// of assigned subexpressions, but only within the clauses that define the called productions (and
+    /// their subclauses): KerML's expression bodies refer on to its function bodies and from there to all
+    /// of its declarations, which SysML text does not hold. Such an entry names the shared grammar's
+    /// productions and metaclasses, and the shared grammar in <see cref="KeywordEntry.SyntaxFrom"/>. A literal the grammar writes in a
+    /// production of its own keeps its own entry; one it only reserves takes the shared syntax.
+    /// </para>
     /// </remarks>
     public sealed partial class KeywordIndexer : IKeywordIndexer
     {
@@ -87,69 +98,145 @@ namespace Hypha.Knowledge.Keywords
         private static partial Regex AssignedBefore();
 
         /// <summary>Builds the keyword table of one grammar.</summary>
+        /// <param name="grammar">The grammar's key, such as <c>sysml</c>, written as the <see cref="KeywordEntry.SyntaxFrom"/> of its own entries.</param>
         /// <param name="productions">The grammar's parsed productions, in document order.</param>
         /// <param name="reserved">The keywords its <c>RESERVED_KEYWORD</c> production declares.</param>
         /// <param name="ancestors">
         /// Each metaclass of the metamodel with the names of all its supertypes; nothing outside these is
         /// reported as a metaclass.
         /// </param>
+        /// <param name="shared">
+        /// The grammar whose productions this one calls without defining them, or <c>null</c> for none.
+        /// </param>
         /// <returns>The grammar's entries, keyed and ordered ordinally by literal, with their counts.</returns>
-        /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="productions"/>, <paramref name="reserved"/> or <paramref name="ancestors"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="grammar"/> is <c>null</c>, empty or white space.</exception>
         public KeywordGrammar Build(
+            string grammar,
             IReadOnlyList<Production> productions,
             IReadOnlyList<string> reserved,
-            IReadOnlyDictionary<string, IReadOnlySet<string>> ancestors)
+            IReadOnlyDictionary<string, IReadOnlySet<string>> ancestors,
+            SharedGrammar? shared = null)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(grammar);
             ArgumentNullException.ThrowIfNull(productions);
             ArgumentNullException.ThrowIfNull(reserved);
             ArgumentNullException.ThrowIfNull(ancestors);
 
             var reservedWords = reserved.ToHashSet(StringComparer.Ordinal);
-            var syntax = Syntax(productions);
-
-            // Which literals each production writes, and which productions it calls bare.
-            var literals = syntax.ToDictionary(
-                entry => entry.Key,
-                entry => Literals(entry.Value).Where(literal => !Punctuation.Contains(literal)).ToHashSet(StringComparer.Ordinal),
-                StringComparer.Ordinal);
-            var calls = syntax.ToDictionary(
-                entry => entry.Key,
-                entry => BareCalls(entry.Value).Where(syntax.ContainsKey).Distinct(StringComparer.Ordinal).ToList(),
-                StringComparer.Ordinal);
-            var builds = productions
-                .GroupBy(production => production.Name, StringComparer.Ordinal)
-                .ToDictionary(group => group.Key, group => Built(group.Last(), ancestors), StringComparer.Ordinal);
-
-            var writers = new SortedDictionary<string, SortedSet<string>>(StringComparer.Ordinal);
-
-            foreach (var (production, written) in literals)
-            {
-                foreach (var literal in written)
-                {
-                    Bucket(writers, literal).Add(production);
-                }
-            }
+            var own = Analyse(productions, ancestors);
+            var writers = Writers(own, own.Syntax.Keys);
 
             foreach (var word in reservedWords)
             {
                 Bucket(writers, word);
             }
 
-            // literal -> metaclass -> (building productions, writing productions reached, written directly)
+            var entries = Entries(grammar, writers, Reached(own, own.Syntax.Keys, ancestors), reservedWords);
+
+            if (shared is not null)
+            {
+                var lender = Analyse(shared.Productions, ancestors);
+                var defined = productions.Select(production => production.Name).ToHashSet(StringComparer.Ordinal);
+                var clauses = shared.Productions
+                    .GroupBy(production => production.Name, StringComparer.Ordinal)
+                    .ToDictionary(group => group.Key, group => group.Last().Clause, StringComparer.Ordinal);
+                var reachable = Closure(
+                    own.Syntax.Values.SelectMany(References).Where(name => !defined.Contains(name)),
+                    lender,
+                    clauses);
+
+                var borrowed = Entries(
+                    shared.Name,
+                    Writers(lender, reachable),
+                    Reached(lender, reachable, ancestors),
+                    reservedWords);
+
+                foreach (var (literal, entry) in borrowed)
+                {
+                    if (!entries.TryGetValue(literal, out var current) || current.Productions.Count == 0)
+                    {
+                        entries[literal] = entry;
+                    }
+                }
+            }
+
+            return new KeywordGrammar(
+                new KeywordCounts(
+                    entries.Values.Count(entry => entry.Kind == KeywordEntry.Reserved),
+                    entries.Values.Count(entry => entry.Kind == KeywordEntry.Contextual),
+                    entries.Values.Count(entry => entry.Kind == KeywordEntry.Operator)),
+                entries);
+        }
+
+        /// <summary>What a grammar's productions write, call bare and build.</summary>
+        /// <param name="productions">The productions, in document order.</param>
+        /// <param name="ancestors">The metaclasses.</param>
+        /// <returns>The analysis.</returns>
+        private static Analysis Analyse(
+            IReadOnlyList<Production> productions,
+            IReadOnlyDictionary<string, IReadOnlySet<string>> ancestors)
+        {
+            var syntax = Syntax(productions);
+
+            return new Analysis(
+                syntax,
+                syntax.ToDictionary(
+                    entry => entry.Key,
+                    entry => Literals(entry.Value).Where(literal => !Punctuation.Contains(literal)).ToHashSet(StringComparer.Ordinal),
+                    StringComparer.Ordinal),
+                syntax.ToDictionary(
+                    entry => entry.Key,
+                    entry => BareCalls(entry.Value).Where(syntax.ContainsKey).Distinct(StringComparer.Ordinal).ToList(),
+                    StringComparer.Ordinal),
+                productions
+                    .GroupBy(production => production.Name, StringComparer.Ordinal)
+                    .ToDictionary(group => group.Key, group => Built(group.Last(), ancestors), StringComparer.Ordinal));
+        }
+
+        /// <summary>The productions, among some, that write each literal.</summary>
+        /// <param name="analysis">The grammar.</param>
+        /// <param name="among">The productions to consider.</param>
+        /// <returns>The writing productions, by literal.</returns>
+        private static SortedDictionary<string, SortedSet<string>> Writers(Analysis analysis, IEnumerable<string> among)
+        {
+            var writers = new SortedDictionary<string, SortedSet<string>>(StringComparer.Ordinal);
+
+            foreach (var production in among)
+            {
+                foreach (var literal in analysis.Literals[production])
+                {
+                    Bucket(writers, literal).Add(production);
+                }
+            }
+
+            return writers;
+        }
+
+        /// <summary>The metaclasses whose syntax includes each literal, starting from some productions.</summary>
+        /// <param name="analysis">The grammar.</param>
+        /// <param name="starts">The productions whose metaclasses are considered.</param>
+        /// <param name="ancestors">The supertypes of every metaclass.</param>
+        /// <returns>Literal, then metaclass, then the building productions, the writing productions reached and whether one writes it directly.</returns>
+        private static Dictionary<string, Dictionary<string, (SortedSet<string> Productions, SortedSet<string> Through, bool Direct)>> Reached(
+            Analysis analysis,
+            IEnumerable<string> starts,
+            IReadOnlyDictionary<string, IReadOnlySet<string>> ancestors)
+        {
             var reached = new Dictionary<string, Dictionary<string, (SortedSet<string> Productions, SortedSet<string> Through, bool Direct)>>(
                 StringComparer.Ordinal);
 
-            foreach (var start in syntax.Keys)
+            foreach (var start in starts)
             {
-                var metaclass = builds[start];
+                var metaclass = analysis.Builds[start];
                 if (metaclass is null)
                 {
                     continue;
                 }
 
-                foreach (var visited in Reach(start, metaclass, calls, builds, ancestors))
+                foreach (var visited in Reach(start, metaclass, analysis.Calls, analysis.Builds, ancestors))
                 {
-                    foreach (var literal in literals[visited])
+                    foreach (var literal in analysis.Literals[visited])
                     {
                         if (!reached.TryGetValue(literal, out var byMetaclass))
                         {
@@ -169,6 +256,21 @@ namespace Hypha.Knowledge.Keywords
                 }
             }
 
+            return reached;
+        }
+
+        /// <summary>The entries of a table.</summary>
+        /// <param name="syntaxFrom">The grammar whose productions write the literals.</param>
+        /// <param name="writers">The writing productions, by literal.</param>
+        /// <param name="reached">The metaclasses reached, by literal.</param>
+        /// <param name="reserved">The reserved keywords of the grammar the table is for.</param>
+        /// <returns>The entries, keyed ordinally by literal.</returns>
+        private static SortedDictionary<string, KeywordEntry> Entries(
+            string syntaxFrom,
+            SortedDictionary<string, SortedSet<string>> writers,
+            Dictionary<string, Dictionary<string, (SortedSet<string> Productions, SortedSet<string> Through, bool Direct)>> reached,
+            HashSet<string> reserved)
+        {
             var entries = new SortedDictionary<string, KeywordEntry>(StringComparer.Ordinal);
 
             foreach (var (literal, written) in writers)
@@ -184,16 +286,76 @@ namespace Hypha.Knowledge.Keywords
                         .ToList()
                     : [];
 
-                entries[literal] = new KeywordEntry(Kind(literal, reservedWords), [.. written], metaclasses);
+                entries[literal] = new KeywordEntry(Kind(literal, reserved), syntaxFrom, [.. written], metaclasses);
             }
 
-            return new KeywordGrammar(
-                new KeywordCounts(
-                    entries.Values.Count(entry => entry.Kind == KeywordEntry.Reserved),
-                    entries.Values.Count(entry => entry.Kind == KeywordEntry.Contextual),
-                    entries.Values.Count(entry => entry.Kind == KeywordEntry.Operator)),
-                entries);
+            return entries;
         }
+
+        /// <summary>
+        /// The productions of a grammar reachable from some names through any reference, within the
+        /// clauses that define those names.
+        /// </summary>
+        /// <param name="roots">The names called from outside; those the grammar does not define are ignored.</param>
+        /// <param name="analysis">The grammar.</param>
+        /// <param name="clauses">The clause each of its productions is defined in, or <c>null</c>.</param>
+        /// <returns>The reachable productions.</returns>
+        private static HashSet<string> Closure(IEnumerable<string> roots, Analysis analysis, Dictionary<string, string?> clauses)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            var pending = new Stack<string>();
+
+            foreach (var root in roots.Where(analysis.Syntax.ContainsKey))
+            {
+                if (seen.Add(root))
+                {
+                    pending.Push(root);
+                }
+            }
+
+            var allowed = seen.Select(root => clauses[root]).ToHashSet();
+
+            while (pending.Count > 0)
+            {
+                foreach (var callee in References(analysis.Syntax[pending.Pop()]).Where(analysis.Syntax.ContainsKey))
+                {
+                    if (Within(clauses[callee], allowed) && seen.Add(callee))
+                    {
+                        pending.Push(callee);
+                    }
+                }
+            }
+
+            return seen;
+        }
+
+        /// <summary>Whether a clause is one of some clauses or below one of them.</summary>
+        /// <param name="clause">The clause, such as <c>8.2.5.8.1</c>, or <c>null</c> when the grammar gives none.</param>
+        /// <param name="allowed">The clauses.</param>
+        /// <returns><c>true</c> when it is, a missing clause matching only a missing clause.</returns>
+        private static bool Within(string? clause, HashSet<string?> allowed) =>
+            allowed.Contains(clause)
+            || (clause is not null
+                && allowed.Any(parent => parent is not null && clause.StartsWith(parent + ".", StringComparison.Ordinal)));
+
+        /// <summary>
+        /// Every production a production's syntax refers to, assigned or not, outside literals,
+        /// cross-references and actions.
+        /// </summary>
+        /// <param name="syntax">The production's syntax.</param>
+        /// <returns>The referenced names, repeats included.</returns>
+        private static IEnumerable<string> References(string syntax) =>
+            Reference().Matches(Masked(syntax)).Select(match => match.Groups[1].Value);
+
+        /// <summary>
+        /// A production's syntax with each literal, cross-reference and action replaced by a placeholder
+        /// rather than a space, so the call after an assigned one
+        /// (<c>isComposite ?= 'merge' UsageDeclaration</c>) does not look assigned too.
+        /// </summary>
+        /// <param name="syntax">The production's syntax.</param>
+        /// <returns>The masked syntax.</returns>
+        private static string Masked(string syntax) =>
+            CrossReferenceOrAction().Replace(Literal().Replace(syntax, Placeholder), Placeholder);
 
         /// <summary>
         /// The syntax of every production that is not lexical: its body without the header line's
@@ -248,9 +410,7 @@ namespace Hypha.Knowledge.Keywords
         /// <returns>The called production names, repeats included.</returns>
         private static IEnumerable<string> BareCalls(string syntax)
         {
-            // A literal, cross-reference or action becomes a placeholder rather than a space, so the call
-            // after an assigned one ("isComposite ?= 'merge' UsageDeclaration") does not look assigned too.
-            var text = CrossReferenceOrAction().Replace(Literal().Replace(syntax, Placeholder), Placeholder);
+            var text = Masked(syntax);
             var calls = new List<string>();
             var depth = 0;
             var assignedDepth = -1;
@@ -354,6 +514,17 @@ namespace Hypha.Knowledge.Keywords
             reserved.Contains(literal) ? KeywordEntry.Reserved
             : Word().IsMatch(literal) ? KeywordEntry.Contextual
             : KeywordEntry.Operator;
+
+        /// <summary>What a grammar's productions write, call bare and build.</summary>
+        /// <param name="Syntax">The syntax of every production that is not lexical, by name.</param>
+        /// <param name="Literals">The literals each production writes, punctuation left out.</param>
+        /// <param name="Calls">The productions each production calls bare.</param>
+        /// <param name="Builds">The metaclass every production builds, or <c>null</c>.</param>
+        private sealed record Analysis(
+            Dictionary<string, string> Syntax,
+            Dictionary<string, HashSet<string>> Literals,
+            Dictionary<string, List<string>> Calls,
+            Dictionary<string, string?> Builds);
 
         /// <summary>Gets the set of productions writing a literal, creating it when absent.</summary>
         /// <param name="writers">The productions writing each literal.</param>

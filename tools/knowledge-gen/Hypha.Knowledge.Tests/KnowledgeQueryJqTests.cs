@@ -528,6 +528,23 @@ namespace Hypha.Knowledge.Tests
                     this.CrossReferences()).Sorted()).And.Not.Empty);
         }
 
+        [TestCase("part")]
+        [TestCase(":>>")]
+        [TestCase("ref")]
+        [TestCase("and")]
+        [TestCase("new")]
+        [TestCase("true")]
+        public void The_uses_of_a_keyword_match(string word)
+        {
+            var result = this.fixture.Query.Keyword(word);
+
+            Assert.That(
+                result.Value!.Select(use => $"{use.Grammar} {use.Kind} {use.SyntaxFrom} {string.Join(",", use.Productions)} {string.Join(",", use.Metaclasses.Select(metaclass => $"{metaclass.Name}/{metaclass.Via}"))}"),
+                Is.EqualTo(Jq.Lines(
+                    $".grammars | to_entries[] | select(.value.entries[\"{word}\"]) | . as $g | $g.value.entries[\"{word}\"] | \"\\($g.key) \\(.kind) \\(.syntaxFrom) \\(.productions | join(\",\")) \\([.metaclasses[] | \"\\(.name)/\\(.via)\"] | join(\",\"))\"",
+                    this.fixture.Layout.Keywords(QueryFixture.Tag))).And.Not.Empty);
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void The_elements_a_clause_treats_match(bool includeSubclauses)

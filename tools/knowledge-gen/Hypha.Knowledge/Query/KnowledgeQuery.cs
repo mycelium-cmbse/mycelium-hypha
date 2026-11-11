@@ -16,6 +16,7 @@ namespace Hypha.Knowledge.Query
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.CrossReferences;
+    using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Metamodel;
@@ -1022,6 +1023,45 @@ namespace Hypha.Knowledge.Query
             return new(uses, grounding);
         }
 
+        /// <summary>
+        /// What a keyword or operator, such as <c>ref</c>, <c>individual</c> or <c>:&gt;&gt;</c>, does in each
+        /// grammar: the productions that write it and the metaclasses whose syntax includes it.
+        /// </summary>
+        /// <param name="word">The keyword or operator, matched exactly.</param>
+        /// <param name="grammar">Only this grammar (<c>kerml</c>, <c>sysml</c>), or <c>null</c> for any.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// One use per grammar that lists the word, ordered by grammar, grounded as
+        /// <see cref="Provenance.Derived"/> since the links come from the grammar text; <c>null</c> when no
+        /// grammar lists the word. In SysML text, a word only the KerML expressions SysML calls write (such
+        /// as <c>and</c>, <c>true</c> or <c>+</c>) names KerML's productions and metaclasses, and
+        /// <see cref="KeywordUse.SyntaxFrom"/> says so.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="word"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<KeywordUse>> Keyword(string word, string? grammar = null, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(word);
+
+            var (document, grounding) = this.Keywords(tag);
+            var uses = new List<KeywordUse>();
+
+            foreach (var (name, table) in document.Grammars.OrderBy(entry => entry.Key, StringComparer.Ordinal))
+            {
+                if ((grammar is not null && !string.Equals(name, grammar, StringComparison.Ordinal))
+                    || !table.Entries.TryGetValue(word, out var entry))
+                {
+                    continue;
+                }
+
+                uses.Add(new KeywordUse(name, entry.Kind, entry.SyntaxFrom, entry.Productions, entry.Metaclasses));
+            }
+
+            return new(uses.Count == 0 ? null : uses, grounding);
+        }
+
         /// <summary>The elements a specification clause treats.</summary>
         /// <param name="document">The specification, as the cross-references key it (<c>kerml</c>, <c>sysml2</c>).</param>
         /// <param name="clause">The clause number, such as <c>8.3.6</c>.</param>
@@ -1606,6 +1646,26 @@ namespace Hypha.Knowledge.Query
                 ReadContracts.CrossReferences,
                 document => document.Entries is not null,
                 ReleaseAxis.Language.NotGenerated("cross-references", release),
+                ReleaseAxis.Language.GenerateCommand(release));
+
+            return (document, this.Ground(Provenance.Derived, release, file));
+        }
+
+        /// <summary>Reads a release's <c>textual-notation/keywords.json</c>.</summary>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>The document and the grounding of answers taken from it.</returns>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, has not been generated, or the document is invalid.
+        /// </exception>
+        private (KeywordDocument Document, Grounding Grounding) Keywords(string? tag)
+        {
+            var release = this.Release(tag);
+            var file = this.layout.Keywords(release);
+            var document = this.documents.Get(
+                file,
+                ReadContracts.Keywords,
+                document => document.Grammars is not null,
+                ReleaseAxis.Language.NotGenerated("keywords", release),
                 ReleaseAxis.Language.GenerateCommand(release));
 
             return (document, this.Ground(Provenance.Derived, release, file));
