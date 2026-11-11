@@ -65,8 +65,11 @@ hypha generate --output /tmp/knowledge      # generate without touching the repo
 
 `fetch`, `api fetch`, `generate` and `api generate` show a live progress display when their output
 is a terminal: one bar per step, each with its latest message (`textual: 140 of 309 files`,
-`2026-05: keywords: 1 files`). When the output is redirected (an editor extension, a script, CI)
-nothing is shown beyond the verb's own lines; the log lines on standard error are unchanged.
+`2026-05: keywords: 1 files`). Log lines are written above the bars, and the HTTP request and retry
+logging is held to warnings and errors, since the bars already count every request; pass
+`--log-level Debug` to see it. When the output is redirected (an editor extension, a script, CI)
+nothing is shown beyond the verb's own lines and the log, both on standard output as before (on
+standard error under `--json`, see below).
 
 ### Looking things up
 

@@ -136,7 +136,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `hypha generate`, `hypha api generate` and `move-window` run through it.
   - `hypha fetch`, `hypha api fetch`, `hypha generate` and `hypha api generate` show a live
     progress display, one bar per step, when their output is a terminal, and nothing more when it
-    is redirected, as for the VS Code extension.
+    is redirected, as for the VS Code extension. On a terminal the log is written above the bars,
+    and the HTTP request and retry logging is held to warnings, as under `--json`, unless
+    `--log-level Debug` or lower is asked for.
 - **`knowledge/<tag>/textual-notation/keywords.json`** (`refs #205`), written by a new `keywords`
   generator (`hypha generate keywords`), with `knowledge/keywords.schema.json`. Per grammar
   (`kerml`, `sysml`), every keyword and operator the release's own BNF writes, as `reserved`,

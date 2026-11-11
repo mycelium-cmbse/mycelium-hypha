@@ -26,6 +26,8 @@ namespace Hypha.Tools.Hosting
     using Serilog.Events;
     using Serilog.Extensions.Logging;
 
+    using Spectre.Console;
+
     /// <summary>
     /// Composes the object graph a verb runs against.
     /// </summary>
@@ -74,31 +76,39 @@ namespace Hypha.Tools.Hosting
             // line goes to standard error instead.
             var json = JsonOutput.IsRequested(parseResult);
 
+            // On a terminal the fetches and generations show a progress display (ProgressDisplay), so
+            // the log is written through the same console, which places each line above the bars.
+            var terminal = !json && AnsiConsole.Profile.Capabilities.Interactive;
+
             services.AddLogging(builder =>
             {
                 builder.ClearProviders();
 
                 var configuration = new LoggerConfiguration().MinimumLevel.Is(level);
 
-                if (json)
+                // A caller reading the JSON may never read standard error (the SessionStart hook does
+                // not), and once that pipe's buffer fills, the next log line blocks and the verb never
+                // exits. On a terminal, the progress bars already count every request, and hundreds of
+                // lines would push them off the screen. So in both the chattiest categories (a line per
+                // request, more on every retry) only report problems, unless a terminal user asked for
+                // Debug or more.
+                if (json || (terminal && level >= LogEventLevel.Information))
                 {
-                    // A caller reading the JSON may never read standard error (the SessionStart hook
-                    // does not), and once that pipe's buffer fills, the next log line blocks and the
-                    // verb never exits. So under --json the chattiest categories (a line per request,
-                    // more on every retry) only report problems.
                     var quiet = (LogEventLevel)Math.Max((int)level, (int)LogEventLevel.Warning);
 
-                    foreach (var category in QuietUnderJson)
+                    foreach (var category in RequestCategories)
                     {
                         configuration = configuration.MinimumLevel.Override(category, quiet);
                     }
                 }
 
-                var logger = configuration
-                    .WriteTo.Console(
-                        outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                        standardErrorFromLevel: json ? LogEventLevel.Verbose : null)
-                    .CreateLogger();
+                configuration = terminal
+                    ? configuration.WriteTo.Sink(new AnsiConsoleSink(OutputTemplate))
+                    : configuration.WriteTo.Console(
+                        outputTemplate: OutputTemplate,
+                        standardErrorFromLevel: json ? LogEventLevel.Verbose : null);
+
+                var logger = configuration.CreateLogger();
 
                 builder.AddProvider(new SerilogLoggerProvider(logger, dispose: true));
                 builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
@@ -109,10 +119,13 @@ namespace Hypha.Tools.Hosting
 
         /// <summary>
         /// The log categories that write at <c>Information</c> for every HTTP request and retry, which
-        /// <c>--json</c> holds to warnings and errors.
+        /// <c>--json</c> and a terminal hold to warnings and errors.
         /// </summary>
-        public static readonly IReadOnlyList<string> QuietUnderJson =
+        public static readonly IReadOnlyList<string> RequestCategories =
             ["System.Net.Http", "Microsoft.Extensions.Http", "Polly"];
+
+        /// <summary>How each console log line is rendered.</summary>
+        private const string OutputTemplate = "[{Level:u3}] {Message:lj}{NewLine}{Exception}";
 
         /// <summary>
         /// Finds the repository by walking up from the working directory.
