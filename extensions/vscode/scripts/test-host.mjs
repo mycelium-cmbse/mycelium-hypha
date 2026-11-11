@@ -89,8 +89,25 @@ try {
         pilot: { repo: "fixture/pilot", commit: "fixture" }
       }]
     }));
+  // Every field the metamodel generator writes: hypha reads the index through the same strict
+  // contract as its query API and refuses one the generator could not have written.
   await writeFile(path.join(metamodel, "index.json"),
-    JSON.stringify({ entries: { PartUsage: { kind: "class", file: "elements/PartUsage.md" } } }));
+    JSON.stringify({
+      schemaVersion: "1.0.0",
+      metamodel: "SysML",
+      modelVersionUri: "https://www.omg.org/spec/SysML/20250201",
+      entries: {
+        PartUsage: {
+          kind: "class",
+          package: "Parts",
+          qualifiedName: "SysML::Systems::Parts::PartUsage",
+          isAbstract: false,
+          summary: "",
+          extends: [],
+          file: "elements/PartUsage.md"
+        }
+      }
+    }));
   await writeFile(path.join(metamodel, "elements/PartUsage.md"), "# Synthetic PartUsage\nHost test fixture only.");
   await runTests({
     vscodeExecutablePath: executable,
