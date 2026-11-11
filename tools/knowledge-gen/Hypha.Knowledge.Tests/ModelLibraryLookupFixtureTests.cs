@@ -18,6 +18,7 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
+    using Hypha.Knowledge.Query;
     using Hypha.Knowledge.ModelLibrary;
 
     [TestFixture]
@@ -56,7 +57,7 @@ namespace Hypha.Knowledge.Tests
             this.root = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-library-fixture-" + Guid.NewGuid().ToString("N")));
             this.root.Create();
             this.layout = new KnowledgeLayout(this.root);
-            this.lookup = new KnowledgeLookup(this.layout);
+            this.lookup = new KnowledgeLookup(this.layout, new DocumentCache());
             KnowledgeLookupTests.Install(this.layout, Tag);
         }
 
@@ -157,7 +158,7 @@ namespace Hypha.Knowledge.Tests
                 declaration => new { kind = declaration.Kind, file = "packages/" + page, source = file });
             File.WriteAllText(
                 this.layout.ModelLibraryIndex(Tag).FullName,
-                JsonSerializer.Serialize(new { schemaVersion = "1.0.0", tag = Tag, declarations }));
+                JsonSerializer.Serialize(new { schemaVersion = "1.0.0", tag = Tag, counts = new { files = 1, declarations = declarations.Count }, declarations }));
 
             return unique;
         }

@@ -24,6 +24,7 @@ namespace Hypha.Tools
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
+    using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
     using Hypha.Tools.Commands.Api;
@@ -107,13 +108,24 @@ namespace Hypha.Tools
 
             var list = new ListCommand();
             list.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
-                new ListCommand.Handler(provider.GetRequiredService<IKnowledgeLayout>()).InvokeAsync(parseResult, cancellationToken)));
+                new ListCommand.Handler(provider.GetRequiredService<IKnowledgeQuery>(), provider.GetRequiredService<IKnowledgeLayout>())
+                    .InvokeAsync(parseResult, cancellationToken)));
             root.Add(list);
 
             var lookup = new LookupCommand();
             lookup.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
                 new LookupCommand.Handler(provider.GetRequiredService<IKnowledgeLookup>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(lookup);
+
+            var query = new QueryCommand();
+            foreach (var verb in query.Verbs)
+            {
+                verb.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                    new QueryCommand.Handler(query, provider.GetRequiredService<IKnowledgeQuery>(), provider.GetRequiredService<IApiQuery>())
+                        .InvokeAsync(parseResult, cancellationToken)));
+            }
+
+            root.Add(query);
 
             var moveWindow = new MoveWindowCommand();
             moveWindow.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>

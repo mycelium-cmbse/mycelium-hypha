@@ -14,9 +14,9 @@ namespace Hypha.Knowledge.Lookup
     using System.IO;
     using System.Linq;
     using System.Text;
-    using System.Text.Json;
 
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Query;
 
     /// <summary>
     /// Resolves a metamodel or model-library name to its generated page in an installed release and
@@ -33,6 +33,9 @@ namespace Hypha.Knowledge.Lookup
     /// One match in a tier is the answer; several are <see cref="LookupStatus.Ambiguous"/>. Only when
     /// no tier matches are names that merely contain the request offered, as
     /// <see cref="LookupStatus.Candidates"/>: a substring hit is a suggestion, never an answer.
+    /// The index is read through the same typed contract and <see cref="IDocumentCache"/> as
+    /// <see cref="KnowledgeQuery"/>, so both read it once while it is unchanged, and both refuse an index
+    /// the generator could not have written.
     /// </remarks>
     public sealed class KnowledgeLookup : IKnowledgeLookup
     {
@@ -48,13 +51,20 @@ namespace Hypha.Knowledge.Lookup
         /// <summary>Where each release's generated knowledge lives, and which releases are installed.</summary>
         private readonly IKnowledgeLayout layout;
 
+        /// <summary>Reads the indexes once while they are unchanged, shared with the query API.</summary>
+        private readonly IDocumentCache documents;
+
         /// <summary>Initializes a new instance of the <see cref="KnowledgeLookup"/> class.</summary>
         /// <param name="layout">Where each release's generated knowledge lives, and which releases are installed.</param>
-        public KnowledgeLookup(IKnowledgeLayout layout)
+        /// <param name="documents">Reads the indexes, shared with the query API.</param>
+        /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+        public KnowledgeLookup(IKnowledgeLayout layout, IDocumentCache documents)
         {
             ArgumentNullException.ThrowIfNull(layout);
+            ArgumentNullException.ThrowIfNull(documents);
 
             this.layout = layout;
+            this.documents = documents;
         }
 
         /// <summary>
@@ -98,20 +108,12 @@ namespace Hypha.Knowledge.Lookup
             }
 
             var tag = this.Release(request.Tag);
-            var (root, index) = request.Kind switch
+            var (root, entries) = request.Kind switch
             {
-                KnowledgeKind.Metamodel => (this.layout.Metamodel(tag), this.layout.MetamodelIndex(tag)),
-                KnowledgeKind.ModelLibrary => (this.layout.ModelLibrary(tag), this.layout.ModelLibraryIndex(tag)),
+                KnowledgeKind.Metamodel => (this.layout.Metamodel(tag), this.MetamodelEntries(tag)),
+                KnowledgeKind.ModelLibrary => (this.layout.ModelLibrary(tag), this.ModelLibraryEntries(tag)),
                 _ => throw new ArgumentOutOfRangeException(nameof(request), request.Kind, "Unknown knowledge kind."),
             };
-
-            if (!index.Exists)
-            {
-                throw new KnowledgeLookupException(
-                    ReleaseAxis.Language.NotGenerated(Describe(request.Kind), tag));
-            }
-
-            var entries = ReadIndex(request.Kind, index, tag);
             var name = request.Name.Trim();
             var (status, matches) = Resolve(entries, name);
 
@@ -225,131 +227,33 @@ namespace Hypha.Knowledge.Lookup
             return (candidates.Count == 0 ? LookupStatus.NotFound : LookupStatus.Candidates, candidates);
         }
 
-        /// <summary>Reads and parses an artifact's <c>index.json</c>.</summary>
-        /// <param name="kind">Which artifact the index belongs to; it decides the index's shape.</param>
-        /// <param name="index">The index file.</param>
-        /// <param name="tag">The release the index belongs to, for the error message.</param>
-        /// <returns>The index's entries, in the order the file lists them.</returns>
-        /// <exception cref="KnowledgeLookupException">The index cannot be read or is not valid.</exception>
-        private static List<IndexEntry> ReadIndex(KnowledgeKind kind, FileInfo index, string tag)
+        /// <summary>The entries of a release's metamodel index, each answering to its name and qualified name.</summary>
+        /// <param name="tag">The release.</param>
+        /// <returns>The entries, in index order.</returns>
+        /// <exception cref="KnowledgeLookupException">The index has not been generated or is not valid.</exception>
+        private List<IndexEntry> MetamodelEntries(string tag)
         {
-            var text = ReadText(index);
+            var index = ReleaseIndexes.Metamodel(this.documents, this.layout, tag);
 
-            try
-            {
-                using var document = JsonDocument.Parse(text);
-
-                return kind == KnowledgeKind.ModelLibrary
-                    ? ReadModelLibraryIndex(document.RootElement)
-                    : ReadMetamodelIndex(document.RootElement);
-            }
-            catch (Exception exception) when (exception is JsonException or InvalidDataException)
-            {
-                throw new KnowledgeLookupException(
-                    $"The {Describe(kind)} index of release {tag} is not valid ({exception.Message}). "
-                    + $"Run 'hypha generate --tag {tag}' to regenerate it.",
-                    exception);
-            }
-        }
-
-        /// <summary>
-        /// Reads <c>metamodel/index.json</c>: <c>entries</c>, keyed by element name, each with a
-        /// <c>file</c>, a <c>kind</c> and, for a metaclass, a <c>qualifiedName</c>.
-        /// </summary>
-        /// <param name="root">The index document's root element.</param>
-        /// <returns>
-        /// One entry per element, answering to its name and, when it has one, its qualified name; its
-        /// keyword is the element's <c>kind</c>.
-        /// </returns>
-        private static List<IndexEntry> ReadMetamodelIndex(JsonElement root) =>
-        [
-            .. Entries(root, "entries").Select(pair =>
-            {
-                var qualifiedName = OptionalString(pair.Value, "qualifiedName", pair.Key);
-
-                return new IndexEntry(
+            return
+            [
+                .. index.Entries.Select(pair => new IndexEntry(
                     pair.Key,
-                    qualifiedName is null ? [pair.Key] : [pair.Key, qualifiedName],
-                    OptionalString(pair.Value, "kind", pair.Key) ?? string.Empty,
-                    RequiredString(pair.Value, "file", pair.Key));
-            }),
-        ];
-
-        /// <summary>
-        /// Reads <c>model-library/index.json</c> (<c>knowledge/model-library.schema.json</c>):
-        /// <c>declarations</c>, keyed by qualified name, each with a <c>kind</c> and a <c>file</c>.
-        /// </summary>
-        /// <param name="root">The index document's root element.</param>
-        /// <returns>
-        /// One entry per declaration, answering to its qualified name; its keyword is the declaration's
-        /// <c>kind</c>, the keyword that introduces it in the source.
-        /// </returns>
-        private static List<IndexEntry> ReadModelLibraryIndex(JsonElement root) =>
-        [
-            .. Entries(root, "declarations").Select(pair => new IndexEntry(
-                pair.Key,
-                [pair.Key],
-                RequiredString(pair.Value, "kind", pair.Key),
-                RequiredString(pair.Value, "file", pair.Key))),
-        ];
-
-        /// <summary>The entries of an index, each checked to be an object.</summary>
-        /// <remarks>Read eagerly, so a malformed entry is reported while the document is still open.</remarks>
-        /// <param name="root">The index document's root element.</param>
-        /// <param name="property">The root property that holds the entries, keyed by name.</param>
-        /// <returns>Each entry's key and its object, in document order.</returns>
-        /// <exception cref="InvalidDataException">The property is missing, or it or an entry is not an object.</exception>
-        private static List<(string Key, JsonElement Value)> Entries(JsonElement root, string property)
-        {
-            if (root.ValueKind != JsonValueKind.Object
-                || !root.TryGetProperty(property, out var entries)
-                || entries.ValueKind != JsonValueKind.Object)
-            {
-                throw new InvalidDataException($"'{property}' is missing or not an object");
-            }
-
-            var found = new List<(string Key, JsonElement Value)>();
-
-            foreach (var entry in entries.EnumerateObject())
-            {
-                if (entry.Value.ValueKind != JsonValueKind.Object)
-                {
-                    throw new InvalidDataException($"entry '{entry.Name}' is not an object");
-                }
-
-                found.Add((entry.Name, entry.Value));
-            }
-
-            return found;
+                    string.IsNullOrEmpty(pair.Value.QualifiedName) ? [pair.Key] : [pair.Key, pair.Value.QualifiedName],
+                    pair.Value.Kind,
+                    pair.Value.File)),
+            ];
         }
 
-        /// <summary>Reads a string property an index entry must have.</summary>
-        /// <param name="entry">The index entry.</param>
-        /// <param name="property">The property's name.</param>
-        /// <param name="key">The entry's key, for the error message.</param>
-        /// <returns>The property's value, never empty.</returns>
-        /// <exception cref="InvalidDataException">The property is missing, <c>null</c>, empty or not a string.</exception>
-        private static string RequiredString(JsonElement entry, string property, string key) =>
-            OptionalString(entry, property, key) is { Length: > 0 } value
-                ? value
-                : throw new InvalidDataException($"entry '{key}' has no '{property}'");
-
-        /// <summary>Reads a string property an index entry may have.</summary>
-        /// <param name="entry">The index entry.</param>
-        /// <param name="property">The property's name.</param>
-        /// <param name="key">The entry's key, for the error message.</param>
-        /// <returns>The property's value, or <c>null</c> when it is missing or <c>null</c>.</returns>
-        /// <exception cref="InvalidDataException">The property is present but not a string.</exception>
-        private static string? OptionalString(JsonElement entry, string property, string key)
+        /// <summary>The declarations of a release's model-library index, each answering to its qualified name.</summary>
+        /// <param name="tag">The release.</param>
+        /// <returns>The declarations, in index order.</returns>
+        /// <exception cref="KnowledgeLookupException">The index has not been generated or is not valid.</exception>
+        private List<IndexEntry> ModelLibraryEntries(string tag)
         {
-            if (!entry.TryGetProperty(property, out var value) || value.ValueKind == JsonValueKind.Null)
-            {
-                return null;
-            }
+            var index = ReleaseIndexes.ModelLibrary(this.documents, this.layout, tag);
 
-            return value.ValueKind == JsonValueKind.String
-                ? value.GetString()
-                : throw new InvalidDataException($"'{property}' of entry '{key}' is not a string");
+            return [.. index.Declarations.Select(pair => new IndexEntry(pair.Key, [pair.Key], pair.Value.Kind, pair.Value.File))];
         }
 
         /// <summary>
@@ -506,12 +410,6 @@ namespace Hypha.Knowledge.Lookup
                     exception);
             }
         }
-
-        /// <summary>Names an artifact the way an error message refers to it.</summary>
-        /// <param name="kind">The artifact.</param>
-        /// <returns><c>model library</c> or <c>metamodel</c>.</returns>
-        private static string Describe(KnowledgeKind kind) =>
-            kind == KnowledgeKind.ModelLibrary ? "model library" : "metamodel";
 
         /// <summary>Settles which release a lookup reads.</summary>
         /// <param name="requested">The release asked for, or <c>null</c> for the default release.</param>
