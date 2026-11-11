@@ -18,6 +18,7 @@ namespace Hypha.Knowledge.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
 
     [TestFixture]
@@ -203,8 +204,8 @@ namespace Hypha.Knowledge.Tests
             // console app / this test), Progress<T> still marshals through the thread pool, so multiple
             // callbacks from the concurrent downloads below could run at once; collecting into
             // something itself thread-safe is what makes the assertions below reliable.
-            var reports = new ConcurrentBag<FetchProgress>();
-            var progress = new SynchronousProgress<FetchProgress>(reports.Add);
+            var reports = new ConcurrentBag<KnowledgeProgress>();
+            var progress = new SynchronousProgress<KnowledgeProgress>(reports.Add);
 
             var written = await new ReleaseFetcher(client, maxConcurrency: 3)
                 .FetchSpecificationsAsync("2026-05", this.workspace, progress: progress);
@@ -215,7 +216,11 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(reports.Select(report => report.Total), Is.All.EqualTo(written.Count));
                 Assert.That(reports.Select(report => report.Done), Is.EquivalentTo(
                     Enumerable.Range(1, written.Count)));
-                Assert.That(reports.Select(report => report.Kind), Is.All.EqualTo("specifications"));
+                Assert.That(reports.Select(report => report.Step), Is.All.EqualTo("specifications"));
+                Assert.That(reports.Select(report => report.Operation), Is.All.EqualTo(KnowledgeProgress.Fetch));
+                Assert.That(
+                    reports.Select(report => report.Message),
+                    Is.EquivalentTo(Enumerable.Range(1, written.Count).Select(done => $"{done} of {written.Count} files")));
             });
         }
 
@@ -232,11 +237,11 @@ namespace Hypha.Knowledge.Tests
             }
 
             var handler = StubHandler.WithContent("xmi");
-            var reports = new ConcurrentBag<FetchProgress>();
+            var reports = new ConcurrentBag<KnowledgeProgress>();
 
             await new ReleaseFetcher(new HttpClient(handler)).FetchMetamodelAsync(
                 "2026-05", this.workspace, skipExisting: true,
-                progress: new SynchronousProgress<FetchProgress>(reports.Add));
+                progress: new SynchronousProgress<KnowledgeProgress>(reports.Add));
 
             Assert.Multiple(() =>
             {

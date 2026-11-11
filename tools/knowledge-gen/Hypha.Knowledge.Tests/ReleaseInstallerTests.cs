@@ -16,6 +16,7 @@ namespace Hypha.Knowledge.Tests
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.Logging.Abstractions;
@@ -219,33 +220,37 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public async Task Progress_reaches_the_metamodel_and_textual_fetches_but_never_specifications()
+        public async Task Progress_reaches_every_fetch_the_specifications_included()
         {
-            IProgress<FetchProgress>? seenByMetamodel = null;
-            IProgress<FetchProgress>? seenByTextual = null;
+            IProgress<KnowledgeProgress>? seenByMetamodel = null;
+            IProgress<KnowledgeProgress>? seenByTextual = null;
+            IProgress<KnowledgeProgress>? seenBySpecifications = null;
 
             this.fetcher
                 .Setup(mock => mock.FetchMetamodelAsync(
                     It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<FetchProgress>>()))
-                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<FetchProgress>?>(
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>>()))
+                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<KnowledgeProgress>?>(
                     (_, _, _, _, progress) => seenByMetamodel = progress)
                 .ReturnsAsync(Files("KerML.uml", "SysML.uml"));
 
             this.fetcher
                 .Setup(mock => mock.FetchTextualAsync(
                     It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<FetchProgress>>()))
-                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<FetchProgress>?>(
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>>()))
+                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<KnowledgeProgress>?>(
                     (_, _, _, _, progress) => seenByTextual = progress)
                 .ReturnsAsync(Files("model.sysml"));
 
             this.fetcher
                 .Setup(mock => mock.FetchSpecificationsAsync(
-                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>>()))
+                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<KnowledgeProgress>?>(
+                    (_, _, _, _, progress) => seenBySpecifications = progress)
                 .ReturnsAsync(Files("KerML.pdf"));
 
-            var reporter = new Progress<FetchProgress>();
+            var reporter = new Progress<KnowledgeProgress>();
 
             await this.installer.InstallAsync(
                 new ReleaseInstallRequest { Tag = "2026-05", IncludeSpecifications = true },
@@ -256,13 +261,8 @@ namespace Hypha.Knowledge.Tests
             {
                 Assert.That(seenByMetamodel, Is.SameAs(reporter));
                 Assert.That(seenByTextual, Is.SameAs(reporter));
+                Assert.That(seenBySpecifications, Is.SameAs(reporter));
             });
-
-            this.fetcher.Verify(
-                mock => mock.FetchSpecificationsAsync(
-                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
-                Times.Once,
-                "specifications are only ever called through the 4-argument overload - no progress reporter reaches it");
         }
 
         private static IReadOnlyList<FileInfo> Files(params string[] names) =>

@@ -17,6 +17,7 @@ namespace Hypha.Tools.Tests
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
+    using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands.Api;
 
@@ -41,8 +42,8 @@ namespace Hypha.Tools.Tests
             this.installer = new Mock<IApiInstaller>();
 
             this.installer
-                .Setup(mock => mock.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ApiInstallRequest request, CancellationToken _) => Installation(request));
+                .Setup(mock => mock.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()))
+                .ReturnsAsync((ApiInstallRequest request, CancellationToken _, IProgress<KnowledgeProgress>? _) => Installation(request));
 
             this.handler = new ApiFetchCommand.Handler(this.installer.Object);
         }
@@ -61,7 +62,7 @@ namespace Hypha.Tools.Tests
                         && request.SkipExisting
                         && request.MakeDefault
                         && request.IncludeSpecification),
-                    It.IsAny<CancellationToken>()),
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()),
                 Times.Once);
         }
 
@@ -72,7 +73,7 @@ namespace Hypha.Tools.Tests
 
             this.installer.Verify(
                 mock => mock.InstallAsync(
-                    It.Is<ApiInstallRequest>(request => request.Tag == "2026-04"), It.IsAny<CancellationToken>()),
+                    It.Is<ApiInstallRequest>(request => request.Tag == "2026-04"), It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()),
                 Times.Once);
         }
 
@@ -84,7 +85,7 @@ namespace Hypha.Tools.Tests
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ApiInstallRequest>(request => !request.IncludeSpecification),
-                    It.IsAny<CancellationToken>()),
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()),
                 Times.Once);
         }
 
@@ -96,7 +97,7 @@ namespace Hypha.Tools.Tests
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ApiInstallRequest>(request => !request.SkipExisting),
-                    It.IsAny<CancellationToken>()),
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()),
                 Times.Once);
         }
 
@@ -108,7 +109,7 @@ namespace Hypha.Tools.Tests
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ApiInstallRequest>(request => !request.MakeDefault),
-                    It.IsAny<CancellationToken>()),
+                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()),
                 Times.Once);
         }
 
@@ -131,7 +132,7 @@ namespace Hypha.Tools.Tests
         public async Task A_tag_that_is_not_a_version_is_a_usage_error_pointing_at_api_discover()
         {
             this.installer
-                .Setup(mock => mock.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(mock => mock.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()))
                 .ThrowsAsync(new ArgumentException("not an offerable API version: 2026-04-pre"));
 
             using var console = new RecordedConsole();
@@ -150,7 +151,7 @@ namespace Hypha.Tools.Tests
         {
             // Only the refusal of the tag is the user's to fix; anything else has to reach the caller.
             this.installer
-                .Setup(mock => mock.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(mock => mock.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>?>()))
                 .ThrowsAsync(new IOException("the host reset the connection"));
 
             Assert.That(() => this.Invoke("api fetch --tag 2026-04"), Throws.InstanceOf<IOException>());

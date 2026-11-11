@@ -19,6 +19,8 @@ namespace Hypha.Knowledge.Releases
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Progress;
+
     /// <summary>
     /// Downloads one release's inputs into <c>sources/&lt;tag&gt;/</c>.
     /// </summary>
@@ -160,7 +162,7 @@ namespace Hypha.Knowledge.Releases
         /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         public Task<IReadOnlyList<FileInfo>> FetchMetamodelAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
+            CancellationToken cancellationToken = default, IProgress<KnowledgeProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -185,7 +187,7 @@ namespace Hypha.Knowledge.Releases
         /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         public async Task<IReadOnlyList<FileInfo>> FetchTextualAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
+            CancellationToken cancellationToken = default, IProgress<KnowledgeProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -218,7 +220,7 @@ namespace Hypha.Knowledge.Releases
         /// </remarks>
         public Task<IReadOnlyList<FileInfo>> FetchSpecificationsAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default, IProgress<FetchProgress>? progress = null)
+            CancellationToken cancellationToken = default, IProgress<KnowledgeProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -251,7 +253,7 @@ namespace Hypha.Knowledge.Releases
             List<(string Path, FileInfo Destination)> targets,
             bool skipExisting,
             string kind,
-            IProgress<FetchProgress>? progress,
+            IProgress<KnowledgeProgress>? progress,
             CancellationToken cancellationToken)
         {
             var written = new FileInfo[targets.Count];
@@ -270,7 +272,9 @@ namespace Hypha.Knowledge.Releases
                     written[index] = await this.DownloadAsync(
                         repository, tag, path, destination, skipExisting, token);
 
-                    progress?.Report(new FetchProgress(kind, Interlocked.Increment(ref done), targets.Count));
+                    var finished = Interlocked.Increment(ref done);
+                    progress?.Report(new KnowledgeProgress(
+                        KnowledgeProgress.Fetch, kind, finished, targets.Count, $"{finished} of {targets.Count} files"));
                 });
 
             return written;

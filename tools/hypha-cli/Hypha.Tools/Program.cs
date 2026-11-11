@@ -101,7 +101,7 @@ namespace Hypha.Tools
 
             var generate = new GenerateCommand();
             generate.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
-                new GenerateCommand.Handler(provider.GetServices<IKnowledgeGenerator>(), provider.GetRequiredService<IKnowledgeLayout>())
+                new GenerateCommand.Handler(provider.GetRequiredService<IKnowledgeBuilder<IKnowledgeGenerator>>(), provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken),
                 parseResult.GetValue(GenerateCommand.Output)));
             root.Add(generate);
@@ -129,7 +129,7 @@ namespace Hypha.Tools
 
             var moveWindow = new MoveWindowCommand();
             moveWindow.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
-                new MoveWindowCommand.Handler(provider.GetRequiredService<IReleaseInstaller>(), provider.GetServices<IKnowledgeGenerator>(),
+                new MoveWindowCommand.Handler(provider.GetRequiredService<IReleaseInstaller>(), provider.GetRequiredService<IKnowledgeBuilder<IKnowledgeGenerator>>(),
                         provider.GetRequiredService<IKnowledgeLayout>(), provider.GetRequiredService<IReleaseWindowEvictor>(),
                         provider.GetRequiredService<IProcessRunner>(), provider.GetRequiredService<ILogger<MoveWindowCommand.Handler>>())
                     .InvokeAsync(parseResult, cancellationToken)));
@@ -183,7 +183,7 @@ namespace Hypha.Tools
             generate.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
                 provider => new GenerateCommand.Handler(
-                        provider.GetServices<IApiKnowledgeGenerator>(),
+                        provider.GetRequiredService<IKnowledgeBuilder<IApiKnowledgeGenerator>>(),
                         ApiGenerateCommand.Scope(provider.GetRequiredService<IApiLayout>()))
                     .InvokeAsync(parseResult, cancellationToken),
                 parseResult.GetValue(ApiGenerateCommand.Output)));

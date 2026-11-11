@@ -337,7 +337,7 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 ### Step 3: Prepare the write path and the CLI
 
 - [x] Rewrite `lookup` and `list` over the query API; add `hypha query …` verbs.
-- [ ] Add `IProgress<T>` reporting to install / fetch / generate.
+- [x] Add `IProgress<T>` reporting to install / fetch / generate.
 - [ ] Make `ReleaseOperationLock` cross-process safe; add the concurrency test.
 - [ ] Make `HYPHA_HOME` the default location; keep checkout mode and `--output` for maintainers.
 

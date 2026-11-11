@@ -93,8 +93,8 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="GenerateCommand"/>.</summary>
         public sealed class Handler
         {
-            /// <summary>The generators to run, ordered by <see cref="IKnowledgeGenerator.Order"/>.</summary>
-            private readonly IReadOnlyList<IKnowledgeGenerator> generators;
+            /// <summary>Runs the generators in <see cref="IKnowledgeGenerator.Order"/> and reports each artifact.</summary>
+            private readonly IKnowledgeBuilder<IKnowledgeGenerator> builder;
 
             /// <summary>What the generators are run over.</summary>
             private readonly GenerationScope scope;
@@ -102,20 +102,17 @@ namespace Hypha.Tools.Commands
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
-            /// <param name="generators">
-            /// Every registered generator. Ordered here rather than trusted to arrive ordered: the
-            /// cross-references read what the others write.
-            /// </param>
+            /// <param name="builder">Runs the release generators, in their order.</param>
             /// <param name="layout">Used to resolve which releases are installed.</param>
             /// <exception cref="ArgumentNullException">
-            /// <paramref name="generators"/> or <paramref name="layout"/> is <c>null</c>.
+            /// <paramref name="builder"/> or <paramref name="layout"/> is <c>null</c>.
             /// </exception>
-            public Handler(IEnumerable<IKnowledgeGenerator> generators, IKnowledgeLayout layout)
+            public Handler(IKnowledgeBuilder<IKnowledgeGenerator> builder, IKnowledgeLayout layout)
             {
-                ArgumentNullException.ThrowIfNull(generators);
+                ArgumentNullException.ThrowIfNull(builder);
                 ArgumentNullException.ThrowIfNull(layout);
 
-                this.generators = [.. generators.OrderBy(generator => generator.Order)];
+                this.builder = builder;
                 this.scope = new GenerationScope(
                     () => layout.InstalledTags,
                     layout.Root.FullName,
@@ -129,17 +126,17 @@ namespace Hypha.Tools.Commands
             /// Initializes a new instance of the <see cref="Handler"/> class, for a set of generators
             /// that is versioned on another axis than the language releases.
             /// </summary>
-            /// <param name="generators">The generators to run, in any order.</param>
+            /// <param name="builder">Runs the generators of that axis, in their order.</param>
             /// <param name="scope">What they are run over.</param>
             /// <exception cref="ArgumentNullException">
-            /// <paramref name="generators"/> or <paramref name="scope"/> is <c>null</c>.
+            /// <paramref name="builder"/> or <paramref name="scope"/> is <c>null</c>.
             /// </exception>
-            public Handler(IEnumerable<IKnowledgeGenerator> generators, GenerationScope scope)
+            public Handler(IKnowledgeBuilder<IKnowledgeGenerator> builder, GenerationScope scope)
             {
-                ArgumentNullException.ThrowIfNull(generators);
+                ArgumentNullException.ThrowIfNull(builder);
                 ArgumentNullException.ThrowIfNull(scope);
 
-                this.generators = [.. generators.OrderBy(generator => generator.Order)];
+                this.builder = builder;
                 this.scope = scope;
             }
 
@@ -157,8 +154,9 @@ namespace Hypha.Tools.Commands
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
 
-                var selected = this.Select(parseResult.GetValue(this.scope.Artifact));
-                if (selected is null)
+                var artifact = parseResult.GetValue(this.scope.Artifact);
+
+                if (!this.IsKnown(artifact))
                 {
                     return 2;
                 }
@@ -176,42 +174,22 @@ namespace Hypha.Tools.Commands
                     return 1;
                 }
 
-                var written = 0;
-                var skipped = 0;
+                var build = await ProgressDisplay.RunAsync(
+                    progress => this.builder.BuildAsync(tags, artifact, progress, cancellationToken));
 
-                foreach (var tag in tags)
+                if (build.Refusal is { } refusal)
                 {
-                    foreach (var generator in selected)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
+                    // The deliberate refusals: a missing metamodel index, a clause title reaching the
+                    // cross-references, a slug collision. The output would be wrong, so the run stopped.
+                    AnsiConsole.MarkupLine(
+                        $"[red]{Markup.Escape(refusal.Artifact)} refused for "
+                        + $"{Markup.Escape(refusal.Tag)}: {Markup.Escape(refusal.Reason)}[/]");
 
-                        GenerationResult result;
-
-                        try
-                        {
-                            result = await generator.GenerateAsync(tag, cancellationToken);
-                        }
-                        catch (InvalidOperationException exception)
-                        {
-                            // The deliberate refusals: a missing metamodel index, a clause title
-                            // reaching the cross-references, a slug collision. They mean the output
-                            // would be wrong, so the run stops rather than leaving a half-built base.
-                            AnsiConsole.MarkupLine(
-                                $"[red]{Markup.Escape(generator.Artifact)} refused for "
-                                + $"{Markup.Escape(tag)}: {Markup.Escape(exception.Message)}[/]");
-
-                            return 1;
-                        }
-
-                        if (result.Outcome == GenerationOutcome.Skipped)
-                        {
-                            skipped++;
-                            continue;
-                        }
-
-                        written += result.Written.Count;
-                    }
+                    return 1;
                 }
+
+                var written = build.Written;
+                var skipped = build.Skipped;
 
                 if (written == 0)
                 {
@@ -230,33 +208,23 @@ namespace Hypha.Tools.Commands
                 return 0;
             }
 
-            /// <summary>
-            /// The generators to run, or <c>null</c> when an artifact was named that none produces.
-            /// </summary>
+            /// <summary>Whether an artifact was named that some generator produces, or none was named.</summary>
             /// <remarks>Reports the known artifacts when <paramref name="artifact"/> names none of them.</remarks>
             /// <param name="artifact">The artifact named on the command line, or <c>null</c> or blank for all of them.</param>
-            /// <returns>Every generator, the one producing <paramref name="artifact"/>, or <c>null</c>.</returns>
-            private IReadOnlyList<IKnowledgeGenerator>? Select(string? artifact)
+            /// <returns><c>true</c> when the run can go ahead.</returns>
+            private bool IsKnown(string? artifact)
             {
-                if (string.IsNullOrWhiteSpace(artifact))
+                if (string.IsNullOrWhiteSpace(artifact) || this.builder.Artifacts.Contains(artifact, StringComparer.Ordinal))
                 {
-                    return this.generators;
+                    return true;
                 }
 
-                var match = this.generators.FirstOrDefault(
-                    generator => string.Equals(generator.Artifact, artifact, StringComparison.Ordinal));
-
-                if (match is not null)
-                {
-                    return [match];
-                }
-
-                var known = string.Join(", ", this.generators.Select(generator => generator.Artifact));
+                var known = string.Join(", ", this.builder.Artifacts);
 
                 AnsiConsole.MarkupLine($"[red]No generator produces '{Markup.Escape(artifact)}'.[/]");
                 AnsiConsole.MarkupLine($"[grey]Known artifacts: {Markup.Escape(known)}.[/]");
 
-                return null;
+                return false;
             }
         }
     }

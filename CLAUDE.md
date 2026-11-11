@@ -79,8 +79,16 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- fetch --tag 2026-05 # source
 `IKnowledgeGenerator` (`Artifact`, `Order`, `GenerateAsync(tag)`), registered as a collection, so a
 full run is a loop over `Order`: metamodel (10), grammar references (20), textual notation (30),
 keywords (33), model library (35), cross-references (40, last, because it reads the index and the
-generated examples). The CLI resolves that collection; it does not know the artifact names, so adding a
-generator adds its verb.
+generated examples). That loop is `IKnowledgeBuilder<TGenerator>` (`KnowledgeBuilder`), registered
+for both collections: `IKnowledgeBuilder<IKnowledgeGenerator>` for the releases and
+`IKnowledgeBuilder<IApiKnowledgeGenerator>` for the API versions. `hypha generate` and `move-window`
+run through it, as the MCP server's install will. The CLI does not know the artifact names, so adding
+a generator adds its verb.
+
+**Progress** is one record, `KnowledgeProgress` (`Operation`, `Step`, `Done`, `Total`, `Message`),
+reported through an `IProgress<KnowledgeProgress>` by the release and API installers (per file or
+document) and by the builder (per artifact). The CLI shows it as a live display when its output is a
+terminal; the MCP server will send it as progress notifications.
 
 `hypha move-window --tag <release>` is the one verb that deliberately crosses the CLI/test split
 above: a maintainer-only, source-checkout-only convenience that drives fetch → generate → the rest of

@@ -123,6 +123,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{"pid", "token"}` content and the same recovery rules, so an operation that changes releases on
   its own (such as the coming MCP install) and an extension install never run at the same time.
   The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
+- **Progress for fetching and generating** (`refs #195`): one `KnowledgeProgress` record
+  (`Operation`, `Step`, `Done`, `Total`, `Message`), replacing `FetchProgress`, that both the CLI and
+  the coming MCP server consume through an `IProgress<KnowledgeProgress>`.
+  - `IReleaseInstaller` reports each file of the metamodel, textual and, now, specification inputs;
+    `IApiInstaller.InstallAsync` takes a reporter too and reports each of its three or four
+    documents.
+  - The loop that runs every generator in `Order` moved from the CLI into the library, as
+    `IKnowledgeBuilder<TGenerator>` (`KnowledgeBuilder`), registered by `AddHyphaKnowledge` for the
+    release generators and the API generators. It reports each artifact as it finishes, written or
+    skipped, counting within its release, and stops at a generator that refuses, naming it.
+    `hypha generate`, `hypha api generate` and `move-window` run through it.
+  - `hypha fetch`, `hypha api fetch`, `hypha generate` and `hypha api generate` show a live
+    progress display, one bar per step, when their output is a terminal, and nothing more when it
+    is redirected, as for the VS Code extension. On a terminal the log is written above the bars,
+    and the HTTP request and retry logging is held to warnings, as under `--json`, unless
+    `--log-level Debug` or lower is asked for.
 - **`knowledge/<tag>/textual-notation/keywords.json`** (`refs #205`), written by a new `keywords`
   generator (`hypha generate keywords`), with `knowledge/keywords.schema.json`. Per grammar
   (`kerml`, `sysml`), every keyword and operator the release's own BNF writes, as `reserved`,

@@ -15,6 +15,8 @@ namespace Hypha.Knowledge.Releases
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Progress;
+
     /// <summary>
     /// Downloads one release's inputs into <c>sources/&lt;tag&gt;/</c>.
     /// </summary>
@@ -59,7 +61,7 @@ namespace Hypha.Knowledge.Releases
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
             CancellationToken cancellationToken = default,
-            IProgress<FetchProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null);
 
         /// <summary>Fetches the grammar and textual models, preserving the upstream layout.</summary>
         /// <param name="tag">The release to fetch.</param>
@@ -76,7 +78,7 @@ namespace Hypha.Knowledge.Releases
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
             CancellationToken cancellationToken = default,
-            IProgress<FetchProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null);
 
         /// <summary>
         /// Fetches the specification PDFs into the <b>git-ignored</b> folder. They are OMG-copyrighted
@@ -96,6 +98,6 @@ namespace Hypha.Knowledge.Releases
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
             CancellationToken cancellationToken = default,
-            IProgress<FetchProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null);
     }
 }

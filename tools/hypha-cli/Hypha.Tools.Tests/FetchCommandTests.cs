@@ -15,6 +15,7 @@ namespace Hypha.Tools.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
 
@@ -37,7 +38,7 @@ namespace Hypha.Tools.Tests
             this.installer
                 .Setup(mock => mock.InstallAsync(
                     It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<FetchProgress>? _) =>
+                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<KnowledgeProgress>? _) =>
                     Installation(request));
 
             this.handler = new FetchCommand.Handler(this.installer.Object);

@@ -20,6 +20,7 @@ namespace Hypha.Tools.Tests
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
 
@@ -67,7 +68,7 @@ namespace Hypha.Tools.Tests
             this.installer = new Mock<IReleaseInstaller>();
             this.installer
                 .Setup(mock => mock.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<FetchProgress>? _) =>
+                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<KnowledgeProgress>? _) =>
                 {
                     this.order.Add($"fetch:{request.Tag}");
 
@@ -326,7 +327,7 @@ namespace Hypha.Tools.Tests
             source.Cancel();
 
             var handler = new MoveWindowCommand.Handler(
-                this.installer.Object, [this.generator.Object], this.layout.Object, this.evictor.Object, this.processes.Object,
+                this.installer.Object, new KnowledgeBuilder<IKnowledgeGenerator>([this.generator.Object]), this.layout.Object, this.evictor.Object, this.processes.Object,
                 NullLogger<MoveWindowCommand.Handler>.Instance);
 
             this.installer
@@ -341,7 +342,7 @@ namespace Hypha.Tools.Tests
         private Task<int> Invoke(string commandLine)
         {
             var handler = new MoveWindowCommand.Handler(
-                this.installer.Object, [this.generator.Object], this.layout.Object, this.evictor.Object, this.processes.Object,
+                this.installer.Object, new KnowledgeBuilder<IKnowledgeGenerator>([this.generator.Object]), this.layout.Object, this.evictor.Object, this.processes.Object,
                 NullLogger<MoveWindowCommand.Handler>.Instance);
 
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
