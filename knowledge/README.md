@@ -15,7 +15,7 @@ inputs only) and [`sources/README.md`](../sources/README.md) for how a release i
 ```
 knowledge/
 ├── versions.json           Installed release tags + which is the default        (local, git-ignored)
-├── cross-references.schema.json, model-library.schema.json,
+├── cross-references.schema.json, model-library.schema.json, keywords.schema.json,
 │   metamodel.schema.json, api-cross-references.schema.json                      (committed)
 └── <tag>/                  e.g. 2026-05                                         (local, git-ignored)
     ├── metamodel/          Combined KerML + SysML v2 metamodel (one tree)
@@ -26,6 +26,7 @@ knowledge/
     │   └── sysml2/         SysML v2 (Parts 1 and 2) spec text, segmented by clause
     ├── textual-notation/
     │   ├── index.md        Grammar summary + entry point
+    │   ├── keywords.json   Each keyword and operator → the productions and metaclasses using it
     │   └── examples/       Worked SysML v2 / KerML textual-notation examples
     └── cross-references.json
 ```

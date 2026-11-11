@@ -64,6 +64,9 @@ namespace Hypha.Knowledge.Layout
         /// <summary><c>knowledge/model-library.schema.json</c>, which is not per release.</summary>
         FileInfo ModelLibrarySchema { get; }
 
+        /// <summary><c>knowledge/keywords.schema.json</c>, which is not per release.</summary>
+        FileInfo KeywordsSchema { get; }
+
         /// <summary><c>knowledge/metamodel.schema.json</c>, which is not per release.</summary>
         FileInfo MetamodelSchema { get; }
 
@@ -110,6 +113,12 @@ namespace Hypha.Knowledge.Layout
 
         /// <summary><c>knowledge/&lt;tag&gt;/textual-notation/examples</c>.</summary>
         DirectoryInfo Examples(string tag);
+
+        /// <summary>
+        /// <c>knowledge/&lt;tag&gt;/textual-notation/keywords.json</c>: each grammar's keywords and
+        /// operators, with the productions and metaclasses that use them.
+        /// </summary>
+        FileInfo Keywords(string tag);
 
         /// <summary><c>knowledge/&lt;tag&gt;/model-library</c>.</summary>
         DirectoryInfo ModelLibrary(string tag);

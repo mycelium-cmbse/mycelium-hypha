@@ -78,8 +78,8 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- fetch --tag 2026-05 # source
 **The orchestration lives in the library, not in the fixtures.** Each artifact is an
 `IKnowledgeGenerator` (`Artifact`, `Order`, `GenerateAsync(tag)`), registered as a collection, so a
 full run is a loop over `Order`: metamodel (10), grammar references (20), textual notation (30),
-model library (35), cross-references (40, last, because it reads the index and the generated
-examples). The CLI resolves that collection; it does not know the artifact names, so adding a
+keywords (33), model library (35), cross-references (40, last, because it reads the index and the
+generated examples). The CLI resolves that collection; it does not know the artifact names, so adding a
 generator adds its verb.
 
 `hypha move-window --tag <release>` is the one verb that deliberately crosses the CLI/test split
@@ -152,7 +152,7 @@ SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface th
   only match this per-repository-root layout, not the small, deliberately-committed XMI fixture under
   `tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/` (see below).
 - **Committed, not per release:** `knowledge/README.md`, `knowledge/cross-references.schema.json`,
-  `knowledge/model-library.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
+  `knowledge/model-library.schema.json`, `knowledge/keywords.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
   `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT binary the plugin's `SessionStart` hook
   dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section), the only
@@ -202,6 +202,10 @@ kind of test tolerates non-deterministic output.
   BNF) and a link to every example; and `examples/`, one page per model the release ships (309),
   each ` ```sysml ` / ` ```kerml ` block a **byte-exact copy** of a `sources/<tag>/textual/` model,
   with front matter naming its upstream path and the metaclasses it declares.
+- `knowledge/<tag>/textual-notation/keywords.json` (+ `knowledge/keywords.schema.json`): per grammar,
+  each keyword and operator with the productions that write it and the metaclasses whose syntax
+  includes it, following only **bare calls** (a reference that is not an assignment's value) into
+  productions that build nothing, the same metaclass or a supertype.
 
 - `knowledge/<tag>/cross-references.json` (+ `knowledge/cross-references.schema.json`): element →
   clause **identifier**, grammar production, the metamodel features its syntax populates, and worked

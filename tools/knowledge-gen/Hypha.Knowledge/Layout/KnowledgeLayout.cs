@@ -14,6 +14,7 @@ namespace Hypha.Knowledge.Layout
     using System.IO;
 
     using Hypha.Knowledge.CrossReferences;
+    using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Releases;
 
     /// <summary>
@@ -115,6 +116,12 @@ namespace Hypha.Knowledge.Layout
         /// </summary>
         public FileInfo ModelLibrarySchema =>
             this.FileAt(KnowledgeFolder, "model-library.schema.json");
+
+        /// <summary>
+        /// Gets <c>knowledge/keywords.schema.json</c> under <see cref="Root"/>, which is not per release.
+        /// </summary>
+        public FileInfo KeywordsSchema =>
+            this.FileAt(KnowledgeFolder, "keywords.schema.json");
 
         /// <summary>
         /// Gets <c>knowledge/metamodel.schema.json</c> under <see cref="Root"/>, which is not per
@@ -254,6 +261,15 @@ namespace Hypha.Knowledge.Layout
         /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
         public DirectoryInfo Examples(string tag) =>
             new(Path.Combine(this.TextualNotation(tag).FullName, "examples"));
+
+        /// <summary>
+        /// Resolves <c>knowledge/&lt;tag&gt;/textual-notation/keywords.json</c> under <see cref="OutputRoot"/>.
+        /// </summary>
+        /// <param name="tag">The release tag.</param>
+        /// <returns>The release's keyword reference, whether or not it exists.</returns>
+        /// <exception cref="ArgumentException"><paramref name="tag"/> is <c>null</c>, empty or white space.</exception>
+        public FileInfo Keywords(string tag) =>
+            new(Path.Combine(this.TextualNotation(tag).FullName, KeywordDocument.FileName));
 
         /// <summary>Resolves <c>knowledge/&lt;tag&gt;/model-library</c> under <see cref="OutputRoot"/>.</summary>
         /// <param name="tag">The release tag.</param>

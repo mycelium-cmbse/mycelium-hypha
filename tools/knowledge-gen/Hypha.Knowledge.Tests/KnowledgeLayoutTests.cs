@@ -80,6 +80,9 @@ namespace Hypha.Knowledge.Tests
                     this.Relative(this.layout.Examples("2026-05")),
                     Is.EqualTo("knowledge/2026-05/textual-notation/examples"));
                 Assert.That(
+                    this.Relative(this.layout.Keywords("2026-05")),
+                    Is.EqualTo("knowledge/2026-05/textual-notation/keywords.json"));
+                Assert.That(
                     this.Relative(this.layout.ModelLibrary("2026-05")),
                     Is.EqualTo("knowledge/2026-05/model-library"));
                 Assert.That(
@@ -113,6 +116,9 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(
                     this.Relative(this.layout.MetamodelSchema),
                     Is.EqualTo("knowledge/metamodel.schema.json"));
+                Assert.That(
+                    this.Relative(this.layout.KeywordsSchema),
+                    Is.EqualTo("knowledge/keywords.schema.json"));
             });
         }
 

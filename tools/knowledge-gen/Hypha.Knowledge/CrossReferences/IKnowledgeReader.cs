@@ -22,6 +22,11 @@ namespace Hypha.Knowledge.CrossReferences
         /// <returns>The elements, in index order, and the index's <c>modelVersionUri</c>.</returns>
         (IReadOnlyList<ElementRecord> Elements, string ModelVersionUri) ReadElements(FileInfo index);
 
+        /// <summary>Reads each metaclass of a release's metamodel graph with all its supertypes.</summary>
+        /// <param name="graph">The release's <c>metamodel/metamodel.json</c>.</param>
+        /// <returns>The names of every class's <c>allAncestors</c>, by class name.</returns>
+        IReadOnlyDictionary<string, IReadOnlySet<string>> ReadAncestors(FileInfo graph);
+
         /// <summary>
         /// Reads a specification clause catalog: <c>{clause: title}</c> and the document it describes.
         /// </summary>

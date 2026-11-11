@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
 
@@ -132,6 +133,27 @@ namespace Hypha.Knowledge.Tests
                 new DirectoryInfo(Path.Combine(this.workspace.FullName, "examples")), "prefix/");
 
             Assert.That(loaded["prefix/empty.md"], Is.Empty);
+        }
+
+        [Test]
+        public void Reads_the_ancestors_of_every_class_of_the_golden_metamodel_graph()
+        {
+            var ancestors = this.reader.ReadAncestors(new FileInfo(Path.Combine(QueryFixture.GoldenMetamodel().FullName, "metamodel.json")));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ancestors["PartUsage"], Is.SupersetOf(new[] { "Usage", "Feature", "Element" }));
+                Assert.That(ancestors["Element"], Is.Empty);
+                Assert.That(ancestors.Keys, Has.None.EqualTo("FeatureDirectionKind"));
+            });
+        }
+
+        [Test]
+        public void A_class_without_its_ancestors_is_refused()
+        {
+            var graph = this.Write("metamodel.json", """{ "classes": [ { "name": "Element" } ] }""");
+
+            Assert.That(() => this.reader.ReadAncestors(graph), Throws.TypeOf<KeyNotFoundException>());
         }
 
         [Test]

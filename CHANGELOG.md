@@ -106,6 +106,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{"pid", "token"}` content and the same recovery rules, so an operation that changes releases on
   its own (such as the coming MCP install) and an extension install never run at the same time.
   The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
+- **`knowledge/<tag>/textual-notation/keywords.json`** (`refs #205`), written by a new `keywords`
+  generator (`hypha generate keywords`), with `knowledge/keywords.schema.json`. Per grammar
+  (`kerml`, `sysml`), every keyword and operator the release's own BNF writes, as `reserved`,
+  `contextual` or `operator` (plain punctuation left out), with the productions that write it and
+  the metaclasses whose syntax includes it: `part` introduces `PartUsage` and `PartDefinition`
+  directly, and `ref` reaches the 41 usages through `BasicUsagePrefix`. A metaclass's syntax
+  follows only bare calls, a reference that is not the value of an assignment, into productions
+  that build nothing, the same metaclass or a supertype, so a selector handing over to a subtype
+  and an assigned owned element do not count. A literal that is only ever an assigned value, such
+  as `private`, or `+` in KerML, lists its productions and no metaclass.
 
 ### Changed
 - **`metamodel.json` 2.1.0: every owned attribute, operation, parameter, constraint and enumeration
