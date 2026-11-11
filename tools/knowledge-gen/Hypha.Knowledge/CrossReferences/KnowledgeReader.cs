@@ -63,6 +63,34 @@ namespace Hypha.Knowledge.CrossReferences
         }
 
         /// <summary>
+        /// Reads each metaclass of a release's metamodel graph with all its supertypes, as the metamodel
+        /// generator computed them in <c>allAncestors</c>.
+        /// </summary>
+        /// <param name="graph">The release's <c>metamodel/metamodel.json</c>.</param>
+        /// <returns>The names of every class's ancestors, by class name, both compared ordinally.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="graph"/> is <c>null</c>.</exception>
+        /// <exception cref="FileNotFoundException"><paramref name="graph"/> does not exist.</exception>
+        /// <exception cref="JsonException"><paramref name="graph"/> is not valid JSON.</exception>
+        /// <exception cref="KeyNotFoundException">The graph lacks a property it is read for.</exception>
+        public IReadOnlyDictionary<string, IReadOnlySet<string>> ReadAncestors(FileInfo graph)
+        {
+            ArgumentNullException.ThrowIfNull(graph);
+
+            using var stream = graph.OpenRead();
+            using var document = JsonDocument.Parse(stream);
+
+            return document.RootElement.GetProperty("classes")
+                .EnumerateArray()
+                .ToDictionary(
+                    node => node.GetProperty("name").GetString()!,
+                    node => (IReadOnlySet<string>)node.GetProperty("allAncestors")
+                        .EnumerateArray()
+                        .Select(ancestor => ancestor.GetString()!)
+                        .ToHashSet(StringComparer.Ordinal),
+                    StringComparer.Ordinal);
+        }
+
+        /// <summary>
         /// Reads a specification clause catalog: the <c>title</c> of every entry under <c>entries</c>, by
         /// clause number, and the catalog's <c>document</c> and <c>version</c>.
         /// </summary>

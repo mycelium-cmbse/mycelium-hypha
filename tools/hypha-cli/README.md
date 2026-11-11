@@ -112,7 +112,7 @@ breaking change for every host that reads it.
 
 The artifact names are not a fixed list: they are whatever `IKnowledgeGenerator` implementations are
 registered, so `hypha generate nonsense` reports the ones that exist. Today they are `metamodel`,
-`grammar-references`, `textual-notation`, `model-library`, `spec` and `cross-references`, run in that
+`grammar-references`, `textual-notation`, `keywords`, `model-library`, `spec` and `cross-references`, run in that
 order because the cross-references read what the others write.
 
 `spec` is unlike the rest: it needs the OMG spec PDFs (`hypha fetch` gets them by default; pass

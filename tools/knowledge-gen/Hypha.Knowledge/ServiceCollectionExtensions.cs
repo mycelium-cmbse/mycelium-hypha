@@ -20,6 +20,7 @@ namespace Hypha.Knowledge
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Grammar;
+    using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
@@ -141,6 +142,7 @@ namespace Hypha.Knowledge
             // every caller.
             services.AddSingleton<IGrammarParser, GrammarParser>();
             services.AddSingleton<IGrammarLinks, GrammarLinks>();
+            services.AddSingleton<IKeywordIndexer, KeywordIndexer>();
             services.AddSingleton<IGrammarReference>(_ => new GrammarReference(options.RawContentBaseAddress));
 
             services.AddSingleton<ISurfaceForms, SurfaceForms>();
@@ -180,6 +182,7 @@ namespace Hypha.Knowledge
             // caller has to keep in step. The metamodel generator joins them via AddHyphaMetamodel.
             services.AddSingleton<IKnowledgeGenerator, GrammarReferenceGenerator>();
             services.AddSingleton<IKnowledgeGenerator, TextualNotationGenerator>();
+            services.AddSingleton<IKnowledgeGenerator, KeywordGenerator>();
             services.AddSingleton<IKnowledgeGenerator, ModelLibraryGenerator>();
             services.AddSingleton<IKnowledgeGenerator, SpecGenerator>();
             services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
