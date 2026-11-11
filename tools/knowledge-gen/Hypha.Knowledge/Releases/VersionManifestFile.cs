@@ -11,9 +11,10 @@ namespace Hypha.Knowledge.Releases
 {
     using System;
     using System.IO;
-    using System.Text;
     using System.Text.Encodings.Web;
     using System.Text.Json;
+
+    using Hypha.Knowledge.Layout;
 
     /// <summary>
     /// Reads and writes <c>knowledge/versions.json</c>.
@@ -38,9 +39,6 @@ namespace Hypha.Knowledge.Releases
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
-        /// <summary>UTF-8 without a byte-order mark.</summary>
-        private static readonly UTF8Encoding Utf8WithoutBom = new(false);
-
         /// <summary>The source-generated contract, bound to the options above.</summary>
         private static readonly VersionManifestJsonContext Contract = new(SerializerOptions);
 
@@ -58,9 +56,8 @@ namespace Hypha.Knowledge.Releases
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
             var file = new FileInfo(path);
-            file.Directory?.Create();
 
-            File.WriteAllText(file.FullName, Render(manifest), Utf8WithoutBom);
+            AtomicFile.WriteAllText(file.FullName, Render(manifest));
 
             return file;
         }

@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Releases
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Text;
     using System.Text.Json;
@@ -28,7 +29,10 @@ namespace Hypha.Knowledge.Releases
     /// See <see cref="IReleaseOperationLock"/> for the protocol. Every step mirrors the extension's
     /// <c>acquireReleaseLock</c> and <c>recoverReleaseLock</c>: two attempts, each recovering a stale
     /// lock first; the lock file is written and closed, never held open, so the other side can always
-    /// read it; and a lock is stale only when its owner process is known to be gone.
+    /// read it; and a lock is stale only when its owner process is known to be gone. The one addition is
+    /// the wait (<see cref="HyphaKnowledgeOptions.ReleaseLockWait"/>): while it lasts, a refusal is
+    /// tried again every <see cref="PollInterval"/> instead of being thrown, so a lock that is held, or
+    /// that another process is still creating or recovering, is taken once it is free.
     /// </remarks>
     public sealed class ReleaseOperationLock : IReleaseOperationLock
     {
@@ -41,11 +45,23 @@ namespace Hypha.Knowledge.Releases
         /// <summary>How many times the lock is tried, each failed try recovering a stale lock before the next.</summary>
         private const int Attempts = 2;
 
+        /// <summary>How long a waiting acquisition pauses between two tries.</summary>
+        private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(50);
+
         /// <summary>
         /// How the lock and recovery files are opened: shared with every other reader, writer and deleter, so
         /// the other side can always read or remove them.
         /// </summary>
         private const FileShare Shared = FileShare.ReadWrite | FileShare.Delete;
+
+        /// <summary>The Windows error that a file to be created exclusively exists (<c>ERROR_FILE_EXISTS</c>).</summary>
+        private const int WindowsFileExists = 80;
+
+        /// <summary>The Windows error that a file or folder to be created exists (<c>ERROR_ALREADY_EXISTS</c>).</summary>
+        private const int WindowsAlreadyExists = 183;
+
+        /// <summary>The Linux and macOS error that a file to be created exclusively exists (<c>EEXIST</c>).</summary>
+        private const int UnixFileExists = 17;
 
         /// <summary>UTF-8 without a byte-order mark, the encoding of the lock file.</summary>
         private static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false);
@@ -69,58 +85,70 @@ namespace Hypha.Knowledge.Releases
         /// <summary>Receives the recovery message, and is handed to each lease.</summary>
         private readonly ILogger<ReleaseOperationLock> logger;
 
+        /// <summary>How long an acquisition keeps trying while the lock is refused.</summary>
+        private readonly TimeSpan wait;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ReleaseOperationLock"/> class.
         /// </summary>
         /// <param name="layout">Resolves the repository root the lock file lives in.</param>
         /// <param name="processes">Tells whether a lock's owner process is still running.</param>
         /// <param name="logger">Receives the recovery message, and is handed to each lease.</param>
-        /// <exception cref="ArgumentNullException">Any argument is <c>null</c>.</exception>
-        public ReleaseOperationLock(IKnowledgeLayout layout, IProcessProbe processes, ILogger<ReleaseOperationLock> logger)
+        /// <param name="wait">
+        /// How long an acquisition keeps trying while the lock is refused; zero, the default, refuses at once.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="layout"/>, <paramref name="processes"/> or <paramref name="logger"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="wait"/> is negative.</exception>
+        public ReleaseOperationLock(
+            IKnowledgeLayout layout, IProcessProbe processes, ILogger<ReleaseOperationLock> logger, TimeSpan wait = default)
         {
             ArgumentNullException.ThrowIfNull(layout);
             ArgumentNullException.ThrowIfNull(processes);
             ArgumentNullException.ThrowIfNull(logger);
+            ArgumentOutOfRangeException.ThrowIfLessThan(wait, TimeSpan.Zero);
 
             this.layout = layout;
             this.processes = processes;
             this.logger = logger;
+            this.wait = wait;
         }
 
         /// <summary>
         /// Takes the lock by creating <see cref="FileName"/> exclusively in the repository root with this
         /// process's id and a fresh token, recovering a stale lock and trying once more when it already exists.
-        /// The work is synchronous; the returned task is already complete.
+        /// While the wait given to the constructor lasts, a refusal is tried again instead of thrown.
         /// </summary>
-        /// <param name="cancellationToken">Checked before each attempt.</param>
+        /// <param name="cancellationToken">Checked before each attempt, and cancels the pause between them.</param>
         /// <returns>The held lock; disposing it releases the lock.</returns>
         /// <exception cref="ReleaseOperationLockException">
-        /// Another process or VS Code window holds the lock (or this process does, through a lease it
-        /// has not released yet, since the lock is not re-entrant), another recovery is in progress or
-        /// was interrupted, the existing lock cannot be read or created, or both attempts failed.
+        /// Once the wait is over: another process or VS Code window holds the lock (or this process does,
+        /// through a lease it has not released yet, since the lock is not re-entrant), another recovery is
+        /// in progress or was interrupted, the existing lock cannot be read or created, or both attempts
+        /// failed. The refusal of the last try is the one thrown.
         /// </exception>
         /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
-        public Task<ReleaseOperationLease> AcquireAsync(CancellationToken cancellationToken = default)
+        public async Task<ReleaseOperationLease> AcquireAsync(CancellationToken cancellationToken = default)
         {
             var root = this.layout.Root;
             Directory.CreateDirectory(root.FullName);
 
             var lockFile = new FileInfo(Path.Combine(root.FullName, FileName));
             var owner = JsonSerializer.Serialize(new { pid = Environment.ProcessId, token = Guid.NewGuid().ToString() });
+            var started = Stopwatch.GetTimestamp();
 
-            for (var attempt = 0; attempt < Attempts; attempt++)
+            while (true)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (TryCreate(root, lockFile.FullName, owner))
+                try
                 {
-                    return Task.FromResult(new ReleaseOperationLease(lockFile, owner, this.logger));
+                    return this.TryAcquire(root, lockFile, owner, cancellationToken);
                 }
-
-                this.Recover(root, lockFile);
+                catch (ReleaseOperationLockException) when (Stopwatch.GetElapsedTime(started) + PollInterval <= this.wait)
+                {
+                    await Task.Delay(PollInterval, cancellationToken);
+                }
             }
-
-            throw new ReleaseOperationLockException("Could not acquire the hypha release-operation lock. Try again.");
         }
 
         /// <summary>
@@ -167,6 +195,35 @@ namespace Hypha.Knowledge.Releases
         }
 
         /// <summary>
+        /// The two attempts of the extension's protocol: create the lock, and when it exists, recover it
+        /// if it is stale and create it once more.
+        /// </summary>
+        /// <param name="root">The repository root.</param>
+        /// <param name="lockFile">The lock file.</param>
+        /// <param name="owner">The owner record to write.</param>
+        /// <param name="cancellationToken">Checked before each attempt.</param>
+        /// <returns>The held lock.</returns>
+        /// <exception cref="ReleaseOperationLockException">The lock was refused.</exception>
+        /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+        private ReleaseOperationLease TryAcquire(
+            DirectoryInfo root, FileInfo lockFile, string owner, CancellationToken cancellationToken)
+        {
+            for (var attempt = 0; attempt < Attempts; attempt++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (TryCreate(root, lockFile.FullName, owner))
+                {
+                    return new ReleaseOperationLease(lockFile, owner, this.logger);
+                }
+
+                this.Recover(root, lockFile);
+            }
+
+            throw new ReleaseOperationLockException("Could not acquire the hypha release-operation lock. Try again.");
+        }
+
+        /// <summary>
         /// Creates <paramref name="path"/> exclusively and writes <paramref name="content"/> to it, closing it
         /// straight away; a file left half-written by a failed write is deleted again.
         /// </summary>
@@ -182,8 +239,9 @@ namespace Hypha.Knowledge.Releases
             {
                 stream = CreateExclusively(root, path);
             }
-            catch (IOException) when (File.Exists(path))
+            catch (IOException exception) when (AlreadyExists(exception, path))
             {
+                // Held, or released again in the instant since: either way the caller recovers or tries again.
                 return false;
             }
 
@@ -202,6 +260,25 @@ namespace Hypha.Knowledge.Releases
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Whether creating <paramref name="path"/> exclusively failed because the file exists.
+        /// </summary>
+        /// <remarks>
+        /// Judged by the error itself first, not only by looking for the file again: the other side may
+        /// have removed it in the instant since, which would otherwise turn a held lock into a raw
+        /// <see cref="IOException"/>.
+        /// </remarks>
+        /// <param name="exception">The error creating the file.</param>
+        /// <param name="path">The file.</param>
+        /// <returns><c>true</c> when the file existed.</returns>
+        private static bool AlreadyExists(IOException exception, string path)
+        {
+            var code = OperatingSystem.IsWindows() ? exception.HResult & 0xFFFF : exception.HResult;
+
+            return (OperatingSystem.IsWindows() ? code is WindowsFileExists or WindowsAlreadyExists : code == UnixFileExists)
+                || File.Exists(path);
         }
 
         /// <summary>
@@ -252,7 +329,7 @@ namespace Hypha.Knowledge.Releases
             {
                 recovery = CreateExclusively(root, recoveryPath);
             }
-            catch (IOException) when (File.Exists(recoveryPath))
+            catch (IOException exception) when (AlreadyExists(exception, recoveryPath))
             {
                 throw new ReleaseOperationLockException(
                     "Another hypha process may be recovering a release-operation lock. Try again; if recovery was "

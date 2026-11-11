@@ -41,6 +41,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(options.ApiBaseAddress, Is.EqualTo(Upstream.DefaultApiBaseAddress));
                 Assert.That(options.RawContentBaseAddress, Is.EqualTo(Upstream.DefaultRawContentBaseAddress));
                 Assert.That(options.MaxDownloadConcurrency, Is.EqualTo(6));
+                Assert.That(options.ReleaseLockWait, Is.EqualTo(TimeSpan.Zero));
                 Assert.That(options.Token, Is.Null);
                 Assert.That(options.RepositoryRoot, Is.Null);
                 Assert.That(() => options.Validate(), Throws.Nothing);
@@ -54,6 +55,58 @@ namespace Hypha.Knowledge.Tests
             // several layers away from the setting that caused it.
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => new ServiceCollection().AddHyphaKnowledge(o => o.MaxDownloadConcurrency = 0));
+        }
+
+        [Test]
+        public void A_negative_release_lock_wait_is_refused_at_registration()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => new ServiceCollection().AddHyphaKnowledge(o => o.ReleaseLockWait = TimeSpan.FromSeconds(-1)));
+        }
+
+        [TestCase(0, false)]
+        [TestCase(30, true)]
+        public async Task The_release_lock_wait_reaches_the_lock(int waitSeconds, bool waits)
+        {
+            var root = new DirectoryInfo(Path.Combine(Path.GetTempPath(), $"hypha-wait-{Guid.NewGuid():N}"));
+
+            try
+            {
+                using var provider = new ServiceCollection()
+                    .AddHyphaKnowledge(o =>
+                    {
+                        o.RepositoryRoot = root;
+                        o.ReleaseLockWait = TimeSpan.FromSeconds(waitSeconds);
+                    })
+                    .BuildServiceProvider();
+                var releaseLock = provider.GetRequiredService<IReleaseOperationLock>();
+
+                var first = await releaseLock.AcquireAsync();
+                var second = releaseLock.AcquireAsync();
+                await Task.Delay(200);
+                var refusedAtOnce = second.IsFaulted;
+
+                first.Dispose();
+
+                if (waits)
+                {
+                    (await second).Dispose();
+                }
+                else
+                {
+                    Assert.That(async () => await second, Throws.InstanceOf<ReleaseOperationLockException>());
+                }
+
+                Assert.That(refusedAtOnce, Is.EqualTo(!waits));
+            }
+            finally
+            {
+                root.Refresh();
+                if (root.Exists)
+                {
+                    root.Delete(recursive: true);
+                }
+            }
         }
 
         [Test]

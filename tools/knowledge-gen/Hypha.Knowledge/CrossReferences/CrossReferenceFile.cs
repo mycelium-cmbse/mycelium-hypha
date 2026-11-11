@@ -17,14 +17,13 @@ namespace Hypha.Knowledge.CrossReferences
     using System.Text.Encodings.Web;
     using System.Text.Json;
 
+    using Hypha.Knowledge.Layout;
+
     /// <summary>
     /// Reads and writes <c>knowledge/&lt;tag&gt;/cross-references.json</c>.
     /// </summary>
     public static class CrossReferenceFile
     {
-        /// <summary>UTF-8 without a BOM; the knowledge base is pinned to LF by <c>.gitattributes</c>.</summary>
-        private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
-
         /// <summary>
         /// Two-space indent, unescaped non-ASCII, property order taken from the records.
         /// </summary>
@@ -63,9 +62,7 @@ namespace Hypha.Knowledge.CrossReferences
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
             var file = new FileInfo(path);
-            file.Directory?.Create();
-
-            File.WriteAllText(file.FullName, Render(document), Utf8NoBom);
+            AtomicFile.WriteAllText(file.FullName, Render(document));
             file.Refresh();
 
             return file;

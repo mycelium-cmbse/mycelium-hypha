@@ -90,6 +90,12 @@ reported through an `IProgress<KnowledgeProgress>` by the release and API instal
 document) and by the builder (per artifact). The CLI shows it as a live display when its output is a
 terminal; the MCP server will send it as progress notifications.
 
+**Concurrent writers.** Manifests and generated files are written through `AtomicFile` (a temporary
+file beside the target, then renamed over it), never with `File.WriteAllText`, so a reader in
+another process sees the old file or the new one, never half of one. An operation that changes
+releases on its own takes `IReleaseOperationLock`, waiting for it as long as
+`HyphaKnowledgeOptions.ReleaseLockWait` allows.
+
 `hypha move-window --tag <release>` is the one verb that deliberately crosses the CLI/test split
 above: a maintainer-only, source-checkout-only convenience that drives fetch → generate → the rest of
 this section's steps, then shells out to `dotnet test`/`pytest` as subordinate steps (re-extracting
