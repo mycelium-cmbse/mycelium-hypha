@@ -18,6 +18,7 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.Logging.Abstractions;
@@ -118,6 +119,26 @@ namespace Hypha.Knowledge.Tests
             {
                 Assert.That(this.layout.InstalledTags, Is.EqualTo(new[] { "2026-04" }));
                 Assert.That(this.layout.DefaultTag, Is.EqualTo("2026-04"));
+            });
+        }
+
+        [TestCase(false, new[] { "OpenAPI document, 1 of 3", "KerML model, 2 of 3", "PIM, 3 of 3" })]
+        [TestCase(true, new[] { "OpenAPI document, 1 of 4", "KerML model, 2 of 4", "PIM, 3 of 4", "specification, 4 of 4" })]
+        public async Task Each_document_is_reported_as_it_is_fetched(bool includeSpecification, string[] messages)
+        {
+            var reports = new List<KnowledgeProgress>();
+
+            await this.installer.InstallAsync(
+                new ApiInstallRequest { Tag = "2026-04", IncludeSpecification = includeSpecification },
+                CancellationToken.None,
+                new Collector(reports));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(reports.Select(report => report.Message), Is.EqualTo(messages));
+                Assert.That(reports.Select(report => report.Done), Is.EqualTo(Enumerable.Range(1, messages.Length)));
+                Assert.That(reports.Select(report => report.Total), Is.All.EqualTo(messages.Length));
+                Assert.That(reports.Select(report => $"{report.Operation} {report.Step}"), Is.All.EqualTo("api-fetch documents"));
             });
         }
 
@@ -437,6 +458,12 @@ namespace Hypha.Knowledge.Tests
         public void A_missing_request_is_refused()
         {
             Assert.That(() => this.installer.InstallAsync(null!), Throws.ArgumentNullException);
+        }
+
+        // Collects the reports as they are made, unlike Progress<T>, which posts them to the thread pool.
+        private sealed class Collector(List<KnowledgeProgress> reports) : IProgress<KnowledgeProgress>
+        {
+            public void Report(KnowledgeProgress value) => reports.Add(value);
         }
     }
 }

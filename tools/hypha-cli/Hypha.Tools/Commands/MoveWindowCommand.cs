@@ -74,8 +74,8 @@ namespace Hypha.Tools.Commands
             /// <summary>Fetches the release's sources, for the fetch step.</summary>
             private readonly IReleaseInstaller installer;
 
-            /// <summary>Every registered artifact generator, for the generate step.</summary>
-            private readonly IReadOnlyList<IKnowledgeGenerator> generators;
+            /// <summary>Runs every registered release generator, for the generate step.</summary>
+            private readonly IKnowledgeBuilder<IKnowledgeGenerator> builder;
 
             /// <summary>Locates the repository root the steps run in and the knowledge they write.</summary>
             private readonly IKnowledgeLayout layout;
@@ -93,24 +93,24 @@ namespace Hypha.Tools.Commands
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
             /// <param name="installer">Installs the release (fetches its sources) for the fetch step.</param>
-            /// <param name="generators">The artifact generators the generate step runs; copied, so enumerated once.</param>
+            /// <param name="builder">Runs the release generators for the generate step.</param>
             /// <param name="layout">The knowledge layout whose root must be a full source checkout.</param>
             /// <param name="evictor">Removes the installed releases that no longer fit within <c>--keep</c>.</param>
             /// <param name="processes">Runs the specification extraction, re-bless and verify child processes.</param>
             /// <param name="logger">Receives the step-by-step progress of the run.</param>
             /// <exception cref="ArgumentNullException">Any argument is <c>null</c>.</exception>
-            public Handler(IReleaseInstaller installer, IEnumerable<IKnowledgeGenerator> generators, IKnowledgeLayout layout,
+            public Handler(IReleaseInstaller installer, IKnowledgeBuilder<IKnowledgeGenerator> builder, IKnowledgeLayout layout,
                 IReleaseWindowEvictor evictor, IProcessRunner processes, ILogger<Handler> logger)
             {
                 ArgumentNullException.ThrowIfNull(installer);
-                ArgumentNullException.ThrowIfNull(generators);
+                ArgumentNullException.ThrowIfNull(builder);
                 ArgumentNullException.ThrowIfNull(layout);
                 ArgumentNullException.ThrowIfNull(evictor);
                 ArgumentNullException.ThrowIfNull(processes);
                 ArgumentNullException.ThrowIfNull(logger);
 
                 this.installer = installer;
-                this.generators = [.. generators];
+                this.builder = builder;
                 this.layout = layout;
                 this.evictor = evictor;
                 this.processes = processes;
@@ -173,7 +173,7 @@ namespace Hypha.Tools.Commands
                     return 1;
                 }
 
-                if (!await Run(MoveWindowStep.Generate, () => new GenerateCommand.Handler(this.generators, this.layout).InvokeAsync(
+                if (!await Run(MoveWindowStep.Generate, () => new GenerateCommand.Handler(this.builder, this.layout).InvokeAsync(
                         ParseAs(new GenerateCommand(), $"generate --tag {tag}"), cancellationToken)))
                 {
                     return 1;

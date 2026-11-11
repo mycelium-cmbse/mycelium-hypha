@@ -70,7 +70,7 @@ namespace Hypha.Tools.Tests
         {
             // Registration order is a DI detail; the cross-references read what the metamodel writes.
             var handler = new GenerateCommand.Handler(
-                [this.crossReferences.Object, this.metamodel.Object], this.layout.Object);
+                new KnowledgeBuilder<IKnowledgeGenerator>([this.crossReferences.Object, this.metamodel.Object]), this.layout.Object);
 
             await handler.InvokeAsync(this.root.Parse("generate --tag 2026-05"), CancellationToken.None);
 
@@ -182,7 +182,7 @@ namespace Hypha.Tools.Tests
             source.Cancel();
 
             var handler = new GenerateCommand.Handler(
-                [this.metamodel.Object, this.crossReferences.Object], this.layout.Object);
+                new KnowledgeBuilder<IKnowledgeGenerator>([this.metamodel.Object, this.crossReferences.Object]), this.layout.Object);
 
             Assert.That(
                 () => handler.InvokeAsync(this.root.Parse("generate"), source.Token),
@@ -192,7 +192,7 @@ namespace Hypha.Tools.Tests
         private Task<int> Invoke(string commandLine)
         {
             var handler = new GenerateCommand.Handler(
-                [this.metamodel.Object, this.crossReferences.Object], this.layout.Object);
+                new KnowledgeBuilder<IKnowledgeGenerator>([this.metamodel.Object, this.crossReferences.Object]), this.layout.Object);
 
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }

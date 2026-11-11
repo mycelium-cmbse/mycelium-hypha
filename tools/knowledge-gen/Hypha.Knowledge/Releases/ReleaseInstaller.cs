@@ -17,6 +17,7 @@ namespace Hypha.Knowledge.Releases
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Progress;
 
     using Microsoft.Extensions.Logging;
 
@@ -91,8 +92,9 @@ namespace Hypha.Knowledge.Releases
         /// <param name="request">Which release to install, and how.</param>
         /// <param name="cancellationToken">Cancels the fetch and the commit resolution.</param>
         /// <param name="progress">
-        /// Reported once per fetched file, across the metamodel and textual inputs (never for
-        /// specifications). <c>null</c> when nobody needs to show progress.
+        /// Reported once per fetched file, as a <see cref="KnowledgeProgress.Fetch"/> step per kind of
+        /// input: <c>metamodel</c>, <c>textual</c> and, when requested, <c>specifications</c>. <c>null</c>
+        /// when nobody needs to show progress.
         /// </param>
         /// <returns>What was fetched, the version recorded, and the manifest it was recorded in.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
@@ -107,7 +109,7 @@ namespace Hypha.Knowledge.Releases
         public async Task<ReleaseInstallation> InstallAsync(
             ReleaseInstallRequest request,
             CancellationToken cancellationToken = default,
-            IProgress<FetchProgress>? progress = null)
+            IProgress<KnowledgeProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(request);
 
@@ -137,7 +139,7 @@ namespace Hypha.Knowledge.Releases
             if (request.IncludeSpecifications)
             {
                 specifications = await this.fetcher.FetchSpecificationsAsync(
-                    tag, sources, request.SkipExisting, cancellationToken);
+                    tag, sources, request.SkipExisting, cancellationToken, progress);
                 FetchedMessage(this.logger, "specifications", specifications.Count, null);
             }
 

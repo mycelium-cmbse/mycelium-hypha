@@ -13,6 +13,8 @@ namespace Hypha.Knowledge.Releases
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Progress;
+
     /// <summary>
     /// Fetches a release's inputs into <c>sources/</c> and records it in the version manifest.
     /// </summary>
@@ -29,8 +31,9 @@ namespace Hypha.Knowledge.Releases
         /// <param name="request">Which release to install, and how.</param>
         /// <param name="cancellationToken">Cancels the fetch and the commit resolution.</param>
         /// <param name="progress">
-        /// Reported once per fetched file, across the metamodel and textual inputs (never for
-        /// specifications). <c>null</c> when nobody needs to show progress.
+        /// Reported once per fetched file, as a <see cref="KnowledgeProgress.Fetch"/> step per kind of
+        /// input: <c>metamodel</c>, <c>textual</c> and, when requested, <c>specifications</c>. <c>null</c>
+        /// when nobody needs to show progress.
         /// </param>
         /// <returns>What was fetched, the version recorded, and the manifest it was recorded in.</returns>
         /// <exception cref="System.ArgumentException">
@@ -40,6 +43,6 @@ namespace Hypha.Knowledge.Releases
         Task<ReleaseInstallation> InstallAsync(
             ReleaseInstallRequest request,
             CancellationToken cancellationToken = default,
-            IProgress<FetchProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null);
     }
 }

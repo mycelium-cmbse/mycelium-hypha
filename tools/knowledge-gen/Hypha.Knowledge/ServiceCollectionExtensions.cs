@@ -187,6 +187,10 @@ namespace Hypha.Knowledge
             services.AddSingleton<IKnowledgeGenerator, SpecGenerator>();
             services.AddSingleton<IKnowledgeGenerator, CrossReferenceGenerator>();
 
+            // That loop, for either collection: IKnowledgeBuilder<IKnowledgeGenerator> runs the release
+            // generators, IKnowledgeBuilder<IApiKnowledgeGenerator> the API ones.
+            services.AddSingleton(typeof(IKnowledgeBuilder<>), typeof(KnowledgeBuilder<>));
+
             services.AddSingleton<IKnowledgeLayout>(_ =>
             {
                 var root = options.RepositoryRoot

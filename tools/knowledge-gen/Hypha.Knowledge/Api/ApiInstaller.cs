@@ -16,6 +16,7 @@ namespace Hypha.Knowledge.Api
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.Logging;
@@ -40,6 +41,9 @@ namespace Hypha.Knowledge.Api
         private static readonly Action<ILogger, string, string, Exception?> RecordedMessage =
             LoggerMessage.Define<string, string>(
                 LogLevel.Information, new EventId(2, "Recorded"), "Recorded API version {Tag} in {Manifest}");
+
+        /// <summary>The <see cref="KnowledgeProgress.Step"/> an API fetch reports its documents under.</summary>
+        private const string Documents = "documents";
 
         /// <summary>Downloads the inputs that live in a repository at a tag.</summary>
         private readonly IReleaseFetcher fetcher;
@@ -101,6 +105,11 @@ namespace Hypha.Knowledge.Api
         /// </summary>
         /// <param name="request">The API version to install and how.</param>
         /// <param name="cancellationToken">Cancels the downloads and the commit resolution.</param>
+        /// <param name="progress">
+        /// Reported once per fetched document, as one <see cref="KnowledgeProgress.ApiFetch"/> step,
+        /// <c>documents</c>: the OpenAPI document, the KerML model, the PIM and, when requested, the
+        /// specification PDF. <c>null</c> when nobody needs to show progress.
+        /// </param>
         /// <returns>The files fetched, what the tag resolved to and the manifest it was recorded in.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">
@@ -108,7 +117,9 @@ namespace Hypha.Knowledge.Api
         /// <see cref="ApiCatalog.EarliestVersion"/>.
         /// </exception>
         public async Task<ApiInstallation> InstallAsync(
-            ApiInstallRequest request, CancellationToken cancellationToken = default)
+            ApiInstallRequest request,
+            CancellationToken cancellationToken = default,
+            IProgress<KnowledgeProgress>? progress = null)
         {
             ArgumentNullException.ThrowIfNull(request);
 
@@ -126,24 +137,38 @@ namespace Hypha.Knowledge.Api
             var skip = request.SkipExisting;
             var xmi = this.layout.Xmi(tag).FullName;
 
-            var files = new List<FileInfo>
+            var total = request.IncludeSpecification ? 4 : 3;
+            var files = new List<FileInfo>();
+
+            void Fetched(FileInfo file, string what)
             {
+                files.Add(file);
+                progress?.Report(new KnowledgeProgress(
+                    KnowledgeProgress.ApiFetch, Documents, files.Count, total, $"{what}, {files.Count} of {total}"));
+            }
+
+            Fetched(
                 await this.fetcher.DownloadAsync(
                     ApiUpstream.ServicesRepository, tag, ApiUpstream.OpenApiPath, this.layout.OpenApi(tag), skip,
                     cancellationToken),
+                "OpenAPI document");
+            Fetched(
                 await this.fetcher.DownloadAsync(
                     Upstream.PilotRepository, tag, ApiUpstream.KermlXmiPath,
                     new FileInfo(Path.Combine(xmi, ApiInputs.KermlXmi)), skip, cancellationToken),
-                await this.documents.DownloadAsync(
-                    this.options.PimAddress, this.layout.PimModel(tag), skip, cancellationToken),
-            };
+                "KerML model");
+            Fetched(
+                await this.documents.DownloadAsync(this.options.PimAddress, this.layout.PimModel(tag), skip, cancellationToken),
+                "PIM");
 
             if (request.IncludeSpecification)
             {
-                files.Add(await this.fetcher.DownloadAsync(
-                    Upstream.ReleaseRepository, tag, ApiUpstream.SpecificationPath,
-                    new FileInfo(Path.Combine(this.layout.Specifications(tag).FullName, ApiInputs.Specification)),
-                    skip, cancellationToken));
+                Fetched(
+                    await this.fetcher.DownloadAsync(
+                        Upstream.ReleaseRepository, tag, ApiUpstream.SpecificationPath,
+                        new FileInfo(Path.Combine(this.layout.Specifications(tag).FullName, ApiInputs.Specification)),
+                        skip, cancellationToken),
+                    "specification");
             }
 
             var version = new InstalledApiVersion(

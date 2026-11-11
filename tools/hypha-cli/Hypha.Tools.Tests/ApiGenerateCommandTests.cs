@@ -84,7 +84,7 @@ namespace Hypha.Tools.Tests
         public async Task The_generators_run_in_order_however_they_were_registered()
         {
             var handler = new GenerateCommand.Handler(
-                [this.openApi.Object, this.pim.Object], ApiGenerateCommand.Scope(this.layout.Object));
+                new KnowledgeBuilder<IKnowledgeGenerator>([this.openApi.Object, this.pim.Object]), ApiGenerateCommand.Scope(this.layout.Object));
 
             await handler.InvokeAsync(this.root.Parse("api generate --tag 2026-04"), CancellationToken.None);
 
@@ -139,7 +139,7 @@ namespace Hypha.Tools.Tests
             // The scope holds a function rather than a list: a version installed between composing
             // the handler and invoking it is still generated for.
             var scope = ApiGenerateCommand.Scope(this.layout.Object);
-            var handler = new GenerateCommand.Handler([this.pim.Object], scope);
+            var handler = new GenerateCommand.Handler(new KnowledgeBuilder<IKnowledgeGenerator>([this.pim.Object]), scope);
 
             this.layout.SetupGet(mock => mock.InstalledTags).Returns(["2025-07"]);
 
@@ -250,7 +250,7 @@ namespace Hypha.Tools.Tests
             source.Cancel();
 
             var handler = new GenerateCommand.Handler(
-                [this.pim.Object, this.openApi.Object], ApiGenerateCommand.Scope(this.layout.Object));
+                new KnowledgeBuilder<IKnowledgeGenerator>([this.pim.Object, this.openApi.Object]), ApiGenerateCommand.Scope(this.layout.Object));
 
             Assert.That(
                 () => handler.InvokeAsync(this.root.Parse("api generate"), source.Token),
@@ -297,7 +297,7 @@ namespace Hypha.Tools.Tests
             knowledge.SetupGet(mock => mock.Root).Returns(new DirectoryInfo(Path.GetTempPath()));
 
             var metamodel = Generator<IKnowledgeGenerator>("metamodel", 10, this.order);
-            var handler = new GenerateCommand.Handler([metamodel.Object], knowledge.Object);
+            var handler = new GenerateCommand.Handler(new KnowledgeBuilder<IKnowledgeGenerator>([metamodel.Object]), knowledge.Object);
 
             using var console = new RecordedConsole();
 
@@ -329,7 +329,7 @@ namespace Hypha.Tools.Tests
             knowledge.SetupGet(mock => mock.Root).Returns(new DirectoryInfo(Path.GetTempPath()));
 
             var metamodel = Generator<IKnowledgeGenerator>("metamodel", 10, this.order);
-            var handler = new GenerateCommand.Handler([metamodel.Object], knowledge.Object);
+            var handler = new GenerateCommand.Handler(new KnowledgeBuilder<IKnowledgeGenerator>([metamodel.Object]), knowledge.Object);
 
             await handler.InvokeAsync(this.root.Parse("api generate pim --tag 2026-04"), CancellationToken.None);
 
@@ -342,7 +342,7 @@ namespace Hypha.Tools.Tests
             Assert.Multiple(() =>
             {
                 Assert.Throws<ArgumentNullException>(
-                    () => _ = new GenerateCommand.Handler([this.pim.Object], (GenerateCommand.GenerationScope)null!));
+                    () => _ = new GenerateCommand.Handler(new KnowledgeBuilder<IKnowledgeGenerator>([this.pim.Object]), (GenerateCommand.GenerationScope)null!));
                 Assert.Throws<ArgumentNullException>(
                     () => _ = new GenerateCommand.Handler(null!, ApiGenerateCommand.Scope(this.layout.Object)));
             });
@@ -351,7 +351,7 @@ namespace Hypha.Tools.Tests
         private Task<int> Invoke(string commandLine)
         {
             var handler = new GenerateCommand.Handler(
-                [this.pim.Object, this.openApi.Object], ApiGenerateCommand.Scope(this.layout.Object));
+                new KnowledgeBuilder<IKnowledgeGenerator>([this.pim.Object, this.openApi.Object]), ApiGenerateCommand.Scope(this.layout.Object));
 
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }
