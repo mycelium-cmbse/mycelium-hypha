@@ -13,6 +13,7 @@ namespace Hypha.Knowledge.Tests
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading.Tasks;
 
     using Hypha.Knowledge;
     using Hypha.Knowledge.Api;
@@ -49,11 +50,21 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Without_a_toolchain_cache_root_uv_keeps_its_default_locations()
+        public void Without_a_toolchain_cache_root_the_toolchain_is_kept_in_the_home_folder()
         {
-            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+            var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.Home = home)
+                .BuildServiceProvider();
 
-            Assert.That(provider.GetRequiredService<IUvProvisioner>().Environment, Is.Empty);
+            var environment = provider.GetRequiredService<IUvProvisioner>().Environment;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(environment[UvProvisioner.UvCacheVariable], Is.EqualTo(Path.Combine(home.FullName, "toolchain", "uv-cache")));
+                Assert.That(environment[UvProvisioner.UvPythonInstallVariable], Is.EqualTo(Path.Combine(home.FullName, "toolchain", "python")));
+                Assert.That(home.Exists, Is.False, "resolving the services creates nothing");
+            });
         }
 
         [Test]
@@ -147,9 +158,60 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void The_layout_falls_back_to_discovery()
+        public void A_given_root_wins_over_the_home_folder()
         {
-            // The tests run inside the repository, so the discovered root is the checkout.
+            var root = new DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
+
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options =>
+                {
+                    options.RepositoryRoot = root;
+                    options.Home = home;
+                })
+                .BuildServiceProvider();
+
+            Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
+        }
+
+        [Test]
+        public async Task Without_a_root_a_chosen_home_folder_wins_over_the_checkout_above_the_assembly()
+        {
+            // The tests run inside the repository, so a checkout is found above the assembly; a home
+            // folder that was chosen still wins over it, and the knowledge and the lock live there.
+            var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
+
+            try
+            {
+                using var provider = new ServiceCollection()
+                    .AddHyphaKnowledge(options => options.Home = home)
+                    .BuildServiceProvider();
+
+                Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(home.FullName));
+
+                await using (await provider.GetRequiredService<IReleaseOperationLock>().AcquireAsync())
+                {
+                    Assert.That(File.Exists(Path.Combine(home.FullName, ReleaseOperationLock.FileName)), Is.True);
+                }
+            }
+            finally
+            {
+                home.Refresh();
+                if (home.Exists)
+                {
+                    home.Delete(recursive: true);
+                }
+            }
+        }
+
+        [Test]
+        public void Without_a_root_or_a_chosen_home_folder_the_checkout_above_the_assembly_is_used()
+        {
+            if (HyphaHome.Configured() is not null)
+            {
+                Assert.Ignore("HYPHA_HOME is set on this machine, and it wins over the checkout.");
+            }
+
             using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
             Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(Repository.Layout!.Root.FullName));

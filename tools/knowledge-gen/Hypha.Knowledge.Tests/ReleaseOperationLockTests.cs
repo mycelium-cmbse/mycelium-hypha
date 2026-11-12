@@ -352,6 +352,71 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Waiting_on_a_running_owner_reads_the_lock_without_creating_the_recovery_file_on_every_poll()
+        {
+            this.WriteLock("""{"pid":4242,"token":"abc"}""");
+            this.processes.Running.Add(4242);
+            var underRecovery = 0;
+            var looks = 0;
+            this.processes.OnCheck = () =>
+            {
+                looks++;
+                if (File.Exists(this.RecoveryPath))
+                {
+                    underRecovery++;
+                }
+            };
+
+            Assert.That(
+                async () => await this.Waiting(TimeSpan.FromMilliseconds(500)).AcquireAsync(),
+                Throws.InstanceOf<ReleaseOperationLockException>());
+
+            // The first and the last try run the protocol, two attempts each; every poll in between
+            // only reads the lock.
+            Assert.Multiple(() =>
+            {
+                Assert.That(looks, Is.GreaterThan(4), "the owner is checked on every poll");
+                Assert.That(underRecovery, Is.LessThanOrEqualTo(4));
+                Assert.That(File.Exists(this.RecoveryPath), Is.False);
+            });
+        }
+
+        [TestCase("")]
+        [TestCase("{\"pid\":")]
+        public async Task Waiting_takes_a_lock_once_it_is_no_longer_being_created(string partial)
+        {
+            this.WriteLock(partial);
+            var acquiring = this.Waiting(TimeSpan.FromSeconds(30)).AcquireAsync();
+            await Task.Delay(200);
+            Assert.That(acquiring.IsCompleted, Is.False, "the lock is still being created");
+
+            // Its owner finished writing it, and is gone by now.
+            File.WriteAllText(this.LockPath, """{"pid":4242,"token":"abc"}""");
+            await using var lease = await acquiring;
+
+            Assert.That(File.ReadAllText(this.LockPath), Does.StartWith($"{{\"pid\":{Environment.ProcessId},"));
+        }
+
+        [Test]
+        public async Task Waiting_takes_a_lock_once_another_recovery_is_over()
+        {
+            this.WriteLock("""{"pid":4242,"token":"abc"}""");
+            File.WriteAllText(this.RecoveryPath, string.Empty);
+            var acquiring = this.Waiting(TimeSpan.FromSeconds(30)).AcquireAsync();
+            await Task.Delay(200);
+            Assert.That(acquiring.IsCompleted, Is.False, "another recovery is in progress");
+
+            File.Delete(this.RecoveryPath);
+            await using var lease = await acquiring;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(File.ReadAllText(this.LockPath), Does.StartWith($"{{\"pid\":{Environment.ProcessId},"));
+                Assert.That(File.Exists(this.RecoveryPath), Is.False);
+            });
+        }
+
+        [Test]
         public async Task Cancelling_stops_the_wait_and_takes_no_lock()
         {
             this.WriteLock("""{"pid":4242,"token":"abc"}""");
@@ -433,7 +498,13 @@ namespace Hypha.Knowledge.Tests
         {
             public HashSet<int> Running { get; } = new();
 
-            public bool IsRunning(int processId) => this.Running.Contains(processId);
+            public Action? OnCheck { get; set; }
+
+            public bool IsRunning(int processId)
+            {
+                this.OnCheck?.Invoke();
+                return this.Running.Contains(processId);
+            }
         }
 
         // Logs right after each stale lock is removed; recreating the lock there stands in for another

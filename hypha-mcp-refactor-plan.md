@@ -230,7 +230,7 @@ HYPHA_HOME/
 ├── sources/                     fetched upstream inputs
 ├── bin/<version>/               hypha binaries provisioned by hypha-launch
 ├── toolchain/                   uv + Python for spec-extract
-└── .lock                        ReleaseOperationLock
+└── .release-operation.lock      ReleaseOperationLock
 ```
 
 Schemas for `metamodel.json`, `cross-references.json`, `model-library` and API cross-references stay committed in the repo.
@@ -339,7 +339,7 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 - [x] Rewrite `lookup` and `list` over the query API; add `hypha query …` verbs.
 - [x] Add `IProgress<T>` reporting to install / fetch / generate.
 - [x] Make `ReleaseOperationLock` cross-process safe; add the concurrency test.
-- [ ] Make `HYPHA_HOME` the default location; keep checkout mode and `--output` for maintainers.
+- [x] Make `HYPHA_HOME` the default location; keep checkout mode and `--output` for maintainers.
 
 ### Step 4: Add `Hypha.Mcp` and `hypha serve`
 

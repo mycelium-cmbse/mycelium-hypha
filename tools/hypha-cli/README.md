@@ -30,15 +30,26 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- generate
 
 ## Verbs
 
-Every verb accepts `--repository-root` (the folder holding `sources/` and `knowledge/`, discovered by
-walking up from the working directory when omitted), `--toolchain-cache-root`, `--token`,
-`--log-level` and `--no-logo`.
+Every verb accepts `--repository-root`, `--toolchain-cache-root`, `--token`, `--log-level` and
+`--no-logo`.
+
+`--repository-root <folder>` is the folder holding `sources/` and `knowledge/`. When it is omitted,
+`hypha` uses the first of:
+
+1. the source checkout above the working directory, which is how a maintainer works;
+2. the `HYPHA_HOME` folder, when that environment variable is set;
+3. the source checkout above the `hypha` program itself, such as a build run with `dotnet run`
+   from another folder;
+4. `hypha` in the per-user application data folder (`%LOCALAPPDATA%\hypha` on Windows,
+   `$XDG_DATA_HOME/hypha` or `~/.local/share/hypha` on Linux, `~/Library/Application Support/hypha`
+   on macOS), the default `HYPHA_HOME`.
+
+Every hypha client shares the `HYPHA_HOME` folder.
 
 `--toolchain-cache-root <folder>` keeps the managed toolchain under that folder: the `uv` executable,
-uv's package cache (`uv-cache/`) and the Python uv installs (`python/`). Without it, `uv` is
-cached in the per-user application data folder and uv keeps its own default locations, which other uv
-users on the machine share. A host that keeps everything it provisions in its own storage, such as an
-editor extension, passes this option.
+uv's package cache (`uv-cache/`) and the Python uv installs (`python/`). Without it, they are kept in
+`toolchain/` in the `HYPHA_HOME` folder, never in uv's own per-user locations. A host that keeps
+everything it provisions in its own storage, such as an editor extension, passes this option.
 
 | Verb | What it does |
 | --- | --- |

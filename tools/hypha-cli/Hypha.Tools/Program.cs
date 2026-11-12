@@ -243,7 +243,7 @@ namespace Hypha.Tools
             }
             catch (InvalidOperationException exception)
             {
-                // Composition failed: almost always "this is not a hypha checkout". A stack trace
+                // Composition failed, for instance no home folder could be resolved. A stack trace
                 // would bury the one sentence that tells the user what to do about it.
                 return await Fail(parseResult, 1, exception.Message);
             }

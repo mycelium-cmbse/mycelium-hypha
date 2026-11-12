@@ -135,8 +135,9 @@ namespace Hypha.Tools.Hosting
         /// sits under the user's tool store, which is nowhere near their checkout.
         /// </remarks>
         /// <returns>
-        /// The discovered root, or <c>null</c> to let <c>AddHyphaKnowledge</c> report that there is
-        /// none with the message it already has for it.
+        /// The discovered root, or <c>null</c> to let <c>AddHyphaKnowledge</c> choose: a set
+        /// <c>HYPHA_HOME</c>, then the checkout above the assembly, then the home folder's default
+        /// location (<see cref="HyphaHome"/>).
         /// </returns>
         private static DirectoryInfo? DiscoverRoot() =>
             KnowledgeLayout.Discover(new DirectoryInfo(Directory.GetCurrentDirectory()))?.Root;
