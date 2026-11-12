@@ -81,7 +81,7 @@ namespace Hypha.Mcp.Tools
             + "hypha_resolve reads.")]
         public string Search(
             [Description("The text to look for: a name, qualified name, clause number or title.")] string text,
-            [Description("Only hits of this kind: metamodel, model-library, kerml or sysml.")] string? kind = null,
+            [Description($"Only hits of this kind: {HyphaAddress.Metamodel}, {HyphaAddress.ModelLibrary}, {HyphaAddress.Kerml} or {HyphaAddress.Sysml}.")] string? kind = null,
             [Description("The most hits returned, from 1 to 200.")] int limit = 20,
             [Description(TagDescription)] string? tag = null) =>
             Answer.Of(() => this.query.Search(text, kind, limit, tag));

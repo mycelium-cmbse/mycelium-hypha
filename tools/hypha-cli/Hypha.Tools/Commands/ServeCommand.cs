@@ -14,6 +14,8 @@ namespace Hypha.Tools.Commands
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Layout;
+
     using ModelContextProtocol.Server;
 
     /// <summary>
@@ -54,10 +56,18 @@ namespace Hypha.Tools.Commands
 
             /// <summary>Initializes a new instance of the <see cref="Handler"/> class.</summary>
             /// <param name="server">The server, over the standard input and output transport.</param>
-            /// <exception cref="ArgumentNullException"><paramref name="server"/> is <c>null</c>.</exception>
-            public Handler(McpServer server)
+            /// <param name="layout">
+            /// The knowledge folder the tools answer from. Asking for it resolves it before the server
+            /// starts, so a <c>HYPHA_HOME</c> that cannot be used stops <c>serve</c> with its message on
+            /// standard error, rather than failing every tool call with no reason the client can see.
+            /// </param>
+            /// <exception cref="ArgumentNullException">
+            /// <paramref name="server"/> or <paramref name="layout"/> is <c>null</c>.
+            /// </exception>
+            public Handler(McpServer server, IKnowledgeLayout layout)
             {
                 ArgumentNullException.ThrowIfNull(server);
+                ArgumentNullException.ThrowIfNull(layout);
 
                 this.server = server;
             }

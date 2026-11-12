@@ -34,12 +34,24 @@ namespace Hypha.Knowledge.Tests
         [TestCase(" relative-home ")]
         [TestCase("./home")]
         [TestCase("~/hypha")]
+        [TestCase(@"\hypha")]
+        [TestCase("C:hypha")]
         public void A_relative_HYPHA_HOME_is_refused_so_every_client_shares_one_folder(string configured)
         {
             Assert.That(
                 () => HyphaHome.Resolve(Variable(configured), _ => Data),
                 Throws.InvalidOperationException.With.Message.Contains("HYPHA_HOME must be an absolute path")
                     .And.Message.Contains(configured.Trim()));
+        }
+
+        [Test]
+        public void An_invalid_HYPHA_HOME_says_it_is_not_a_valid_folder()
+        {
+            var configured = Path.Combine(Path.GetTempPath(), "hy\0pha");
+
+            Assert.That(
+                () => HyphaHome.Resolve(Variable(configured), _ => Data),
+                Throws.InvalidOperationException.With.Message.Contains("HYPHA_HOME is not a valid folder"));
         }
 
         [Test]

@@ -9,12 +9,16 @@
 
 namespace Hypha.Mcp.Tests
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json.Serialization;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Lookup;
     using Hypha.Mcp;
+    using Hypha.Mcp.Tools;
 
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
@@ -108,14 +112,24 @@ namespace Hypha.Mcp.Tests
             });
         }
 
-        [Test]
-        public void A_question_argument_offers_the_values_of_its_question()
+        [TestCase("hypha_metaclass", "question", typeof(MetaclassQuestion))]
+        [TestCase("hypha_feature", "question", typeof(FeatureQuestion))]
+        [TestCase("hypha_typed_by", "question", typeof(TypedByQuestion))]
+        [TestCase("hypha_syntax", "question", typeof(SyntaxQuestion))]
+        [TestCase("hypha_spec", "question", typeof(SpecificationQuestion))]
+        [TestCase("hypha_api", "question", typeof(ApiQuestion))]
+        [TestCase("hypha_lookup", "kind", typeof(KnowledgeKind))]
+        public void An_enumerated_argument_offers_exactly_the_names_of_its_values(string tool, string argument, Type values)
         {
-            var metaclass = this.Tools.Single(tool => tool.ProtocolTool.Name == "hypha_metaclass").ProtocolTool.InputSchema;
-            var values = metaclass.GetProperty("properties").GetProperty("question").GetProperty("enum")
+            var schema = this.Tools.Single(registered => registered.ProtocolTool.Name == tool).ProtocolTool.InputSchema;
+            var offered = schema.GetProperty("properties").GetProperty(argument).GetProperty("enum")
                 .EnumerateArray().Select(value => value.GetString());
 
-            Assert.That(values, Does.Contain("effective-features").And.Contain("specializes"));
+            var names = values.GetFields().Where(field => field.IsLiteral)
+                .Select(field => field.GetCustomAttributes(typeof(JsonStringEnumMemberNameAttribute), false)
+                    .Cast<JsonStringEnumMemberNameAttribute>().Single().Name);
+
+            Assert.That(offered, Is.EquivalentTo(names));
         }
     }
 }

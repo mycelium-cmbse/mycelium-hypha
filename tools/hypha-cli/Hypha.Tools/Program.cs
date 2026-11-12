@@ -157,7 +157,9 @@ namespace Hypha.Tools
             var serve = new ServeCommand();
             serve.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                provider => new ServeCommand.Handler(provider.GetRequiredService<ModelContextProtocol.Server.McpServer>())
+                provider => new ServeCommand.Handler(
+                        provider.GetRequiredService<ModelContextProtocol.Server.McpServer>(),
+                        provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(cancellationToken),
                 configure: services => services.AddHyphaMcp().WithStdioServerTransport()));
             root.Add(serve);

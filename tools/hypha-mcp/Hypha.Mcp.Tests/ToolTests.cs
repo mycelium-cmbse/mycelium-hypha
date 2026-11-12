@@ -11,6 +11,7 @@ namespace Hypha.Mcp.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq.Expressions;
     using System.Text.Json;
 
@@ -67,6 +68,13 @@ namespace Hypha.Mcp.Tests
             yield return Case(SyntaxQuestion.FeatureAssignments, query => query.FeatureAssignments("declaredName", "=", Tag));
             yield return Case(SyntaxQuestion.BuiltBy, query => query.BuiltBy("PartUsage", "sysml", Tag));
             yield return Case(SyntaxQuestion.Keyword, query => query.Keyword("ref", "sysml", Tag));
+        }
+
+        public static IEnumerable<TestCaseData> UnreadableKnowledge()
+        {
+            yield return new TestCaseData(new JsonException("'n' is an invalid start of a value.")).SetArgDisplayNames("JsonException");
+            yield return new TestCaseData(new IOException("The file is being used by another process.")).SetArgDisplayNames("IOException");
+            yield return new TestCaseData(new UnauthorizedAccessException("Access to the path is denied.")).SetArgDisplayNames("UnauthorizedAccessException");
         }
 
         public static IEnumerable<TestCaseData> ApiQuestions()
@@ -201,6 +209,55 @@ namespace Hypha.Mcp.Tests
             Assert.That(
                 () => new MetamodelTools(this.query.Object).Metaclass(MetaclassQuestion.Ancestors, "PartUsage", tag: "2099-01"),
                 Throws.TypeOf<McpException>().With.Message.EqualTo("Release 2099-01 is not installed. Run 'hypha fetch --tag 2099-01'."));
+        }
+
+        [TestCaseSource(nameof(UnreadableKnowledge))]
+        public void A_knowledge_file_that_cannot_be_read_is_a_tool_error_with_the_reason_and_the_fix(Exception failure)
+        {
+            this.query.Setup(q => q.Releases()).Throws(failure);
+
+            Assert.That(
+                () => new ReleaseTools(this.query.Object).ReleaseStatus(),
+                Throws.TypeOf<McpException>().With.Message.Contains("A knowledge file could not be read")
+                    .And.Message.Contains(failure.Message)
+                    .And.Message.Contains("fetch or generate the release again"));
+        }
+
+        [Test]
+        public void A_manifest_that_is_not_a_version_manifest_is_a_tool_error_with_the_reason()
+        {
+            this.query.Setup(q => q.Releases()).Throws(new InvalidOperationException("knowledge/versions.json is not a readable version manifest."));
+
+            Assert.That(
+                () => new ReleaseTools(this.query.Object).ReleaseStatus(),
+                Throws.TypeOf<McpException>().With.Message.EqualTo("knowledge/versions.json is not a readable version manifest."));
+        }
+
+        [Test]
+        public void An_omitted_argument_takes_its_documented_default()
+        {
+            var metamodel = new MetamodelTools(this.query.Object);
+
+            metamodel.Metaclass(MetaclassQuestion.Constraints, "PartUsage");
+            metamodel.Metaclass(MetaclassQuestion.Operations, "PartUsage");
+            metamodel.Metaclass(MetaclassQuestion.Subclasses, "PartUsage");
+            metamodel.TypedBy(TypedByQuestion.ClassesWithFeatureTyped, "Expression");
+            new SpecificationTools(this.query.Object).Spec(SpecificationQuestion.ElementsInClause, "sysml2", "8.3.6");
+            new SpecificationTools(this.query.Object).Search("Part");
+            new LookupTools(this.lookup.Object).Lookup(KnowledgeKind.Metamodel, "PartUsage");
+
+            Assert.Multiple(() =>
+            {
+                this.query.Verify(q => q.Constraints("PartUsage", true, null), Times.Once);
+                this.query.Verify(q => q.Operations("PartUsage", true, null), Times.Once);
+                this.query.Verify(q => q.Subclasses("PartUsage", false, null), Times.Once);
+                this.query.Verify(q => q.ClassesWithFeatureTyped("Expression", false, null), Times.Once);
+                this.query.Verify(q => q.ElementsInClause("sysml2", "8.3.6", false, null), Times.Once);
+                this.query.Verify(q => q.Search("Part", null, 20, null), Times.Once);
+                this.lookup.Verify(
+                    l => l.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "PartUsage", null, null, LookupRequest.DefaultMaxLines)),
+                    Times.Once);
+            });
         }
 
         [Test]

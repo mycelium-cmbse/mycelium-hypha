@@ -10,6 +10,7 @@
 namespace Hypha.Mcp.Tools
 {
     using System;
+    using System.IO;
     using System.Text.Json;
     using System.Text.Json.Serialization.Metadata;
 
@@ -73,8 +74,13 @@ namespace Hypha.Mcp.Tools
                 ? throw new ArgumentException($"The question '{question}' needs the argument '{argument}'.")
                 : value;
 
+        /// <summary>What the model can do about a knowledge file that could not be read.</summary>
+        internal const string UnreadableHint =
+            "If another hypha command is running, try again once it has finished; otherwise fetch or generate the release again.";
+
         /// <summary>
-        /// Runs a question, turning the failures a caller can cause into a tool error.
+        /// Runs a question, turning the failures a caller can cause, and a knowledge file that cannot be
+        /// read, into a tool error.
         /// </summary>
         /// <typeparam name="T">The result's type.</typeparam>
         /// <param name="question">Asks the question.</param>
@@ -88,11 +94,18 @@ namespace Hypha.Mcp.Tools
             {
                 return question();
             }
-            catch (Exception exception) when (exception is KnowledgeLookupException or ArgumentException or FormatException)
+            catch (Exception exception) when (exception is KnowledgeLookupException or ArgumentException or FormatException or InvalidOperationException)
             {
                 // The SDK hides the message of any other exception from the client; these messages name
                 // what is missing and how to fix it, which is what the model needs to correct itself.
+                // A manifest that is not a version manifest is an InvalidOperationException.
                 throw new McpException(exception.Message, exception);
+            }
+            catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
+            {
+                // A file the question reads (knowledge/versions.json most often) is corrupt, or is
+                // being rewritten by another hypha at this moment.
+                throw new McpException($"A knowledge file could not be read: {exception.Message} {UnreadableHint}", exception);
             }
         }
     }

@@ -12,6 +12,7 @@ namespace Hypha.Tools.Tests
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text.Json;
@@ -77,7 +78,7 @@ namespace Hypha.Tools.Tests
         {
             Assert.Multiple(() =>
             {
-                Assert.That(this.client.ServerInfo.Name, Is.EqualTo("hypha"));
+                Assert.That(this.client.ServerInfo?.Name, Is.EqualTo("hypha"));
                 Assert.That(this.client.ServerInstructions, Does.Contain("NORMATIVE").And.Contain("hypha_metaclass"));
             });
         }
@@ -128,11 +129,59 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
-        public void Nothing_but_the_protocol_reached_standard_output()
+        public async Task Serve_writes_nothing_but_the_protocol_to_standard_output_and_exits_when_the_client_leaves()
         {
-            // A banner or a log line on standard output would have broken the handshake in StartServer;
-            // the log goes to standard error instead.
-            Assert.That(this.client.ServerInfo, Is.Not.Null);
+            // The SDK's client skips a line it cannot parse, so a banner or a log line on standard output
+            // would not break a handshake; this reads standard output itself. Debug logging makes the
+            // server as chatty as it gets.
+            const string Initialize =
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\","
+                + "\"capabilities\":{},\"clientInfo\":{\"name\":\"test\",\"version\":\"1.0\"}}}";
+
+            using var serve = Start(["serve", "--repository-root", this.knowledge.Root.FullName, "--log-level", "Debug"]);
+            var standardError = serve.StandardError.ReadToEndAsync();
+
+            await serve.StandardInput.WriteLineAsync(Initialize);
+            await serve.StandardInput.FlushAsync();
+            var response = await serve.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromMinutes(1));
+            serve.StandardInput.Close();
+            var rest = await serve.StandardOutput.ReadToEndAsync().WaitAsync(TimeSpan.FromMinutes(1));
+            await serve.WaitForExitAsync().WaitAsync(TimeSpan.FromMinutes(1));
+
+            var lines = new[] { response }.Concat(rest.Split('\n')).Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(serve.ExitCode, Is.Zero, standardError.Result);
+                Assert.That(lines, Is.Not.Empty);
+                Assert.That(lines, Is.All.Matches<string>(line => line is not null && IsJsonRpc(line)), string.Join(Environment.NewLine, lines));
+                Assert.That(standardError.Result, Is.Not.Empty, "the log should have gone to standard error");
+            });
+        }
+
+        [Test]
+        public async Task A_relative_HYPHA_HOME_stops_serve_with_the_reason_on_standard_error()
+        {
+            // Outside any checkout and without --repository-root, the knowledge folder is HYPHA_HOME's.
+            var outside = Directory.CreateTempSubdirectory("hypha-serve-");
+            try
+            {
+                using var serve = Start(["serve"], outside, new Dictionary<string, string> { [HyphaHome.EnvironmentVariable] = "relative-home" });
+                var standardOutput = serve.StandardOutput.ReadToEndAsync();
+                var standardError = serve.StandardError.ReadToEndAsync();
+                await serve.WaitForExitAsync().WaitAsync(TimeSpan.FromMinutes(1));
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(serve.ExitCode, Is.EqualTo(1));
+                    Assert.That(standardError.Result, Does.Contain("HYPHA_HOME must be an absolute path").And.Contain("relative-home"));
+                    Assert.That(standardOutput.Result, Is.Empty);
+                });
+            }
+            finally
+            {
+                outside.Delete(recursive: true);
+            }
         }
 
         [Test]
@@ -147,7 +196,7 @@ namespace Hypha.Tools.Tests
                 .Select(field => field.GetCustomAttributes(typeof(JsonStringEnumMemberNameAttribute), false)
                     .Cast<JsonStringEnumMemberNameAttribute>().Single().Name);
 
-            Assert.That(questions, Is.All.Matches<string>(verbs.Contains));
+            Assert.That(questions, Is.All.Matches<string>(question => question is not null && verbs.Contains(question)));
         }
 
         [Test]
@@ -160,6 +209,45 @@ namespace Hypha.Tools.Tests
                 Assert.That(ServeCommand.Owns(root.Parse(["serve"])), Is.True);
                 Assert.That(ServeCommand.Owns(root.Parse(["list"])), Is.False);
             });
+        }
+
+        private static Process Start(string[] arguments, DirectoryInfo? workingDirectory = null, IReadOnlyDictionary<string, string>? environment = null)
+        {
+            var start = new ProcessStartInfo("dotnet")
+            {
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = workingDirectory?.FullName ?? Environment.CurrentDirectory,
+            };
+
+            start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "hypha.dll"));
+            foreach (var argument in arguments)
+            {
+                start.ArgumentList.Add(argument);
+            }
+
+            foreach (var (name, value) in environment ?? new Dictionary<string, string>())
+            {
+                start.Environment[name] = value;
+            }
+
+            return Process.Start(start) ?? throw new InvalidOperationException("dotnet did not start.");
+        }
+
+        private static bool IsJsonRpc(string line)
+        {
+            try
+            {
+                using var message = JsonDocument.Parse(line);
+
+                return message.RootElement.TryGetProperty("jsonrpc", out var version) && version.GetString() == "2.0";
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
         }
 
         private static string Text(CallToolResult result) =>
