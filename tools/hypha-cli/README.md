@@ -63,6 +63,7 @@ everything it provisions in its own storage, such as an editor extension, passes
 | `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
 | `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
 | `hypha check [--json]` | Compares installed releases against what is offerable upstream, with no fetching and no generating; the one verb the plugin's `SessionStart` hook drives. |
+| `hypha serve` | Runs the hypha MCP server over standard input and output, for an AI client to start (see "MCP server" below). |
 
 ```sh
 hypha discover                              # what can be installed
@@ -291,6 +292,42 @@ itself being unprovisionable (offline on its first use, or an unsupported platfo
 | 1 | Nothing to do, or a generator refused because its output would have been wrong. |
 | 2 | A usage error: an artifact no generator produces, a tag that is not a release. |
 | 130 | Cancelled. |
+
+
+## MCP server
+
+`hypha serve` runs the hypha MCP server, with the official `ModelContextProtocol` C# SDK, over
+standard input and output: an AI client starts it, one server per client, and talks to it until it
+disconnects. Standard output carries the protocol and nothing else; the log and any failure go to
+standard error. The global options apply, so a client can pass `--repository-root`, and without it
+the server answers from the same folder every other verb uses (`HYPHA_HOME` by default).
+
+```json
+{ "mcpServers": { "hypha": { "command": "hypha", "args": ["serve"] } } }
+```
+
+Its tools are read-only, and each groups related questions behind a `question` argument whose values
+are the `hypha query` verbs that answer the same thing:
+
+| Tool | Answers |
+| --- | --- |
+| `hypha_release_status` | The installed releases and API versions, the defaults, and what each has generated. |
+| `hypha_metaclass` | `element`, `ancestors`, `subclasses`, `specializes`, `neighbours`, `constraints`, `operations`, `literals`, `features`, `effective-features`. |
+| `hypha_feature` | `redefinitions`, `subsettings`, `opposite`, `feature-constraints`, `contributors`. |
+| `hypha_typed_by` | `classes-with-feature-typed`, `features-accepting`, `containers`. |
+| `hypha_package` | A metamodel package's metaclasses and nested packages. |
+| `hypha_syntax` | `cross-reference`, `feature-assignments`, `built-by`, `keyword`. |
+| `hypha_spec` | `clause` (verbatim text), `elements-in-clause`. |
+| `hypha_search` | Metaclasses, library declarations and clauses by name, each with a `hypha://` address. |
+| `hypha_resolve` | The page a `hypha://` address names. |
+| `hypha_lookup` | An element page or a model-library declaration, a page at a time. |
+| `hypha_diff` | What changed between two installed releases. |
+| `hypha_api` | `pim-class`, `type`, `operation`, `clause` of a Systems Modeling API version. |
+
+Every answer is the JSON document `hypha query --json` prints: the value and its grounding (tier,
+release, source file). A question that cannot be answered, such as one about a release that is not
+installed, is a tool error whose message says how to fix it. The server's `instructions` explain the
+grounding tiers and which tool answers what, for clients that load no skills.
 
 ## Rate limits
 

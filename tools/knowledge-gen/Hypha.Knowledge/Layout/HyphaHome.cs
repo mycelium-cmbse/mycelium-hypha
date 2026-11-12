@@ -58,8 +58,8 @@ namespace Hypha.Knowledge.Layout
         /// not exist yet.
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        /// <see cref="EnvironmentVariable"/> is not set and the system has no per-user local application
-        /// data folder.
+        /// <see cref="EnvironmentVariable"/> is a relative or invalid path, or it is not set and the system
+        /// has no per-user local application data folder.
         /// </exception>
         public static DirectoryInfo Resolve(
             Func<string, string?>? getEnvironmentVariable = null,
@@ -90,19 +90,47 @@ namespace Hypha.Knowledge.Layout
         /// <param name="getEnvironmentVariable">
         /// Reads an environment variable; <c>null</c> uses <see cref="Environment.GetEnvironmentVariable(string)"/>.
         /// </param>
+        /// <remarks>
+        /// The value must be an absolute path. A relative one would be resolved against each process's
+        /// working directory, so two clients started from different folders would each get a home of
+        /// their own, and a lock of their own, rather than share one.
+        /// </remarks>
         /// <returns>
-        /// The <see cref="EnvironmentVariable"/> folder as a full path, or <c>null</c> when it is not set or blank.
+        /// The <see cref="EnvironmentVariable"/> folder, or <c>null</c> when it is not set or blank.
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// <see cref="EnvironmentVariable"/> is a relative path, or not a valid path at all.
+        /// </exception>
         public static DirectoryInfo? Configured(Func<string, string?>? getEnvironmentVariable = null)
         {
             getEnvironmentVariable ??= Environment.GetEnvironmentVariable;
 
-            var configured = getEnvironmentVariable(EnvironmentVariable);
+            var configured = getEnvironmentVariable(EnvironmentVariable)?.Trim();
 
-            return string.IsNullOrWhiteSpace(configured)
-                ? null
-                : new DirectoryInfo(Path.GetFullPath(configured.Trim()));
+            if (string.IsNullOrEmpty(configured))
+            {
+                return null;
+            }
+
+            if (!Path.IsPathFullyQualified(configured))
+            {
+                throw new InvalidOperationException(
+                    $"{EnvironmentVariable} must be an absolute path, such as {Example}, but is '{configured}'");
+            }
+
+            try
+            {
+                return new DirectoryInfo(Path.GetFullPath(configured));
+            }
+            catch (Exception exception) when (exception is ArgumentException or NotSupportedException or PathTooLongException)
+            {
+                throw new InvalidOperationException($"{EnvironmentVariable} is not a valid folder: {exception.Message}", exception);
+            }
         }
+
+        /// <summary>An absolute path on this platform, for the error that names a relative one.</summary>
+        private static string Example =>
+            OperatingSystem.IsWindows() ? @"C:\Users\me\hypha" : "/home/me/hypha";
 
         /// <summary>The managed toolchain's folder in <paramref name="home"/>.</summary>
         /// <param name="home">The home folder.</param>

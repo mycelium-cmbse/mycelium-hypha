@@ -26,6 +26,7 @@ namespace Hypha.Tools
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
+    using Hypha.Mcp;
     using Hypha.Tools.Commands;
     using Hypha.Tools.Commands.Api;
     using Hypha.Tools.Hosting;
@@ -151,6 +152,16 @@ namespace Hypha.Tools
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(check);
 
+            // The MCP server: the same services as every other verb, plus the server over standard
+            // input and output.
+            var serve = new ServeCommand();
+            serve.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new ServeCommand.Handler(provider.GetRequiredService<ModelContextProtocol.Server.McpServer>())
+                    .InvokeAsync(cancellationToken),
+                configure: services => services.AddHyphaMcp().WithStdioServerTransport()));
+            root.Add(serve);
+
             root.Add(BuildApiCommand());
 
             return root;
@@ -222,18 +233,22 @@ namespace Hypha.Tools
         /// <param name="outputRoot">
         /// Where generated artifacts go; <c>null</c> writes them into the repository. Only <c>generate</c> passes one.
         /// </param>
+        /// <param name="configure">Adds the verb's own services to the composed ones; only <c>serve</c> passes one.</param>
         /// <returns>
         /// The handler's exit code; 130 when cancelled; 1 when composition fails, the upstream cannot be reached or a
         /// knowledge file cannot be read.
         /// </returns>
         private static async Task<int> Run(
-            ParseResult parseResult, Func<IServiceProvider, Task<int>> handler, DirectoryInfo? outputRoot = null)
+            ParseResult parseResult,
+            Func<IServiceProvider, Task<int>> handler,
+            DirectoryInfo? outputRoot = null,
+            Action<IServiceCollection>? configure = null)
         {
             Banner(parseResult);
 
             try
             {
-                await using var provider = KnowledgeServices.Build(parseResult, outputRoot);
+                await using var provider = KnowledgeServices.Build(parseResult, outputRoot, configure);
 
                 return await handler(provider);
             }
@@ -279,6 +294,14 @@ namespace Hypha.Tools
         private static async Task<int> Fail(
             ParseResult parseResult, int exitCode, string message, string colour = "red", string? hint = null)
         {
+            // Standard output belongs to the protocol, and the client shows the server's standard error.
+            if (ServeCommand.Owns(parseResult))
+            {
+                await Console.Error.WriteLineAsync(hint is null ? message : $"{message} {hint}");
+
+                return exitCode;
+            }
+
             if (JsonOutput.IsRequested(parseResult))
             {
                 await JsonOutput.WriteErrorAsync(hint is null ? message : $"{message} {hint}");
@@ -298,12 +321,14 @@ namespace Hypha.Tools
 
         /// <summary>
         /// Announces which build is running, unless asked not to, and never in front of a JSON
-        /// document, which has to be the only thing on standard output.
+        /// document or the MCP protocol, which have to be the only thing on standard output.
         /// </summary>
-        /// <param name="parseResult">The parsed command line; <c>--no-logo</c> or <c>--json</c> suppresses the banner.</param>
+        /// <param name="parseResult">
+        /// The parsed command line; <c>--no-logo</c>, <c>--json</c> or <c>serve</c> suppresses the banner.
+        /// </param>
         private static void Banner(ParseResult parseResult)
         {
-            if (parseResult.GetValue(GlobalOptions.NoLogo) || JsonOutput.IsRequested(parseResult))
+            if (parseResult.GetValue(GlobalOptions.NoLogo) || JsonOutput.IsRequested(parseResult) || ServeCommand.Owns(parseResult))
             {
                 return;
             }

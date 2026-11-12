@@ -25,7 +25,11 @@ The two knowledge libraries share the `Hypha.Knowledge` namespace root. `Hypha.K
 written in, reading and looking names up, and discovery, fetching, generation and install / use /
 remove. `Hypha.Knowledge.Metamodel` (`tools/metamodel-gen`) generates the metamodel from XMI; it
 references `Hypha.Knowledge`, never the reverse, so uml4net and Handlebars stay out of the knowledge
-library. A generator and the code that reads its output use the same C# types, serialized through a
+library. `Hypha.Mcp` (`tools/hypha-mcp`) is the MCP server that `hypha serve` hosts: read-only
+tools over `Hypha.Knowledge.Query` and `Hypha.Knowledge.Lookup`, each grouping related questions
+behind a `question` argument whose values are the `hypha query` verb names, plus the `instructions`
+that explain the grounding tiers. It references `Hypha.Knowledge`, never the reverse. A generator
+and the code that reads its output use the same C# types, serialized through a
 source-generated `JsonSerializerContext` (one per artifact, next to its types), not a
 reflection-based `JsonSerializer` call.
 
@@ -38,7 +42,7 @@ that needs a fact the JSON does not hold is a generator change first.
 
 ## Build & test
 
-**.NET** (`tools/metamodel-gen`, `tools/knowledge-gen` and `tools/hypha-cli`, `net10.0`, NUnit), from
+**.NET** (`tools/metamodel-gen`, `tools/knowledge-gen`, `tools/hypha-mcp` and `tools/hypha-cli`, `net10.0`, NUnit), from
 repo root:
 
 ```sh

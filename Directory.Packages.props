@@ -11,6 +11,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.Sbom.Targets" Version="4.1.13" />
+    <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
     <PackageVersion Include="Moq" Version="4.21.0" />
     <PackageVersion Include="NUnit" Version="5.0.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.15.0" />
