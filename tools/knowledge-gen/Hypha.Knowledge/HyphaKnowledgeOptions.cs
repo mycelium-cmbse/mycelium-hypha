@@ -58,8 +58,9 @@ namespace Hypha.Knowledge
         /// the <c>HYPHA_HOME</c> folder, or <c>hypha</c> under the per-user local application data folder.
         /// </summary>
         /// <remarks>
-        /// It holds <c>sources/</c> and <c>knowledge/</c> unless <see cref="RepositoryRoot"/> is set or a
-        /// source checkout is found, and the managed toolchain unless <see cref="ToolchainCacheRoot"/> is set.
+        /// It holds <c>sources/</c> and <c>knowledge/</c> unless <see cref="RepositoryRoot"/> is set, and
+        /// the managed toolchain unless <see cref="ToolchainCacheRoot"/> is set. Set here or through
+        /// <c>HYPHA_HOME</c>, it also wins over the source checkout above the running assembly.
         /// </remarks>
         public DirectoryInfo? Home { get; set; }
 
@@ -67,8 +68,9 @@ namespace Hypha.Knowledge
         /// The folder holding <c>sources/</c> and <c>knowledge/</c>.
         /// </summary>
         /// <remarks>
-        /// Unset, it is the source checkout above the running assembly, which is what a maintainer runs
-        /// from, and otherwise <see cref="Home"/>.
+        /// Unset, it is <see cref="Home"/> when that is set here or through <c>HYPHA_HOME</c>; otherwise
+        /// the source checkout above the running assembly, which is what a maintainer runs from; and
+        /// otherwise the home folder's default location.
         /// </remarks>
         public DirectoryInfo? RepositoryRoot { get; set; }
 

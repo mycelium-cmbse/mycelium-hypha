@@ -35,10 +35,11 @@ The Systems Modeling API has the same verbs under `hypha api` (`discover`, `fetc
 `list`, `use`, `remove`). `check`, `list`, `lookup` and `api list` take `--json`: one JSON document
 on standard output, for editors, language-model tools and scripts.
 
-Knowledge is written to `sources/` and `knowledge/` under `--repository-root`, and without it in the
-`HYPHA_HOME` folder (by default `hypha` in the per-user application data folder). The first generation
-of the specification text downloads [`uv`](https://github.com/astral-sh/uv), which provides the Python
-the extraction needs, so nothing else has to be installed by hand.
+Knowledge is written to `sources/` and `knowledge/` under `--repository-root`. Without it, `hypha`
+uses the source checkout above the working directory, then the `HYPHA_HOME` folder when that is set,
+then the source checkout above the program, and otherwise `hypha` in the per-user application data
+folder. The first generation of the specification text downloads [`uv`](https://github.com/astral-sh/uv),
+which provides the Python the extraction needs, so nothing else has to be installed by hand.
 
 ## Licensing
 

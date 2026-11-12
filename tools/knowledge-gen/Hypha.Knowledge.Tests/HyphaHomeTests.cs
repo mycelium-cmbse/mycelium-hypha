@@ -80,6 +80,19 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Configured_names_the_folder_only_when_HYPHA_HOME_is_set()
+        {
+            var configured = Path.Combine(Path.GetTempPath(), "hypha-home");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(HyphaHome.Configured(Variable(configured))?.FullName, Is.EqualTo(Path.GetFullPath(configured)));
+                Assert.That(HyphaHome.Configured(Variable(null)), Is.Null);
+                Assert.That(HyphaHome.Configured(Variable("  ")), Is.Null);
+            });
+        }
+
+        [Test]
         public void The_toolchain_is_kept_in_toolchain_under_the_home_folder()
         {
             var home = new DirectoryInfo(Path.Combine(Data, "hypha"));

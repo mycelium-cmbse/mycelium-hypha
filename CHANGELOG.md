@@ -172,8 +172,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without `--repository-root`, `hypha` now keeps `sources/` and `knowledge/` in the `HYPHA_HOME`
   folder, by default `hypha` in the per-user application data folder (`%LOCALAPPDATA%` on Windows,
   `$XDG_DATA_HOME` or `~/.local/share` on Linux, `~/Library/Application Support` on macOS), instead
-  of failing to find a repository. In a source checkout nothing changes: the checkout is still used,
-  and `--repository-root` and `--output` still win.
+  of failing to find a repository. In a source checkout nothing changes: the checkout above the
+  working directory is still used, and `--repository-root` and `--output` still win. A set
+  `HYPHA_HOME` wins over a checkout found only above the `hypha` program itself.
   - The managed toolchain (`uv`, its package cache and its Python) now lives in `toolchain/` in that
     folder unless `--toolchain-cache-root` says otherwise, rather than `uv` in
     `mycelium-hypha` and its cache and Python in uv's own per-user locations. The first
@@ -182,7 +183,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `UvProvisioner`'s constructor without a cache root, and `UvProvisioner.ResolveCacheRoot`, are
     removed.
   - The VS Code extension and the Claude plugin's `SessionStart` hook pass their own folders, as
-    before; moving them to `HYPHA_HOME` comes with the MCP server.
+    before, and the plugin's `version-management` skill now passes the plugin's folder on every
+    `hypha` command, so a release it fetches is the one the hook and the lookup skills see. Moving
+    them to `HYPHA_HOME` comes with the MCP server.
 - **`metamodel.json` 2.1.0: every owned attribute, operation, parameter, constraint and enumeration
   literal carries its `xmiId`** (`refs #206`), so a diff between two releases recognizes a renamed
   member. **Regenerate every installed release** (`hypha generate --tag <release>`, and

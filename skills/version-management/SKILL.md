@@ -10,6 +10,14 @@ cross-references is fetched and generated **on this machine**, on request. This 
 vocabulary for doing that conversationally (list, fetch, switch, remove), all through the `hypha`
 CLI (self-contained; no toolchain needed).
 
+## Always point `hypha` at the plugin's folder
+
+Every `hypha` command in this skill runs with `--repository-root "${CLAUDE_PLUGIN_ROOT}"`: the
+plugin's own folder, which holds the `knowledge/` the other skills read and is the folder the
+`SessionStart` hook checks. Without it, `hypha` uses the per-user `HYPHA_HOME` folder instead, and a
+release fetched there is invisible to this plugin. Keep the option on every command, including the
+ones you compose yourself.
+
 ## Always confirm before acting
 
 - **Fetching** costs real time (minutes for a first fetch) and a network round-trip. Never fetch a
@@ -20,7 +28,7 @@ CLI (self-contained; no toolchain needed).
 ## Listing what's local vs. online
 
 ```sh
-hypha check
+hypha check --repository-root "${CLAUDE_PLUGIN_ROOT}"
 ```
 
 Prints installed releases (with which is `default`) next to what's newest online, and tells you if a
@@ -37,8 +45,8 @@ Run both steps in the foreground: the user sees real progress as they stream, th
 poll for:
 
 ```sh
-hypha fetch --tag <tag>
-hypha generate --tag <tag>
+hypha fetch --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
+hypha generate --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
 ```
 
 `fetch` downloads that release's metamodel XMI, textual sources, and (by default) the OMG
@@ -48,8 +56,8 @@ every time**. If the user wants to add a release alongside what's already instal
 switching (e.g. "also get me an older one for comparison"), pass `--no-default`:
 
 ```sh
-hypha fetch --tag <tag> --no-default
-hypha generate --tag <tag>
+hypha fetch --tag <tag> --no-default --repository-root "${CLAUDE_PLUGIN_ROOT}"
+hypha generate --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
 ```
 
 Either way, say what the default is afterward; it's easy for the user to lose track of which release
@@ -66,7 +74,7 @@ asked for spec citation and it came back skipped.
 ## Switching the default release
 
 ```sh
-hypha use --tag <tag>
+hypha use --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
 ```
 
 Only works on an already-installed tag (fetch it first if it isn't). Every skill reads this default
@@ -75,7 +83,7 @@ unless the user names a different tag in their prompt for one answer.
 ## Removing a release
 
 ```sh
-hypha remove --tag <tag>
+hypha remove --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
 ```
 
 Refuses on the current default (switch with `hypha use` first) and on the only installed release
@@ -90,12 +98,12 @@ its own default and its own manifest (`knowledge/api/versions.json`), driven by 
 `hypha api`:
 
 ```sh
-hypha api discover                 # the API versions the upstreams offer
-hypha api list                     # what is installed, and which is the default
-hypha api fetch --tag <version>    # into sources/api/<version>/  (--no-default, --no-specs, --force)
-hypha api generate --tag <version> # into knowledge/api/<version>/
-hypha api use --tag <version>
-hypha api remove --tag <version>
+hypha api discover --repository-root "${CLAUDE_PLUGIN_ROOT}"  # the API versions the upstreams offer
+hypha api list --repository-root "${CLAUDE_PLUGIN_ROOT}"  # what is installed, and which is the default
+hypha api fetch --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"  # into sources/api/<version>/  (--no-default, --no-specs, --force)
+hypha api generate --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"  # into knowledge/api/<version>/
+hypha api use --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"
+hypha api remove --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"
 ```
 
 - An API version is a tag of the upstream API-Services repository, `2025-02` or later. That

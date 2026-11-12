@@ -29,9 +29,10 @@ namespace Hypha.Tools.Commands
             new("--repository-root", "-r")
             {
                 Description =
-                    "The folder holding sources/ and knowledge/. When omitted, the source checkout "
-                    + "above the working directory, and otherwise the HYPHA_HOME folder (by default "
-                    + "'hypha' in the per-user application data folder).",
+                    "The folder holding sources/ and knowledge/. When omitted: the source checkout "
+                    + "above the working directory; else the HYPHA_HOME folder, when that is set; else "
+                    + "the source checkout above the hypha program; else 'hypha' in the per-user "
+                    + "application data folder.",
                 Recursive = true,
             };
 

@@ -24,9 +24,10 @@ namespace Hypha.Knowledge.Layout
     /// <c>~/Library/Application Support</c> on macOS.
     /// </para>
     /// <para>
-    /// A maintainer working in a source checkout keeps using the checkout instead: the CLI and
-    /// <see cref="ServiceCollectionExtensions.AddHyphaKnowledge"/> look for a checkout before falling
-    /// back to this folder.
+    /// A maintainer working in a source checkout keeps using the checkout instead. The order is:
+    /// an explicit root; the CLI's checkout above the working directory; this folder when it is set
+    /// explicitly (<see cref="EnvironmentVariable"/> or <see cref="HyphaKnowledgeOptions.Home"/>);
+    /// the checkout above the running assembly; and this folder's default location.
     /// </para>
     /// </remarks>
     public static class HyphaHome
@@ -64,13 +65,11 @@ namespace Hypha.Knowledge.Layout
             Func<string, string?>? getEnvironmentVariable = null,
             Func<Environment.SpecialFolder, string>? getFolderPath = null)
         {
-            getEnvironmentVariable ??= Environment.GetEnvironmentVariable;
             getFolderPath ??= Environment.GetFolderPath;
 
-            var configured = getEnvironmentVariable(EnvironmentVariable);
-            if (!string.IsNullOrWhiteSpace(configured))
+            if (Configured(getEnvironmentVariable) is { } configured)
             {
-                return new DirectoryInfo(Path.GetFullPath(configured.Trim()));
+                return configured;
             }
 
             var data = getFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -82,6 +81,27 @@ namespace Hypha.Knowledge.Layout
             }
 
             return new DirectoryInfo(Path.Combine(data, FolderName));
+        }
+
+        /// <summary>
+        /// The home folder when <see cref="EnvironmentVariable"/> names it, so that a folder the user
+        /// chose can win over a checkout found only because of where the binary sits.
+        /// </summary>
+        /// <param name="getEnvironmentVariable">
+        /// Reads an environment variable; <c>null</c> uses <see cref="Environment.GetEnvironmentVariable(string)"/>.
+        /// </param>
+        /// <returns>
+        /// The <see cref="EnvironmentVariable"/> folder as a full path, or <c>null</c> when it is not set or blank.
+        /// </returns>
+        public static DirectoryInfo? Configured(Func<string, string?>? getEnvironmentVariable = null)
+        {
+            getEnvironmentVariable ??= Environment.GetEnvironmentVariable;
+
+            var configured = getEnvironmentVariable(EnvironmentVariable);
+
+            return string.IsNullOrWhiteSpace(configured)
+                ? null
+                : new DirectoryInfo(Path.GetFullPath(configured.Trim()));
         }
 
         /// <summary>The managed toolchain's folder in <paramref name="home"/>.</summary>

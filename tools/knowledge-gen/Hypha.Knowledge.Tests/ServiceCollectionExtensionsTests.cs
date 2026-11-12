@@ -13,6 +13,7 @@ namespace Hypha.Knowledge.Tests
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading.Tasks;
 
     using Hypha.Knowledge;
     using Hypha.Knowledge.Api;
@@ -174,14 +175,44 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Without_a_root_a_source_checkout_wins_over_the_home_folder()
+        public async Task Without_a_root_a_chosen_home_folder_wins_over_the_checkout_above_the_assembly()
         {
-            // The tests run inside the repository, so the discovered root is the checkout: a
-            // maintainer's runs keep using it even though a home folder is configured.
+            // The tests run inside the repository, so a checkout is found above the assembly; a home
+            // folder that was chosen still wins over it, and the knowledge and the lock live there.
             var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
-            using var provider = new ServiceCollection()
-                .AddHyphaKnowledge(options => options.Home = home)
-                .BuildServiceProvider();
+
+            try
+            {
+                using var provider = new ServiceCollection()
+                    .AddHyphaKnowledge(options => options.Home = home)
+                    .BuildServiceProvider();
+
+                Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(home.FullName));
+
+                await using (await provider.GetRequiredService<IReleaseOperationLock>().AcquireAsync())
+                {
+                    Assert.That(File.Exists(Path.Combine(home.FullName, ReleaseOperationLock.FileName)), Is.True);
+                }
+            }
+            finally
+            {
+                home.Refresh();
+                if (home.Exists)
+                {
+                    home.Delete(recursive: true);
+                }
+            }
+        }
+
+        [Test]
+        public void Without_a_root_or_a_chosen_home_folder_the_checkout_above_the_assembly_is_used()
+        {
+            if (HyphaHome.Configured() is not null)
+            {
+                Assert.Ignore("HYPHA_HOME is set on this machine, and it wins over the checkout.");
+            }
+
+            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
 
             Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(Repository.Layout!.Root.FullName));
         }

@@ -201,9 +201,12 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<IKnowledgeLayout>(_ =>
             {
-                // A source checkout above the running assembly is a maintainer's; anyone else uses the
-                // home folder every client shares.
+                // A home folder the caller or the user chose wins over a checkout found only because
+                // of where the assembly sits; that checkout is a maintainer's build, and anyone else
+                // uses the home folder's default location.
                 var root = options.RepositoryRoot
+                           ?? options.Home
+                           ?? HyphaHome.Configured()
                            ?? KnowledgeLayout.Discover()?.Root
                            ?? home.Value;
 
