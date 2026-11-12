@@ -104,6 +104,12 @@ self-consistency regeneration check) before pruning whichever locally-installed 
 `--keep`. Nothing it does is committed automatically, and nothing it prunes was ever committed either
 (see `tools/hypha-cli/README.md`).
 
+**Where the knowledge lives.** `RepositoryRoot` (`--repository-root`) when given; otherwise the source
+checkout above the working directory (the CLI) or the running assembly (the library), which is how a
+maintainer works; otherwise `HyphaHome`, the one per-user folder every client shares (`HYPHA_HOME`, by
+default `hypha` in the per-user application data folder). The managed toolchain defaults to
+`toolchain/` in that folder.
+
 Inputs are read from `RepositoryRoot`, output is written to `OutputRoot` (`--output`), which defaults
 to the same folder. That separation is what lets `KnowledgeRegenerationTests` fetch a release fresh
 and regenerate it twice into independent scratch folders, comparing the two runs **byte for byte**

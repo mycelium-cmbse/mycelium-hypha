@@ -29,8 +29,9 @@ namespace Hypha.Tools.Commands
             new("--repository-root", "-r")
             {
                 Description =
-                    "The folder holding sources/ and knowledge/. Discovered by walking up from the "
-                    + "working directory when omitted.",
+                    "The folder holding sources/ and knowledge/. When omitted, the source checkout "
+                    + "above the working directory, and otherwise the HYPHA_HOME folder (by default "
+                    + "'hypha' in the per-user application data folder).",
                 Recursive = true,
             };
 
@@ -40,8 +41,8 @@ namespace Hypha.Tools.Commands
             {
                 Description =
                     "Keep the managed toolchain (the uv executable, uv's package cache and the Python "
-                    + "it installs) under this folder. Without it, uv is cached in the per-user "
-                    + "application data folder and uv uses its own default locations.",
+                    + "it installs) under this folder. Without it, they are kept in toolchain/ in the "
+                    + "HYPHA_HOME folder.",
                 Recursive = true,
             };
 

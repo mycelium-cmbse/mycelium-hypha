@@ -163,13 +163,17 @@ namespace Hypha.Knowledge
             // SpecGenerator's on-demand `uv` invocation both go through this.
             services.AddSingleton<IProcessRunner, SystemProcessRunner>();
 
-            // An explicit toolchain root takes uv's package cache and Python with it; without one, uv
-            // keeps the per-user defaults it shares with any other uv on the machine.
+            // The home folder is resolved once, when the first service that needs it is built, so an
+            // unset HYPHA_HOME costs nothing to a caller that sets both roots.
+            var home = new Lazy<DirectoryInfo>(() => options.Home ?? HyphaHome.Resolve());
+
+            // The toolchain root takes uv's package cache and Python with it, so hypha never shares
+            // them with another uv on the machine.
             services.AddSingleton<IUvProvisioner>(provider => new UvProvisioner(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName),
                 provider.GetRequiredService<ILogger<UvProvisioner>>(),
-                options.ToolchainCacheRoot ?? UvProvisioner.ResolveCacheRoot(),
-                ownsToolchain: options.ToolchainCacheRoot is not null));
+                options.ToolchainCacheRoot ?? HyphaHome.Toolchain(home.Value),
+                ownsToolchain: true));
 
             services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
 
@@ -197,11 +201,11 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<IKnowledgeLayout>(_ =>
             {
+                // A source checkout above the running assembly is a maintainer's; anyone else uses the
+                // home folder every client shares.
                 var root = options.RepositoryRoot
                            ?? KnowledgeLayout.Discover()?.Root
-                           ?? throw new InvalidOperationException(
-                               "no repository root was configured and none could be discovered above "
-                               + $"{AppContext.BaseDirectory}; set RepositoryRoot on HyphaKnowledgeOptions");
+                           ?? home.Value;
 
                 return new KnowledgeLayout(root, options.OutputRoot);
             });

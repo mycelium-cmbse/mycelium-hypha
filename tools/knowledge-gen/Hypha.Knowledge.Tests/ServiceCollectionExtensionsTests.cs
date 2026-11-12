@@ -49,11 +49,21 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Without_a_toolchain_cache_root_uv_keeps_its_default_locations()
+        public void Without_a_toolchain_cache_root_the_toolchain_is_kept_in_the_home_folder()
         {
-            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+            var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.Home = home)
+                .BuildServiceProvider();
 
-            Assert.That(provider.GetRequiredService<IUvProvisioner>().Environment, Is.Empty);
+            var environment = provider.GetRequiredService<IUvProvisioner>().Environment;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(environment[UvProvisioner.UvCacheVariable], Is.EqualTo(Path.Combine(home.FullName, "toolchain", "uv-cache")));
+                Assert.That(environment[UvProvisioner.UvPythonInstallVariable], Is.EqualTo(Path.Combine(home.FullName, "toolchain", "python")));
+                Assert.That(home.Exists, Is.False, "resolving the services creates nothing");
+            });
         }
 
         [Test]
@@ -147,10 +157,31 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void The_layout_falls_back_to_discovery()
+        public void A_given_root_wins_over_the_home_folder()
         {
-            // The tests run inside the repository, so the discovered root is the checkout.
-            using var provider = new ServiceCollection().AddHyphaKnowledge().BuildServiceProvider();
+            var root = new DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
+
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options =>
+                {
+                    options.RepositoryRoot = root;
+                    options.Home = home;
+                })
+                .BuildServiceProvider();
+
+            Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
+        }
+
+        [Test]
+        public void Without_a_root_a_source_checkout_wins_over_the_home_folder()
+        {
+            // The tests run inside the repository, so the discovered root is the checkout: a
+            // maintainer's runs keep using it even though a home folder is configured.
+            var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
+            using var provider = new ServiceCollection()
+                .AddHyphaKnowledge(options => options.Home = home)
+                .BuildServiceProvider();
 
             Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(Repository.Layout!.Root.FullName));
         }

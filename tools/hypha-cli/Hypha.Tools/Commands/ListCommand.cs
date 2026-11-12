@@ -20,7 +20,7 @@ namespace Hypha.Tools.Commands
     using Spectre.Console;
 
     /// <summary>
-    /// Lists the releases this checkout carries, according to <c>knowledge/versions.json</c>, and
+    /// Lists the releases the knowledge base holds, according to <c>knowledge/versions.json</c>, and
     /// which of their artifacts have been generated.
     /// </summary>
     public sealed class ListCommand : Command

@@ -168,6 +168,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   expression bodies lead on to, do not count: `true` comes from `BooleanValue`, not `Invariant`.
 
 ### Changed
+- **One knowledge location per user, `HYPHA_HOME`** (`refs #195`). Run outside a source checkout
+  without `--repository-root`, `hypha` now keeps `sources/` and `knowledge/` in the `HYPHA_HOME`
+  folder, by default `hypha` in the per-user application data folder (`%LOCALAPPDATA%` on Windows,
+  `$XDG_DATA_HOME` or `~/.local/share` on Linux, `~/Library/Application Support` on macOS), instead
+  of failing to find a repository. In a source checkout nothing changes: the checkout is still used,
+  and `--repository-root` and `--output` still win.
+  - The managed toolchain (`uv`, its package cache and its Python) now lives in `toolchain/` in that
+    folder unless `--toolchain-cache-root` says otherwise, rather than `uv` in
+    `mycelium-hypha` and its cache and Python in uv's own per-user locations. The first
+    specification extraction after updating downloads `uv` and Python once more.
+  - `HyphaKnowledgeOptions.Home` sets the folder in code; `HyphaHome.Resolve` is the default.
+    `UvProvisioner`'s constructor without a cache root, and `UvProvisioner.ResolveCacheRoot`, are
+    removed.
+  - The VS Code extension and the Claude plugin's `SessionStart` hook pass their own folders, as
+    before; moving them to `HYPHA_HOME` comes with the MCP server.
 - **`metamodel.json` 2.1.0: every owned attribute, operation, parameter, constraint and enumeration
   literal carries its `xmiId`** (`refs #206`), so a diff between two releases recognizes a renamed
   member. **Regenerate every installed release** (`hypha generate --tag <release>`, and

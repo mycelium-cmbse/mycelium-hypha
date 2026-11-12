@@ -54,9 +54,22 @@ namespace Hypha.Knowledge
         public Uri PimAddress { get; set; } = ApiUpstream.DefaultPimAddress;
 
         /// <summary>
-        /// The folder holding <c>sources/</c> and <c>knowledge/</c>. Discovered from the running
-        /// assembly when unset.
+        /// The per-user folder every hypha client shares. Defaults to <see cref="HyphaHome.Resolve"/>:
+        /// the <c>HYPHA_HOME</c> folder, or <c>hypha</c> under the per-user local application data folder.
         /// </summary>
+        /// <remarks>
+        /// It holds <c>sources/</c> and <c>knowledge/</c> unless <see cref="RepositoryRoot"/> is set or a
+        /// source checkout is found, and the managed toolchain unless <see cref="ToolchainCacheRoot"/> is set.
+        /// </remarks>
+        public DirectoryInfo? Home { get; set; }
+
+        /// <summary>
+        /// The folder holding <c>sources/</c> and <c>knowledge/</c>.
+        /// </summary>
+        /// <remarks>
+        /// Unset, it is the source checkout above the running assembly, which is what a maintainer runs
+        /// from, and otherwise <see cref="Home"/>.
+        /// </remarks>
         public DirectoryInfo? RepositoryRoot { get; set; }
 
         /// <summary>
@@ -74,10 +87,9 @@ namespace Hypha.Knowledge
         /// Python uv installs.
         /// </summary>
         /// <remarks>
-        /// Unset, <c>uv</c> is cached under the per-user application data folder and uv keeps its own
-        /// default locations for its cache and Python, which other uv users on the machine share. Set,
-        /// all three move under this folder, so a host such as an editor extension can keep everything
-        /// it provisions in its own storage.
+        /// Unset, it is <c>toolchain/</c> under <see cref="Home"/>. All three live under it either way,
+        /// rather than in uv's own per-user locations, so hypha never changes another uv's cache and a
+        /// host such as an editor extension can keep everything it provisions in its own storage.
         /// </remarks>
         public DirectoryInfo? ToolchainCacheRoot { get; set; }
 

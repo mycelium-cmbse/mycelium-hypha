@@ -49,9 +49,6 @@ namespace Hypha.Knowledge.Toolchain
         /// <remarks>Public so tests can address the cache path this provisions without duplicating the value.</remarks>
         public const string PinnedVersion = "0.12.10";
 
-        /// <summary>The folder under the per-user local application data that the cache lives in.</summary>
-        private const string CacheFolderName = "mycelium-hypha";
-
         /// <summary>The client the release and its checksum are downloaded with; its base address is the GitHub API.</summary>
         private readonly HttpClient client;
 
@@ -63,17 +60,6 @@ namespace Hypha.Knowledge.Toolchain
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UvProvisioner"/> class.
-        /// </summary>
-        /// <param name="client">The client the release and its checksum are downloaded with.</param>
-        /// <param name="logger">The log, which receives every reason uv could not be provisioned.</param>
-        public UvProvisioner(HttpClient client, ILogger<UvProvisioner> logger)
-            : this(client, logger, ResolveCacheRoot())
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UvProvisioner"/> class with an explicit cache
-        /// root, so a test never touches the real <c>%LOCALAPPDATA%</c>.
         /// </summary>
         /// <param name="client">The client the release and its checksum are downloaded with.</param>
         /// <param name="logger">The log, which receives every reason uv could not be provisioned.</param>
@@ -114,24 +100,6 @@ namespace Hypha.Knowledge.Toolchain
         /// locations.
         /// </summary>
         public IReadOnlyDictionary<string, string> Environment { get; }
-
-        /// <summary>
-        /// Resolves the cache root via <see cref="System.Environment.SpecialFolder.LocalApplicationData"/> -
-        /// the same folder (and reasoning: deliberately outside any git-managed checkout) the CLI's own
-        /// self-fetch hook already caches into, so this is a sibling, not a new location to document.
-        /// </summary>
-        /// <param name="getFolderPath">
-        /// Resolves a special folder to its path; <c>null</c> uses
-        /// <see cref="System.Environment.GetFolderPath(System.Environment.SpecialFolder)"/>. A test passes its own so it never
-        /// touches the real folder.
-        /// </param>
-        /// <returns>The <c>mycelium-hypha</c> folder under the per-user local application data.</returns>
-        public static DirectoryInfo ResolveCacheRoot(Func<System.Environment.SpecialFolder, string>? getFolderPath = null)
-        {
-            getFolderPath ??= System.Environment.GetFolderPath;
-
-            return new DirectoryInfo(Path.Combine(getFolderPath(System.Environment.SpecialFolder.LocalApplicationData), CacheFolderName));
-        }
 
         /// <summary><c>uv/&lt;version&gt;/&lt;target&gt;/</c> - where one uv build is cached.</summary>
         /// <param name="version">The uv release, such as <see cref="PinnedVersion"/>.</param>
