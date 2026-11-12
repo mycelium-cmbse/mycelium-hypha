@@ -55,8 +55,8 @@ namespace Hypha.Knowledge.Metamodel.Generators
             ArgumentNullException.ThrowIfNull(outputDirectory);
             ArgumentException.ThrowIfNullOrEmpty(fileName);
 
-            // AtomicFile creates the folder too, and a reader in another process never sees half a file.
-            await AtomicFile.WriteAllTextAsync(Path.Combine(outputDirectory.FullName, fileName), generatedContent);
+            // ReaderSafeFile creates the folder too, and a reader in another process never sees half a file.
+            await ReaderSafeFile.WriteAllTextAsync(Path.Combine(outputDirectory.FullName, fileName), generatedContent);
         }
     }
 }

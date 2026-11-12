@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------------------------------------
-// <copyright file="AtomicFileTests.cs" company="Starion Group S.A.">
+// <copyright file="ReaderSafeFileTests.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
 //   SPDX-License-Identifier: Apache-2.0
@@ -18,7 +18,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Layout;
 
     [TestFixture]
-    public class AtomicFileTests
+    public class ReaderSafeFileTests
     {
         private DirectoryInfo workspace = null!;
 
@@ -26,7 +26,7 @@ namespace Hypha.Knowledge.Tests
 
         [SetUp]
         public void SetUp() =>
-            this.workspace = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), $"hypha-atomic-{Guid.NewGuid():N}"));
+            this.workspace = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), $"hypha-reader-safe-{Guid.NewGuid():N}"));
 
         [TearDown]
         public void TearDown()
@@ -41,8 +41,8 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public async Task The_file_is_written_as_utf8_without_a_bom_creating_its_folder_and_leaving_nothing_beside_it()
         {
-            AtomicFile.WriteAllText(this.FilePath, "{\"default\":\"2026-05\"}\n");
-            await AtomicFile.WriteAllTextAsync(Path.Combine(this.workspace.FullName, "nested", "other.md"), "Ünïcode\n");
+            ReaderSafeFile.WriteAllText(this.FilePath, "{\"default\":\"2026-05\"}\n");
+            await ReaderSafeFile.WriteAllTextAsync(Path.Combine(this.workspace.FullName, "nested", "other.md"), "Ünïcode\n");
 
             Assert.Multiple(() =>
             {
@@ -57,8 +57,8 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public async Task An_existing_file_is_replaced()
         {
-            AtomicFile.WriteAllText(this.FilePath, "old, and longer than the new content");
-            await AtomicFile.WriteAllTextAsync(this.FilePath, "new");
+            ReaderSafeFile.WriteAllText(this.FilePath, "old, and longer than the new content");
+            await ReaderSafeFile.WriteAllTextAsync(this.FilePath, "new");
 
             Assert.That(File.ReadAllText(this.FilePath), Is.EqualTo("new"));
         }
@@ -66,12 +66,12 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void A_cancelled_write_leaves_the_old_file_and_no_temporary_file()
         {
-            AtomicFile.WriteAllText(this.FilePath, "old");
+            ReaderSafeFile.WriteAllText(this.FilePath, "old");
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
 
             Assert.That(
-                () => AtomicFile.WriteAllTextAsync(this.FilePath, "new", cancellation.Token),
+                () => ReaderSafeFile.WriteAllTextAsync(this.FilePath, "new", cancellation.Token),
                 Throws.InstanceOf<OperationCanceledException>());
 
             Assert.Multiple(() =>
@@ -84,12 +84,12 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public async Task A_reader_holding_the_old_file_delays_the_write_rather_than_failing_it()
         {
-            AtomicFile.WriteAllText(this.FilePath, "old");
+            ReaderSafeFile.WriteAllText(this.FilePath, "old");
 
             Task writing;
             using (new FileStream(this.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                writing = AtomicFile.WriteAllTextAsync(this.FilePath, "new");
+                writing = ReaderSafeFile.WriteAllTextAsync(this.FilePath, "new");
                 await Task.Delay(100);
             }
 
@@ -103,13 +103,13 @@ namespace Hypha.Knowledge.Tests
         {
             var first = new string('a', 64 * 1024);
             var second = new string('b', 32 * 1024);
-            AtomicFile.WriteAllText(this.FilePath, first);
+            ReaderSafeFile.WriteAllText(this.FilePath, first);
 
             var writer = Task.Run(async () =>
             {
                 for (var i = 0; i < 100; i++)
                 {
-                    await AtomicFile.WriteAllTextAsync(this.FilePath, i % 2 == 0 ? second : first);
+                    await ReaderSafeFile.WriteAllTextAsync(this.FilePath, i % 2 == 0 ? second : first);
                 }
             });
 
@@ -149,9 +149,9 @@ namespace Hypha.Knowledge.Tests
         {
             Assert.Multiple(() =>
             {
-                Assert.That(() => AtomicFile.WriteAllText(" ", "x"), Throws.ArgumentException);
-                Assert.That(() => AtomicFile.WriteAllText(this.FilePath, null!), Throws.ArgumentNullException);
-                Assert.That(() => AtomicFile.WriteAllTextAsync(null!, "x"), Throws.InstanceOf<ArgumentException>());
+                Assert.That(() => ReaderSafeFile.WriteAllText(" ", "x"), Throws.ArgumentException);
+                Assert.That(() => ReaderSafeFile.WriteAllText(this.FilePath, null!), Throws.ArgumentNullException);
+                Assert.That(() => ReaderSafeFile.WriteAllTextAsync(null!, "x"), Throws.InstanceOf<ArgumentException>());
             });
         }
     }

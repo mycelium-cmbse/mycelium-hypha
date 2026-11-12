@@ -57,7 +57,7 @@ namespace Hypha.Knowledge.Releases
 
             var file = new FileInfo(path);
 
-            AtomicFile.WriteAllText(file.FullName, Render(manifest));
+            ReaderSafeFile.WriteAllText(file.FullName, Render(manifest));
 
             return file;
         }

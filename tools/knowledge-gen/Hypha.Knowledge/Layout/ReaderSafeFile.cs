@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------------------------------------
-// <copyright file="AtomicFile.cs" company="Starion Group S.A.">
+// <copyright file="ReaderSafeFile.cs" company="Starion Group S.A.">
 //
 //   Copyright 2026 Starion Group S.A.
 //   SPDX-License-Identifier: Apache-2.0
@@ -35,7 +35,7 @@ namespace Hypha.Knowledge.Layout
     /// error is passed on.
     /// </para>
     /// </remarks>
-    public static class AtomicFile
+    public static class ReaderSafeFile
     {
         /// <summary>How long the rename is tried again while it is refused.</summary>
         private static readonly TimeSpan ReplaceBudget = TimeSpan.FromSeconds(2);

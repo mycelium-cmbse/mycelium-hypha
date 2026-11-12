@@ -62,7 +62,7 @@ namespace Hypha.Knowledge.CrossReferences
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
             var file = new FileInfo(path);
-            AtomicFile.WriteAllText(file.FullName, Render(document));
+            ReaderSafeFile.WriteAllText(file.FullName, Render(document));
             file.Refresh();
 
             return file;

@@ -19,7 +19,7 @@ namespace Hypha.Knowledge.Generation
     /// Writes a generated file the way the committed knowledge base requires.
     /// </summary>
     /// <remarks>
-    /// UTF-8 without a byte-order mark, through <see cref="AtomicFile"/>, so a reader in another process
+    /// UTF-8 without a byte-order mark, through <see cref="ReaderSafeFile"/>, so a reader in another process
     /// never sees half a file. The content is expected to carry LF endings already:
     /// <c>.gitattributes</c> pins <c>knowledge/**</c> to LF, and a CRLF here would rewrite every line
     /// of the file on a Windows checkout.
@@ -37,7 +37,7 @@ namespace Hypha.Knowledge.Generation
             string path, string content, CancellationToken cancellationToken = default)
         {
             var file = new FileInfo(path);
-            await AtomicFile.WriteAllTextAsync(file.FullName, content, cancellationToken);
+            await ReaderSafeFile.WriteAllTextAsync(file.FullName, content, cancellationToken);
             file.Refresh();
 
             return file;

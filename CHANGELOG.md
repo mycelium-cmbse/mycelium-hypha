@@ -132,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A lock or recovery file removed by the other side in the instant after creating it failed is
     now reported as a held lock, not as a raw `IOException`.
   - Both `versions.json` manifests and every generated knowledge file are written through
-    `AtomicFile`: to a temporary file beside it, then renamed over it, so a reader in another
+    `ReaderSafeFile`: to a temporary file beside it, then renamed over it, so a reader in another
     process sees the old file or the new one, never half of one.
 - **Progress for fetching and generating** (`refs #195`): one `KnowledgeProgress` record
   (`Operation`, `Step`, `Done`, `Total`, `Message`), replacing `FetchProgress`, that both the CLI and
