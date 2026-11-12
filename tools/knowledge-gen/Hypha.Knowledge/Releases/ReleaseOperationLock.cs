@@ -31,8 +31,12 @@ namespace Hypha.Knowledge.Releases
     /// lock first; the lock file is written and closed, never held open, so the other side can always
     /// read it; and a lock is stale only when its owner process is known to be gone. The one addition is
     /// the wait (<see cref="HyphaKnowledgeOptions.ReleaseLockWait"/>): while it lasts, a refusal is
-    /// tried again every <see cref="PollInterval"/> instead of being thrown, so a lock that is held, or
-    /// that another process is still creating or recovering, is taken once it is free.
+    /// not thrown, so a lock that is held, or that another process is still creating or recovering, is
+    /// taken once it is free. Between tries the waiter only reads the lock, every
+    /// <see cref="PollInterval"/>, and runs the protocol again once the lock is gone or its owner is
+    /// gone. The protocol creates the recovery file; running it on every poll would keep that file in
+    /// place most of the time, and a waiter killed while it holds it would block every later
+    /// acquisition until someone removed it by hand.
     /// </remarks>
     public sealed class ReleaseOperationLock : IReleaseOperationLock
     {
@@ -144,10 +148,16 @@ namespace Hypha.Knowledge.Releases
                 {
                     return this.TryAcquire(root, lockFile, owner, cancellationToken);
                 }
-                catch (ReleaseOperationLockException) when (Stopwatch.GetElapsedTime(started) + PollInterval <= this.wait)
+                catch (ReleaseOperationLockException) when (this.HasTimeLeft(started))
+                {
+                    // Waited out below; once the wait is over, the next try's refusal is thrown.
+                }
+
+                do
                 {
                     await Task.Delay(PollInterval, cancellationToken);
                 }
+                while (this.HasTimeLeft(started) && this.IsStillTaken(root, lockFile));
             }
         }
 
@@ -192,6 +202,50 @@ namespace Hypha.Knowledge.Releases
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Whether a waiting acquisition has time for another pause and try.
+        /// </summary>
+        /// <param name="started">When the acquisition started, as a <see cref="Stopwatch"/> timestamp.</param>
+        /// <returns><c>true</c> when one more <see cref="PollInterval"/> still fits in the wait.</returns>
+        private bool HasTimeLeft(long started) => Stopwatch.GetElapsedTime(started) + PollInterval <= this.wait;
+
+        /// <summary>
+        /// Whether the lock is plainly still taken, judged by reading it only: a recovery is in progress,
+        /// or the lock names this process or a process that is running, or cannot be read as a lock yet
+        /// because it is still being written.
+        /// </summary>
+        /// <remarks>
+        /// Creates nothing, unlike the protocol, so a waiter can call it on every poll. When it returns
+        /// <c>false</c> the protocol runs again and decides: it takes a free lock, and recovers a stale one.
+        /// </remarks>
+        /// <param name="root">The repository root.</param>
+        /// <param name="lockFile">The lock file.</param>
+        /// <returns><c>true</c> while trying again would be refused.</returns>
+        private bool IsStillTaken(DirectoryInfo root, FileInfo lockFile)
+        {
+            if (File.Exists(Path.Combine(root.FullName, RecoveryFileName)))
+            {
+                return true;
+            }
+
+            string content;
+            try
+            {
+                content = Read(lockFile);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Gone (or being removed this instant): let the protocol try.
+                return false;
+            }
+
+            var owner = OwnerProcessId(content);
+
+            return owner is not { } processId
+                || processId == Environment.ProcessId
+                || this.processes.IsRunning(processId);
         }
 
         /// <summary>

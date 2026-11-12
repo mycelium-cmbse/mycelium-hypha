@@ -99,6 +99,68 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void A_synchronous_write_also_waits_for_a_refused_rename()
+        {
+            // A folder where the file should be refuses the rename on every platform, until it is removed.
+            Directory.CreateDirectory(this.FilePath);
+            var writing = Task.Run(() => ReaderSafeFile.WriteAllText(this.FilePath, "new"));
+            Thread.Sleep(100);
+            Assert.That(writing.IsCompleted, Is.False, "the rename is still refused");
+
+            Directory.Delete(this.FilePath);
+            writing.Wait(TimeSpan.FromSeconds(10));
+
+            Assert.That(File.ReadAllText(this.FilePath), Is.EqualTo("new"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void A_rename_refused_for_longer_than_two_seconds_fails_and_leaves_no_temporary_file(bool async)
+        {
+            Directory.CreateDirectory(this.FilePath);
+            var started = DateTime.UtcNow;
+
+            Assert.That(
+                async () =>
+                {
+                    if (async)
+                    {
+                        await ReaderSafeFile.WriteAllTextAsync(this.FilePath, "new");
+                    }
+                    else
+                    {
+                        ReaderSafeFile.WriteAllText(this.FilePath, "new");
+                    }
+                },
+                Throws.InstanceOf<IOException>().Or.InstanceOf<UnauthorizedAccessException>());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(DateTime.UtcNow - started, Is.GreaterThanOrEqualTo(TimeSpan.FromSeconds(1.9)));
+                Assert.That(Directory.Exists(this.FilePath), Is.True);
+                Assert.That(Directory.GetFiles(Path.GetDirectoryName(this.FilePath)!), Is.Empty);
+            });
+        }
+
+        [Test]
+        public void Cancelling_while_the_rename_is_refused_stops_the_write_and_leaves_no_temporary_file()
+        {
+            Directory.CreateDirectory(this.FilePath);
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+            var started = DateTime.UtcNow;
+
+            Assert.That(
+                () => ReaderSafeFile.WriteAllTextAsync(this.FilePath, "new", cancellation.Token),
+                Throws.InstanceOf<OperationCanceledException>());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(DateTime.UtcNow - started, Is.LessThan(TimeSpan.FromSeconds(1.5)));
+                Assert.That(Directory.GetFiles(Path.GetDirectoryName(this.FilePath)!), Is.Empty);
+            });
+        }
+
+        [Test]
         public async Task A_reader_in_parallel_sees_the_old_content_or_the_new_never_part_of_one()
         {
             var first = new string('a', 64 * 1024);

@@ -128,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `HyphaKnowledgeOptions.ReleaseLockWait` makes `IReleaseOperationLock.AcquireAsync` wait for a
     held lock instead of refusing it at once, including one held by another operation of the same
     process. The default, zero, keeps refusing at once, as the extension does; the lock protocol is
-    unchanged.
+    unchanged. Between tries a waiter only reads the lock, and runs the protocol again once the lock
+    is free or its owner is gone, so it does not keep the recovery file in place while it waits.
   - A lock or recovery file removed by the other side in the instant after creating it failed is
     now reported as a held lock, not as a raw `IOException`.
   - Both `versions.json` manifests and every generated knowledge file are written through
