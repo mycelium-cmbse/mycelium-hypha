@@ -11,8 +11,9 @@ namespace Hypha.Knowledge.Metamodel.Generators
 {
     using System;
     using System.IO;
-    using System.Text;
     using System.Threading.Tasks;
+
+    using Hypha.Knowledge.Layout;
 
     /// <summary>
     /// Abstract base class from which all knowledge-base generators derive.
@@ -54,13 +55,8 @@ namespace Hypha.Knowledge.Metamodel.Generators
             ArgumentNullException.ThrowIfNull(outputDirectory);
             ArgumentException.ThrowIfNullOrEmpty(fileName);
 
-            if (!outputDirectory.Exists)
-            {
-                outputDirectory.Create();
-            }
-
-            var filePath = Path.Combine(outputDirectory.FullName, fileName);
-            await File.WriteAllTextAsync(filePath, generatedContent, new UTF8Encoding(false));
+            // ReaderSafeFile creates the folder too, and a reader in another process never sees half a file.
+            await ReaderSafeFile.WriteAllTextAsync(Path.Combine(outputDirectory.FullName, fileName), generatedContent);
         }
     }
 }

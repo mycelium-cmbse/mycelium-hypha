@@ -315,6 +315,114 @@ namespace Hypha.Knowledge.Tests
             Assert.That(File.Exists(this.LockPath), Is.False);
         }
 
+        [Test]
+        public async Task Waiting_takes_a_lock_once_its_running_owner_releases_it()
+        {
+            this.WriteLock("""{"pid":4242,"token":"abc"}""");
+            this.processes.Running.Add(4242);
+            var waiting = this.Waiting(TimeSpan.FromSeconds(30));
+
+            var acquiring = waiting.AcquireAsync();
+            await Task.Delay(200);
+            Assert.That(acquiring.IsCompleted, Is.False, "the lock is still held");
+
+            File.Delete(this.LockPath);
+            await using var lease = await acquiring;
+
+            Assert.That(File.ReadAllText(this.LockPath), Does.StartWith($"{{\"pid\":{Environment.ProcessId},"));
+        }
+
+        [Test]
+        public async Task A_lock_still_held_when_the_wait_is_over_is_refused_as_held_and_left_alone()
+        {
+            this.WriteLock("""{"pid":4242,"token":"abc"}""");
+            this.processes.Running.Add(4242);
+            var waiting = this.Waiting(TimeSpan.FromMilliseconds(300));
+            var started = DateTime.UtcNow;
+
+            var exception = await Assert.ThrowsAsync<ReleaseOperationLockException>(() => waiting.AcquireAsync());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(DateTime.UtcNow - started, Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(200)));
+                Assert.That(exception!.Message, Does.Contain("already running in another process or VS Code window"));
+                Assert.That(File.ReadAllText(this.LockPath), Is.EqualTo("""{"pid":4242,"token":"abc"}"""));
+                Assert.That(File.Exists(this.RecoveryPath), Is.False);
+            });
+        }
+
+        [Test]
+        public async Task Cancelling_stops_the_wait_and_takes_no_lock()
+        {
+            this.WriteLock("""{"pid":4242,"token":"abc"}""");
+            this.processes.Running.Add(4242);
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(150));
+
+            await Assert.ThrowsAsync(
+                Is.InstanceOf<OperationCanceledException>(),
+                () => this.Waiting(TimeSpan.FromSeconds(30)).AcquireAsync(cancellation.Token));
+
+            Assert.That(File.ReadAllText(this.LockPath), Is.EqualTo("""{"pid":4242,"token":"abc"}"""));
+        }
+
+        [Test]
+        public async Task Overlapping_operations_take_the_lock_one_after_the_other()
+        {
+            // Each operation has its own lock object over the same root, as two MCP servers would,
+            // and they all start at once, so they also meet a lock that is still being created or
+            // released, and a recovery in progress.
+            const int Operations = 8;
+            var holders = 0;
+            var mostAtOnce = 0;
+            var held = 0;
+            using var start = new ManualResetEventSlim();
+
+            var operations = Enumerable.Range(0, Operations).Select(_ => Task.Run(async () =>
+            {
+                start.Wait();
+
+                await using (await this.Waiting(TimeSpan.FromSeconds(60)).AcquireAsync())
+                {
+                    var now = Interlocked.Increment(ref holders);
+                    InterlockedMax(ref mostAtOnce, now);
+                    await Task.Delay(20);
+                    Interlocked.Decrement(ref holders);
+                    Interlocked.Increment(ref held);
+                }
+            })).ToArray();
+
+            start.Set();
+            await Task.WhenAll(operations).WaitAsync(TimeSpan.FromMinutes(2));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(held, Is.EqualTo(Operations));
+                Assert.That(mostAtOnce, Is.EqualTo(1));
+                Assert.That(File.Exists(this.LockPath), Is.False);
+                Assert.That(File.Exists(this.RecoveryPath), Is.False);
+            });
+        }
+
+        [Test]
+        public void A_negative_wait_is_refused()
+        {
+            Assert.That(
+                () => this.Waiting(TimeSpan.FromMilliseconds(-1)),
+                Throws.InstanceOf<ArgumentOutOfRangeException>());
+        }
+
+        private static void InterlockedMax(ref int target, int value)
+        {
+            int current;
+            while ((current = Volatile.Read(ref target)) < value
+                && Interlocked.CompareExchange(ref target, value, current) != current)
+            {
+            }
+        }
+
+        private ReleaseOperationLock Waiting(TimeSpan wait) =>
+            new(new KnowledgeLayout(this.root), this.processes, NullLogger<ReleaseOperationLock>.Instance, wait);
+
         private void WriteLock(string content)
         {
             this.root.Create();

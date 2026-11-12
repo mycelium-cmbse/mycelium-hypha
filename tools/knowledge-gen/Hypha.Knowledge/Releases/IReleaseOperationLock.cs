@@ -32,19 +32,27 @@ namespace Hypha.Knowledge.Releases
     /// would refuse every extension install. It is for operations that change releases on their own,
     /// instead of through the extension, such as an install driven by an MCP tool.
     /// </para>
+    /// <para>
+    /// By default a held lock is refused at once, as the extension does. With
+    /// <see cref="HyphaKnowledgeOptions.ReleaseLockWait"/> set, it is tried again until the wait is
+    /// over, which also covers a lock held by another operation of this same process: two overlapping
+    /// tool calls of one MCP server take it one after the other.
+    /// </para>
     /// </remarks>
     public interface IReleaseOperationLock
     {
         /// <summary>
-        /// Takes the lock, recovering a stale one first if its owner is gone.
+        /// Takes the lock, recovering a stale one first if its owner is gone, and waiting for it while
+        /// <see cref="HyphaKnowledgeOptions.ReleaseLockWait"/> lasts.
         /// </summary>
-        /// <param name="cancellationToken">Cancels before the lock is taken.</param>
+        /// <param name="cancellationToken">Cancels before the lock is taken, the wait included.</param>
         /// <returns>The held lock; disposing it releases the lock.</returns>
         /// <exception cref="ReleaseOperationLockException">
-        /// Another process or VS Code window holds the lock (or this process does, through a lease it
-        /// has not released yet, since the lock is not re-entrant), another recovery is in progress or
-        /// was interrupted, or the existing lock cannot be read or created.
+        /// Once the wait is over: another process or VS Code window holds the lock (or this process does,
+        /// through a lease it has not released yet, since the lock is not re-entrant), another recovery is
+        /// in progress or was interrupted, or the existing lock cannot be read or created.
         /// </exception>
+        /// <exception cref="System.OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
         Task<ReleaseOperationLease> AcquireAsync(CancellationToken cancellationToken = default);
     }
 }

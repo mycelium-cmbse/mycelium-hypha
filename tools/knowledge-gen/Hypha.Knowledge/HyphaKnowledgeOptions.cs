@@ -90,17 +90,31 @@ namespace Hypha.Knowledge
         /// </remarks>
         public int MaxDownloadConcurrency { get; set; } = 6;
 
+        /// <summary>
+        /// How long taking the release-operation lock (<see cref="IReleaseOperationLock"/>) waits while
+        /// another operation holds it, before it is refused.
+        /// </summary>
+        /// <remarks>
+        /// Zero, the default, refuses at once, as the VS Code extension does. A host whose operations can
+        /// overlap, such as an MCP server whose tool calls run alongside another server's or each other,
+        /// sets a wait instead.
+        /// </remarks>
+        public TimeSpan ReleaseLockWait { get; set; } = TimeSpan.Zero;
+
         /// <summary>Throws when a value cannot be used, rather than failing later and further away.</summary>
         /// <exception cref="ArgumentNullException">
         /// <see cref="ApiBaseAddress"/> or <see cref="RawContentBaseAddress"/> is <c>null</c>.
         /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException"><see cref="MaxDownloadConcurrency"/> is less than 1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <see cref="MaxDownloadConcurrency"/> is less than 1, or <see cref="ReleaseLockWait"/> is negative.
+        /// </exception>
         public void Validate()
         {
             ArgumentNullException.ThrowIfNull(this.ApiBaseAddress);
             ArgumentNullException.ThrowIfNull(this.RawContentBaseAddress);
             ArgumentNullException.ThrowIfNull(this.PimAddress);
             ArgumentOutOfRangeException.ThrowIfLessThan(this.MaxDownloadConcurrency, 1);
+            ArgumentOutOfRangeException.ThrowIfLessThan(this.ReleaseLockWait, TimeSpan.Zero);
         }
     }
 }

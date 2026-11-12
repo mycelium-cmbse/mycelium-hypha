@@ -11,9 +11,10 @@ namespace Hypha.Knowledge.Api
 {
     using System;
     using System.IO;
-    using System.Text;
     using System.Text.Encodings.Web;
     using System.Text.Json;
+
+    using Hypha.Knowledge.Layout;
 
     /// <summary>
     /// Reads and writes <c>knowledge/api/versions.json</c>, deterministically: fixed serializer
@@ -28,9 +29,6 @@ namespace Hypha.Knowledge.Api
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
-
-        /// <summary>UTF-8 without a byte-order mark, the encoding the manifest is written in.</summary>
-        private static readonly UTF8Encoding Utf8WithoutBom = new(false);
 
         /// <summary>The source-generated contract, bound to the options above.</summary>
         private static readonly ApiVersionManifestJsonContext Contract = new(SerializerOptions);
@@ -57,8 +55,7 @@ namespace Hypha.Knowledge.Api
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
             var file = new FileInfo(path);
-            file.Directory?.Create();
-            File.WriteAllText(file.FullName, Render(manifest), Utf8WithoutBom);
+            ReaderSafeFile.WriteAllText(file.FullName, Render(manifest));
 
             return file;
         }

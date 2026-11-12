@@ -123,6 +123,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{"pid", "token"}` content and the same recovery rules, so an operation that changes releases on
   its own (such as the coming MCP install) and an extension install never run at the same time.
   The CLI's own verbs do not take it, because the extension runs them while it holds the lock.
+- **Safe concurrent writers** (`refs #195`), for several MCP servers, the CLI and the VS Code
+  extension working on one knowledge base at once.
+  - `HyphaKnowledgeOptions.ReleaseLockWait` makes `IReleaseOperationLock.AcquireAsync` wait for a
+    held lock instead of refusing it at once, including one held by another operation of the same
+    process. The default, zero, keeps refusing at once, as the extension does; the lock protocol is
+    unchanged.
+  - A lock or recovery file removed by the other side in the instant after creating it failed is
+    now reported as a held lock, not as a raw `IOException`.
+  - Both `versions.json` manifests and every generated knowledge file are written through
+    `ReaderSafeFile`: to a temporary file beside it, then renamed over it, so a reader in another
+    process sees the old file or the new one, never half of one.
 - **Progress for fetching and generating** (`refs #195`): one `KnowledgeProgress` record
   (`Operation`, `Step`, `Done`, `Total`, `Message`), replacing `FetchProgress`, that both the CLI and
   the coming MCP server consume through an `IProgress<KnowledgeProgress>`.
