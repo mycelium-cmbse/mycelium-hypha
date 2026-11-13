@@ -324,6 +324,7 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | 8: CI and release | #200 | Open |
 | 9: verify across clients | #201, with #163 | Open |
 | Follow-ups from the reviews | #224 | Open; none blocks a step |
+| After 3.0.0 (in Step 6) | #228 | Open; left out of the release by choice |
 
 Nothing is released before Step 6: plugin users stay on the release the marketplace pins, and a tools release also publishes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its migration.
 
@@ -384,21 +385,26 @@ One thin slice, end to end: the Claude plugin starts `hypha serve` through the l
 
 ### Step 6: Make the skills portable, and release tools 1.6.0 and plugin 3.0.0 (#197)
 
-- [ ] Rewrite the six skills to call MCP tools by their bare names: no jq, no file paths, no Claude-specific tool names. A question no tool answers falls back to whole pages through `hypha_lookup` or `hypha_resolve`, never to jq.
+- [ ] Rewrite the six skills to call MCP tools by their bare names: no jq, no file paths, no Claude-specific tool names. A question no tool answers falls back to whole pages through `hypha_lookup` or `hypha_resolve`, never to jq. `api-lookup` is left for after 3.0.0 (below).
   - [x] `metamodel-lookup` and `model-library-lookup`.
-  - [ ] `api-lookup`, once the tools answer the REST schema properties (below).
-  - [ ] `spec-citation` and `sysml-validation`.
+  - [x] `spec-citation` and `sysml-validation`.
   - [ ] `version-management` (below).
-- [ ] Fold the three agents (`metamodel-navigator`, `spec-citation`, `sysml-validator`) into skills: a fan-out question is now one query call.
+- [x] Fold the three agents (`metamodel-navigator`, `spec-citation`, `sysml-validator`) into skills: a fan-out question is now one query call.
   - [x] `metamodel-navigator`, into `metamodel-lookup`.
-  - [ ] `spec-citation` and `sysml-validator`, with their skills.
+  - [x] `spec-citation` and `sysml-validator`, into their skills.
 - [x] An upstream check, so a newer release still reaches the user once the hook is gone: `hypha_check_releases`, a read-only, open-world tool over `IReleaseCheck`, which `hypha check` also runs through.
 - [ ] Replace `version-management` with the release tools and `hypha_check_releases`.
-- [ ] The REST schema properties (required, nullable, what each refers to) as a fact the tools answer: write them into `openapi/index.json` (a generator change), add a `schema` question to `hypha_api` and `hypha query api`, then rewrite `api-lookup` over it. Until then `api-lookup` keeps reading the rendered pages.
 - [x] CI lint: every bare tool name a skill, agent or command mentions exists in the server, and every question and argument it names is one that tool accepts (`SkillToolNamesTests`), and a prompt's (`RegistrationTests`).
 - [ ] Remove the SessionStart hook, `hooks/native/`, jq and the README's "Recommended: jq" section. This absorbs the former Step 10: the 24 jq queries have C# equivalents checked against jq by golden tests, so jq needs no transition release.
 - [ ] Release Steps 5 and 6 together, and nothing before: `tools-v1.6.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking).
 - [ ] Optional, to exercise the real download before that: a pre-release such as `1.6.0-beta.1`, which GitHub and NuGet mark as one, so `dotnet tool update` passes it by.
+
+#### After 3.0.0 (#228)
+
+Left out of the release by choice: gaps in what the tools answer, so the skill that needs them gives a weaker answer until then.
+
+- [ ] The REST schema properties as a fact the tools answer: `openapi/index.json` already holds each REST schema's properties (name, type, required, nullable, what each refers to) and variants; add a `schema` question to `hypha_api` and `hypha query api` that reads them, then rewrite `api-lookup` over the tools. Until then `api-lookup` keeps reading the rendered pages.
+- [ ] The worked examples through the tools: add an `examples` kind to `hypha_lookup`, `hypha_search` and the `hypha://` resource, so `sysml-validation` can read an example model that `hypha_syntax` `cross-reference` names. Until then the skill names the example without reading it.
 
 ### Step 7: Package for every other client (#199, #158, #165)
 

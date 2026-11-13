@@ -1,7 +1,7 @@
 # mycelium-hypha
 
 Hypha is the AI agent of the Mycelium ecosystem, a connecting filament between engineers and the
-SysML v2 specification. It is packaged as a Claude Code plugin with skills and subagents for KerML /
+SysML v2 specification. It is packaged as a Claude Code plugin with skills and an MCP server for KerML /
 SysML v2 metamodel lookup, standard model library lookup, Systems Modeling API lookup, normative spec
 citation, and SysML v2 textual-notation validation; as a VS Code extension for GitHub Copilot; and as
 the `hypha` command-line tool both are built on.
@@ -10,7 +10,7 @@ the `hypha` command-line tool both are built on.
 
 mycelium-hypha contains three related parts:
 
-1. **The `hypha` Claude plugin**: skills and subagents that give grounded answers about KerML and
+1. **The `hypha` Claude plugin**: skills and an MCP server that give grounded answers about KerML and
    SysML v2, backed by a knowledge base fetched and generated on your own machine, on request.
    Nothing per-release is committed to this repository.
 2. **The VS Code extension** (`extensions/vscode/`): an extension for GitHub Copilot that
@@ -30,7 +30,6 @@ mycelium-hypha/
 ├── .claude-plugin/   Plugin + marketplace manifests
 ├── hooks/            SessionStart hook: checks installed releases against upstream
 ├── skills/           Conversational workflows (metamodel lookup, API lookup, spec citation, validation, ...)
-├── agents/           Subagents backing those skills
 ├── extensions/vscode/ VS Code GitHub Copilot extension
 ├── knowledge/        Knowledge base, fetched and generated locally, one folder per release tag
 ├── sources/          Raw OMG inputs, fetched locally, one folder per release tag

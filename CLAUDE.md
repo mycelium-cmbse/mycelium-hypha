@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** standards (not UML):
 
-1. The **`hypha` Claude plugin**: `.claude-plugin/`, `skills/`, `agents/`, `commands/`, `hooks/`, and
+1. The **`hypha` Claude plugin**: `.claude-plugin/`, `skills/`, `commands/`, `hooks/`, `bin/`, and
    the `knowledge/` base the plugin reads at runtime. Nothing per-release under `knowledge/` is
    committed (see "Committed vs git-ignored" below): a plugin install fetches and generates it on the
    user's own machine, on request.

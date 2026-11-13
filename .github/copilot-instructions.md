@@ -1,6 +1,6 @@
 # Copilot instructions
 
-Scope is the **OMG SysML v2 / KerML** standards (not UML). The repo has three parts: the `hypha` Claude plugin (`.claude-plugin/`, `skills/`, `agents/`, `commands/`, `hooks/`, `knowledge/`), the VS Code extension (`extensions/vscode/`), and the generation pipelines in `tools/` that build `knowledge/` from upstream OMG sources in `sources/`.
+Scope is the **OMG SysML v2 / KerML** standards (not UML). The repo has three parts: the `hypha` Claude plugin (`.claude-plugin/`, `skills/`, `commands/`, `hooks/`, `bin/`, `knowledge/`), the VS Code extension (`extensions/vscode/`), and the generation pipelines in `tools/` that build `knowledge/` from upstream OMG sources in `sources/`.
 
 ## Build, test, lint
 
