@@ -318,7 +318,7 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | Step | Issue | Status (November 2026) |
 | --- | --- | --- |
 | 1 to 4 | #193, #194, #195, #196 | Done |
-| 5: launcher, Claude plugin over MCP | #198 | Launcher merged (#225); binaries and the client prototype open |
+| 5: launcher, Claude plugin over MCP | #198 | Launcher merged (#225), binaries committed; the client prototype open |
 | 6: portable skills, release tools 1.6.0 and plugin 3.0.0 | #197 | Open; the first release since Step 4 |
 | 7: every other client | #199, with #158 and #165 | Open |
 | 8: CI and release | #200 | Open |
@@ -374,7 +374,7 @@ One thin slice, end to end: the Claude plugin starts `hypha serve` through the l
 - [x] Support `HTTPS_PROXY` and a `HYPHA_BIN` override (#225).
 - [x] Release assets: a self-contained single-file `hypha` per RID is what `release.yml` already publishes; the release itself, with `serve`, is part of Step 6.
 - [x] Claude plugin: `mcpServers` in `.claude-plugin/plugin.json` to `bin/hypha-launch` (not a root `.mcp.json`, which Claude Code would also load as this repository's own project configuration), with no `--repository-root` (#225).
-- [ ] Build and commit the AOT launcher binaries: run *Hook and launcher binaries* on `development`.
+- [x] Build and commit the AOT launcher binaries: run *Hook and launcher binaries* on `development` (a6b6b6b; the Windows build checked with a Node spawn and `cross-spawn`, through `HYPHA_BIN` and through the fallback).
 - [ ] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed): Claude Code on Windows and on macOS or Linux, VS Code with Copilot, and one of Cursor or Codex. Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
 - Until Step 6 the skills keep reading the plugin's folder; Steps 5 and 6 are released together, as plugin 3.0.0.
 
