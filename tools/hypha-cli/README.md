@@ -333,7 +333,7 @@ Three more tools change the installed releases, in the server's own process:
 
 | Tool | Does |
 | --- | --- |
-| `hypha_install_release` | Fetches a release (the newest one offered upstream when no `tag` is given) and generates its knowledge; `includeSpecifications` and `makeDefault` default to `true`. It sends MCP progress notifications while it runs, one per file fetched and per artifact generated, and answers with what each artifact did. |
+| `hypha_install_release` | Fetches a release (the newest one offered upstream when no `tag` is given) and generates its knowledge; `includeSpecifications` and `makeDefault` default to `true`, and the release becomes the default only once its knowledge is generated with no generator refusing. It sends MCP progress notifications while it runs, one per file fetched and per artifact generated, and answers with what each artifact did. |
 | `hypha_use_release` | Makes an installed release the default. |
 | `hypha_remove_release` | Deletes an installed release that is not the default (`force` for the last one). |
 

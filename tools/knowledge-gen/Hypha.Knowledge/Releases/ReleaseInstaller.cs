@@ -120,8 +120,8 @@ namespace Hypha.Knowledge.Releases
 
             if (!ReleaseTag.IsRelease(tag))
             {
-                throw new ArgumentException(
-                    $"not an offerable release tag: {tag}", nameof(request));
+                // No parameter name: the message is shown as is, by the CLI and to a model.
+                throw new ArgumentException($"not an offerable release tag: {tag}");
             }
 
             StartedMessage(this.logger, tag, null);

@@ -66,7 +66,7 @@ namespace Hypha.Mcp.Tests
             {
                 Assert.That(asked, Is.EqualTo(new ReleaseInstallRequest { Tag = Tag, IncludeSpecifications = false, SkipExisting = true, MakeDefault = false }));
                 Assert.That(root.GetProperty("tag").GetString(), Is.EqualTo(Tag));
-                Assert.That(root.GetProperty("madeDefault").GetBoolean(), Is.False);
+                Assert.That(root.GetProperty("isDefault").GetBoolean(), Is.False);
                 Assert.That(root.GetProperty("fetched").GetProperty("metamodel").GetInt32(), Is.EqualTo(1));
                 Assert.That(root.GetProperty("fetched").GetProperty("specifications").GetInt32(), Is.Zero);
                 Assert.That(root.GetProperty("artifacts")[0].GetProperty("outcome").GetString(), Is.EqualTo("generated"));
@@ -86,14 +86,14 @@ namespace Hypha.Mcp.Tests
                     new ReleaseInstallRequest { Tag = "2026-06", IncludeSpecifications = true, SkipExisting = true, MakeDefault = true },
                     It.IsAny<IProgress<KnowledgeProgress>>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Setup(new KnowledgeBuild([], null), "2026-06"));
+                .ReturnsAsync(Setup(new KnowledgeBuild([], null), "2026-06", isDefault: true));
 
             using var answer = JsonDocument.Parse(await this.tools.InstallRelease());
 
             Assert.Multiple(() =>
             {
                 Assert.That(answer.RootElement.GetProperty("tag").GetString(), Is.EqualTo("2026-06"));
-                Assert.That(answer.RootElement.GetProperty("madeDefault").GetBoolean(), Is.True);
+                Assert.That(answer.RootElement.GetProperty("isDefault").GetBoolean(), Is.True);
             });
         }
 
@@ -221,7 +221,7 @@ namespace Hypha.Mcp.Tests
             Assert.That(() => this.tools.RemoveRelease(Tag), Throws.TypeOf<McpException>().With.Message.EqualTo("'2026-05' is the default release"));
         }
 
-        private static ReleaseSetup Setup(KnowledgeBuild build, string tag = Tag) =>
+        private static ReleaseSetup Setup(KnowledgeBuild build, string tag = Tag, bool isDefault = false) =>
             new(
                 new ReleaseInstallation(
                     tag,
@@ -230,6 +230,7 @@ namespace Hypha.Mcp.Tests
                     [],
                     new InstalledVersion(tag, new UpstreamReference(Upstream.ReleaseRepository, "abc"), new UpstreamReference(Upstream.PilotRepository, "def")),
                     new FileInfo("versions.json")),
-                build);
+                build,
+                isDefault);
     }
 }

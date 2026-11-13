@@ -28,9 +28,15 @@ namespace Hypha.Knowledge.Releases
     {
         /// <summary>
         /// Fetches a release's inputs, records it in the version manifest and generates every artifact
-        /// for it, holding the lock throughout.
+        /// for it, holding the lock throughout; only then, and only when no generator refused, does it
+        /// become the default.
         /// </summary>
-        /// <param name="request">Which release to install, and how.</param>
+        /// <param name="request">
+        /// Which release to install, and how. <see cref="ReleaseInstallRequest.MakeDefault"/> is applied
+        /// once the knowledge is generated, not when the inputs are recorded, so a failed or cancelled
+        /// generation leaves the previous default answering. The first release installed is the default
+        /// regardless, since a manifest always has one.
+        /// </param>
         /// <param name="progress">
         /// Reported per fetched file and per generated artifact (<see cref="KnowledgeProgress.Fetch"/>,
         /// then <see cref="KnowledgeProgress.Generate"/>); <c>null</c> when nobody needs to show progress.

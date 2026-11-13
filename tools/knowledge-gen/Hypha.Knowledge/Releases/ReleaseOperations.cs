@@ -65,9 +65,13 @@ namespace Hypha.Knowledge.Releases
 
         /// <summary>
         /// Fetches a release's inputs, records it in the version manifest and generates every artifact
-        /// for it, holding the lock throughout.
+        /// for it, holding the lock throughout; only then, and only when no generator refused, does it
+        /// become the default.
         /// </summary>
-        /// <param name="request">Which release to install, and how.</param>
+        /// <param name="request">
+        /// Which release to install, and how. <see cref="ReleaseInstallRequest.MakeDefault"/> is applied
+        /// once the knowledge is generated, not when the inputs are recorded.
+        /// </param>
         /// <param name="progress">Reported per fetched file and per generated artifact; <c>null</c> for none.</param>
         /// <param name="cancellationToken">Cancels the wait for the lock, the fetch and the generation.</param>
         /// <returns>What was fetched and what each artifact did.</returns>
@@ -84,10 +88,19 @@ namespace Hypha.Knowledge.Releases
 
             await using var lease = await this.releaseLock.AcquireAsync(cancellationToken);
 
-            var installation = await this.installer.InstallAsync(request, cancellationToken, progress);
+            // Recorded without becoming the default: every client would otherwise answer from a release
+            // with no knowledge yet while it generates, and keep doing so if the generation failed.
+            var installation = await this.installer.InstallAsync(request with { MakeDefault = false }, cancellationToken, progress);
             var build = await this.builder.BuildAsync([installation.Tag], progress: progress, cancellationToken: cancellationToken);
 
-            return new ReleaseSetup(installation, build);
+            if (request.MakeDefault && build.Refusal is null)
+            {
+                this.selector.Use(installation.Tag);
+            }
+
+            var manifest = VersionManifestFile.ReadIfPresent(installation.Manifest.FullName);
+
+            return new ReleaseSetup(installation, build, string.Equals(manifest?.Default, installation.Tag, StringComparison.Ordinal));
         }
 
         /// <summary>Makes an installed release the default, holding the lock.</summary>

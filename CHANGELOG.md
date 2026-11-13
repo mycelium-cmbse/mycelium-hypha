@@ -21,7 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the newest offered release when no tag is given), `hypha_use_release` and
   `hypha_remove_release`, run in the server's own process. An install sends MCP progress
   notifications, one per file fetched and per artifact generated, in order, and answers with what
-  each artifact did. Each tool takes the release-operation lock, waiting up to ten minutes for
+  each artifact did. The release becomes the default only once its knowledge is generated with no
+  generator refusing, so a failed or cancelled install leaves the previous default answering. Each
+  tool takes the release-operation lock, waiting up to ten minutes for
   another client's change, through a new `IReleaseOperations` in `Hypha.Knowledge`; the switch of
   the default moved into `IReleaseSelector`, which `hypha use` now runs through too.
 - **A query API in `Hypha.Knowledge`** (`refs #194`), namespace `Hypha.Knowledge.Query`: the

@@ -87,7 +87,8 @@ namespace Hypha.Knowledge.Releases
             // hand-edited manifest says is installed.
             if (!ReleaseTag.IsRelease(tag))
             {
-                throw new ArgumentException($"not a release: {tag}", nameof(tag));
+                // The messages name no command: the CLI and the MCP server each say how to act on them.
+                throw new ArgumentException($"'{tag}' is not a release tag");
             }
 
             var path = this.layout.VersionManifest.FullName;
@@ -97,7 +98,7 @@ namespace Hypha.Knowledge.Releases
 
             if (!manifest.Versions.Any(version => string.Equals(version.Tag, tag, StringComparison.Ordinal)))
             {
-                throw new ArgumentException($"'{tag}' is not installed", nameof(tag));
+                throw new ArgumentException($"'{tag}' is not installed");
             }
 
             // The only installed release is always the default (VersionManifest.Build requires it),
@@ -108,13 +109,13 @@ namespace Hypha.Knowledge.Releases
                 if (!force)
                 {
                     throw new InvalidOperationException(
-                        $"'{tag}' is the only installed release - pass --force to remove it anyway");
+                        $"'{tag}' is the only installed release, and removing it leaves nothing to answer from; force the removal to remove it anyway");
                 }
             }
             else if (string.Equals(manifest.Default, tag, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
-                    $"'{tag}' is the default release - run 'hypha use --tag <other>' before removing it");
+                    $"'{tag}' is the default release; make another installed release the default before removing it");
             }
 
             cancellationToken.ThrowIfCancellationRequested();

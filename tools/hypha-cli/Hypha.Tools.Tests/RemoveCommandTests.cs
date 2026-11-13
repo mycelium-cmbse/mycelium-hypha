@@ -80,7 +80,7 @@ namespace Hypha.Tools.Tests
             this.remover
                 .Setup(mock => mock.RemoveAsync("2026-05", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException(
-                    "'2026-05' is the default release - run 'hypha use --tag <other>' before removing it"));
+                    "'2026-05' is the default release; make another installed release the default before removing it"));
 
             using var console = new RecordedConsole();
 

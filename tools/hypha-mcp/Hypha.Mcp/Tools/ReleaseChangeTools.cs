@@ -76,7 +76,7 @@ namespace Hypha.Mcp.Tools
         public Task<string> InstallRelease(
             [Description("The release, such as 2026-05. Omit it for the newest release offered upstream.")] string? tag = null,
             [Description("Also download the OMG specification PDFs and extract their text, which verbatim citations need.")] bool includeSpecifications = true,
-            [Description("Make it the default release, which every tool answers from unless given a tag.")] bool makeDefault = true,
+            [Description("Make it the default release, which every tool answers from unless given a tag, once its knowledge is generated.")] bool makeDefault = true,
             RequestContext<CallToolRequestParams>? context = null,
             CancellationToken cancellationToken = default) =>
             this.InstallAsync(tag, includeSpecifications, makeDefault, Sender(context, cancellationToken), cancellationToken);
@@ -119,7 +119,7 @@ namespace Hypha.Mcp.Tools
                         forwarder,
                         cancellationToken);
 
-                    return InstallAnswer.From(setup, makeDefault);
+                    return InstallAnswer.From(setup);
                 },
                 McpJsonContext.Readable.InstallAnswer);
 

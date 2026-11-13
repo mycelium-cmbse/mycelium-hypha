@@ -20,7 +20,10 @@ namespace Hypha.Mcp.Tools
     /// What <c>hypha_install_release</c> did, as the model reads it.
     /// </summary>
     /// <param name="Tag">The release installed.</param>
-    /// <param name="MadeDefault">Whether it is now the default release.</param>
+    /// <param name="IsDefault">
+    /// Whether it is now the default release: as asked when nothing refused, and always for the first
+    /// release installed.
+    /// </param>
     /// <param name="Fetched">How many input files were fetched, by kind.</param>
     /// <param name="Artifacts">What each artifact did, in the order generated.</param>
     /// <param name="Refusal">
@@ -29,17 +32,16 @@ namespace Hypha.Mcp.Tools
     /// </param>
     internal sealed record InstallAnswer(
         string Tag,
-        bool MadeDefault,
+        bool IsDefault,
         IReadOnlyDictionary<string, int> Fetched,
         IReadOnlyList<ArtifactAnswer> Artifacts,
         ArtifactAnswer? Refusal)
     {
         /// <summary>The answer for a finished install.</summary>
         /// <param name="setup">What the install did.</param>
-        /// <param name="madeDefault">Whether the install was asked to make the release the default.</param>
         /// <returns>The answer.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="setup"/> is <c>null</c>.</exception>
-        public static InstallAnswer From(ReleaseSetup setup, bool madeDefault)
+        public static InstallAnswer From(ReleaseSetup setup)
         {
             ArgumentNullException.ThrowIfNull(setup);
 
@@ -47,7 +49,7 @@ namespace Hypha.Mcp.Tools
 
             return new InstallAnswer(
                 installation.Tag,
-                madeDefault,
+                setup.IsDefault,
                 new SortedDictionary<string, int>(StringComparer.Ordinal)
                 {
                     ["metamodel"] = installation.Metamodel.Count,

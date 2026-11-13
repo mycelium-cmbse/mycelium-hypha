@@ -70,31 +70,117 @@ namespace Hypha.Knowledge.Tests
         private bool LockHeld => File.Exists(Path.Combine(this.workspace.FullName, ReleaseOperationLock.FileName));
 
         [Test]
-        public async Task Install_fetches_then_generates_that_release_holding_the_lock_throughout()
+        public async Task Install_fetches_generates_and_only_then_switches_the_default_holding_the_lock_throughout()
         {
             var request = new ReleaseInstallRequest { Tag = Tag, IncludeSpecifications = true };
+            var fetched = request with { MakeDefault = false };
             var progress = new Mock<IProgress<KnowledgeProgress>>().Object;
             var installation = this.Installation();
             var build = new KnowledgeBuild([], null);
             var held = new List<string>();
+            this.WriteManifest("2026-04", "2026-04", Tag);
 
             this.installer
-                .Setup(i => i.InstallAsync(request, It.IsAny<CancellationToken>(), progress))
-                .Callback(() => held.Add($"fetch:{this.LockHeld}"))
+                .Setup(i => i.InstallAsync(fetched, It.IsAny<CancellationToken>(), progress))
+                .Callback(() => held.Add($"fetch:{this.LockHeld}:{this.Default}"))
                 .ReturnsAsync(installation);
             this.builder
                 .Setup(b => b.BuildAsync(It.Is<IReadOnlyList<string>>(tags => tags.Count == 1 && tags[0] == Tag), null, progress, It.IsAny<CancellationToken>()))
-                .Callback(() => held.Add($"generate:{this.LockHeld}"))
+                .Callback(() => held.Add($"generate:{this.LockHeld}:{this.Default}"))
                 .ReturnsAsync(build);
+            this.selector
+                .Setup(s => s.Use(Tag))
+                .Callback(() =>
+                {
+                    held.Add($"use:{this.LockHeld}");
+                    this.WriteManifest(Tag, "2026-04", Tag);
+                })
+                .Returns(new ReleaseSelection(Tag, "2026-04"));
 
             var setup = await this.operations.InstallAsync(request, progress);
 
             Assert.Multiple(() =>
             {
-                Assert.That(held, Is.EqualTo(new[] { "fetch:True", "generate:True" }));
-                Assert.That(setup, Is.EqualTo(new ReleaseSetup(installation, build)));
+                Assert.That(held, Is.EqualTo(new[] { "fetch:True:2026-04", "generate:True:2026-04", "use:True" }));
+                Assert.That(setup, Is.EqualTo(new ReleaseSetup(installation, build, IsDefault: true)));
                 Assert.That(this.LockHeld, Is.False, "the lock is released once the install is done");
             });
+        }
+
+        [Test]
+        public async Task A_refused_generation_leaves_the_previous_default_answering()
+        {
+            this.WriteManifest("2026-04", "2026-04", Tag);
+            this.installer
+                .Setup(i => i.InstallAsync(It.Is<ReleaseInstallRequest>(r => !r.MakeDefault), It.IsAny<CancellationToken>(), null))
+                .ReturnsAsync(this.Installation());
+            this.builder
+                .Setup(b => b.BuildAsync(It.IsAny<IReadOnlyList<string>>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new KnowledgeBuild([], new ArtifactRefusal(Tag, "cross-references", "a slug collision")));
+
+            var setup = await this.operations.InstallAsync(new ReleaseInstallRequest { Tag = Tag, MakeDefault = true });
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(setup.IsDefault, Is.False);
+                Assert.That(this.Default, Is.EqualTo("2026-04"));
+            });
+            this.selector.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void A_generation_that_fails_or_is_cancelled_leaves_the_previous_default_and_releases_the_lock()
+        {
+            this.WriteManifest("2026-04", "2026-04", Tag);
+            this.installer
+                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>(), null))
+                .ReturnsAsync(this.Installation());
+            this.builder
+                .SetupSequence(b => b.BuildAsync(It.IsAny<IReadOnlyList<string>>(), null, null, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new IOException("spec-extract stopped"))
+                .ThrowsAsync(new OperationCanceledException());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(() => this.operations.InstallAsync(new ReleaseInstallRequest { Tag = Tag }), Throws.TypeOf<IOException>());
+                Assert.That(() => this.operations.InstallAsync(new ReleaseInstallRequest { Tag = Tag }), Throws.InstanceOf<OperationCanceledException>());
+                Assert.That(this.Default, Is.EqualTo("2026-04"));
+                Assert.That(this.LockHeld, Is.False);
+            });
+            this.selector.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public async Task An_install_not_asked_to_be_the_default_does_not_switch_it()
+        {
+            this.WriteManifest("2026-04", "2026-04", Tag);
+            this.installer
+                .Setup(i => i.InstallAsync(It.Is<ReleaseInstallRequest>(r => !r.MakeDefault), It.IsAny<CancellationToken>(), null))
+                .ReturnsAsync(this.Installation());
+            this.builder
+                .Setup(b => b.BuildAsync(It.IsAny<IReadOnlyList<string>>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new KnowledgeBuild([], null));
+
+            var setup = await this.operations.InstallAsync(new ReleaseInstallRequest { Tag = Tag, MakeDefault = false });
+
+            Assert.That(setup.IsDefault, Is.False);
+            this.selector.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public async Task The_first_release_installed_is_reported_as_the_default_even_when_not_asked()
+        {
+            this.installer
+                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>(), null))
+                .Callback(() => this.WriteManifest(Tag, Tag))
+                .ReturnsAsync(this.Installation());
+            this.builder
+                .Setup(b => b.BuildAsync(It.IsAny<IReadOnlyList<string>>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new KnowledgeBuild([], null));
+
+            var setup = await this.operations.InstallAsync(new ReleaseInstallRequest { Tag = Tag, MakeDefault = false });
+
+            Assert.That(setup.IsDefault, Is.True);
         }
 
         [Test]
@@ -185,6 +271,17 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(this.LockHeld, Is.False);
             });
         }
+
+        private string? Default => VersionManifestFile.ReadIfPresent(this.layout.VersionManifest.FullName)?.Default;
+
+        private void WriteManifest(string defaultTag, params string[] tags) =>
+            VersionManifestFile.Write(
+                VersionManifest.Build(
+                    defaultTag,
+                    Array.ConvertAll(
+                        tags,
+                        tag => new InstalledVersion(tag, new UpstreamReference(Upstream.ReleaseRepository, "abc"), new UpstreamReference(Upstream.PilotRepository, "def")))),
+                this.layout.VersionManifest.FullName);
 
         private ReleaseInstallation Installation() =>
             new(
