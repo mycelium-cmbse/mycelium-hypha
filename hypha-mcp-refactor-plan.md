@@ -375,7 +375,11 @@ One thin slice, end to end: the Claude plugin starts `hypha serve` through the l
 - [x] Release assets: a self-contained single-file `hypha` per RID is what `release.yml` already publishes; the release itself, with `serve`, is part of Step 6.
 - [x] Claude plugin: `mcpServers` in `.claude-plugin/plugin.json` to `bin/hypha-launch` (not a root `.mcp.json`, which Claude Code would also load as this repository's own project configuration), with no `--repository-root` (#225).
 - [x] Build and commit the AOT launcher binaries: run *Hook and launcher binaries* on `development` (a6b6b6b; the Windows build checked with a Node spawn and `cross-spawn`, through `HYPHA_BIN` and through the fallback).
-- [ ] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed): Claude Code on Windows and on macOS or Linux, VS Code with Copilot, and one of Cursor or Codex. Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
+- [ ] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed). Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
+  - [x] Claude Code on Windows: the server connects through `bin/hypha-launch` and answers (November 2026).
+  - [ ] Claude Code on macOS or Linux.
+  - [ ] VS Code with Copilot.
+  - [ ] One of Cursor or Codex.
 - Until Step 6 the skills keep reading the plugin's folder; Steps 5 and 6 are released together, as plugin 3.0.0.
 
 ### Step 6: Make the skills portable, and release tools 1.6.0 and plugin 3.0.0 (#197)
