@@ -225,6 +225,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   starts the server. A question about a set, a closure or a comparison of metaclasses is one tool call.
   A test checks that every tool a skill, agent or command names is one the server has, and every
   question and argument it names one that tool accepts.
+- **The specification-citation and validation skills answer through the MCP server** (`refs #197`):
+  `spec-citation` reads clauses with `hypha_spec`, finds them with `hypha_search_spec`, `hypha_search`
+  and `hypha_syntax`, and names the governing clause, with its provenance, when the specification text
+  was never generated. `sysml-validation` checks keywords, productions and feature assignments with
+  `hypha_syntax` and reachability and multiplicities with `hypha_metaclass`, and names the release's
+  worked examples of an element without reading them.
 
 - **A relative `HYPHA_HOME` is refused** (`refs #196`): it would be resolved against each process's
   working directory, so two clients started from different folders would not share one home or one
@@ -311,8 +317,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   packages and `tools/spec-extract`, grouped per ecosystem and only for versions two weeks old.
 
 ### Removed
-- **The `metamodel-navigator` agent** (`refs #197`): its fan-out questions are single tool calls now,
-  and `metamodel-lookup` says which.
+- **The `metamodel-navigator`, `spec-citation` and `sysml-validator` agents** (`refs #197`): their
+  fan-out questions are single tool calls now. `metamodel-lookup` says which, and `spec-citation` and
+  `sysml-validation` take over the other two, including a whole model to check.
 
 ### Fixed
 - **Installing into a folder that is not a source checkout generates the metamodel**

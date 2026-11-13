@@ -1,6 +1,6 @@
 # Copilot instructions
 
-Scope is the **OMG SysML v2 / KerML** standards (not UML). The repo has three parts: the `hypha` Claude plugin (`.claude-plugin/`, `skills/`, `agents/`, `commands/`, `hooks/`, `knowledge/`), the VS Code extension (`extensions/vscode/`), and the generation pipelines in `tools/` that build `knowledge/` from upstream OMG sources in `sources/`.
+Scope is the **OMG SysML v2 / KerML** standards (not UML). The repo has three parts: the `hypha` Claude plugin (`.claude-plugin/`, `skills/`, `commands/`, `hooks/`, `bin/`, `knowledge/`), the VS Code extension (`extensions/vscode/`), and the generation pipelines in `tools/` that build `knowledge/` from upstream OMG sources in `sources/`.
 
 ## Build, test, lint
 
@@ -43,7 +43,7 @@ VS Code extension (`extensions/vscode/`): `npm test` (clean, tsc, copy assets, `
 - **Prose, comments, XML docs, CHANGELOG, issues, PRs and commit messages use no en or em dashes** as punctuation; use a comma, colon, parentheses, semicolon or full stop. Hyphens in compound words are fine.
 - **Git:** never work on `development` or `main`. Branch `GH<issue-number>` off `development`, PR back into `development`, rebase rather than merge. Ask before committing or pushing. Commit subject: `[Verb] <summary>; fixes #<n>`.
 
-## Knowledge-base shape (what skills and agents consume)
+## Knowledge-base shape (what the skills consume)
 
 - `knowledge/<tag>/metamodel/elements/<Name>.md`: one file per metaclass, with an **Inherited features** table giving the full effective feature set (do not re-walk generalizations); `index.md`/`index.json` resolve names.
 - `knowledge/<tag>/spec/{kerml,sysml2}/<clause>.md`: verbatim clause text with front matter, plus an index.

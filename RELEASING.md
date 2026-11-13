@@ -4,7 +4,7 @@ Two things ship from this repository, on **independent version lines**:
 
 | What | Tag | Released by |
 | --- | --- | --- |
-| the `hypha` **plugin** (skills, agents, `knowledge/`) | `vX.Y.Z` | the steps below |
+| the `hypha` **plugin** (skills, the MCP server launcher, `knowledge/`) | `vX.Y.Z` | the steps below |
 | the `hypha` **tools** (the generator CLI) | `tools-vX.Y.Z` | [the Release workflow](#releasing-the-tools) |
 
 A plugin release does not require a tool release, or the other way round: the tool is developer

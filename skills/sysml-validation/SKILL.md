@@ -1,116 +1,126 @@
 ---
 name: sysml-validation
-description: Validate SysML v2 / KerML textual notation (.sysml / .kerml, not UML) for syntactic and structural correctness against the grammar and metamodel, and explain any violations with fixes. Use when the user provides SysML v2 or KerML textual notation to check, or asks whether a snippet is valid.
+description: "Validate SysML v2 / KerML textual notation (.sysml / .kerml, not UML) for syntactic and structural correctness against the grammar and metamodel, and explain any violations with fixes, from a snippet to a whole model. Use when the user provides SysML v2 or KerML textual notation to check, or asks whether a snippet is valid."
 ---
 
 # SysML v2 validation
 
-Check SysML v2 / KerML textual notation against the documented grammar and metamodel, then report
-findings with locations and corrections.
+Check SysML v2 / KerML textual notation against the release's grammar and metamodel, read through the
+**hypha MCP server's tools**, then report findings with locations and corrections. The tools are named
+here without a client's prefix: a client may show `hypha_syntax` as, for example,
+`mcp__hypha__hypha_syntax`.
 
-## Releases
+## Which release
 
-The metamodel and grammar are generated **per upstream release tag** (`YYYY-MM`). Read
-`knowledge/versions.json` for the installed tags and the `default` one, then substitute it for
-`<tag>` below. Validate against the default release unless the user names another, and **say which
-release you validated against**, since a construct valid in one release may not be in another.
+The metamodel and grammar are generated per upstream release tag (`YYYY-MM`).
 
-## Knowledge base
+- Every tool answers from the **default** release unless it is given a `tag`. Call
+  `hypha_release_status` when unsure what is installed.
+- **Say which release you validated against**: a construct valid in one release may not be in
+  another.
+- If the user names a release that is not installed, say so and name the installed ones.
 
-- `knowledge/<tag>/textual-notation/index.md`: the **keyword reference**, read from that release's
-  own grammar. Start here for what is and is not a keyword.
-- `knowledge/<tag>/textual-notation/examples/`: every model shipped with that release, copied
-  verbatim, each linked to the metamodel elements it declares. These are the reference for what
-  valid notation looks like: if a construct appears here, it is valid for this release.
-- `knowledge/<tag>/metamodel/`: the combined KerML + SysML v2 metamodel: `elements/<Metaclass>.md` for
-  structural constraints, `index.json` (or `index.md`) for fast name → element lookup, and
-  `metamodel.json` for the structural checks below.
-- `knowledge/<tag>/cross-references.json`: element → clause identifiers, BNF production and worked
-  example. Committed, so it works without the PDFs.
-- `knowledge/<tag>/spec/`: normative clauses to cite. **Git-ignored / generated locally** (see
-  `tools/spec-extract`); if it is empty, cite the metamodel/grammar and name the governing clause
-  from `cross-references.json` rather than inventing one.
+## Tools
+
+The grammar, `hypha_syntax` with the `question`:
+
+| Question | `question` | Arguments |
+| --- | --- | --- |
+| Is a word a keyword or operator, of which kind, and which productions and metaclasses write it | `keyword` | `word`; `grammar: "kerml"` or `grammar: "sysml"` for one grammar |
+| The elements a grammar production builds | `built-by` | `production`; `grammar` |
+| Which elements' syntax fills in a metamodel feature, and through which operator | `feature-assignments` | `feature`; `operator` |
+| An element's clauses, productions, the features its syntax fills in, and its worked examples | `cross-reference` | `element` |
+
+The metamodel, `hypha_metaclass` with the `question`:
+
+| Question | `question` | Arguments |
+| --- | --- | --- |
+| What a metaclass is: abstract or not, its supertypes | `element` | `name` |
+| A feature on a metaclass, owned or inherited, with its type, multiplicity and owner | `features` | `name`, `feature` |
+| Does one metaclass specialize another | `specializes` | `name`, `general` |
+| The constraints a model of it must satisfy | `constraints` | `name` |
+
+And `hypha_search` with `text` and `kind: "metamodel"` to find the metaclass a construct builds when
+the name is not exact. For quoting the specification behind a ruling, use the `spec-citation` skill.
 
 ## What to check
 
-**Syntax** (against the grammar reference)
-- Every declaration is terminated by `;` or has a `{ }` body; braces/brackets/parentheses balance.
-- Names are not reserved keywords unless quoted (`'name'`); keywords are spelled and placed per the reference.
-- Relationship operators are correct: `:` (typing / defined by), `:>` (specializes / subsets), `:>>`
+**Syntax**, against the grammar:
+
+- Every declaration is terminated by `;` or has a `{ }` body; braces, brackets and parentheses
+  balance.
+- A name is not a reserved keyword unless it is quoted (`'name'`): `hypha_syntax` `keyword` gives a
+  word's `kind` (`reserved`, `contextual` or `operator`) per grammar, and a `null` value means it is
+  no keyword or operator of the release. A keyword is written where a production that writes it allows.
+- Relationship operators are correct: `:` (typing or defined by), `:>` (specializes or subsets), `:>>`
   (redefines), `::>` (references), `=>` (crosses). `=` binds a value, not a type.
-- Multiplicity is well-formed (`[lower..upper]`, `[n]`, `[*]`).
+- A multiplicity is well-formed: `[lower..upper]`, `[n]`, `[*]`.
 
-**Structural / semantic** (against the metamodel)
-- A usage is typed by a *definition* of the right kind (e.g. a `part` by a `part def`).
-- `redefines` / `subsets` / specialization targets resolve to a feature or type reachable through a
-  specialized type; multiplicity bounds satisfy `lower <= upper`.
-- Member names are unique within their namespace; required features/parameters are present.
+**Structure**, against the metamodel:
 
-### Grounding the structural checks in the graph
+- A usage is typed by a *definition* of the right kind (a `part` by a `part def`).
+- A `redefines` / `subsets` / specialization target resolves to a feature or type reachable through a
+  specialized type.
+- Multiplicity bounds satisfy `lower <= upper`; member names are unique within their namespace;
+  required features and parameters are present.
 
-Two of these are graph traversals, not pattern matches; decide them against `metamodel.json`
-instead of reasoning from prose. `jq` is recommended; without it, read the element file's
-**## Inherited features** table, which carries the same effective set.
+### Deciding the structural checks from the graph
 
-**Reachability**: is a `redefines` / `subsets` target actually inherited? A feature is reachable
-from a metaclass when it appears in that metaclass's `inheritedAttributes` (or its own
-`ownedAttributes`); `inheritedFrom` names the declaring type, which is what you cite. When its
-`redefinedBy` is set, a feature of that metaclass redefines it, and the redefining feature is the
-one that applies:
+Two of these are graph questions, not pattern matches; decide them from the tools rather than from
+prose:
 
-```sh
-jq -r '.classes[] | select(.name=="PartUsage")
-       | (.ownedAttributes[], .inheritedAttributes[]) | select(.name=="mass") | .name' \
-  knowledge/<tag>/metamodel/metamodel.json
-```
+- **Reachability**: is a `redefines` / `subsets` target inherited? `hypha_metaclass` `features` with
+  `name` and `feature` answers with the feature when the metaclass has it, owned or inherited, and an
+  empty list when it does not, so the redefinition cannot resolve. Cite the owner it names
+  (`inheritedFrom`, or the metaclass itself); when `redefinedBy` is set, the redefining feature is the
+  one that applies. In user notation the *declared* type may specialize nothing, and then there is no
+  inherited feature to redefine whatever the metamodel says.
+- **Multiplicity bounds**: `lower` and `upper` are integers, `-1` meaning unbounded (write it `*`), so
+  `lower > upper` is a comparison, not a judgement. Apply the same rule to bounds in the notation under
+  review: `[2..1]` is ill-formed, `[0..*]` is not.
 
-No output means the feature is not on that type at all, so the redefinition cannot resolve. Note the
-distinction: in user notation the *declared* type may specialize nothing, in which case there is no
-inherited feature to redefine regardless of what the metamodel says.
+**What a construct fills in.** `hypha_syntax` `cross-reference` lists, per element, the metamodel
+features its syntax fills in and how (`=` sets, `+=` adds, `?=` sets a boolean from a keyword's
+presence), with the productions responsible. Use it to explain a finding in the model's terms rather
+than the notation's: "this sets `declaredName`, which is `[0..1]`" explains more than "this looks
+wrong". An element whose syntax fills in nothing adds no syntax of its own and inherits its
+declaration: say so rather than treating it as unknown.
 
-**Multiplicity bounds**: `lower` and `upper` are typed integers in the graph (`-1` means unbounded),
-so `lower > upper` is a comparison rather than a judgement. Apply the same rule to bounds written in
-the notation under review: `[2..1]` is ill-formed, `[0..*]` is not.
+The same answer names the clauses that treat the element, each with its provenance: a clause the
+grammar states (`MODEL`) or one matched on its title (`DERIVED`). Cite it as a *reference*, and quote
+it only through `spec-citation`.
 
-**What a construct actually populates.** `cross-references.json` carries a `features` array per
-element: the metamodel feature each piece of syntax fills, and how (`=` sets, `+=` adds, `?=` sets a
-boolean from a keyword's presence), with the productions responsible.
+**Worked examples.** The same answer also names the release's own example models that declare the
+element (their `file`). A construct that appears in one is valid for that release. The tools do not
+read an example's text, so name the example as evidence, never quote it from memory.
 
-```sh
-jq -r '.entries["Comment"].features[] | "\(.feature) \(.operator) via \(.productions|join(", "))"' \
-  knowledge/<tag>/cross-references.json
-```
+## Large inputs
 
-Use it to explain a finding in the model's terms rather than the notation's: "this sets
-`declaredName`, which is `[0..1]`" is a better explanation than "this looks wrong". An empty list
-means the element adds no syntax of its own and inherits its declaration; say so rather than
-treating it as unknown.
+For a whole model, check each declaration in turn, but ask each question once: look up a keyword, a
+production or a metaclass's features the first time it occurs, and reuse the answer for every other
+declaration of the same kind. Report every finding, grouped by declaration.
 
-For either finding, `cross-references.json` gives the clause to point at:
+## Findings format
 
-```sh
-jq -r '.entries["MultiplicityRange"].clauses[] | "\(.document) \(.clause)"' knowledge/<tag>/cross-references.json
-```
+Lead with a one-line **verdict** (`valid`, or `N issue(s) found`) and the release, then one item per
+finding:
 
-Cite that clause as a *reference* (`DERIVED`, matched by name), and quote it only if
-`knowledge/<tag>/spec/` is present.
+- **Location**: the offending line or snippet.
+- **Rule**: the grammar or metamodel rule it breaks.
+- **Why**: a one-line explanation.
+- **Fix**: a corrected snippet.
+- **Reference**: the metaclass, production or clause behind the ruling, with its tier, for a ruling
+  that is not obvious.
 
 ## Procedure
 
-1. Parse structurally: declarations, memberships, relationships, keywords (per the keyword reference).
-2. Run the syntax checks, then the structural checks: reachability and multiplicity bounds against
-   `metamodel.json` as above, and the rest against `knowledge/<tag>/metamodel/elements/`.
-3. For each issue report **location**, the **violated rule**, **why** it is wrong, and a **corrected
-   snippet**; add a knowledge-base **reference** (metamodel element or spec clause) for non-obvious rulings.
-4. If nothing is wrong, state that the notation is valid.
-
-`knowledge/<tag>/textual-notation/examples/` is the reference for valid notation: every model shipped
-with the release, verbatim. A construct that appears there is valid for that release; if the input
-resembles one of them, compare against it rather than reasoning from the grammar alone.
+1. Parse the notation structurally: declarations, memberships, relationships, keywords.
+2. Run the syntax checks with `hypha_syntax`, then the structural checks with `hypha_metaclass`.
+3. Report the findings in the format above. If nothing is wrong, say the notation is valid for the
+   release.
 
 ## Limits
 
-This reasons from the documented grammar and metamodel; it is **not** the pilot-implementation
-compiler. When a definitive ruling needs the real parser, say so rather than guessing.
-
-For larger inputs, delegate to the `sysml-validator` subagent.
+This reasons from the grammar and the metamodel; it is **not** the pilot-implementation compiler.
+When a definitive ruling needs the real parser, say so rather than guessing. Never invent metamodel
+structure or a specification clause; if the tools do not cover it, say so.
