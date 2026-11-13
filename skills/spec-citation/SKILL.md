@@ -62,8 +62,9 @@ shipped (OMG licensing forbids redistributing it). Do not simply refuse. Degrade
 2. Say plainly that you are giving a clause **reference**, not a quotation, and give its provenance:
    a clause the grammar states (`MODEL`, method `grammar-clause`) or one matched on its title
    (`DERIVED`, method `exact-title-match`).
-3. Tell the user how to unlock the verbatim text, as `unavailable` says: `hypha fetch --tag <tag>` for
-   the PDFs, if they are not already present, then `hypha generate --tag <tag>`.
+3. Tell the user how to unlock the verbatim text: pass on what `unavailable` says, with its commands
+   as written (such as `hypha generate spec --tag <tag>`, after `hypha fetch --tag <tag>` when the PDFs
+   are not present yet).
 
 Never invent or paraphrase the wording of a clause you cannot read. A pointer to the right clause is
 useful; a fabricated quotation is not.

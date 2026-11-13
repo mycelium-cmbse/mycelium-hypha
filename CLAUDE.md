@@ -222,7 +222,7 @@ must match each other byte for byte; see "The CLI generates, the tests verify" a
 `Hypha.Knowledge.Metamodel.Tests`' `Expected/` golden files check against the committed XMI fixture; neither
 kind of test tolerates non-deterministic output.
 
-## Knowledge-base shape (what the skills/agents consume)
+## Knowledge-base shape (what the skills consume)
 
 - `knowledge/metamodel/elements/<Name>.md`: one file per metaclass / enumeration / primitive, with
   front matter, Generalizations/Specializations, **Owned features**, an **Inherited features** table giving
