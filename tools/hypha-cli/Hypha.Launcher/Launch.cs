@@ -31,6 +31,9 @@ namespace Hypha.Launcher
         /// <summary>The environment variable naming a <c>hypha</c> to start instead of provisioning one.</summary>
         public const string BinVariable = "HYPHA_BIN";
 
+        /// <summary>The first <c>hypha</c> that has <c>serve</c>; an older one prints its help on standard output instead.</summary>
+        public const string MinimumVersion = "1.6.0";
+
         /// <summary>How many folders above the launcher <c>bin/hypha-launch.json</c> may be: <c>bin/</c> on Windows, <c>bin/&lt;rid&gt;/</c> elsewhere.</summary>
         private const int ManifestSearchDepth = 3;
 
@@ -105,6 +108,20 @@ namespace Hypha.Launcher
         /// <returns>The executable, or why there is none and how to fix it.</returns>
         public async Task<LaunchTarget> FindAsync(DirectoryInfo baseDirectory, string rid, CancellationToken cancellationToken = default)
         {
+            var located = this.Locate(baseDirectory, rid);
+
+            return located.NeedsDownload ? await this.DownloadAsync(located, rid, cancellationToken) : located;
+        }
+
+        /// <summary>
+        /// Finds the <c>hypha</c> to start without the network: <c>HYPHA_BIN</c>, or the version the package
+        /// names when it is cached already; otherwise the download it still needs, or why there is none.
+        /// </summary>
+        /// <param name="baseDirectory">The launcher's own folder, where the package's <c>bin/</c> is.</param>
+        /// <param name="rid">The runtime identifier of this platform, such as <c>win-x64</c>.</param>
+        /// <returns>The executable, the pending download, or why there is none and how to fix it.</returns>
+        public LaunchTarget Locate(DirectoryInfo baseDirectory, string rid)
+        {
             ArgumentNullException.ThrowIfNull(baseDirectory);
             ArgumentException.ThrowIfNullOrWhiteSpace(rid);
 
@@ -114,7 +131,7 @@ namespace Hypha.Launcher
 
                 return executable.Exists
                     ? LaunchTarget.Found(executable, null)
-                    : LaunchTarget.Missing($"{BinVariable} names '{configured}', which does not exist. Point it at an installed hypha, or unset it to let the launcher download one.");
+                    : LaunchTarget.Missing($"{BinVariable} names '{configured}', which does not exist. Point it at an installed hypha {MinimumVersion} or later, or unset it to let the launcher download one.");
             }
 
             var manifest = FindManifest(baseDirectory);
@@ -123,7 +140,7 @@ namespace Hypha.Launcher
             {
                 return LaunchTarget.Missing(
                     $"this package carries no {LaunchManifest.FileName} naming the hypha version to start, so it is damaged. "
-                    + $"Reinstall it, or set {BinVariable} to an installed hypha.");
+                    + $"Reinstall it, or set {BinVariable} to an installed hypha {MinimumVersion} or later.");
             }
 
             DirectoryInfo home;
@@ -137,14 +154,48 @@ namespace Hypha.Launcher
             }
 
             var cache = new CacheLayout(home, CacheLayout.ComputeInstallKey(manifest!.DirectoryName!));
-            var found = await this.provisioner.EnsureAsync(cache, version, rid, cancellationToken);
+
+            return CliProvisioner.IsCached(cache, version, rid)
+                ? LaunchTarget.Found(cache.CliExecutable(version, rid), version)
+                : LaunchTarget.Pending(version, cache);
+        }
+
+        /// <summary>Downloads the version a <see cref="Locate"/> result still needs.</summary>
+        /// <param name="pending">The pending download.</param>
+        /// <param name="rid">The runtime identifier of this platform.</param>
+        /// <param name="cancellationToken">Cancels the download.</param>
+        /// <returns>The executable, or why there is none and how to fix it; never an exception.</returns>
+        /// <exception cref="ArgumentException"><paramref name="pending"/> needs no download.</exception>
+        public async Task<LaunchTarget> DownloadAsync(LaunchTarget pending, string rid, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(pending);
+            if (!pending.NeedsDownload)
+            {
+                throw new ArgumentException("the target needs no download", nameof(pending));
+            }
+
+            var version = pending.Version!;
+            FileInfo? found;
+            string? reason;
+            try
+            {
+                found = await this.provisioner.EnsureAsync(pending.Cache!, version, rid, cancellationToken);
+                reason = this.provisioner.LastFailure;
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                // Whatever went wrong, the client is told through hypha_status rather than left without a server.
+                found = null;
+                reason = exception.Message;
+            }
 
             return found is not null
                 ? LaunchTarget.Found(found, version)
                 : LaunchTarget.Missing(
-                    $"hypha {version} for {rid} could not be downloaded: {this.provisioner.LastFailure ?? "the download failed"}. "
+                    $"hypha {version} for {rid} could not be downloaded: {reason ?? "the download failed"}. "
                     + "Check the network connection, and a proxy through HTTPS_PROXY if one is needed; an unauthenticated GitHub "
-                    + $"API allows 60 requests an hour, so set GITHUB_TOKEN if that is the limit met. Or install hypha yourself and set {BinVariable} to it.",
+                    + $"API allows 60 requests an hour, so set GITHUB_TOKEN if that is the limit met. Or install hypha {MinimumVersion} "
+                    + $"or later yourself and set {BinVariable} to it.",
                     version);
         }
     }

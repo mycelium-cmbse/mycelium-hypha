@@ -370,11 +370,20 @@ follow (Step 7 of `hypha-mcp-refactor-plan.md`).
   launcher downloads `hypha-<version>-<rid>.zip` from the `tools-v<version>` release once, checks it
   against the checksum table in the release notes, keeps it in `HYPHA_HOME/bin/<version>/<rid>/`, and
   runs `hypha serve` on the same standard input and output, passing on any arguments it was given.
+  Each download goes into a folder of its own and is renamed into place once verified, so two clients
+  starting at once neither write into one folder together nor overwrite a `hypha` that is running.
+- **The first start does not keep the client waiting.** A client gives a server a limited time to
+  answer, and the first download can take longer, so the launcher answers at once, downloads
+  meanwhile (`hypha_status` says so), then starts `hypha serve`, replays the client's `initialize` to
+  it and tells the client that its tools, resources and prompts changed. From then on it passes every
+  message through, so the first session gets the real tools without reconnecting.
   It resolves the package from its own location and `HYPHA_HOME` itself, never from a client's path
   variables, and the download honours `HTTPS_PROXY` and `GITHUB_TOKEN`.
-- **`HYPHA_BIN`** names a `hypha` to start instead, for an offline or locked-down machine.
-- **A failure the model can see.** When there is no `hypha` to start (the download is blocked, the
-  package is damaged, `HYPHA_HOME` cannot be used), the launcher serves a minimal MCP server itself.
+- **`HYPHA_BIN`** names a `hypha` to start instead, for an offline or locked-down machine. It must be
+  `hypha` 1.6.0 or later: an older one has no `serve`, and prints its help on standard output.
+- **A failure the model can see.** When there is no `hypha` to start (the download is blocked or
+  cannot be written, the package is damaged, `HYPHA_HOME` cannot be used, the `hypha` found cannot be
+  started), the launcher serves a minimal MCP server itself.
   Its `instructions` and its one tool, `hypha_status`, say why and how to fix it, so the model tells
   the user rather than the server failing to start.
 

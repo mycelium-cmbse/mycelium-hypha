@@ -17,15 +17,23 @@ namespace Hypha.Launcher
     using System.Threading.Tasks;
 
     /// <summary>
-    /// The MCP server the launcher runs itself when it has no <c>hypha</c> to start: its one tool,
-    /// <c>hypha_status</c>, says why and how to fix it, so the model can tell the user instead of the
-    /// server silently failing to start.
+    /// The MCP server the launcher runs itself when it has no <c>hypha</c> to start yet: its one tool,
+    /// <c>hypha_status</c>, says why, so the model can tell the user instead of the server silently
+    /// failing to start.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Just enough of the protocol for that, written by hand so the launcher stays small and NativeAOT-safe:
     /// <c>initialize</c> (whose <c>instructions</c> carry the reason too), <c>ping</c>, <c>tools/list</c>
     /// and <c>tools/call</c>, one JSON-RPC message per line. Notifications are read and ignored, and any
     /// other request is answered "method not found".
+    /// </para>
+    /// <para>
+    /// It answers in one of two ways. When there is no <c>hypha</c> to start at all, <c>hypha_status</c>
+    /// says why and how to fix it. While the first start downloads <c>hypha</c> (<see cref="BootstrapServer"/>),
+    /// it says so instead, announces that its tools, resources and prompts can change, and answers the
+    /// resource and prompt lists empty, so that the client asks again once the real server has taken over.
+    /// </para>
     /// </remarks>
     internal static class FallbackServer
     {
@@ -62,10 +70,11 @@ namespace Hypha.Launcher
 
         /// <summary>The answer to one message, or <c>null</c> for a notification or a line that is not one.</summary>
         /// <param name="line">The message.</param>
-        /// <param name="failure">Why there is no <c>hypha</c>.</param>
-        /// <param name="version">The launcher's version.</param>
+        /// <param name="failure">Why there is no <c>hypha</c>, or, while <paramref name="settingUp"/>, how far its download is.</param>
+        /// <param name="version">The <c>hypha</c> version, reported as the server's.</param>
+        /// <param name="settingUp">Whether <c>hypha</c> is being downloaded, rather than missing for good.</param>
         /// <returns>The answer, or <c>null</c>.</returns>
-        public static JsonObject? Answer(string line, string failure, string version)
+        public static JsonObject? Answer(string line, string failure, string version, bool settingUp = false)
         {
             JsonObject? request;
             try
@@ -84,36 +93,54 @@ namespace Hypha.Launcher
             }
 
             var method = request["method"]?.GetValueKind() == JsonValueKind.String ? request["method"]!.GetValue<string>() : null;
+            var parameters = request["params"] as JsonObject;
 
             return method switch
             {
                 "initialize" => Result(id, new JsonObject
                 {
-                    ["protocolVersion"] = request["params"]?["protocolVersion"]?.DeepClone() ?? DefaultProtocolVersion,
-                    ["capabilities"] = new JsonObject { ["tools"] = new JsonObject() },
+                    ["protocolVersion"] = parameters?["protocolVersion"]?.GetValueKind() == JsonValueKind.String
+                        ? parameters["protocolVersion"]!.DeepClone()
+                        : DefaultProtocolVersion,
+                    ["capabilities"] = settingUp
+                        ? new JsonObject
+                        {
+                            ["tools"] = new JsonObject { ["listChanged"] = true },
+                            ["resources"] = new JsonObject { ["listChanged"] = true },
+                            ["prompts"] = new JsonObject { ["listChanged"] = true },
+                        }
+                        : new JsonObject { ["tools"] = new JsonObject() },
                     ["serverInfo"] = new JsonObject { ["name"] = "hypha", ["version"] = version },
-                    ["instructions"] = $"hypha could not start, so its tools are not available. Call {ToolName} for why, and tell the user: {failure}",
+                    ["instructions"] = settingUp
+                        ? $"hypha is starting for the first time: {failure} Its SysML v2 and KerML tools, resources and prompts appear as "
+                          + $"soon as it is ready; until then {ToolName} says how far it is."
+                        : $"hypha could not start, so its tools are not available. Call {ToolName} for why, and tell the user: {failure}",
                 }),
                 "ping" => Result(id, new JsonObject()),
+                "resources/list" when settingUp => Result(id, new JsonObject { ["resources"] = new JsonArray() }),
+                "resources/templates/list" when settingUp => Result(id, new JsonObject { ["resourceTemplates"] = new JsonArray() }),
+                "prompts/list" when settingUp => Result(id, new JsonObject { ["prompts"] = new JsonArray() }),
                 "tools/list" => Result(id, new JsonObject
                 {
                     ["tools"] = new JsonArray(new JsonObject
                     {
                         ["name"] = ToolName,
                         ["title"] = "hypha status",
-                        ["description"] = "Says why the hypha SysML v2 / KerML server could not start, and how to fix it. Call it, and tell the user what it says.",
+                        ["description"] = settingUp
+                            ? "Says how far the first start of the hypha SysML v2 / KerML server is. Its other tools appear once it is ready."
+                            : "Says why the hypha SysML v2 / KerML server could not start, and how to fix it. Call it, and tell the user what it says.",
                         ["inputSchema"] = new JsonObject { ["type"] = "object", ["properties"] = new JsonObject() },
                         ["annotations"] = new JsonObject { ["readOnlyHint"] = true, ["openWorldHint"] = false },
                     }),
                 }),
-                "tools/call" when request["params"]?["name"]?.GetValueKind() == JsonValueKind.String
-                                  && request["params"]!["name"]!.GetValue<string>() == ToolName => Result(id, new JsonObject
+                "tools/call" when parameters?["name"]?.GetValueKind() == JsonValueKind.String
+                                  && parameters["name"]!.GetValue<string>() == ToolName => Result(id, new JsonObject
                 {
-                    ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = $"hypha could not start: {failure}" }),
+                    ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = settingUp ? failure : $"hypha could not start: {failure}" }),
                     ["isError"] = false,
                 }),
-                "tools/call" => Error(id, -32602, $"Unknown tool; the only one is {ToolName}."),
-                _ => Error(id, -32601, $"Method not found: hypha could not start, and only {ToolName} answers."),
+                "tools/call" => Error(id, -32602, settingUp ? $"hypha is not ready yet; {ToolName} says how far it is." : $"Unknown tool; the only one is {ToolName}."),
+                _ => Error(id, -32601, settingUp ? $"hypha is not ready yet; {ToolName} says how far it is." : $"Method not found: hypha could not start, and only {ToolName} answers."),
             };
         }
 

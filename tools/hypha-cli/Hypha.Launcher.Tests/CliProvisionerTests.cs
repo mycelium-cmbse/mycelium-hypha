@@ -9,10 +9,10 @@
 
 namespace Hypha.Launcher.Tests
 {
-    using Hypha.Launcher.Provisioning;
-
     using System;
     using System.IO;
+
+    using Hypha.Launcher.Provisioning;
 
     [TestFixture]
     public class CliProvisionerTests

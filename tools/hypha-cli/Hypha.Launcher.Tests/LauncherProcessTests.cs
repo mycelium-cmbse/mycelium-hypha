@@ -37,7 +37,7 @@ namespace Hypha.Launcher.Tests
             var knowledge = Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "knowledge-root"));
 
             var (initialize, tools, standardError) = await this.Handshake(
-                new Dictionary<string, string> { ["HYPHA_BIN"] = BuiltHypha().FullName },
+                new Dictionary<string, string> { ["HYPHA_BIN"] = TestHypha.Executable().FullName },
                 ["--repository-root", knowledge.FullName]);
 
             Assert.Multiple(() =>
@@ -63,27 +63,48 @@ namespace Hypha.Launcher.Tests
             });
         }
 
-        // The hypha the solution built, from Hypha.Tools' own output folder of the same configuration.
-        private static FileInfo BuiltHypha()
+        [Test]
+        public async Task A_hypha_that_cannot_be_started_falls_back_to_hypha_status_saying_why()
         {
-            var output = new DirectoryInfo(AppContext.BaseDirectory);
-            var configuration = output.Parent!.Name;
-            var framework = output.Name;
-            var root = output;
-            while (root is not null && !File.Exists(Path.Combine(root.FullName, "mycelium-hypha.sln")))
+            var unstartable = new FileInfo(Path.Combine(this.workspace.FullName, OperatingSystem.IsWindows() ? "hypha.exe" : "hypha"));
+            File.WriteAllText(unstartable.FullName, "not a program");
+
+            var (initialize, tools, _) = await this.Handshake(new Dictionary<string, string> { ["HYPHA_BIN"] = unstartable.FullName }, []);
+
+            Assert.Multiple(() =>
             {
-                root = root.Parent;
-            }
-
-            var hypha = new FileInfo(Path.Combine(
-                root!.FullName, "tools", "hypha-cli", "Hypha.Tools", "bin", configuration, framework, OperatingSystem.IsWindows() ? "hypha.exe" : "hypha"));
-
-            Assert.That(hypha.Exists, Is.True, $"the solution builds {hypha.FullName}");
-
-            return hypha;
+                Assert.That((string?)initialize["result"]?["instructions"], Does.Contain("could not be started").And.Contain("HYPHA_BIN"));
+                Assert.That(tools["result"]!["tools"]!.AsArray().Select(tool => (string?)tool!["name"]), Is.EqualTo(new[] { "hypha_status" }));
+            });
         }
 
-        private async Task<(JsonNode Initialize, JsonNode Tools, string StandardError)> Handshake(IReadOnlyDictionary<string, string> environment, string[] arguments)
+        [Test]
+        public async Task The_launcher_reports_the_hypha_version_its_package_names()
+        {
+            // A package of its own: the launcher beside a manifest, and a HYPHA_HOME it cannot use, so that it
+            // answers itself without reaching the network.
+            var bin = Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "plugin", "bin"));
+            foreach (var file in new[] { "hypha-launch.dll", "hypha-launch.runtimeconfig.json", "hypha-launch.deps.json" })
+            {
+                File.Copy(Path.Combine(AppContext.BaseDirectory, file), Path.Combine(bin.FullName, file));
+            }
+
+            File.WriteAllText(Path.Combine(bin.FullName, LaunchManifest.FileName), """{"hyphaVersion": "1.6.3"}""");
+
+            var (initialize, _, _) = await this.Handshake(
+                new Dictionary<string, string> { ["HYPHA_BIN"] = string.Empty, ["HYPHA_HOME"] = "relative/home" },
+                [],
+                Path.Combine(bin.FullName, "hypha-launch.dll"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That((string?)initialize["result"]?["serverInfo"]?["version"], Is.EqualTo("1.6.3"));
+                Assert.That((string?)initialize["result"]?["instructions"], Does.Contain("HYPHA_HOME must be an absolute path"));
+            });
+        }
+
+        private async Task<(JsonNode Initialize, JsonNode Tools, string StandardError)> Handshake(
+            IReadOnlyDictionary<string, string> environment, string[] arguments, string? launcher = null)
         {
             var start = new ProcessStartInfo("dotnet")
             {
@@ -93,7 +114,7 @@ namespace Hypha.Launcher.Tests
                 UseShellExecute = false,
                 WorkingDirectory = this.workspace.FullName,
             };
-            start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "hypha-launch.dll"));
+            start.ArgumentList.Add(launcher ?? Path.Combine(AppContext.BaseDirectory, "hypha-launch.dll"));
             foreach (var argument in arguments)
             {
                 start.ArgumentList.Add(argument);

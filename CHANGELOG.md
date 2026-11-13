@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the package from its own location, downloads and verifies the `hypha` that `bin/hypha-launch.json`
   names into `HYPHA_HOME/bin/` once, and runs `hypha serve` on the same standard input and output;
   `HYPHA_BIN` names a `hypha` to start instead. When there is none to start, it serves a minimal MCP
-  server whose one tool, `hypha_status`, says why and how to fix it. On Windows the extensionless path
+  server whose one tool, `hypha_status`, says why and how to fix it. A first start answers the client at
+  once, downloads meanwhile and then hands the session over to `hypha serve`, so the client neither
+  waits for the download nor reconnects; each download is renamed into place once verified, so two
+  clients starting at once cannot clash. On Windows the extensionless path
   finds `bin/hypha-launch.exe`; on macOS and Linux it is a script that execs the platform's binary. The
   download of the CLI moved from the SessionStart hook into the launcher, which the hook shares until it
   is retired.

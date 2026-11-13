@@ -188,6 +188,70 @@ namespace Hypha.Launcher.Tests
             });
         }
 
+        [Test]
+        public void Locating_a_cached_hypha_asks_nothing_of_the_network()
+        {
+            var bin = this.Package("1.6.0");
+            var home = Path.Combine(this.workspace.FullName, "home");
+            this.environment[HomeFolder.EnvironmentVariable] = home;
+            var cached = new CacheLayout(new DirectoryInfo(home), "unused").CliExecutable("1.6.0", "win-x64");
+            Directory.CreateDirectory(cached.DirectoryName!);
+            File.WriteAllText(cached.FullName, string.Empty);
+            File.WriteAllText(Path.Combine(cached.DirectoryName!, ".ok"), "sha");
+
+            var located = this.Launcher(Unreachable()).Locate(bin, "win-x64");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(located.Executable?.FullName, Is.EqualTo(cached.FullName));
+                Assert.That(located.NeedsDownload, Is.False);
+            });
+        }
+
+        [Test]
+        public void Locating_a_hypha_that_is_not_cached_yet_says_what_to_download_without_downloading_it()
+        {
+            var bin = this.Package("1.6.0");
+            this.environment[HomeFolder.EnvironmentVariable] = Path.Combine(this.workspace.FullName, "home");
+
+            var located = this.Launcher(Unreachable()).Locate(bin, "win-x64");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(located.NeedsDownload, Is.True);
+                Assert.That(located.Version, Is.EqualTo("1.6.0"));
+                Assert.That(located.Executable, Is.Null);
+                Assert.That(located.Failure, Is.Null);
+            });
+        }
+
+        [Test]
+        public async Task A_download_that_fails_in_any_way_ends_in_a_reason_rather_than_an_exception()
+        {
+            var bin = this.Package("1.6.0");
+            this.environment[HomeFolder.EnvironmentVariable] = Path.Combine(this.workspace.FullName, "home");
+            var launch = this.Launcher(new CliProvisioner(new HttpClient(new Throwing(new NotSupportedException("an unexpected failure")))
+            {
+                BaseAddress = new Uri("https://api.github.com/"),
+            }));
+
+            var target = await launch.DownloadAsync(launch.Locate(bin, "win-x64"), "win-x64");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(target.Executable, Is.Null);
+                Assert.That(target.Failure, Does.Contain("an unexpected failure").And.Contain("HYPHA_BIN"));
+            });
+        }
+
+        [Test]
+        public void Downloading_what_needs_no_download_is_refused()
+        {
+            var launch = this.Launcher(Unreachable());
+
+            Assert.That(() => launch.DownloadAsync(LaunchTarget.Missing("no"), "win-x64"), Throws.ArgumentException);
+        }
+
         private static CliProvisioner Unreachable() =>
             new(new HttpClient(new Refusing()) { BaseAddress = new Uri("https://api.github.com/") });
 
@@ -201,6 +265,12 @@ namespace Hypha.Launcher.Tests
 
         private Launch Launcher(CliProvisioner provisioner) =>
             new(name => this.environment.GetValueOrDefault(name), _ => this.localData, provisioner);
+
+        private sealed class Throwing(Exception exception) : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+                throw exception;
+        }
 
         private sealed class Refusing : HttpMessageHandler
         {
