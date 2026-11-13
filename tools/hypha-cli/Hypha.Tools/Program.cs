@@ -17,6 +17,7 @@ namespace Hypha.Tools
     using System.Net.Http;
     using System.Reflection;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
@@ -24,6 +25,7 @@ namespace Hypha.Tools
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
+    using Hypha.Knowledge.Migration;
     using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
     using Hypha.Mcp;
@@ -47,6 +49,13 @@ namespace Hypha.Tools
     [ExcludeFromCodeCoverage]
     public static class Program
     {
+        /// <summary>The compiled <c>The one-time migration into HYPHA_HOME failed</c> message (event 1, warning).</summary>
+        private static readonly Action<ILogger, string, Exception?> MigrationFailedMessage =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                new EventId(1, "MigrationFailed"),
+                "Copying the clients' releases into HYPHA_HOME failed, and is tried again next time: {Reason}");
+
         /// <summary>Runs the command line application.</summary>
         /// <param name="args">The command line, without the program name: a verb, its options and the global ones.</param>
         /// <returns>
@@ -161,8 +170,16 @@ namespace Hypha.Tools
                         provider.GetRequiredService<ModelContextProtocol.Server.McpServer>(),
                         provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(cancellationToken),
-                configure: services => services.AddHyphaMcp().WithStdioServerTransport()));
+                configure: services => services.AddHyphaMcp().WithStdioServerTransport(),
+                cancellationToken: cancellationToken));
             root.Add(serve);
+
+            var migrate = new MigrateCommand();
+            migrate.SetAction((parseResult, cancellationToken) => Run(
+                parseResult,
+                provider => new MigrateCommand.Handler(provider.GetRequiredService<IKnowledgeMigration>())
+                    .InvokeAsync(parseResult, cancellationToken)));
+            root.Add(migrate);
 
             root.Add(BuildApiCommand());
 
@@ -236,6 +253,10 @@ namespace Hypha.Tools
         /// Where generated artifacts go; <c>null</c> writes them into the repository. Only <c>generate</c> passes one.
         /// </param>
         /// <param name="configure">Adds the verb's own services to the composed ones; only <c>serve</c> passes one.</param>
+        /// <param name="cancellationToken">
+        /// Cancels the one-time migration into <c>HYPHA_HOME</c> that runs before the verb; only <c>serve</c>, which
+        /// runs it beside the server, passes one.
+        /// </param>
         /// <returns>
         /// The handler's exit code; 130 when cancelled; 1 when composition fails, the upstream cannot be reached or a
         /// knowledge file cannot be read.
@@ -244,7 +265,8 @@ namespace Hypha.Tools
             ParseResult parseResult,
             Func<IServiceProvider, Task<int>> handler,
             DirectoryInfo? outputRoot = null,
-            Action<IServiceCollection>? configure = null)
+            Action<IServiceCollection>? configure = null,
+            CancellationToken cancellationToken = default)
         {
             Banner(parseResult);
 
@@ -252,7 +274,33 @@ namespace Hypha.Tools
             {
                 await using var provider = KnowledgeServices.Build(parseResult, outputRoot, configure);
 
-                return await handler(provider);
+                // The first run against an empty HYPHA_HOME copies in what the clients installed. The server
+                // does it beside answering, so a client's handshake does not wait for the copy; every other verb
+                // first, so it answers from the copy. migrate copies on request instead.
+                if (parseResult.CommandResult.Command is MigrateCommand)
+                {
+                    return await handler(provider);
+                }
+
+                // On the thread pool: the copy itself is synchronous, and would otherwise run before the server
+                // started whenever the lock is free at once.
+                using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var migration = Task.Run(() => MigrateOnceAsync(provider, stop.Token), CancellationToken.None);
+
+                if (!ServeCommand.Owns(parseResult))
+                {
+                    await migration;
+                }
+
+                try
+                {
+                    return await handler(provider);
+                }
+                finally
+                {
+                    await stop.CancelAsync();
+                    await migration;
+                }
             }
             catch (OperationCanceledException)
             {
@@ -277,6 +325,31 @@ namespace Hypha.Tools
                 return await Fail(parseResult, 1, $"A knowledge file could not be read: {exception.Message}",
                     hint: "If another hypha command is running, try again once it has finished; "
                           + "otherwise fetch or generate the release again.");
+            }
+        }
+
+        /// <summary>
+        /// Copies what the clients installed into <c>HYPHA_HOME</c> once, when it is empty; a failure is logged
+        /// and never stops the verb, which then answers from what is there.
+        /// </summary>
+        /// <param name="provider">The composed services.</param>
+        /// <param name="cancellationToken">Stops the copy, as the verb ends.</param>
+        /// <returns>A task that completes once the migration has run, been skipped, failed or stopped.</returns>
+        private static async Task MigrateOnceAsync(IServiceProvider provider, CancellationToken cancellationToken)
+        {
+            var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("Hypha.Tools.Migration");
+
+            try
+            {
+                await provider.GetRequiredService<IKnowledgeMigration>().MigrateOnceAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // The verb ended first; what was copied stays out of the manifests, and the next run starts over.
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or JsonException)
+            {
+                MigrationFailedMessage(logger, exception.Message, exception);
             }
         }
 
