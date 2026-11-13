@@ -145,20 +145,19 @@ sequenceDiagram
     K->>H: acquire ReleaseOperationLock
     K->>H: fetch sources/, generate knowledge/ (spec-extract via uv)
     K-->>S: progress events → MCP progress notifications
-    K->>H: update versions.json, release lock
-    S->>S: invalidate the query cache for 2026-05
+    K->>H: update versions.json (default last, once generated), release lock
     S-->>A: installed, default = 2026-05, artifacts generated
 ```
 
 **Another client changed the knowledge**
 
 1. A second server (e.g. VS Code while Claude Code is open) installs or switches a release.
-2. The query API notices `versions.json` changed (timestamp check on each request, or a file watcher) and drops its cached inventory and releases.
+2. Nothing needs telling: the query API reads the version manifests on every call, and reads a generated file again once its size or write time changes, so no cached answer outlives a change.
 
 **Session start (replaces the SessionStart hook)**
 
-1. The client starts the server (directly, or through `hypha-launch`). At `initialize` the server sends its `instructions` (grounding rules).
-2. The model calls `release_status` when a skill or the user needs it. If nothing is installed, it offers `install_release`. No hook, no shell.
+1. The client starts the server (directly, or through `hypha-launch`). At `initialize` the server sends its `instructions` (grounding rules). The first time a server reads an empty `HYPHA_HOME`, it copies in what the plugin and the VS Code extension installed in their own folders, once, beside answering.
+2. The model calls `hypha_release_status` when a skill or the user needs it. If nothing is installed, it offers `hypha_install_release`. An upstream check (Step 6) tells it when a newer release is offered, which the SessionStart hook does today. No hook, no shell.
 
 ### 1.7 Reading in `Hypha.Knowledge`
 
@@ -187,19 +186,18 @@ As today, plus:
 
 Official `ModelContextProtocol` C# SDK, stdio transport, attribute-based with explicit `WithTools<T>()` / `WithResources<T>()` / `WithPrompts<T>()` registration. Logs to stderr only.
 
-- **Tools** (primary surface; every client supports them). All prefixed `hypha_`, about 10–15 in total (Windsurf caps all servers combined at 100 tools):
-  - query API tools (group related queries behind one tool with a `kind` argument where it keeps the count down)
-  - `hypha_lookup` (paged)
-  - `hypha_search_spec` → `hypha://` URIs
+- **Tools** (primary surface; every client supports them). All prefixed `hypha_`; 16 today, to stay under 20 (Windsurf caps all servers combined at 100 tools):
+  - query tools, grouping related questions behind a `question` argument whose values are the `hypha query` verb names: `hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`, `hypha_spec`, `hypha_api`, `hypha_diff`
+  - `hypha_search` (by name, number or title), `hypha_search_spec` (the clause text), `hypha_resolve` (a `hypha://` address), `hypha_lookup` (paged)
   - `hypha_release_status`
-  - `hypha_install_release`, `hypha_use_release`, `hypha_remove_release` (in-process, with progress)
-- **Resources**: template `hypha://{tag}/{kind}/{name}` over lookup pages. Everything is also reachable through a tool, since client support for resources is uneven.
-- **Prompts**: guided flows from `commands/overview.md` and common questions.
+  - `hypha_install_release`, `hypha_use_release`, `hypha_remove_release` (in-process, under the release lock, with progress; the default switches only once a release is generated)
+- **Resources**: the template `hypha://{tag}/{kind}/{name}` over the generated pages: a metaclass or clause page whole, a model-library declaration from where it is declared on. An address names its page exactly, and every address in a JSON answer carries its `uri`. Everything is also reachable through a tool, since client support for resources is uneven.
+- **Prompts**: guided flows from `commands/overview.md`: `overview`, `explain_metaclass`, `cite_specification`, `validate_notation`, `api_lookup`.
 - **`instructions`**: the NORMATIVE / MODEL / DERIVED grounding rules and a short "which tool when" guide. This is the only guidance clients without skills (Claude Desktop, Zed, Windsurf) get, so it must be enough on its own.
 
 ### 1.10 `hypha` executable
 
-- CLI verbs: `discover`, `fetch`, `generate`, `list`, `lookup`, `query …` (new), `use`, `remove`, `check`, `move-window`, `api …`, and `serve` (new).
+- CLI verbs: `discover`, `fetch`, `generate`, `list`, `lookup`, `query …` (new, one verb per query, `search-specification` included), `use`, `remove`, `check`, `move-window`, `api …`, `serve` (new) and `migrate` (new).
 - Build: self-contained, single-file, per RID (win-x64, linux-x64, linux-arm64, osx-x64, osx-arm64). Not trimmed, because uml4net and Handlebars use reflection. ReadyToRun to shorten startup.
 - Also published as a .NET tool (`PackAsTool`) for .NET users.
 
@@ -292,7 +290,7 @@ The three manifests and two MCP configs are generated from one source of truth (
 
 Manual-config clients get a documented snippet pointing at the launcher from the release archive.
 
-**VS Code extension**: VS Code installs Agent Plugins natively, so the plugin covers Copilot. The extension is kept only if its Marketplace listing and install UI add value; otherwise it is retired. If kept, it contains no tools of its own and registers the same launcher.
+**VS Code extension**: VS Code installs Agent Plugins natively, so the plugin covers Copilot. Decision (November 2026, after Step 4): keep the extension, but only as a thin installer for its Marketplace listing and install UI. It hands the same MCP server to Copilot through `vscode.lm.registerMcpServerDefinitionProvider`, contains no tools of its own, and passes no `--repository-root`, so it reads `HYPHA_HOME` like every other client. Retiring it instead stays possible; it would close #158, #163 and #165.
 
 No client contains its own tools, agents, hooks or `jq` instructions.
 
@@ -302,7 +300,7 @@ No client contains its own tools, agents, hooks or `jq` instructions.
 - Manifest drift check: the three manifests and two MCP configs match their single source.
 - Client smoke-test matrix: for each client in section 1.15, install the package, confirm the launcher starts on win-x64, linux-x64 and osx-arm64, and call `hypha_release_status`.
 - Golden tests: query API output equals the documented jq queries on a fixture release.
-- CI lint: every tool name a skill mentions exists in the server.
+- CI lint: every tool name a skill or prompt mentions exists in the server, by its bare name. Clients add their own prefix (Claude Code shows `mcp__<server>__hypha_metaclass`), so skills name tools bare.
 - Stdio integration test: SDK client ↔ `hypha serve` against a fixture knowledge base.
 - Concurrency test: two processes installing / switching at once, readers see consistent state.
 - `dotnet test` leaves the working tree clean (existing rule).
@@ -311,7 +309,9 @@ No client contains its own tools, agents, hooks or `jq` instructions.
 
 ## 2. Steps to get there
 
-Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc `jq`) and the VS Code extension (two TypeScript `vscode.lm` tools shelling out to the CLI) expose Hypha in two separate ways that drift apart. Knowledge lives in the plugin root or in VS Code global storage.
+Starting point: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc `jq`) and the VS Code extension (two TypeScript `vscode.lm` tools shelling out to the CLI) exposed Hypha in two separate ways that drifted apart, with the knowledge in the plugin root or in VS Code global storage.
+
+State after Step 4 (November 2026): `hypha serve` and every tool, resource and prompt exist, and existing installs are copied into `HYPHA_HOME` once. No client starts the server yet: the plugin's skills and the extension still read their own folders, through `--repository-root`. Steps 5 to 9 were reordered then, so that nothing a user has stops working before its replacement ships: the launcher comes first, because the skills can only call MCP tools once a client starts the server. Each step names the issues it draws from; their titles keep the old step numbers until they are updated.
 
 ### Step 1: Prepare the knowledge libraries
 
@@ -348,60 +348,71 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 - [x] One-time migration of existing plugin and VS Code installs into `HYPHA_HOME`.
 - [x] Stdio integration test against a fixture knowledge base.
 
-### Step 5: Make the skills portable
+### Step 5: A launcher, and the Claude plugin over MCP (#198, with parts of #199 and #200)
 
-- [ ] Rewrite the six skills to call MCP tools: no jq, no file paths, no Claude-specific tool names.
-- [ ] Fold the three agents (`metamodel-navigator`, `spec-citation`, `sysml-validator`) into skills.
-- [ ] Replace `version-management` with the release tools.
-- [ ] Add the CI lint for tool names.
+One thin slice, end to end: the Claude plugin starts `hypha serve` through the launcher. It settles the plan's open risks (platform dispatch from one `mcp.json` path, client network sandboxes) before the skills depend on it.
 
-### Step 6: Build `Hypha.Launcher`
-
-- [ ] Move `CliProvisioner`, `ChecksumTable`, `CacheLayout` and `GitHubRelease` out of `Hypha.Tools.Hook` into `Hypha.Launcher` (AOT).
-- [ ] Download + verify the matching `hypha` into `HYPHA_HOME/bin/<version>/`, then run `hypha serve` with stdio passed through.
+- [ ] `Hypha.Launcher` (AOT): move `CliProvisioner`, `ChecksumTable`, `CacheLayout` and `GitHubRelease` out of `Hypha.Tools.Hook`; download and verify the matching `hypha` into `HYPHA_HOME/bin/<version>/`, then run `hypha serve` with stdio passed through.
 - [ ] Resolve its own location and `HYPHA_HOME`; never rely on client path variables.
 - [ ] Platform dispatch: `bin/hypha-launch.exe` plus a POSIX `bin/hypha-launch` script that execs `bin/<rid>/hypha-launch`.
 - [ ] Fallback mode: when the download is blocked, serve a minimal `hypha_status` tool that explains the cause and fix.
 - [ ] Support `HTTPS_PROXY` and a `HYPHA_BIN` override.
+- [ ] Release assets: a self-contained single-file `hypha` per RID on GitHub releases, from the workflow that already builds the VS Code extension's bundled CLI per RID.
+- [ ] Claude plugin: `.mcp.json` to `bin/hypha-launch`, with no `--repository-root`, so the server reads `HYPHA_HOME` and copies in the plugin's own releases once.
+- [ ] Prototype the start in Claude Code, VS Code with Copilot, and one of Cursor or Codex before Step 6.
+- Until Step 6 the skills keep reading the plugin's folder; Steps 5 and 6 are released together, as plugin 3.0.0.
 
-### Step 7: Package for every client
+### Step 6: Make the skills portable, and release plugin 3.0.0 (#197, #202)
+
+- [ ] Rewrite the six skills to call MCP tools by their bare names: no jq, no file paths, no Claude-specific tool names. A question no tool answers falls back to whole pages through `hypha_lookup` or `hypha_resolve`, never to jq.
+- [ ] Fold the three agents (`metamodel-navigator`, `spec-citation`, `sysml-validator`) into skills: a fan-out question is now one query call.
+- [ ] Replace `version-management` with the release tools, plus an upstream check (an `upstream` option on `hypha_release_status`, or a `hypha_check_releases` tool), so a newer release still reaches the user once the hook is gone.
+- [ ] CI lint: every bare tool name a skill or prompt mentions exists in the server.
+- [ ] Remove the SessionStart hook, `hooks/native/`, jq and the README's "Recommended: jq" section. This absorbs the former Step 10: the 24 jq queries have C# equivalents checked against jq by golden tests, so jq needs no transition release.
+- [ ] Release Steps 5 and 6 as plugin 3.0.0 (agents, hook and jq removed is breaking).
+
+### Step 7: Package for every other client (#199, #158, #165)
 
 - [ ] **Single source of truth** for name, version, description and server command; generate the manifests from it in CI, with a drift check.
-- [ ] **Agent Plugins 1.0**: root `plugin.json` (with `$schema`) and `mcp.json` → `bin/hypha-launch`, sharing `skills/`. Covers Copilot (VS Code, CLI, app, cloud agent), Cursor, Codex and Kiro.
-- [ ] **Claude plugin**: `.claude-plugin/plugin.json` and `.mcp.json` → `bin/hypha-launch`; ship the skills; remove the SessionStart hook, `hooks/native/` and the README's "Recommended: jq" section.
-- [ ] **Gemini CLI**: `gemini-extension.json` with `mcpServers` → `bin/hypha-launch`, sharing `skills/`.
+- [ ] **Agent Plugins 1.0**: root `plugin.json` (with `$schema`) and `mcp.json` to `bin/hypha-launch`, sharing `skills/`. Covers Copilot (VS Code, CLI, app, cloud agent), Cursor, Codex and Kiro.
+- [ ] **Gemini CLI**: `gemini-extension.json` with `mcpServers` to `bin/hypha-launch`, sharing `skills/`.
 - [ ] **Claude Desktop**: per-platform `.mcpb` (`server.type = "binary"`, entry point `hypha-launch`) as a release asset.
 - [ ] **Manual-config clients** (Junie, Windsurf, Zed, Cline, Roo): document a config snippet per client, plus where to copy the skills.
-- [ ] **VS Code extension**: decide keep or retire. If kept: delete the two `vscode.lm.registerTool` tools, register the same launcher, ship no tools of its own.
-- [ ] Keep tools at about 10–15, all prefixed `hypha_`; make `instructions` sufficient on their own for clients without skills.
+- [ ] **VS Code extension** (section 1.15; re-scopes #158): register the server through `vscode.lm.registerMcpServerDefinitionProvider`, delete the two `vscode.lm.registerTool` tools, and drop the `--repository-root` to global storage, so the extension reads `HYPHA_HOME`. Then publish to Open VSX (#165).
+- [ ] Keep the tools under 20, all prefixed `hypha_`; make `instructions` sufficient on their own for clients without skills.
 
-### Step 8: CI and release
+### Step 8: CI and release (#200)
 
-- [ ] Build self-contained single-file `hypha` per RID as GitHub release assets.
 - [ ] Replace `hook-binaries.yml` with a workflow that builds and commits the per-RID `hypha-launch` and the dispatch script.
 - [ ] Build the `.mcpb` bundles per platform as release assets.
-- [ ] One version across `hypha`, launcher, skills and every manifest; plugin 3.0.0 (agents, hook and jq removed is breaking).
+- [ ] One version across `hypha`, launcher, skills and every manifest.
 - [ ] Remove `Hypha.Tools.Hook`.
 
-### Step 9: Verify across clients
+### Step 9: Verify across clients (#201, #163)
 
 - [ ] Run the smoke-test matrix (section 1.16): install, launcher start on win-x64 / linux-x64 / osx-arm64, `hypha_release_status`, one query, one `hypha_install_release`.
 - [ ] Confirm the platform dispatch works in each client (extensionless path on Windows, script on POSIX).
 - [ ] Check Codex's sandbox with and without `network_access`; confirm the fallback message reaches the user.
 - [ ] Check Windsurf's tool count with Hypha alongside other servers.
 - [ ] Check Copilot cloud agent install time in a fresh environment; document it.
+- [ ] The VS Code extension on macOS (`darwin-arm64`, `darwin-x64`) and Windows on Arm (#163): host test, the server end to end, Gatekeeper, cancellation and the lock.
 
-### Step 10: Deprecate jq
+### Follow-ups from Steps 1 to 4
 
-- [ ] Keep jq as a documented fallback for one minor release.
-- [ ] Watch real sessions; promote questions that still fall through to jq into query methods.
-- [ ] Remove jq.
+Left out of the pull requests by choice, and recorded there; none blocks the steps above.
+
+- [ ] The SDK logs two lines per request to standard error under `serve`; hold `ModelContextProtocol` at Warning, as the HTTP categories are.
+- [ ] A model-library resource is cut at 160 lines from its declaration without saying so.
+- [ ] A prompt called without its argument gets the SDK's generic error.
+- [ ] The migration copies a release that only an old plugin version has, possibly in an older generated format; check each artifact's schema version, or copy only from the newest plugin version.
+- [ ] A relative `HYPHA_HOME` with `--repository-root` is refused only once the toolchain is needed.
+- [ ] Test gaps noted in the reviews of #220 to #223: the serve-only lock wait, the progress token over stdio, the default switch over stdio, the specification search's clause ordering, the automatic migration through a real process.
 
 ### Notes
 
-- Steps 1–3 are the real refactor and carry most of the risk; the rest is mostly assembly.
+- Steps 1 to 4 were the real refactor and carried most of the risk; the rest is mostly assembly, apart from the launcher's platform dispatch.
 - The Lookup and Layout code was only skimmed; some changes may surface when it moves.
 - Retiring the hook removes the Git Bash requirement on Windows.
-- Open risks to settle early: platform dispatch from a single `mcp.json` path, and client network sandboxes. Prototype the launcher in two or three clients before steps 4–5 are finished.
+- Open risks to settle early: platform dispatch from a single `mcp.json` path, and client network sandboxes. Step 5 exists to settle them: it prototypes the launcher in three clients before the skills depend on it.
 - Client support was checked in November 2026; formats move fast, so re-check before release.
 - If the single binary turns out too large or too slow to start, revisit: an AOT `hypha serve` for reads only, with writes delegated to the full binary. That read-only server is also the consumer that would justify splitting the reading code out of `Hypha.Knowledge` into its own AOT-compatible project; the namespace boundary of principle 4 keeps that split mechanical.
