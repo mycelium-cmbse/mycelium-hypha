@@ -90,8 +90,10 @@ inherited sets the generator already computed, so never collect them by hand fro
 
 ## Reading an answer
 
-Every result carries a `value`, a `grounding` (tier, release and the generated file it was read from)
-and, when part of the knowledge was never generated, `unavailable` saying why and how to generate it.
+The answer of a tool that takes a `question`, and of `hypha_package`, `hypha_search` and `hypha_diff`,
+carries a `value`, a `grounding` (tier, release and the generated file it was read from) and, when
+part of the knowledge was never generated, `unavailable` saying why and how to generate it.
+`hypha_lookup` answers with the `release`, a `status` and the page's `path` and `content` instead.
 
 - A `null` value means the release has no such element: say so, and look the intended name up with
   `hypha_search`. Never invent structure.
@@ -103,14 +105,15 @@ and, when part of the knowledge was never generated, `unavailable` saying why an
 
 ## Notation
 
-`hypha_syntax` answers how an element is written, from the grammar itself rather than from names:
+How an element is written comes from the grammar itself rather than from names:
+`hypha_syntax` with the `question`:
 
-- `cross-reference` with `element`: the specification clauses that treat it, the grammar productions
-  that build it, the features its syntax fills in, and worked examples.
-- `feature-assignments` with `feature` (and optionally `operator`): which elements' syntax fills in a
-  feature, through which operator and productions.
-- `built-by` with `production`: the elements a production builds. `keyword` with `word`: the
-  productions that write a keyword or operator, such as `ref` or `:>>`.
+| Question | `question` | Arguments |
+| --- | --- | --- |
+| The specification clauses that treat it, the grammar productions that build it, the features its syntax fills in, and worked examples | `cross-reference` | `element` |
+| Which elements' syntax fills in a feature, through which operator and productions | `feature-assignments` | `feature`; `operator` |
+| The elements a production builds | `built-by` | `production` |
+| The productions that write a keyword or operator, such as `ref` or `:>>` | `keyword` | `word` |
 
 Read the operators literally: `=` sets a value, `+=` adds to a collection, and `?=` sets a boolean
 from the **presence of a keyword**, so `isStandard ?=` means the flag is true when the keyword is
@@ -132,7 +135,9 @@ blur them:
 
 The distinction that matters most: a metaclass's own features are `MODEL`, its inherited set is
 `DERIVED`, and a clause found through a cross-reference is `DERIVED`. It says where to look, but it is
-not a citation. Quoting the normative wording is the `spec-citation` skill's job.
+not a citation. The `features` answer is grounded `DERIVED` as a whole, because it includes the
+inherited ones: a feature in it whose owner is the metaclass asked about is that metaclass's own, and
+`MODEL`. Quoting the normative wording is the `spec-citation` skill's job.
 
 ## Procedure
 

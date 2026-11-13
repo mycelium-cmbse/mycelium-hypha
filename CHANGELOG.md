@@ -223,7 +223,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`,
   `hypha_lookup`, `hypha_search`, ...), with no jq and no file paths, so they work in any client that
   starts the server. A question about a set, a closure or a comparison of metaclasses is one tool call.
-  A test checks that every tool a skill, agent or command names is one the server has.
+  A test checks that every tool a skill, agent or command names is one the server has, and every
+  question and argument it names one that tool accepts.
 
 - **A relative `HYPHA_HOME` is refused** (`refs #196`): it would be resolved against each process's
   working directory, so two clients started from different folders would not share one home or one

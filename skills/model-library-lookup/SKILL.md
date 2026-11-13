@@ -56,7 +56,7 @@ in turn, or use `metamodel-lookup` for the *metaclass* the declaration is writte
    closest thing to prose documentation, and its own `:>`/`:>>` clause names what it specializes or
    redefines.
 3. Quote the relevant source lines as the answer, not a paraphrase: there is no synthesized prose,
-   only the source itself. Name the release, and the page the grounding names.
+   only the source itself. Name the `release` and the `path` the answer gives.
 4. If the name is not declared, say so; never invent a library element. Check whether the user meant a
    metaclass instead (`metamodel-lookup`) or a different release.
 
