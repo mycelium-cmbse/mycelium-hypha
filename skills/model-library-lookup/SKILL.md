@@ -7,81 +7,69 @@ description: "Look up what a SysML v2 / KerML standard model library element mea
 
 Answer questions about the SysML v2 / KerML **standard model libraries**: the normative library
 packages (`ISQBase::mass`, `ScalarValues::Real`, `Parts::Part`, ...) a user's own model specializes,
-not the metamodel that describes what a metaclass *is*. Be exact and cite the source file.
+not the metamodel that describes what a metaclass *is*. Answer from the **hypha MCP server's tools**,
+named here without a client's prefix. Be exact, and quote the source.
 
-## Releases
+## Which release
 
-The knowledge base is generated **per upstream release tag** (`YYYY-MM`, e.g. `2026-05`). Read
-`knowledge/versions.json` first: it lists the installed tags newest first and names the `default`
-one to answer from.
-
-```sh
-jq -r '.default, (.versions[].tag)' knowledge/versions.json
-```
-
-Then substitute that tag for `<tag>` in every path below.
-
-- Answer from the **default** release unless the user names one.
-- **Say which release you answered from.** The standard libraries change between releases like
-  everything else in the knowledge base.
-- If the user asks about a release that is not installed, say so and list the ones that are.
+- Every tool answers from the **default** release unless it is given a `tag`; call
+  `hypha_release_status` when unsure what is installed.
+- **Say which release answered.** The standard libraries change between releases like everything else.
+- If the user asks about a release that is not installed, say so and name the installed ones.
 
 ## What this is, and what it is not
 
-This is the **declaration surface**: a qualified name, the literal keyword that introduced it (e.g.
-`attribute def`, `datatype`, `part`), and where it is declared. It is built by a lightweight scanner
-over the verbatim library source, not a real parser.
+This is the **declaration surface**: a qualified name, the keyword that introduced it (such as
+`attribute def`, `datatype` or `part`), where it is declared, and the verbatim library source around
+it. It is built by a lightweight scanner over the library source, not a real parser.
 
 It does **not** resolve `:>`/`:>>` specialization or redefinition chains, does not know a library
-element's supertypes or effective feature set, and cannot tell a public member from a private one.
-If asked "what does `ISQBase::LengthValue` inherit" or "what is `mass`'s full feature set", say
-plainly that this index does not compute that. Read the page's verbatim source and follow its own
-`:>`/`:>>` references by hand, or use `metamodel-lookup` for the *metaclass* (e.g. `AttributeUsage`)
-the declaration is written as. Do not fabricate a resolved structure to fill the gap.
+element's supertypes or effective feature set, and cannot tell a public member from a private one. If
+asked "what does `ISQBase::LengthValue` inherit" or "what is `mass`'s full feature set", say plainly
+that this does not compute that. Follow the source's own `:>`/`:>>` references by looking each one up
+in turn, or use `metamodel-lookup` for the *metaclass* the declaration is written as (such as
+`AttributeUsage`). Never fabricate a resolved structure to fill the gap.
 
-## Knowledge base
+## Tools
 
-- `knowledge/<tag>/model-library/index.json`: `declarations`, keyed by qualified name (e.g.
-  `"ISQBase::mass"`), each `{kind, file, source}`: `kind` is the literal introducing keyword(s),
-  `file` is the package page relative to `model-library/`, `source` is the upstream path under
-  `sysml.library/`. `counts` gives the number of files and distinct qualified names.
-- `knowledge/<tag>/model-library/packages/<slug>.md`: one page per standard-library file: front
-  matter (`name`, `language`, `source`, `declares`, `license`), the **verbatim** KerML/SysML source in
-  a fenced block, and a `## Declarations` list of every qualified name that page declares.
-- `knowledge/<tag>/model-library/index.md`: a human-readable index, grouped by upstream folder
-  (`Domain Libraries`, `Kernel Libraries`, `Systems Library`).
-
-**Same-file collisions keep the first declaration** (rare: two anonymous nested redefinition blocks
-in one file both introducing a child with the same name); the page itself still lists every
-declaration, so read the page's `## Declarations` section, not just the index, when a name might be
-ambiguous within one file.
+- `hypha_lookup` with `kind: "model-library"` and `name`, the qualified name (`ISQBase::mass`): the
+  library page from that declaration on, a page at a time. The answer's `status` says what was found:
+  - `found`: `content` holds the verbatim source, `path` the page, and `declarationLine` the line the
+    declaration is on. The name may have matched loosely (ignoring case, or a trailing part such as
+    `mass`), so report the qualified `name` the answer gives, not the one asked. When `nextLine` is
+    set, call again with it as `startLine` for the rest.
+  - `ambiguous`: several declarations match equally well (the same short name in two packages);
+    `matches` lists them. Ask the user, or pick the one the context makes plain, and look that up.
+  - `candidates`: nothing matched the name itself; `matches` only contain it. They are suggestions,
+    never the answer, even when there is one.
+  - `not-found`: the release declares nothing of that name.
+- `hypha_search` with `text` and `kind: "model-library"`: find the qualified name of a declaration
+  from a partial name, such as `mass`.
+- The resource `hypha://<tag>/model-library/<QualifiedName>`, for a client that reads resources: the
+  same page for an exact qualified name only, so find the name first.
 
 ## Procedure
 
-1. Resolve the qualified name against the index:
-   ```sh
-   jq '.declarations["ISQBase::mass"]' knowledge/<tag>/model-library/index.json
-   ```
-   Without `jq`, grep `knowledge/<tag>/model-library/index.md` for the file, or grep
-   `knowledge/<tag>/model-library/packages/` for the qualified name directly.
-2. Read the linked page (`file` in the index entry). Locate the declaration in the verbatim source.
-   Its surrounding `doc /* ... */` block, if any, is the closest thing to prose documentation this
-   index has, and its own `:>`/`:>>` clause names what it specializes or redefines.
-3. Quote the relevant source lines as the answer, not a paraphrase; there is no synthesized prose
-   here, only the source itself. Always include the source file path and the release tag.
-4. If the qualified name is not in the index, say so; never invent a library element. Check whether
-   the user meant a metaclass instead (`metamodel-lookup`) or a different release.
+1. Look the qualified name up with `hypha_lookup` (`kind: "model-library"`). If it is not exact, use
+   the `matches` it returns, or `hypha_search`.
+2. Read the declaration in the returned source. Its surrounding `doc /* ... */` block, if any, is the
+   closest thing to prose documentation, and its own `:>`/`:>>` clause names what it specializes or
+   redefines.
+3. Quote the relevant source lines as the answer, not a paraphrase: there is no synthesized prose,
+   only the source itself. Name the release, and the page the grounding names.
+4. If the name is not declared, say so; never invent a library element. Check whether the user meant a
+   metaclass instead (`metamodel-lookup`) or a different release.
 
 ## Provenance
 
-Everything here is `MODEL` tier: read directly from the verbatim standard-library source, the same
-way an element file's own features are. Nothing is `DERIVED` (the scanner does not compute a
-specialization graph), and nothing is `NORMATIVE` in the `spec-citation` sense, since the library
-source itself, not the specification text, is what is being quoted.
+Everything here is `MODEL` tier: read directly from the verbatim standard-library source, as a
+metaclass's own features are. Nothing is `DERIVED` (the scanner computes no specialization graph), and
+nothing is `NORMATIVE` in the `spec-citation` sense, since the library source, not the specification
+text, is what is quoted.
 
 ## Related skills
 
 - **`metamodel-lookup`**: "what *kind* of thing is `AttributeUsage`", or any question about the
   metamodel structure a library declaration is written against.
-- **`spec-citation`**: the normative specification wording behind a library concept (e.g. why ISQ
-  defines quantities the way it does), rather than the library's own source text.
+- **`spec-citation`**: the normative specification wording behind a library concept, rather than the
+  library's own source text.

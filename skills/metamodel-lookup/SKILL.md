@@ -1,209 +1,145 @@
 ---
 name: metamodel-lookup
-description: "Look up the structure of the OMG SysML v2 / KerML metamodel (not OMG UML 2.x): a metaclass's features, supertypes, subtypes, redefinitions, multiplicities and constraints, plus enumerations and primitive types. Use when the user asks how a SysML v2 or KerML element (e.g. PartUsage, ConnectionDefinition, Feature) is defined in the metamodel, or how elements relate."
+description: "Look up the structure of the OMG SysML v2 / KerML metamodel (not OMG UML 2.x): a metaclass's features, supertypes, subtypes, redefinitions, multiplicities and constraints, plus enumerations and primitive types, and cross-cutting questions over many metaclasses (which metaclasses have a feature typed by Expression, every concrete subclass of Usage, who redefines a feature). Use when the user asks how a SysML v2 or KerML element (e.g. PartUsage, ConnectionDefinition, Feature) is defined in the metamodel, or how elements relate."
 ---
 
 # Metamodel lookup
 
-Answer questions about the structure of the KerML and SysML v2 metamodels using Hypha's
-generated knowledge base. Be exact and cite the source file.
+Answer questions about the structure of the KerML and SysML v2 metamodels from the **hypha MCP
+server's tools**. They are named here without a client's prefix: a client may show `hypha_metaclass`
+as, for example, `mcp__hypha__hypha_metaclass`. Be exact, and say where each fact comes from.
 
-## Releases
+KerML and SysML v2 are one combined metamodel here: the SysML v2 model is generated from the full
+KerML + SysML metamodel, so KerML metaclasses such as `Feature`, `Element` and `Membership` are
+answered too.
 
-The knowledge base is generated **per upstream release tag** (`YYYY-MM`, e.g. `2026-05`), one folder
-per release under `knowledge/`. Read `knowledge/versions.json` first: it lists the installed tags
-newest first and names the `default` one to answer from.
+## Which release
 
-```sh
-jq -r '.default, (.versions[].tag)' knowledge/versions.json
-```
+The knowledge is generated per upstream release tag (`YYYY-MM`, such as `2026-05`).
 
-Then substitute that tag for `<tag>` in every path below.
+- Every tool answers from the **default** release unless it is given a `tag`. Call
+  `hypha_release_status` when unsure what is installed or which release is the default.
+- **Say which release answered**, as every result's grounding names it: "in 2026-05, `PartUsage` ...".
+  The metamodel changes between releases, so an unqualified structural claim is incomplete.
+- If the user asks about a release that is not installed, say so and name the installed ones rather
+  than answering from another release. Offer `hypha_install_release` only when the user wants it: it
+  downloads from GitHub and takes minutes.
+- The tag is the version. Ignore the model URI inside the XMI (`.../SysML/20250201`): it tracks neither
+  the release nor the content.
 
-- Answer from the **default** release unless the user names one.
-- **Say which release you answered from**, e.g. "in 2026-05, `PartUsage` …". The metamodel changes
-  between releases, so an unqualified structural claim is incomplete.
-- If the user asks about a release that is not installed, say so and list the ones that are, rather
-  than answering from a different release silently.
-- The tag is the version. Ignore the model URI inside the XMI (`…/SysML/20250201`); it tracks
-  neither the release nor the content, and the same model can appear under several tags.
+## Which tool answers what
 
-## Knowledge base
+One metaclass, `hypha_metaclass` with the `question`:
 
-KerML and SysML v2 are **combined** in one tree (the SysML v2 model is generated from the full
-KerML + SysML metamodel, so KerML metaclasses such as `Feature`, `Element` and `Membership` live
-here too):
+| Question | `question` | Arguments |
+| --- | --- | --- |
+| What it is: kind, package, supertypes | `element` | `name` |
+| Every supertype | `ancestors` | `name` |
+| What specializes it | `subclasses` | `name`; `concreteOnly` to leave abstract ones out |
+| Does it specialize another, and through what | `specializes` | `name`, `general` |
+| Its features, owned and inherited, each with its owner | `features` | `name`; `feature` for one |
+| Its features without the inherited ones it redefines | `effective-features` | `name` |
+| Its constraints, or operations, each with where it is declared | `constraints`, `operations` | `name`; `includeInherited` (default true) |
+| An enumeration's literals | `literals` | `name`, such as `VisibilityKind` |
+| The metaclasses its features are typed by, and the features typed by it | `neighbours` | `name` |
 
-- `knowledge/<tag>/metamodel/index.md`: the manifest, with every metaclass grouped by package, plus
-  `## Enumeration types` and `## Primitive types` sections. Each entry links to its element file
-  and carries a one-line summary.
-- `knowledge/<tag>/metamodel/elements/<Name>.md`: one file per element. This includes metaclasses,
-  enumerations (`kind: enumeration`) and primitive types (`kind: primitive`).
-- `knowledge/<tag>/metamodel/metamodel.json`: the same metamodel as a **structural graph**, with the
-  inheritance closures already computed. Use it for set-shaped and cross-cutting questions; see
-  [Querying the graph](#querying-the-graph) below.
-- `knowledge/<tag>/cross-references.json`: links each element to the spec clauses that treat it, its BNF
-  grammar production, and any worked example. See [Cross-references](#cross-references).
+One feature, `hypha_feature` with the `question`:
 
-## Element file anatomy
+| Question | `question` | Arguments |
+| --- | --- | --- |
+| What redefines it, or subsets it | `redefinitions`, `subsettings` | `feature`; `class` for the owner's own feature only |
+| The other end of its association | `opposite` | `feature`, `class` |
+| The constraints that name it | `feature-constraints` | `feature`, `class` |
+| Everything that redefines or subsets it, directly or not | `contributors` | `feature`, `class` |
 
-YAML front matter: `name`, `package`, `fully qualified name` (e.g.
-`SysML::Systems::Actions::AcceptActionUsage`), `isAbstract`, `visibility`, `generalizes`,
-`specializedBy`. Then:
+A type across the whole metamodel, `hypha_typed_by` with the `question`:
 
-- **## Generalizations** / **## Specializations**: direct supertypes / subtypes, each a
-  `[Name](Name.md)` link.
-- **## Owned features**: one `### name` heading per feature, followed by a signature line:
-  `` `+` [Type](Type.md) · `[0..1]` · *derived* `` (visibility sigil, linked type, multiplicity,
-  italic modifiers). Documentation follows, then any `Redefines …` / `Subsets …` lines, each a link
-  to the feature it refines.
-- **## Inherited features**: a table (`Feature | Type | Multiplicity | Owner | Modifiers`) giving
-  the **full effective inherited feature set**, with the declaring supertype in the `Owner` column.
-  Read this table directly; you do **not** need to walk the generalization chain by hand.
-- **## Operations**: each owned operation's signature (e.g. `namesOf(element : Element [1..1]) :
-  String [0..*]`, *query* when it is one), its documentation, and the OCL of its `bodyCondition` (the
-  derivation it computes) in an ```ocl block.
-- **## Constraints**: each constraint's intent text plus its OCL body in an ```ocl block.
+| Question | `question` | Arguments |
+| --- | --- | --- |
+| Which metaclasses have a feature typed by it | `classes-with-feature-typed` | `type`; `compositeOnly` |
+| Every feature that can hold a value of it | `features-accepting` | `type`; `class` for one metaclass's features |
+| The composite features through which an element of it can be owned | `containers` | `type`; `class` |
 
-Enumeration files list their literals under `## Literals`; primitive-type files carry just their
-documentation.
+And:
 
-## Querying the graph
+- `hypha_package` with `name`: a package's metaclasses, nested packages and everything below it.
+- `hypha_search` with `text` and `kind: "metamodel"`: find a metaclass by name or qualified name
+  when the user's spelling is not exact.
+- `hypha_lookup` with `kind: "metamodel"` and `name`: the metaclass's whole generated page, a page at
+  a time, for documentation wording to quote. When `nextLine` is set, call again with it as
+  `startLine`. The same page is the resource `hypha://<tag>/metamodel/<Name>`.
+- `hypha_syntax` for how an element is written: see [Notation](#notation) below.
+- `hypha_diff` with `from`, `to` and optionally `element`: what changed between two installed releases.
 
-`knowledge/<tag>/metamodel/metamodel.json` holds every element as a node with its closures precomputed:
-`allAncestors`, `allDescendants`, `directSubclasses`, and `inheritedAttributes` carrying the
-declaring type in `inheritedFrom`. Owned attributes carry `type`, `lower`/`upper` (`-1` is
-unbounded), `isDerived`, `isDerivedUnion`, `isComposite`, `isOrdered`, `isUnique`, `isReadOnly`,
-`defaultValue`, `redefines`, `subsets` and `opposite`. Every element and owned member also has an
-`xmiId`, which normally stays the same across releases, so two releases can be compared even across
-a rename. The ids are not always kept: upstream regenerated every one between `2025-04` and
-`2025-06`, so across that gap members are matched on their names and a rename reads as a removal
-plus an addition. A reference to another feature (in
-`redefines`, `subsets`, `opposite` and `redefinedBy`) is an object naming its owner,
-`{ "class": "Relationship", "association": null, "feature": "source" }`, because several metaclasses
-declare a feature of the same name; an end an association owns has `association` set instead of
-`class`. An inherited attribute's `redefinedBy` names the feature that redefines it in that
-metaclass, or is `null` when it applies as inherited.
+## Questions about many metaclasses
 
-Classes also carry `ownedOperations` (each with `documentation`, `body`, the OCL of its
-`bodyCondition`, and the operations it `redefines`) and `constraints` with their OCL and
-`constrainedElements`. `inheritedOperations` and `inheritedConstraints` are references,
-`{ "class", "operation", "redefinedBy" }` and `{ "class", "constraint" }`: read the body from the
-declaring class. An inherited operation whose `redefinedBy` is set does not apply; its redefinition
-does.
+A question about a set, a closure or a comparison is still **one call**: the tools return closures and
+inherited sets the generator already computed, so never collect them by hand from several pages.
 
-It is ~16 MB, so **never read it whole**; query it. `jq` is *recommended* for this; when it is not
-installed, fall back to the markdown route described under [Procedure](#procedure), which is slower
-and reads more files but always works.
+- "Which metaclasses have a feature typed by `Expression`?" `hypha_typed_by`,
+  `classes-with-feature-typed`, `type: "Expression"`.
+- "Every concrete subclass of `Usage`?" `hypha_metaclass`, `subclasses`, `name: "Usage"`,
+  `concreteOnly: true`.
+- "Who redefines `Feature::type`?" `hypha_feature`, `redefinitions`, `feature: "type"`,
+  `class: "Feature"`. Without `class` the answer covers every feature named `type`, such as
+  `FeatureTyping::type` too.
+- "Where does `PartUsage`'s `name` come from?" `hypha_metaclass`, `features`, `name: "PartUsage"`,
+  `feature: "name"`: the answer names its owner.
+- "Compare `PartUsage` and `ItemUsage`": one `hypha_metaclass` call per metaclass, then compare the
+  facts asked for; report only those.
 
-```sh
-# Every concrete subclass of Usage, anywhere in the hierarchy
-jq -r '.classes[] | select(.allAncestors | index("Usage")) | select(.isAbstract|not) | .name' \
-  knowledge/<tag>/metamodel/metamodel.json
+## Reading an answer
 
-# Which metaclasses have a feature typed by Expression (exact, no prose false positives)
-jq -r '.classes[] | select(.ownedAttributes[]? | .type=="Expression") | .name' \
-  knowledge/<tag>/metamodel/metamodel.json
+Every result carries a `value`, a `grounding` (tier, release and the generated file it was read from)
+and, when part of the knowledge was never generated, `unavailable` saying why and how to generate it.
 
-# Where does PartUsage's `name` come from?
-jq -r '.classes[] | select(.name=="PartUsage") | .inheritedAttributes[] | select(.name=="name") | .inheritedFrom' \
-  knowledge/<tag>/metamodel/metamodel.json
+- A `null` value means the release has no such element: say so, and look the intended name up with
+  `hypha_search`. Never invent structure.
+- A reference to another feature names its owner (a `class`, or an `association` for an end the
+  association owns), because several metaclasses declare features of the same name. Report the owner.
+- Multiplicities use `-1` for an unbounded upper bound: write it as `*`.
+- A tool error names what is missing (a release that is not installed, a missing argument) and how to
+  fix it. Act on it, or tell the user.
 
-# Who redefines Feature's `type` (not FeatureTyping's, which has the same name)?
-jq -r '.classes[] | . as $c | .ownedAttributes[] | . as $a | .redefines[]
-       | select(.feature=="type" and .class=="Feature") | "\($c.name)::\($a.name)"' \
-  knowledge/<tag>/metamodel/metamodel.json
+## Notation
 
-# The operations that apply to ConstraintUsage, each with the class whose body applies
-jq -r '.classes[] | select(.name=="ConstraintUsage")
-       | (.ownedOperations[] | "ConstraintUsage::\(.name)"),
-         (.inheritedOperations[] | select(.redefinedBy == null) | "\(.class)::\(.operation)")' \
-  knowledge/<tag>/metamodel/metamodel.json
-```
+`hypha_syntax` answers how an element is written, from the grammar itself rather than from names:
 
-Prefer the graph whenever the question is a *set* ("which metaclasses…", "every subclass of…"),
-a *closure* ("all ancestors", "the full feature set"), or a *comparison* across several elements.
-Prefer the markdown when the question is about **one** element and the answer should be quoted and
-cited.
+- `cross-reference` with `element`: the specification clauses that treat it, the grammar productions
+  that build it, the features its syntax fills in, and worked examples.
+- `feature-assignments` with `feature` (and optionally `operator`): which elements' syntax fills in a
+  feature, through which operator and productions.
+- `built-by` with `production`: the elements a production builds. `keyword` with `word`: the
+  productions that write a keyword or operator, such as `ref` or `:>>`.
 
-## Cross-references
-
-`knowledge/<tag>/cross-references.json` maps each element name to `clauses` (specification clause
-identifiers), `grammar` (BNF production) and `examples` (worked notation), plus the `element`
-markdown path. It records clause **numbers only, never clause text**, which is why it can be
-committed while `knowledge/<tag>/spec/` cannot.
-
-```sh
-# Which clauses treat PartUsage, and is there a worked example?
-jq '.entries["PartUsage"] | {clauses: [.clauses[] | "\(.document) \(.clause)"], examples: [.examples[].file]}' \
-  knowledge/<tag>/cross-references.json
-```
-
-Use it to point at the governing clause or a worked example after answering a structural question.
-
-## Notation questions: how an element is written
-
-`cross-references.json` also carries `grammar` (the productions that build an element) and
-`features` (which metamodel feature a piece of syntax populates, and how). Together they answer
-questions the metamodel alone cannot:
-
-```sh
-# How is a PartUsage written? -> the productions that build it
-jq -r '.entries["PartUsage"].grammar[] | "\(.grammar) \(.production)"' knowledge/<tag>/cross-references.json
-
-# What does the syntax of a Comment fill in?
-jq -r '.entries["Comment"].features[] | "\(.grammar): \(.feature) \(.operator) via \(.productions|join(", "))"' \
-  knowledge/<tag>/cross-references.json
-
-# Which element's syntax sets `declaredName`, and through which production?
-jq -r '.entries | to_entries[] | . as $e | $e.value.features[]
-       | select(.feature=="declaredName") | "\($e.key): \(.productions|join(", "))"' \
-  knowledge/<tag>/cross-references.json
-```
-
-Read the operator literally: `=` sets a value, `+=` adds to a collection, and `?=` sets a boolean
-from the *presence of a keyword*, so `isStandard ?=` means the flag is true when the keyword is
-written at all, with no value to supply.
-
-The full production text, grouped by clause, is in
-`knowledge/<tag>/textual-notation/grammar-{kerml,sysml}.md`; the graphical notation is in
-`grammar-graphical.md`.
-
-**An empty `features` list is meaningful, not missing data.** It means the element adds no syntax of
-its own: `PartUsage` has none, because its declaration is inherited from `Usage`. Say that, rather
-than reporting that nothing is known.
-
-**The same feature often appears under both grammars.** The SysML grammar re-declares many KerML
-productions, so `Comment` lists `body =` once for `kerml` and once for `sysml`. That is one fact, not
-two: report it once and mention both grammars declare it only if the user asks.
+Read the operators literally: `=` sets a value, `+=` adds to a collection, and `?=` sets a boolean
+from the **presence of a keyword**, so `isStandard ?=` means the flag is true when the keyword is
+written at all. An element whose syntax fills in no features adds no syntax of its own (`PartUsage`'s
+declaration is inherited from `Usage`): say that, rather than that nothing is known. The SysML grammar
+re-declares many KerML productions, so the same assignment can appear under both grammars; report it
+once.
 
 ## Provenance
 
-Every fact you report belongs to one of three tiers. Say which when it matters, and never blur them:
+Every fact belongs to one of three tiers; the grounding says which. Say it when it matters, and never
+blur them:
 
-| Tier | Means | Where it comes from |
-| --- | --- | --- |
-| `NORMATIVE` | verbatim spec text, clause-anchored | `knowledge/<tag>/spec/` (git-ignored; may be absent) |
-| `MODEL` | read directly from the XMI | element files, and `metamodel.json` fields other than the closures |
-| `DERIVED` | computed or asserted here | `allAncestors` / `allDescendants` / `inheritedAttributes`, and every edge in `cross-references.json` |
+| Tier | Means |
+| --- | --- |
+| `NORMATIVE` | verbatim specification text, with its clause |
+| `MODEL` | read directly from the metamodel: a metaclass's own features, its constraints and operations |
+| `DERIVED` | computed or matched: inherited feature sets, closures, and every cross-reference edge |
 
-The distinction that matters most in practice: a metaclass's own features are `MODEL`, its inherited
-set is `DERIVED`, and a clause reference obtained by name matching is `DERIVED`: it tells you where
-to look, but it is not itself a citation. Quoting normative wording requires `spec-citation`.
+The distinction that matters most: a metaclass's own features are `MODEL`, its inherited set is
+`DERIVED`, and a clause found through a cross-reference is `DERIVED`. It says where to look, but it is
+not a citation. Quoting the normative wording is the `spec-citation` skill's job.
 
 ## Procedure
 
-1. Resolve the element name in `knowledge/<tag>/metamodel/index.md` (or `Grep` `knowledge/<tag>/metamodel/elements/`).
-2. Read `knowledge/<tag>/metamodel/elements/<Name>.md`. Owned features are in **## Owned features**; for the
-   full inherited set read the **## Inherited features** table (the `Owner` column says where each
-   comes from).
-3. Report the metaclass, abstractness, supertypes/subtypes, and the relevant features (name, type,
-   multiplicity, modifiers), plus redefinitions/subsettings and constraints. Follow `[Type](Type.md)`
-   links to related elements when needed. Always include the source file path.
-4. If the element isn't in the knowledge base, say so; never invent structure.
-
-Answer single-element lookups inline (one index read + one element file, since the inherited table
-already gives the full feature set). For a **set or closure** question, query `metamodel.json` as
-above instead of reading files. Delegate to the `metamodel-navigator` subagent only when the answer
-still needs many element files read (e.g. comparing the documentation of several metaclasses), so
-the bulk reading stays out of this context.
+1. Pick the tool and `question` from the tables above; pass `tag` only when the user names a release.
+2. For one metaclass, start with `element`, then the question asked (`features`, `constraints`, ...).
+   For a set or closure, make the one call that answers it.
+3. Report the metaclass, abstractness, supertypes and the relevant features (name, type, multiplicity,
+   modifiers, owner), redefinitions and constraints, with the release and the tier.
+4. Quote documentation only from `hypha_lookup`'s page, never from memory.
+5. If the element is not in the release, say so; never invent structure.

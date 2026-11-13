@@ -34,7 +34,7 @@ and **state the tag you validated against**, since a construct valid in one rele
 3. Ground every ruling, delegating the lookup to the right knowledge:
    - **metamodel structure**: resolve the metaclass via `knowledge/<tag>/metamodel/index.json`, then read its
      element file (the approach the `metamodel-lookup` skill documents). For cross-cutting sweeps over
-     many metaclasses, the **metamodel-navigator** agent is the authority.
+     many metaclasses, the `metamodel-lookup` skill's set questions answer in one tool call.
    - **normative wording**: cite the matching `knowledge/<tag>/spec/` clause (as the **spec-citation** agent
      does); quote a normative ("shall" / "must") rule, do not paraphrase it.
 
