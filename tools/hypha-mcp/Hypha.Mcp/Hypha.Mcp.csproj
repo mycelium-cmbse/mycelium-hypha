@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Hypha.Mcp</RootNamespace>
+    <AssemblyName>Hypha.Mcp</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Assembly">
+    <!-- Not a package of its own: the Hypha.Tools package carries it. -->
+    <IsPackable>false</IsPackable>
+    <Description>
+      The hypha MCP server: the tools, instructions and server registration that answer an AI client's
+      questions about the OMG SysML v2 / KerML knowledge base, over the Model Context Protocol.
+    </Description>
+    <Authors>Starion Group S.A.</Authors>
+    <Company>Starion Group S.A.</Company>
+    <Copyright>Copyright 2026 Starion Group S.A.</Copyright>
+    <RepositoryUrl>https://github.com/mycelium-cmbse/mycelium-hypha</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\knowledge-gen\Hypha.Knowledge\Hypha.Knowledge.csproj" />
+  </ItemGroup>
+
+</Project>

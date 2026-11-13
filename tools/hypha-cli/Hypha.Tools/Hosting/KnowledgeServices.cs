@@ -47,12 +47,14 @@ namespace Hypha.Tools.Hosting
         /// Where generated artifacts go; <c>null</c> writes them into the repository, which is the
         /// normal run.
         /// </param>
+        /// <param name="configure">Adds the verb's own services, such as the MCP server; <c>null</c> adds none.</param>
         /// <returns>
         /// A provider holding the knowledge and metamodel-generation services plus the console log; the caller owns it
         /// and disposes it once the verb has run.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
-        public static ServiceProvider Build(ParseResult parseResult, DirectoryInfo? outputRoot = null)
+        public static ServiceProvider Build(
+            ParseResult parseResult, DirectoryInfo? outputRoot = null, Action<IServiceCollection>? configure = null)
         {
             ArgumentNullException.ThrowIfNull(parseResult);
 
@@ -72,9 +74,11 @@ namespace Hypha.Tools.Hosting
                 })
                 .AddHyphaMetamodel();
 
-            // With --json, standard output carries the JSON document and nothing else, so every log
-            // line goes to standard error instead.
-            var json = JsonOutput.IsRequested(parseResult);
+            configure?.Invoke(services);
+
+            // With --json, standard output carries the JSON document and nothing else, and under serve
+            // it carries the MCP protocol, so every log line goes to standard error instead.
+            var json = JsonOutput.IsRequested(parseResult) || ServeCommand.Owns(parseResult);
 
             // On a terminal the fetches and generations show a progress display (ProgressDisplay), so
             // the log is written through the same console, which places each line above the bars.

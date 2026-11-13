@@ -30,11 +30,36 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void A_relative_HYPHA_HOME_is_taken_from_the_working_directory()
+        [TestCase("relative-home")]
+        [TestCase(" relative-home ")]
+        [TestCase("./home")]
+        [TestCase("~/hypha")]
+        [TestCase(@"\hypha")]
+        [TestCase("C:hypha")]
+        public void A_relative_HYPHA_HOME_is_refused_so_every_client_shares_one_folder(string configured)
         {
-            var home = HyphaHome.Resolve(Variable(" relative-home "), _ => Data);
+            Assert.That(
+                () => HyphaHome.Resolve(Variable(configured), _ => Data),
+                Throws.InvalidOperationException.With.Message.Contains("HYPHA_HOME must be an absolute path")
+                    .And.Message.Contains(configured.Trim()));
+        }
 
-            Assert.That(home.FullName, Is.EqualTo(Path.GetFullPath("relative-home")));
+        [Test]
+        public void An_invalid_HYPHA_HOME_says_it_is_not_a_valid_folder()
+        {
+            var configured = Path.Combine(Path.GetTempPath(), "hy\0pha");
+
+            Assert.That(
+                () => HyphaHome.Resolve(Variable(configured), _ => Data),
+                Throws.InvalidOperationException.With.Message.Contains("HYPHA_HOME is not a valid folder"));
+        }
+
+        [Test]
+        public void An_absolute_HYPHA_HOME_is_trimmed()
+        {
+            var configured = Path.Combine(Path.GetTempPath(), "hypha-home");
+
+            Assert.That(HyphaHome.Resolve(Variable($"  {configured}  "), _ => Data).FullName, Is.EqualTo(Path.GetFullPath(configured)));
         }
 
         [TestCase(null)]

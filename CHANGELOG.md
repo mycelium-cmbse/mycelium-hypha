@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The hypha MCP server: `hypha serve`** (`refs #196`), with the official `ModelContextProtocol`
+  C# SDK over standard input and output, in a new `Hypha.Mcp` library. Twelve read-only tools
+  answer from the knowledge base: `hypha_release_status`, `hypha_metaclass`, `hypha_feature`,
+  `hypha_typed_by`, `hypha_package`, `hypha_syntax`, `hypha_spec`, `hypha_search`,
+  `hypha_resolve`, `hypha_lookup`, `hypha_diff` and `hypha_api`. Each groups related questions
+  behind a `question` argument whose values are the `hypha query` verb names, and returns the same
+  JSON, grounding included. A question that cannot be answered is a tool error naming the fix. The
+  server's `instructions` explain the grounding tiers and which tool answers what, for clients that
+  load no skills. Standard output carries only the protocol; the log goes to standard error.
 - **A query API in `Hypha.Knowledge`** (`refs #194`), namespace `Hypha.Knowledge.Query`: the
   structural questions the skills and the metamodel-navigator agent answer today with `jq`,
   answered in C# from the same generated JSON, so the CLI and the coming MCP server share one
@@ -168,6 +177,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   expression bodies lead on to, do not count: `true` comes from `BooleanValue`, not `Invariant`.
 
 ### Changed
+- **A relative `HYPHA_HOME` is refused** (`refs #196`): it would be resolved against each process's
+  working directory, so two clients started from different folders would not share one home or one
+  lock. The error names the value and asks for an absolute path.
 - **One knowledge location per user, `HYPHA_HOME`** (`refs #195`). Run outside a source checkout
   without `--repository-root`, `hypha` now keeps `sources/` and `knowledge/` in the `HYPHA_HOME`
   folder, by default `hypha` in the per-user application data folder (`%LOCALAPPDATA%` on Windows,
