@@ -345,7 +345,7 @@ Current state: the Claude plugin (6 skills, 3 agents, SessionStart hook, ad-hoc 
 
 - [x] Create the `Hypha.Mcp` library: tools, resources, prompts and `instructions` (section 1.9), with progress notifications for writes.
 - [x] Add the `serve` verb to `hypha`.
-- [ ] One-time migration of existing plugin and VS Code installs into `HYPHA_HOME`.
+- [x] One-time migration of existing plugin and VS Code installs into `HYPHA_HOME`.
 - [x] Stdio integration test against a fixture knowledge base.
 
 ### Step 5: Make the skills portable

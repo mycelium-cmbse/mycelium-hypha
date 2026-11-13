@@ -64,6 +64,7 @@ everything it provisions in its own storage, such as an editor extension, passes
 | `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
 | `hypha check [--json]` | Compares installed releases against what is offerable upstream, with no fetching and no generating; the one verb the plugin's `SessionStart` hook drives. |
 | `hypha serve` | Runs the hypha MCP server over standard input and output, for an AI client to start (see "MCP server" below). |
+| `hypha migrate [--from <folder>]` | Copies the releases the Claude plugin and the VS Code extension installed in their own folders into `HYPHA_HOME` (see "Moving to HYPHA_HOME" below). |
 
 ```sh
 hypha discover                              # what can be installed
@@ -351,6 +352,33 @@ release has thousands. And five prompts give a client's prompt menu the guided f
 `explain_metaclass`, `cite_specification`, `validate_notation` and `api_lookup`. Each is a request
 naming the tools to use, starting from what is installed; everything they do is also reachable through
 the tools, for clients that support neither.
+
+## Moving to HYPHA_HOME
+
+Before `HYPHA_HOME`, each client kept its knowledge in a folder of its own: the Claude plugin in its
+plugin folder (one per plugin version, under `plugins/cache/<marketplace>/hypha/<version>/` of the
+Claude configuration folder, `CLAUDE_CONFIG_DIR` or `~/.claude`), and the VS Code extension in its
+global storage (`<product>/User/globalStorage/mycelium-cmbse.mycelium-hypha/` of `%APPDATA%`,
+`~/Library/Application Support` or `$XDG_CONFIG_HOME`, for VS Code, VS Code Insiders and VSCodium).
+
+The first time `hypha` reads an empty `HYPHA_HOME`, it copies every release and API version those
+folders installed, with their sources, so nothing is fetched or generated again. Where two clients
+installed the same release, the one changed last wins, and so does its default. It copies rather
+than moves, so the clients keep answering from their own folders until they use `HYPHA_HOME`
+themselves. It holds the release-operation lock of `HYPHA_HOME` while it copies, and each client
+folder's own lock while it copies from it, without waiting: a client installing a release at that
+moment has listed it before generating it, so the migration stops, records nothing and is done on a
+later run, rather than copy a half-built release. Each folder is copied under a
+temporary name and renamed into place, and the manifests are written last, so an interrupted copy is
+simply done again on the next run. A marker, `.migrated-from-clients`, then records that it ran and
+from where, so it never runs again on its own, even after every release is removed. `hypha serve`
+copies beside answering, so a client's handshake does not wait for it; every other verb copies first.
+Nothing is copied when the knowledge is read from anywhere else (a checkout or `--repository-root`).
+
+`hypha migrate` does it on request: it copies whatever `HYPHA_HOME` still lacks, keeping its default,
+from the clients' folders or from the folders named with `--from`, each of which must hold a
+`knowledge/versions.json`. A `HYPHA_HOME` that cannot be used is never reported by the automatic run,
+only by the verbs that read from it.
 
 ## Rate limits
 

@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **A one-time move of existing installs into `HYPHA_HOME`** (`refs #196`): the first time `hypha`
+  reads an empty `HYPHA_HOME`, it copies every release and API version the Claude plugin and the VS
+  Code extension installed in their own folders, with their sources, so nothing is fetched or
+  generated again. It copies rather than moves, holds the release-operation lock (and each client
+  folder's own, so a release a client is installing is never copied half built), renames each copied
+  folder into place and writes the manifests last, and records with `.migrated-from-clients` that it
+  ran. `hypha serve` copies beside answering; `hypha migrate [--from <folder>]` copies on request.
 - **The hypha MCP server: `hypha serve`** (`refs #196`), with the official `ModelContextProtocol`
   C# SDK over standard input and output, in a new `Hypha.Mcp` library. Twelve read-only tools
   answer from the knowledge base: `hypha_release_status`, `hypha_metaclass`, `hypha_feature`,

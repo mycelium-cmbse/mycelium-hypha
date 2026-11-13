@@ -118,6 +118,9 @@ when set; the source checkout above the running assembly; and `HyphaHome`'s defa
 `hypha` in the per-user application data folder. That folder is the one every client shares. The
 managed toolchain defaults to `toolchain/` in it. The plugin's `version-management` skill passes the
 plugin's own folder as `--repository-root`, since that is where the hook and the lookup skills look.
+The first time `hypha` reads an empty `HYPHA_HOME`, `IKnowledgeMigration` copies in the releases the
+plugin and the VS Code extension installed in their own folders (`ILegacyInstallLocator`), once;
+`hypha migrate` does it on request.
 
 Inputs are read from `RepositoryRoot`, output is written to `OutputRoot` (`--output`), which defaults
 to the same folder. That separation is what lets `KnowledgeRegenerationTests` fetch a release fresh

@@ -34,7 +34,7 @@ namespace Hypha.Tools.Tests
                 Is.EquivalentTo(new[]
                 {
                     "discover", "fetch", "generate", "list", "lookup", "query", "move-window", "use", "remove", "check",
-                    "serve", "api",
+                    "serve", "migrate", "api",
                 }));
         }
 
@@ -60,7 +60,7 @@ namespace Hypha.Tools.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(verbs, Has.Count.EqualTo(16));
+                Assert.That(verbs, Has.Count.EqualTo(17));
                 Assert.That(verbs.Select(command => command.Action), Has.All.Not.Null);
             });
         }

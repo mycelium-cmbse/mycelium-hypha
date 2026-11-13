@@ -24,6 +24,7 @@ namespace Hypha.Knowledge
     using Hypha.Knowledge.Hosting;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
+    using Hypha.Knowledge.Migration;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
@@ -178,6 +179,18 @@ namespace Hypha.Knowledge
                 ownsToolchain: true));
 
             services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
+
+            // Copies what the clients installed in their own folders into HYPHA_HOME, which the migration
+            // resolves only when it needs it, so a caller that reads its knowledge from elsewhere is never
+            // refused, or warned, over a HYPHA_HOME it does not use.
+            services.AddSingleton<ILegacyInstallLocator>(_ => new LegacyInstallLocator());
+            services.AddSingleton<IKnowledgeMigration>(provider => new KnowledgeMigration(
+                provider.GetRequiredService<IKnowledgeLayout>(),
+                () => home.Value,
+                provider.GetRequiredService<ILegacyInstallLocator>(),
+                provider.GetRequiredService<IProcessProbe>(),
+                provider.GetRequiredService<ILoggerFactory>(),
+                options.ReleaseLockWait));
 
             // Singletons on purpose: the one cache holds the documents read until their files change,
             // and both queries share it.
