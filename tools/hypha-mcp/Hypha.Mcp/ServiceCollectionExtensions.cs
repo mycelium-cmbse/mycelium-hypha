@@ -67,6 +67,7 @@ namespace Hypha.Mcp
                 .WithTools<LookupTools>()
                 .WithTools<ApiTools>()
                 .WithTools<ReleaseChangeTools>()
+                .WithTools<UpstreamTools>()
                 .WithResources<KnowledgeResources>()
                 .WithPrompts<KnowledgePrompts>();
         }

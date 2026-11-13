@@ -122,6 +122,7 @@ namespace Hypha.Knowledge
             // generators, over the same fetcher and commit resolver the language releases use.
             services.AddSingleton<IApiLayout, ApiLayout>();
             services.AddSingleton<IApiDiscovery, ApiDiscovery>();
+            services.AddSingleton<IReleaseCheck, ReleaseCheck>();
             services.AddSingleton<IDocumentDownloader>(provider => new HttpDocumentDownloader(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(DocumentClientName)));
             services.AddSingleton<IApiInstaller, ApiInstaller>();

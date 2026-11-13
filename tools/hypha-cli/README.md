@@ -316,6 +316,7 @@ values are the `hypha query` verbs that answer the same thing:
 | Tool | Answers |
 | --- | --- |
 | `hypha_release_status` | The installed releases and API versions, the defaults, and what each has generated. |
+| `hypha_check_releases` | The installed releases and API versions against those offered upstream, naming a newer one when there is: what `hypha check` answers, and the one read tool that asks GitHub. |
 | `hypha_metaclass` | `element`, `ancestors`, `subclasses`, `specializes`, `neighbours`, `constraints`, `operations`, `literals`, `features`, `effective-features`. |
 | `hypha_feature` | `redefinitions`, `subsettings`, `opposite`, `feature-constraints`, `contributors`. |
 | `hypha_typed_by` | `classes-with-feature-typed`, `features-accepting`, `containers`. |

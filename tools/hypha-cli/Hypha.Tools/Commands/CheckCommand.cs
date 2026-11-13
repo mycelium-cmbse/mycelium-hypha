@@ -16,7 +16,6 @@ namespace Hypha.Tools.Commands
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
 
     using Spectre.Console;
@@ -49,27 +48,19 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="CheckCommand"/>.</summary>
         public sealed class Handler
         {
-            /// <summary>Asks the upstream which releases can be fetched.</summary>
-            private readonly IReleaseDiscovery discovery;
-
-            /// <summary>Reports which releases are installed locally and which one is the default.</summary>
-            private readonly IKnowledgeLayout layout;
+            /// <summary>Compares the installed releases with the ones offered upstream.</summary>
+            private readonly IReleaseCheck check;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
-            /// <param name="discovery">Lists the releases offerable upstream, newest first.</param>
-            /// <param name="layout">The knowledge layout whose installed releases are compared against them.</param>
-            /// <exception cref="ArgumentNullException">
-            /// <paramref name="discovery"/> or <paramref name="layout"/> is <c>null</c>.
-            /// </exception>
-            public Handler(IReleaseDiscovery discovery, IKnowledgeLayout layout)
+            /// <param name="check">Compares the installed releases with the ones offered upstream.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="check"/> is <c>null</c>.</exception>
+            public Handler(IReleaseCheck check)
             {
-                ArgumentNullException.ThrowIfNull(discovery);
-                ArgumentNullException.ThrowIfNull(layout);
+                ArgumentNullException.ThrowIfNull(check);
 
-                this.discovery = discovery;
-                this.layout = layout;
+                this.check = check;
             }
 
             /// <summary>Reports the comparison.</summary>
@@ -81,10 +72,11 @@ namespace Hypha.Tools.Commands
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
 
-                var available = await this.discovery.AvailableAsync(cancellationToken);
+                // The language releases only: the hook runs this every session, and an API check would cost it
+                // GitHub requests the anonymous rate limit can ill afford.
+                var comparison = await this.check.CheckReleasesAsync(cancellationToken);
 
-                var result = new CheckResult(
-                    this.layout.InstalledTags, this.layout.DefaultTag, [.. available.Take(CheckResult.MaxAvailableOnline)]);
+                var result = new CheckResult(comparison.Installed, comparison.Default, comparison.Offered);
 
                 if (parseResult.GetValue(Json))
                 {

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`hypha_check_releases`, the upstream check in the MCP server** (`refs #197`): compares the
+  installed releases and Systems Modeling API versions with those offered upstream, and names a newer
+  one when there is, so a newer release still reaches the user once the SessionStart hook is gone. It
+  is read-only and open-world, the one read tool that asks GitHub. `hypha check` now runs through the
+  same `IReleaseCheck`, with its JSON unchanged.
 - **`hypha-launch`, the MCP server's launcher** (`refs #198`): the one command every client package
   starts, `bin/hypha-launch`, which the Claude plugin now registers as its `hypha` MCP server. It finds
   the package from its own location, downloads and verifies the `hypha` that `bin/hypha-launch.json`

@@ -27,7 +27,8 @@ remove. `Hypha.Knowledge.Metamodel` (`tools/metamodel-gen`) generates the metamo
 references `Hypha.Knowledge`, never the reverse, so uml4net and Handlebars stay out of the knowledge
 library. `Hypha.Mcp` (`tools/hypha-mcp`) is the MCP server that `hypha serve` hosts: read-only
 tools over `Hypha.Knowledge.Query` and `Hypha.Knowledge.Lookup`, each grouping related questions
-behind a `question` argument whose values are the `hypha query` verb names; the release tools over
+behind a `question` argument whose values are the `hypha query` verb names; `hypha_check_releases`
+over `IReleaseCheck`, which `hypha check` shares; the release tools over
 `IReleaseOperations` (install, use, remove, each under the release lock), which send the
 installer's and the builder's `KnowledgeProgress` as MCP progress notifications; one resource
 template, `hypha://{tag}/{kind}/{name}`, over the generated pages; the prompts (guided flows that name

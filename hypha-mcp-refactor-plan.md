@@ -186,10 +186,10 @@ As today, plus:
 
 Official `ModelContextProtocol` C# SDK, stdio transport, attribute-based with explicit `WithTools<T>()` / `WithResources<T>()` / `WithPrompts<T>()` registration. Logs to stderr only.
 
-- **Tools** (primary surface; every client supports them). All prefixed `hypha_`; 16 today, to stay under 20 (Windsurf caps all servers combined at 100 tools):
+- **Tools** (primary surface; every client supports them). All prefixed `hypha_`; 17 today, to stay under 20 (Windsurf caps all servers combined at 100 tools):
   - query tools, grouping related questions behind a `question` argument whose values are the `hypha query` verb names: `hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`, `hypha_spec`, `hypha_api`, `hypha_diff`
   - `hypha_search` (by name, number or title), `hypha_search_spec` (the clause text), `hypha_resolve` (a `hypha://` address), `hypha_lookup` (paged)
-  - `hypha_release_status`
+  - `hypha_release_status`, and `hypha_check_releases` (what is offered upstream; the one read tool that reaches the network)
   - `hypha_install_release`, `hypha_use_release`, `hypha_remove_release` (in-process, under the release lock, with progress; the default switches only once a release is generated)
 - **Resources**: the template `hypha://{tag}/{kind}/{name}` over the generated pages: a metaclass or clause page whole, a model-library declaration from where it is declared on. An address names its page exactly, and every address in a JSON answer carries its `uri`. Everything is also reachable through a tool, since client support for resources is uneven.
 - **Prompts**: guided flows from `commands/overview.md`: `overview`, `explain_metaclass`, `cite_specification`, `validate_notation`, `api_lookup`.
@@ -386,7 +386,8 @@ One thin slice, end to end: the Claude plugin starts `hypha serve` through the l
 
 - [ ] Rewrite the six skills to call MCP tools by their bare names: no jq, no file paths, no Claude-specific tool names. A question no tool answers falls back to whole pages through `hypha_lookup` or `hypha_resolve`, never to jq.
 - [ ] Fold the three agents (`metamodel-navigator`, `spec-citation`, `sysml-validator`) into skills: a fan-out question is now one query call.
-- [ ] Replace `version-management` with the release tools, plus an upstream check (an `upstream` option on `hypha_release_status`, or a `hypha_check_releases` tool), so a newer release still reaches the user once the hook is gone.
+- [x] An upstream check, so a newer release still reaches the user once the hook is gone: `hypha_check_releases`, a read-only, open-world tool over `IReleaseCheck`, which `hypha check` also runs through.
+- [ ] Replace `version-management` with the release tools and `hypha_check_releases`.
 - [ ] CI lint: every bare tool name a skill or prompt mentions exists in the server.
 - [ ] Remove the SessionStart hook, `hooks/native/`, jq and the README's "Recommended: jq" section. This absorbs the former Step 10: the 24 jq queries have C# equivalents checked against jq by golden tests, so jq needs no transition release.
 - [ ] Release Steps 5 and 6 together, and nothing before: `tools-v1.6.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking).

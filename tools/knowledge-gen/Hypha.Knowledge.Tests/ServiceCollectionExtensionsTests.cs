@@ -101,6 +101,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(provider.GetService<IReleaseDiscovery>(), Is.Not.Null);
                 Assert.That(provider.GetService<ICommitResolver>(), Is.Not.Null);
                 Assert.That(provider.GetService<IReleaseFetcher>(), Is.Not.Null);
+                Assert.That(provider.GetService<IReleaseCheck>(), Is.TypeOf<ReleaseCheck>(), "hypha check and hypha_check_releases resolve it");
             });
         }
 

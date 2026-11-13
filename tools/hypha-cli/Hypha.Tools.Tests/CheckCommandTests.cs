@@ -16,6 +16,7 @@ namespace Hypha.Tools.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
     using Hypha.Tools.Commands;
@@ -48,7 +49,7 @@ namespace Hypha.Tools.Tests
             this.layout.SetupGet(mock => mock.InstalledTags).Returns(["2026-05", "2026-04"]);
             this.layout.SetupGet(mock => mock.DefaultTag).Returns("2026-05");
 
-            this.handler = new CheckCommand.Handler(this.discovery.Object, this.layout.Object);
+            this.handler = new CheckCommand.Handler(new ReleaseCheck(this.discovery.Object, this.layout.Object, Mock.Of<IApiLayout>()));
         }
 
         [Test]
