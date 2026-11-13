@@ -117,8 +117,8 @@ self-consistency regeneration check) before pruning whichever locally-installed 
 checkout above the working directory (the CLI only); `HyphaKnowledgeOptions.Home` or `HYPHA_HOME`,
 when set; the source checkout above the running assembly; and `HyphaHome`'s default location,
 `hypha` in the per-user application data folder. That folder is the one every client shares. The
-managed toolchain defaults to `toolchain/` in it. The plugin's `version-management` skill passes the
-plugin's own folder as `--repository-root`, since that is where the hook and the lookup skills look.
+managed toolchain defaults to `toolchain/` in it. The plugin's skills reach that folder through the MCP
+server, which the launcher starts without `--repository-root`.
 The first time `hypha` reads an empty `HYPHA_HOME`, `IKnowledgeMigration` copies in the releases the
 plugin and the VS Code extension installed in their own folders (`ILegacyInstallLocator`), once;
 `hypha migrate` does it on request.
@@ -175,7 +175,8 @@ to the release machinery rather than folded into it:
 Nothing per-release is committed any more, for anything: not a rolling window of it, not one
 release. Every release's inputs and generated knowledge live entirely on the user's own machine, one
 uniform model instead of the licensing-driven split this used to have. See `skills/version-management/
-SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface that drives it.
+SKILL.md` for the interactive check, install, use and remove surface (the MCP release tools) that
+drives it.
 
 - **Git-ignored, per release:** `sources/<tag>/` (fetched inputs: XMI, textual sources, specification
   PDFs) and `knowledge/<tag>/` (everything generated from them: metamodel, textual-notation,

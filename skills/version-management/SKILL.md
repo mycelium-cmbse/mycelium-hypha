@@ -1,131 +1,109 @@
 ---
 name: version-management
-description: "Manage which OMG SysML v2 / KerML release(s) hypha has fetched and generated locally: list what's installed vs. available upstream, fetch a release, switch the default, or remove one that's no longer wanted. Use when the user asks what versions are available, wants to fetch/update/switch/remove a release, or when a SessionStart hook message reports nothing installed yet or a newer release available."
+description: "Manage which OMG SysML v2 / KerML release(s) hypha has installed on this machine: list what's installed vs. available upstream, install a release, switch the default, or remove one that's no longer wanted. Use when the user asks what versions are available, wants to install/update/switch/remove a release, or when a check or a session-start message reports nothing installed yet or a newer release available."
 ---
 
 # Version management
 
-Hypha keeps nothing generated in git: every release's metamodel, textual notation and
-cross-references is fetched and generated **on this machine**, on request. This skill is the
-vocabulary for doing that conversationally (list, fetch, switch, remove), all through the `hypha`
-CLI (self-contained; no toolchain needed).
+Hypha keeps nothing generated in git: every release's metamodel, textual notation, model library,
+specification text and cross-references is downloaded and generated **on this machine**, on request.
+This skill is the vocabulary for doing that conversationally (check, install, switch, remove) through
+the **hypha MCP server's tools**. They are named here without a client's prefix: a client may show
+`hypha_install_release` as, for example, `mcp__hypha__hypha_install_release`.
 
-## Always point `hypha` at the plugin's folder
-
-Every `hypha` command in this skill runs with `--repository-root "${CLAUDE_PLUGIN_ROOT}"`: the
-plugin's own folder, which holds the `knowledge/` the other skills read and is the folder the
-`SessionStart` hook checks. Without it, `hypha` uses the per-user `HYPHA_HOME` folder instead, and a
-release fetched there is invisible to this plugin. Keep the option on every command, including the
-ones you compose yourself.
+Every client that starts the server shares one set of installed releases, so a release installed
+here answers in every other client too.
 
 ## Always confirm before acting
 
-- **Fetching** costs real time (minutes for a first fetch) and a network round-trip. Never fetch a
-  release just because a hook mentioned one exists; say what's available and ask.
-- **Removing** is destructive (the release's files are deleted). Confirm which tag before running it.
-- Switching the default is cheap and reversible, but still worth naming what changed, not silent.
+- **Installing** takes minutes and downloads from GitHub. Never install a release just because a check
+  said one exists: say what is available and ask.
+- **Removing** deletes the release's files, with no undo. Confirm which release first.
+- **Switching** the default is cheap and reversible, but still say what changed.
 
-## Listing what's local vs. online
+## Tools
 
-```sh
-hypha check --repository-root "${CLAUDE_PLUGIN_ROOT}"
-```
+| What | Tool | Arguments |
+| --- | --- | --- |
+| What is installed, and which release is the default | `hypha_release_status` | |
+| What is installed against what is offered upstream, and whether a newer release exists | `hypha_check_releases` | `api` (default true) for the API versions too |
+| Install a release: download it, generate its knowledge, make it the default | `hypha_install_release` | `tag`; `includeSpecifications`; `makeDefault` |
+| Switch the default release | `hypha_use_release` | `tag` |
+| Remove a release | `hypha_remove_release` | `tag`; `force` |
 
-Prints installed releases (with which is `default`) next to what's newest online, and tells you if a
-newer release exists. This is the same comparison the `SessionStart` hook already ran once at session
-start. Re-run it if the user asks "what versions do I have" later in a long conversation, since the
-hook only checks once per session.
+## Checking what's local vs. online
 
-For the full upstream list rather than just the newest few, use `hypha discover` (`--limit 0` for
-everything, newest first).
+`hypha_release_status` answers from this machine. `hypha_check_releases` asks GitHub: for the
+releases and for the API versions, it lists what is `installed`, the `default`, the newest few
+`offered` upstream, and `newer`, the newest offered one newer than everything installed, or `null`.
+Call it when the user asks about updates, or once at the start of a session when that helps; it costs
+a request to GitHub, not a download.
 
-## Fetching a release
+It lists the five newest releases offered. An older one can still be installed by its tag: ask the
+user which, and pass it to `hypha_install_release`.
 
-Run both steps in the foreground: the user sees real progress as they stream, there is nothing to
-poll for:
+## Installing a release
 
-```sh
-hypha fetch --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
-hypha generate --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
-```
+`hypha_install_release` downloads the release's inputs and generates its knowledge in one call, and
+reports progress while it runs:
 
-`fetch` downloads that release's metamodel XMI, textual sources, and (by default) the OMG
-specification PDFs into `sources/<tag>/`, all git-ignored, all local only. `generate` builds
-`knowledge/<tag>/` from what was fetched. **`fetch` switches the default to whatever it just fetched,
-every time**. If the user wants to add a release alongside what's already installed *without*
-switching (e.g. "also get me an older one for comparison"), pass `--no-default`:
+- `tag`: the release, such as `2026-05`; without it, the newest offered upstream.
+- `includeSpecifications` (default true): also download the OMG specification PDFs and extract their
+  text, which quoting the specification needs (the `spec-citation` skill). Without it, a citation
+  names the clause but cannot quote it.
+- `makeDefault` (default true): make it the default once its knowledge is generated. Pass `false` to
+  add a release alongside the current default without switching, such as an older one to compare
+  against. The first release installed is always the default.
 
-```sh
-hypha fetch --tag <tag> --no-default --repository-root "${CLAUDE_PLUGIN_ROOT}"
-hypha generate --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
-```
+Installing a release that is already installed keeps its files and generates again.
 
-Either way, say what the default is afterward; it's easy for the user to lose track of which release
-they're now getting answers from.
-
-Quoting normative specification text (`knowledge/<tag>/spec/`) is `generate`'s `spec` artifact: it
-fetches and caches `uv`, which resolves or fetches a matching Python itself and runs
-`tools/spec-extract` through it, so no maintainer source checkout or pre-existing Python needed. The one
-way this still degrades to naming a clause rather than quoting it is `uv` itself being unprovisionable
-(offline the first time it's needed, or an unsupported platform); `generate` reports that as a `Skipped`
-result with a reason, the same as any other artifact missing its inputs. Say so if the user specifically
-asked for spec citation and it came back skipped.
+The answer says what was fetched, by kind, and each artifact's outcome: generated, or skipped with a
+`reason` (such as the specification text when its PDFs or the tool that extracts them could not be
+had). When `refusal` is set, an artifact stopped the generation because its output would have been
+wrong: report it, with its reason. Say what the default release is afterwards (`isDefault`); it is
+easy to lose track of which release answers.
 
 ## Switching the default release
 
-```sh
-hypha use --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
-```
-
-Only works on an already-installed tag (fetch it first if it isn't). Every skill reads this default
-unless the user names a different tag in their prompt for one answer.
+`hypha_use_release` with `tag` makes an installed release the default, which every tool answers from
+unless given a `tag` for one answer. Install the release first if it is not installed. The answer
+names the `previous` default and whether it `changed`.
 
 ## Removing a release
 
-```sh
-hypha remove --tag <tag> --repository-root "${CLAUDE_PLUGIN_ROOT}"
-```
-
-Refuses on the current default (switch with `hypha use` first) and on the only installed release
-(pass `--force` if that's really what's wanted, since it leaves nothing installed). Confirm the tag with
-the user before running this; there's no undo once the files are deleted.
+`hypha_remove_release` with `tag` deletes an installed release: its downloaded sources and its
+generated knowledge. It refuses the default release (switch with `hypha_use_release` first) and the
+only installed release, unless `force` is set, which leaves nothing to answer from. Confirm the
+release with the user before calling it.
 
 ## The Systems Modeling API is versioned separately
 
 The Systems Modeling API & Services knowledge (the PIM, the REST/HTTP PSM and the API specification
-text; see the `api-lookup` skill) is **not** part of a language release. It has its own versions,
-its own default and its own manifest (`knowledge/api/versions.json`), driven by the same verbs under
-`hypha api`:
+text; see the `api-lookup` skill) is **not** part of a language release. It has its own versions and
+its own default.
 
-```sh
-hypha api discover --repository-root "${CLAUDE_PLUGIN_ROOT}"  # the API versions the upstreams offer
-hypha api list --repository-root "${CLAUDE_PLUGIN_ROOT}"  # what is installed, and which is the default
-hypha api fetch --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"  # into sources/api/<version>/  (--no-default, --no-specs, --force)
-hypha api generate --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"  # into knowledge/api/<version>/
-hypha api use --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"
-hypha api remove --tag <version> --repository-root "${CLAUDE_PLUGIN_ROOT}"
-```
-
+- `hypha_check_releases` (with `api` left on) and `hypha_release_status` report the API versions.
+- The release tools install, switch and remove **language releases only**. An API version is
+  installed with the `hypha` command-line tool, where it is installed (as a .NET tool or a release
+  download): `hypha api fetch --tag <version>`, then `hypha api generate --tag <version>`;
+  `hypha api use` and `hypha api remove` switch and remove one. Give the user those commands rather
+  than running them; if `hypha` is not on their path, say that the API knowledge cannot be installed
+  from here yet.
 - An API version is a tag of the upstream API-Services repository, `2025-02` or later. That
-  repository has not been tagged for every language release since, so the newest API version is
-  usually **older** than the newest language release. That is expected, not something to fix.
-- Installing, switching or removing an API version never touches an installed language release, and
-  the other way round. `hypha check` and the `SessionStart` hook report on the language releases
-  only: for the API, run `hypha api list` and `hypha api discover`.
-- The same confirmations apply: ask before fetching, confirm the version before removing, and say
-  what the default API version is afterward.
+  repository has not been tagged for every language release, so the newest API version is usually
+  **older** than the newest language release. That is expected, not something to fix.
+- Installing, switching or removing a language release never touches an API version, and the other
+  way round.
 
 ## Typical flows
 
-- **Fresh install, hook says nothing is local yet**: name the releases the hook reported, ask which
-  one, then `fetch` + `generate` it.
-- **Hook says a newer release is available**: name it, ask whether to fetch it, and clarify whether they
-  want it to become the new default (plain `fetch`) or sit alongside the current one (`--no-default`).
-- **User wants an older release for comparison**: `hypha discover --limit 0` to find the tag, then
-  `fetch --no-default` + `generate` it so it joins what's already installed without switching away
-  from the current default.
-- **User asks about the SysML v2 API and nothing is installed under `knowledge/api/`**: say so,
-  run `hypha api discover` to name what is on offer, ask which one, then `hypha api fetch` +
-  `hypha api generate` it.
-- **Cleaning up**: `hypha check` to see what's installed, confirm which tag(s) to drop, `hypha use` to
-  move off any that's currently default, then `hypha remove` each.
+- **Nothing is installed yet**: `hypha_check_releases` to name what is offered, ask which release,
+  then `hypha_install_release` it.
+- **A newer release is available**: name it, ask whether to install it, and whether it should become
+  the default (`makeDefault`, the default) or sit alongside the current one (`makeDefault: false`).
+- **An older release for comparison**: install it by its `tag` with `makeDefault: false`, so the
+  current default stays; `hypha_diff` then compares the two.
+- **The user asks about the SysML v2 API and no API version is installed**: say so, name what
+  `hypha_check_releases` offers, and give the `hypha api` commands above.
+- **Cleaning up**: `hypha_release_status` for what is installed, confirm which releases to drop,
+  `hypha_use_release` to move off the default if it is one of them, then `hypha_remove_release` each.
