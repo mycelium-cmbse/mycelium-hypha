@@ -44,6 +44,13 @@ namespace Hypha.Mcp.Tests
             "hypha_api",
         ];
 
+        private static readonly string[] ChangeTools =
+        [
+            "hypha_install_release",
+            "hypha_use_release",
+            "hypha_remove_release",
+        ];
+
         private ServiceProvider provider = null!;
 
         [SetUp]
@@ -61,17 +68,17 @@ namespace Hypha.Mcp.Tests
         private IReadOnlyList<McpServerTool> Tools => this.provider.GetServices<McpServerTool>().ToList();
 
         [Test]
-        public void Every_read_tool_is_registered_and_nothing_else()
+        public void Every_read_tool_and_release_change_tool_is_registered_and_nothing_else()
         {
-            Assert.That(this.Tools.Select(tool => tool.ProtocolTool.Name), Is.EquivalentTo(ReadTools));
+            Assert.That(this.Tools.Select(tool => tool.ProtocolTool.Name), Is.EquivalentTo(ReadTools.Concat(ChangeTools)));
         }
 
         [Test]
-        public void Every_tool_is_described_and_marked_read_only_idempotent_and_closed_world()
+        public void Every_read_tool_is_described_and_marked_read_only_idempotent_and_closed_world()
         {
             Assert.Multiple(() =>
             {
-                foreach (var tool in this.Tools.Select(tool => tool.ProtocolTool))
+                foreach (var tool in this.Tools.Select(tool => tool.ProtocolTool).Where(tool => ReadTools.Contains(tool.Name)))
                 {
                     Assert.That(tool.Description, Is.Not.Null.And.Length.GreaterThan(40), tool.Name);
                     Assert.That(tool.Annotations?.ReadOnlyHint, Is.True, tool.Name);
@@ -82,6 +89,32 @@ namespace Hypha.Mcp.Tests
             });
         }
 
+        [TestCase("hypha_install_release", false, true, true)]
+        [TestCase("hypha_use_release", false, true, false)]
+        [TestCase("hypha_remove_release", true, false, false)]
+        public void A_release_change_tool_says_it_writes_and_how(string name, bool destructive, bool idempotent, bool openWorld)
+        {
+            var tool = this.Tools.Single(registered => registered.ProtocolTool.Name == name).ProtocolTool;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(tool.Description, Is.Not.Null.And.Contains("Only when the user asks"));
+                Assert.That(tool.Annotations?.ReadOnlyHint, Is.False);
+                Assert.That(tool.Annotations?.DestructiveHint, Is.EqualTo(destructive));
+                Assert.That(tool.Annotations?.IdempotentHint, Is.EqualTo(idempotent));
+                Assert.That(tool.Annotations?.OpenWorldHint, Is.EqualTo(openWorld));
+            });
+        }
+
+        [Test]
+        public void The_install_schema_holds_its_arguments_and_not_the_progress_or_the_cancellation()
+        {
+            var install = this.Tools.Single(tool => tool.ProtocolTool.Name == "hypha_install_release").ProtocolTool.InputSchema;
+            var properties = install.GetProperty("properties").EnumerateObject().Select(property => property.Name);
+
+            Assert.That(properties, Is.EquivalentTo(new[] { "tag", "includeSpecifications", "makeDefault" }));
+        }
+
         [Test]
         public void The_instructions_name_every_tool_and_no_other()
         {
@@ -89,7 +122,7 @@ namespace Hypha.Mcp.Tests
 
             var named = Regex.Matches(instructions!, @"\bhypha_[a-z_]+\b").Select(match => match.Value).Distinct();
 
-            Assert.That(named, Is.EquivalentTo(ReadTools));
+            Assert.That(named, Is.EquivalentTo(ReadTools.Concat(ChangeTools)));
         }
 
         [Test]

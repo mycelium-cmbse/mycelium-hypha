@@ -63,7 +63,8 @@ namespace Hypha.Mcp
                 .WithTools<SyntaxTools>()
                 .WithTools<SpecificationTools>()
                 .WithTools<LookupTools>()
-                .WithTools<ApiTools>();
+                .WithTools<ApiTools>()
+                .WithTools<ReleaseChangeTools>();
         }
     }
 }

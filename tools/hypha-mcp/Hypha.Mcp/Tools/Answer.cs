@@ -11,7 +11,9 @@ namespace Hypha.Mcp.Tools
 {
     using System;
     using System.IO;
+    using System.Net.Http;
     using System.Text.Json;
+    using System.Threading.Tasks;
     using System.Text.Json.Serialization.Metadata;
 
     using Hypha.Knowledge.Lookup;
@@ -63,6 +65,33 @@ namespace Hypha.Mcp.Tools
             return JsonSerializer.Serialize(Ask(question), typeInfo);
         }
 
+        /// <summary>
+        /// Runs an operation and serializes its result through <paramref name="typeInfo"/>.
+        /// </summary>
+        /// <typeparam name="T">The result's type.</typeparam>
+        /// <param name="operation">Runs the operation.</param>
+        /// <param name="typeInfo">How to serialize the result.</param>
+        /// <returns>The result as JSON.</returns>
+        /// <exception cref="McpException">The operation failed in a way the model can act on; the message says how.</exception>
+        /// <exception cref="OperationCanceledException">The client cancelled the call.</exception>
+        public static async Task<string> OfAsync<T>(Func<Task<T>> operation, JsonTypeInfo<T> typeInfo)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentNullException.ThrowIfNull(typeInfo);
+
+            T result;
+            try
+            {
+                result = await operation();
+            }
+            catch (Exception exception) when (Translate(exception) is { } error)
+            {
+                throw error;
+            }
+
+            return JsonSerializer.Serialize(result, typeInfo);
+        }
+
         /// <summary>The value of an argument that the chosen question needs.</summary>
         /// <param name="value">The argument's value.</param>
         /// <param name="argument">The argument's name, as the tool's schema gives it.</param>
@@ -73,6 +102,10 @@ namespace Hypha.Mcp.Tools
             string.IsNullOrWhiteSpace(value)
                 ? throw new ArgumentException($"The question '{question}' needs the argument '{argument}'.")
                 : value;
+
+        /// <summary>What the model can do about an upstream that could not be reached.</summary>
+        internal const string UpstreamHint =
+            "An unauthenticated GitHub API allows 60 requests an hour; set GITHUB_TOKEN for the server if that is the limit it met.";
 
         /// <summary>What the model can do about a knowledge file that could not be read.</summary>
         internal const string UnreadableHint =
@@ -94,19 +127,37 @@ namespace Hypha.Mcp.Tools
             {
                 return question();
             }
-            catch (Exception exception) when (exception is KnowledgeLookupException or ArgumentException or FormatException or InvalidOperationException)
+            catch (Exception exception) when (Translate(exception) is { } error)
             {
-                // The SDK hides the message of any other exception from the client; these messages name
-                // what is missing and how to fix it, which is what the model needs to correct itself.
-                // A manifest that is not a version manifest is an InvalidOperationException.
-                throw new McpException(exception.Message, exception);
-            }
-            catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
-            {
-                // A file the question reads (knowledge/versions.json most often) is corrupt, or is
-                // being rewritten by another hypha at this moment.
-                throw new McpException($"A knowledge file could not be read: {exception.Message} {UnreadableHint}", exception);
+                throw error;
             }
         }
+
+        /// <summary>
+        /// The tool error for a failure the model can act on, or <c>null</c> for any other, whose message
+        /// the SDK keeps from the client.
+        /// </summary>
+        /// <param name="exception">The failure.</param>
+        /// <returns>The tool error, or <c>null</c>.</returns>
+        private static McpException? Translate(Exception exception) => exception switch
+        {
+            McpException => null,
+
+            // These messages name what is missing and how to fix it, which is what the model needs to
+            // correct itself. A manifest that is not a version manifest, and a release lock another
+            // client holds, are InvalidOperationExceptions.
+            KnowledgeLookupException or ArgumentException or FormatException or InvalidOperationException =>
+                new McpException(exception.Message, exception),
+
+            // A file the call reads (knowledge/versions.json most often) is corrupt, or is being
+            // rewritten by another hypha at this moment.
+            JsonException or IOException or UnauthorizedAccessException =>
+                new McpException($"A knowledge file could not be read: {exception.Message} {UnreadableHint}", exception),
+
+            HttpRequestException =>
+                new McpException($"The upstream could not be reached: {exception.Message} {UpstreamHint}", exception),
+
+            _ => null,
+        };
     }
 }

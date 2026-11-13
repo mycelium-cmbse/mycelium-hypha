@@ -306,8 +306,8 @@ the server answers from the same folder every other verb uses (`HYPHA_HOME` by d
 { "mcpServers": { "hypha": { "command": "hypha", "args": ["serve"] } } }
 ```
 
-Its tools are read-only, and each groups related questions behind a `question` argument whose values
-are the `hypha query` verbs that answer the same thing:
+Its query tools are read-only, and each groups related questions behind a `question` argument whose
+values are the `hypha query` verbs that answer the same thing:
 
 | Tool | Answers |
 | --- | --- |
@@ -328,6 +328,19 @@ Every answer is the JSON document `hypha query --json` prints: the value and its
 release, source file). A question that cannot be answered, such as one about a release that is not
 installed, is a tool error whose message says how to fix it. The server's `instructions` explain the
 grounding tiers and which tool answers what, for clients that load no skills.
+
+Three more tools change the installed releases, in the server's own process:
+
+| Tool | Does |
+| --- | --- |
+| `hypha_install_release` | Fetches a release (the newest one offered upstream when no `tag` is given) and generates its knowledge; `includeSpecifications` and `makeDefault` default to `true`, and the release becomes the default only once its knowledge is generated with no generator refusing. It sends MCP progress notifications while it runs, one per file fetched and per artifact generated, and answers with what each artifact did. |
+| `hypha_use_release` | Makes an installed release the default. |
+| `hypha_remove_release` | Deletes an installed release that is not the default (`force` for the last one). |
+
+Each takes the release-operation lock, so two servers, or a server and the VS Code extension, change
+the releases one at a time; under `serve` a tool waits up to ten minutes for another's change to
+finish. The query tools need no telling afterwards: they read the version manifest on every call and
+read a generated file again once it has changed on disk.
 
 ## Rate limits
 

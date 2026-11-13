@@ -11,11 +11,9 @@ namespace Hypha.Tools.Commands
 {
     using System;
     using System.CommandLine;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Releases;
 
     using Spectre.Console;
@@ -45,19 +43,19 @@ namespace Hypha.Tools.Commands
         /// <summary>Runs the <see cref="UseCommand"/>.</summary>
         public sealed class Handler
         {
-            /// <summary>Resolves where the version manifest is read from and written to.</summary>
-            private readonly IKnowledgeLayout layout;
+            /// <summary>Switches the default release.</summary>
+            private readonly IReleaseSelector selector;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Handler"/> class.
             /// </summary>
-            /// <param name="layout">Resolves where the version manifest is read from and written to.</param>
-            /// <exception cref="ArgumentNullException"><paramref name="layout"/> is <c>null</c>.</exception>
-            public Handler(IKnowledgeLayout layout)
+            /// <param name="selector">Switches the default release.</param>
+            /// <exception cref="ArgumentNullException"><paramref name="selector"/> is <c>null</c>.</exception>
+            public Handler(IReleaseSelector selector)
             {
-                ArgumentNullException.ThrowIfNull(layout);
+                ArgumentNullException.ThrowIfNull(selector);
 
-                this.layout = layout;
+                this.selector = selector;
             }
 
             /// <summary>Switches the default release.</summary>
@@ -73,35 +71,24 @@ namespace Hypha.Tools.Commands
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var tag = parseResult.GetValue(Tag)!;
-                var path = this.layout.VersionManifest.FullName;
-                var manifest = VersionManifestFile.ReadIfPresent(path);
 
-                if (manifest is null || !manifest.GetTags().Contains(tag, StringComparer.Ordinal))
+                ReleaseSelection selection;
+                try
                 {
-                    var installed = manifest?.GetTags() ?? [];
-
-                    AnsiConsole.MarkupLine($"[red]'{Markup.Escape(tag)}' is not installed.[/]");
-                    AnsiConsole.MarkupLine(
-                        installed.Count > 0
-                            ? $"[grey]Installed: {Markup.Escape(string.Join(", ", installed))}. "
-                              + "Run 'hypha fetch --tag <release>' first.[/]"
-                            : "[grey]Nothing is installed. Run 'hypha fetch --tag <release>' first.[/]");
+                    selection = this.selector.Use(tag);
+                }
+                catch (ArgumentException exception)
+                {
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}.[/]");
+                    AnsiConsole.MarkupLine("[grey]Run 'hypha fetch --tag <release>' first.[/]");
 
                     return Task.FromResult(2);
                 }
 
-                if (string.Equals(manifest.Default, tag, StringComparison.Ordinal))
-                {
-                    AnsiConsole.MarkupLine($"[bold]{Markup.Escape(tag)}[/] is already the default.");
-
-                    return Task.FromResult(0);
-                }
-
-                VersionManifestFile.Write(VersionManifest.Build(tag, manifest.Versions), path);
-
                 AnsiConsole.MarkupLine(
-                    $"[bold]{Markup.Escape(tag)}[/] is now the default release "
-                    + $"[grey](was {Markup.Escape(manifest.Default)})[/].");
+                    selection.Changed
+                        ? $"[bold]{Markup.Escape(tag)}[/] is now the default release [grey](was {Markup.Escape(selection.Previous)})[/]."
+                        : $"[bold]{Markup.Escape(tag)}[/] is already the default.");
 
                 return Task.FromResult(0);
             }

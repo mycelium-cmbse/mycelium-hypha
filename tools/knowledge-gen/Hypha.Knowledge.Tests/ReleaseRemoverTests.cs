@@ -104,7 +104,7 @@ namespace Hypha.Knowledge.Tests
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => this.remover.RemoveAsync("2026-05"));
 
-            Assert.That(exception!.Message, Does.Contain("hypha use"));
+            Assert.That(exception!.Message, Is.EqualTo("'2026-05' is the default release; make another installed release the default before removing it"));
 
             Assert.Multiple(() =>
             {

@@ -93,7 +93,13 @@ namespace Hypha.Tools.Commands
                 }
                 catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
                 {
-                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}[/]");
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}.[/]");
+
+                    if (exception is InvalidOperationException)
+                    {
+                        AnsiConsole.MarkupLine(
+                            "[grey]Switch the default with 'hypha use --tag <other>'; pass --force to remove the only installed release.[/]");
+                    }
 
                     return 2;
                 }

@@ -59,6 +59,14 @@ namespace Hypha.Mcp
             - hypha_api: the Systems Modeling API: a PIM class, an API type or operation, or a clause of the
               API specification.
 
+            Changing releases. Only when the user asks for it, since an install downloads from GitHub and
+            takes minutes:
+            - hypha_install_release: fetch a release and generate its knowledge, the newest one when no tag
+              is given. It reports progress while it runs, and says which artifacts were generated.
+            - hypha_use_release: make an installed release the default.
+            - hypha_remove_release: delete an installed release that is not the default.
+            Another client may be changing releases at the same time; these tools wait their turn.
+
             Every tool answers from the default release unless given a tag (for hypha_api, a version).
             Names are metamodel names, such as PartUsage; qualified names use ::, such as ISQBase::mass.
             """;

@@ -138,7 +138,7 @@ namespace Hypha.Tools
 
             var use = new UseCommand();
             use.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
-                new UseCommand.Handler(provider.GetRequiredService<IKnowledgeLayout>()).InvokeAsync(parseResult, cancellationToken)));
+                new UseCommand.Handler(provider.GetRequiredService<IReleaseSelector>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(use);
 
             var remove = new RemoveCommand();

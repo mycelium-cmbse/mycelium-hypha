@@ -27,8 +27,10 @@ remove. `Hypha.Knowledge.Metamodel` (`tools/metamodel-gen`) generates the metamo
 references `Hypha.Knowledge`, never the reverse, so uml4net and Handlebars stay out of the knowledge
 library. `Hypha.Mcp` (`tools/hypha-mcp`) is the MCP server that `hypha serve` hosts: read-only
 tools over `Hypha.Knowledge.Query` and `Hypha.Knowledge.Lookup`, each grouping related questions
-behind a `question` argument whose values are the `hypha query` verb names, plus the `instructions`
-that explain the grounding tiers. It references `Hypha.Knowledge`, never the reverse. A generator
+behind a `question` argument whose values are the `hypha query` verb names; the release tools over
+`IReleaseOperations` (install, use, remove, each under the release lock), which send the
+installer's and the builder's `KnowledgeProgress` as MCP progress notifications; and the
+`instructions` that explain the grounding tiers. It references `Hypha.Knowledge`, never the reverse. A generator
 and the code that reads its output use the same C# types, serialized through a
 source-generated `JsonSerializerContext` (one per artifact, next to its types), not a
 reflection-based `JsonSerializer` call.
@@ -86,19 +88,20 @@ keywords (33), model library (35), cross-references (40, last, because it reads 
 generated examples). That loop is `IKnowledgeBuilder<TGenerator>` (`KnowledgeBuilder`), registered
 for both collections: `IKnowledgeBuilder<IKnowledgeGenerator>` for the releases and
 `IKnowledgeBuilder<IApiKnowledgeGenerator>` for the API versions. `hypha generate` and `move-window`
-run through it, as the MCP server's install will. The CLI does not know the artifact names, so adding
+run through it, and so does `IReleaseOperations.InstallAsync`, the MCP server's install. The CLI does not know the artifact names, so adding
 a generator adds its verb.
 
 **Progress** is one record, `KnowledgeProgress` (`Operation`, `Step`, `Done`, `Total`, `Message`),
 reported through an `IProgress<KnowledgeProgress>` by the release and API installers (per file or
 document) and by the builder (per artifact). The CLI shows it as a live display when its output is a
-terminal; the MCP server will send it as progress notifications.
+terminal; the MCP server sends it as progress notifications.
 
 **Concurrent writers.** Manifests and generated files are written through `ReaderSafeFile` (a temporary
 file beside the target, then renamed over it), never with `File.WriteAllText`, so a reader in
 another process sees the old file or the new one, never half of one. An operation that changes
 releases on its own takes `IReleaseOperationLock`, waiting for it as long as
-`HyphaKnowledgeOptions.ReleaseLockWait` allows.
+`HyphaKnowledgeOptions.ReleaseLockWait` allows (ten minutes under `hypha serve`, none otherwise):
+that is `IReleaseOperations`, which the MCP release tools run through.
 
 `hypha move-window --tag <release>` is the one verb that deliberately crosses the CLI/test split
 above: a maintainer-only, source-checkout-only convenience that drives fetch → generate → the rest of
