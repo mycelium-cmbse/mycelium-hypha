@@ -71,9 +71,10 @@ namespace Hypha.Mcp.Tests
         [Test]
         public void A_library_declaration_is_the_lookup_page_from_the_declaration_on()
         {
+            this.Declares("ISQBase::mass");
             this.lookup
                 .Setup(l => l.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ISQBase::mass", Tag, null, LookupRequest.DefaultMaxLines)))
-                .Returns(new LookupResult { Release = Tag, Kind = KnowledgeKind.ModelLibrary, Status = LookupStatus.Found, Content = "attribute mass;" });
+                .Returns(Found("ISQBase::mass", "attribute mass;"));
 
             var contents = (TextResourceContents)this.resources.Page(Tag, "model-library", "ISQBase%3A%3Amass");
 
@@ -84,16 +85,33 @@ namespace Hypha.Mcp.Tests
             });
         }
 
-        [Test]
-        public void A_library_name_that_is_not_one_declaration_is_an_error_naming_the_candidates()
+        [TestCase("isqbase%3A%3AMASS")]
+        [TestCase("mass")]
+        [TestCase("PartDefinition")]
+        public void A_library_name_the_release_does_not_declare_exactly_is_refused_rather_than_matched_loosely(string name)
         {
-            this.lookup
-                .Setup(l => l.Lookup(It.IsAny<LookupRequest>()))
-                .Returns(new LookupResult { Release = Tag, Kind = KnowledgeKind.ModelLibrary, Status = LookupStatus.Ambiguous, Matches = ["ISQBase::mass", "ISQSpaceTime::mass"] });
+            this.query
+                .Setup(q => q.Resolve(It.IsAny<HyphaAddress>()))
+                .Returns(new QueryResult<ResolvedAddress>(null, new Grounding("DERIVED", Tag, "index.json")));
 
             Assert.That(
-                () => this.resources.Page(Tag, "model-library", "mass"),
-                Throws.TypeOf<McpException>().With.Message.Contains("ISQSpaceTime::mass"));
+                () => this.resources.Page(Tag, "model-library", name),
+                Throws.TypeOf<McpException>().With.Message.Contains("exact").And.Message.Contains("hypha_search"));
+
+            this.lookup.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void A_lookup_that_lands_on_another_declaration_is_not_served_under_this_address()
+        {
+            this.Declares("ISQBase::mass");
+            this.lookup
+                .Setup(l => l.Lookup(It.IsAny<LookupRequest>()))
+                .Returns(Found("ISQSpaceTime::mass", "attribute mass;"));
+
+            Assert.That(
+                () => this.resources.Page(Tag, "model-library", "ISQBase::mass"),
+                Throws.TypeOf<McpException>().With.Message.Contains("hypha generate model-library"));
         }
 
         [Test]
@@ -136,6 +154,18 @@ namespace Hypha.Mcp.Tests
             Assert.That(
                 () => this.resources.Page("2099-01", "metamodel", "PartUsage"),
                 Throws.TypeOf<McpException>().With.Message.EqualTo("Release 2099-01 is not installed."));
+        }
+
+        private static LookupResult Found(string name, string content) =>
+            new() { Release = Tag, Kind = KnowledgeKind.ModelLibrary, Status = LookupStatus.Found, Name = name, Content = content };
+
+        private void Declares(string name)
+        {
+            var address = new HyphaAddress(Tag, "model-library", name);
+            this.query
+                .Setup(q => q.Resolve(address))
+                .Returns(new QueryResult<ResolvedAddress>(
+                    new ResolvedAddress(address, "attribute", "knowledge/2026-05/model-library/ISQBase.md"), new Grounding("DERIVED", Tag, "index.json")));
         }
     }
 }

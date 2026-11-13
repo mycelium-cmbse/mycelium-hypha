@@ -121,18 +121,33 @@ namespace Hypha.Mcp.Resources
         /// A model-library declaration, as the lookup pages it: from the declaration on, rather than the whole
         /// library file, which can run to thousands of lines.
         /// </summary>
+        /// <remarks>
+        /// An address names one declaration exactly, by its qualified name, as <c>hypha_resolve</c> reads it,
+        /// so each page has one address. The lookup also matches ignoring case and by a trailing part of the
+        /// name, so it is asked only once the address is known to name a declaration, to find where that
+        /// declaration starts, and its answer is used only when it is that declaration.
+        /// </remarks>
         /// <param name="address">The address.</param>
         /// <returns>The declaration's text.</returns>
-        /// <exception cref="McpException">The release declares no such name, or several.</exception>
+        /// <exception cref="McpException">The release declares no such qualified name, or its page cannot be read.</exception>
         private string Declaration(HyphaAddress address)
         {
+            if (this.query.Resolve(address).Value is null)
+            {
+                throw new McpException(
+                    $"Release {address.Tag} has no model-library declaration '{address.Name}'. The name is the exact "
+                    + "qualified name, such as ISQBase::mass; find it with hypha_search.");
+            }
+
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, address.Name, address.Tag, null, LookupRequest.DefaultMaxLines));
 
-            return result.Status == LookupStatus.Found && result.Content is { } content
+            return result.Status == LookupStatus.Found
+                   && string.Equals(result.Name, address.Name, StringComparison.Ordinal)
+                   && result.Content is { } content
                 ? content
                 : throw new McpException(
-                    $"Release {address.Tag} has no single model-library declaration '{address.Name}'"
-                    + (result.Matches.Count > 0 ? $"; did you mean {string.Join(", ", result.Matches)}?" : ". Find it with hypha_search."));
+                    $"The model-library declaration '{address.Name}' of release {address.Tag} was found in its index, but "
+                    + $"not in its page. Run 'hypha generate model-library --tag {address.Tag}'.");
         }
     }
 }
