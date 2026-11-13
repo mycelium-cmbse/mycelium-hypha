@@ -352,13 +352,14 @@ State after Step 4 (November 2026): `hypha serve` and every tool, resource and p
 
 One thin slice, end to end: the Claude plugin starts `hypha serve` through the launcher. It settles the plan's open risks (platform dispatch from one `mcp.json` path, client network sandboxes) before the skills depend on it.
 
-- [ ] `Hypha.Launcher` (AOT): move `CliProvisioner`, `ChecksumTable`, `CacheLayout` and `GitHubRelease` out of `Hypha.Tools.Hook`; download and verify the matching `hypha` into `HYPHA_HOME/bin/<version>/`, then run `hypha serve` with stdio passed through.
-- [ ] Resolve its own location and `HYPHA_HOME`; never rely on client path variables.
-- [ ] Platform dispatch: `bin/hypha-launch.exe` plus a POSIX `bin/hypha-launch` script that execs `bin/<rid>/hypha-launch`.
-- [ ] Fallback mode: when the download is blocked, serve a minimal `hypha_status` tool that explains the cause and fix.
-- [ ] Support `HTTPS_PROXY` and a `HYPHA_BIN` override.
+- [x] `Hypha.Launcher` (AOT): move `CliProvisioner`, `ChecksumTable`, `CacheLayout` and `GitHubRelease` out of `Hypha.Tools.Hook`; download and verify the matching `hypha` into `HYPHA_HOME/bin/<version>/`, then run `hypha serve` with stdio passed through.
+- [x] Resolve its own location and `HYPHA_HOME`; never rely on client path variables.
+- [x] Platform dispatch: `bin/hypha-launch.exe` plus a POSIX `bin/hypha-launch` script that execs `bin/<rid>/hypha-launch`.
+- [x] Fallback mode: when the download is blocked, serve a minimal `hypha_status` tool that explains the cause and fix.
+- [x] Support `HTTPS_PROXY` and a `HYPHA_BIN` override.
 - [ ] Release assets: a self-contained single-file `hypha` per RID on GitHub releases, from the workflow that already builds the VS Code extension's bundled CLI per RID.
-- [ ] Claude plugin: `.mcp.json` to `bin/hypha-launch`, with no `--repository-root`, so the server reads `HYPHA_HOME` and copies in the plugin's own releases once.
+- [x] Claude plugin: `mcpServers` in `.claude-plugin/plugin.json` to `bin/hypha-launch` (not a root `.mcp.json`, which Claude Code would also load as this repository's own project configuration), with no `--repository-root`, so the server reads `HYPHA_HOME` and copies in the plugin's own releases once.
+- [ ] Release a `tools-v` version whose `hypha` has `serve`, and name it in `bin/hypha-launch.json`; until then the launcher starts `serve` only through `HYPHA_BIN`.
 - [ ] Prototype the start in Claude Code, VS Code with Copilot, and one of Cursor or Codex before Step 6.
 - Until Step 6 the skills keep reading the plugin's folder; Steps 5 and 6 are released together, as plugin 3.0.0.
 

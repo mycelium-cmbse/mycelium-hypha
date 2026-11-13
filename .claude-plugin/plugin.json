@@ -21,6 +21,11 @@
     "systems-engineering"
   ],
   "hyphaCliVersion": "1.5.0",
+  "mcpServers": {
+    "hypha": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/hypha-launch"
+    }
+  },
   "hooks": {
     "SessionStart": [
       {

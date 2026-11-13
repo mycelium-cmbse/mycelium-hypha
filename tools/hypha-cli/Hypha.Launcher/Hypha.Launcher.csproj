@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Hypha.Launcher</RootNamespace>
+    <AssemblyName>hypha-launch</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Assembly">
+    <!-- Not a package of its own: hook-binaries.yml publishes it with NativeAOT into the plugin's bin/. -->
+    <IsPackable>false</IsPackable>
+    <Description>
+      The launcher every hypha client starts: it provisions the hypha executable matching the package's
+      version into HYPHA_HOME, then runs its MCP server over standard input and output.
+    </Description>
+    <Authors>Starion Group S.A.</Authors>
+    <Company>Starion Group S.A.</Company>
+    <Copyright>Copyright 2026 Starion Group S.A.</Copyright>
+    <RepositoryUrl>https://github.com/mycelium-cmbse/mycelium-hypha</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Publish">
+    <!-- NativeAOT, so that it is small enough to commit into the plugin per platform and starts without
+         an installed .NET runtime. Deliberately has NO ProjectReference into the repo: Hypha.Tools and
+         Hypha.Knowledge pull in dependencies (Handlebars.Net, uml4net) that are not AOT-safe. -->
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <StripSymbols>true</StripSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Hypha.Launcher.Tests" />
+  </ItemGroup>
+
+</Project>

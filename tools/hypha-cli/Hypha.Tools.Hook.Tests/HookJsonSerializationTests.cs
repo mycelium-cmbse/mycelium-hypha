@@ -33,26 +33,6 @@ namespace Hypha.Tools.Hook.Tests
         }
 
         [Test]
-        public void GitHubRelease_reads_the_body_and_assets()
-        {
-            var release = JsonSerializer.Deserialize(
-                """
-                {"body": "checksum table", "assets": [
-                    {"name": "hypha-1.2.0-win-x64.zip", "browser_download_url": "https://example.test/a.zip"}
-                ]}
-                """,
-                HookJsonContext.Default.GitHubRelease);
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(release!.Body, Is.EqualTo("checksum table"));
-                Assert.That(release.Assets, Has.Count.EqualTo(1));
-                Assert.That(release.Assets![0].Name, Is.EqualTo("hypha-1.2.0-win-x64.zip"));
-                Assert.That(release.Assets[0].BrowserDownloadUrl, Is.EqualTo("https://example.test/a.zip"));
-            });
-        }
-
-        [Test]
         public void HookCheckResult_reads_what_hypha_check_json_prints()
         {
             var result = JsonSerializer.Deserialize(

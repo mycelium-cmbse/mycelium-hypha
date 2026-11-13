@@ -9,3 +9,6 @@ tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Expected/** text eol=lf
 # Handlebars templates are read verbatim and their newlines flow into generated output;
 # keep them LF so generation is deterministic regardless of platform checkout settings.
 *.hbs text eol=lf
+
+# The launcher's POSIX dispatch script runs under /bin/sh, which a CRLF line ending breaks.
+bin/hypha-launch text eol=lf

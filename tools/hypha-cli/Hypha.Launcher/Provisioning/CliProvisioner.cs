@@ -7,7 +7,7 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hook
+namespace Hypha.Launcher.Provisioning
 {
     using System;
     using System.IO;
@@ -27,7 +27,7 @@ namespace Hypha.Tools.Hook
     /// </summary>
     /// <remarks>
     /// Never throws past a public method: any failure here (offline, rate-limited, corrupt download)
-    /// means this session's sync is simply skipped, silently, and retried automatically next session -
+    /// means this session's sync is simply skipped, silently, and retried automatically next session:
     /// there is no throttling upstream of this to make a failure here rare enough to be worth alarming
     /// the user over every time.
     /// </remarks>
@@ -53,6 +53,12 @@ namespace Hypha.Tools.Hook
 
             this.client = client;
         }
+
+        /// <summary>
+        /// Gets why the last <see cref="EnsureAsync"/> returned <c>null</c>, for a person; <c>null</c> when it
+        /// returned the executable.
+        /// </summary>
+        public string? LastFailure { get; private set; }
 
         /// <summary>Builds an <see cref="HttpClient"/> configured the way GitHub's API requires.</summary>
         /// <remarks>
@@ -125,6 +131,7 @@ namespace Hypha.Tools.Hook
             ArgumentException.ThrowIfNullOrWhiteSpace(rid);
 
             var executable = cache.CliExecutable(version, rid);
+            this.LastFailure = null;
 
             if (IsCached(cache, version, rid))
             {
@@ -140,19 +147,23 @@ namespace Hypha.Tools.Hook
                 response.EnsureSuccessStatusCode();
 
                 var release = await response.Content.ReadFromJsonAsync(
-                    HookJsonContext.Default.GitHubRelease, cancellationToken);
+                    ProvisioningJsonContext.Default.GitHubRelease, cancellationToken);
 
                 var asset = release?.Assets?.FirstOrDefault(
                     candidate => string.Equals(candidate.Name, assetName, StringComparison.Ordinal));
 
                 if (asset?.BrowserDownloadUrl is not { Length: > 0 } downloadUrl)
                 {
+                    this.LastFailure = $"the release tools-v{version} has no {assetName}";
+
                     return null;
                 }
 
                 var expectedSha256 = ChecksumTable.Find(release!.Body, assetName);
                 if (expectedSha256 is null)
                 {
+                    this.LastFailure = $"the release tools-v{version} publishes no checksum for {assetName}";
+
                     return null;
                 }
 
@@ -170,6 +181,7 @@ namespace Hypha.Tools.Hook
                 if (!VerifySha256(archivePath, expectedSha256))
                 {
                     File.Delete(archivePath);
+                    this.LastFailure = $"{assetName} did not match the checksum the release tools-v{version} publishes";
 
                     return null;
                 }
@@ -196,6 +208,7 @@ namespace Hypha.Tools.Hook
                 await File.WriteAllTextAsync(cache.OkMarker(version, rid).FullName, expectedSha256, cancellationToken);
 
                 executable.Refresh();
+                this.LastFailure = executable.Exists ? null : $"{assetName} holds no {executable.Name}";
 
                 return executable.Exists ? executable : null;
             }
@@ -204,6 +217,7 @@ namespace Hypha.Tools.Hook
                 or TaskCanceledException or InvalidOperationException)
             {
                 TryLog(cache, exception);
+                this.LastFailure = $"downloading hypha {version} for {rid} from GitHub failed: {exception.Message}";
 
                 return null;
             }

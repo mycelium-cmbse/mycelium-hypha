@@ -7,8 +7,10 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hook.Tests
+namespace Hypha.Launcher.Tests
 {
+    using Hypha.Launcher.Provisioning;
+
     using System;
     using System.IO;
 

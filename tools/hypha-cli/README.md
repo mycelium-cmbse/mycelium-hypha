@@ -253,8 +253,10 @@ That is a deliberate difference from `move-window`, not a smaller version of it:
   tag to go, ever deletes a release.
 
 It is driven by a small companion project, `Hypha.Tools.Hook` (`tools/hypha-cli/Hypha.Tools.Hook`),
-**not** part of `Hypha.Tools` itself. `Hypha.Tools.Hook` is the one thing in this repository that *is*
-NativeAOT-published and committed to git, at `hooks/native/<rid>/hypha-hook(.exe)`: unlike the main
+which shares its download and verification of the CLI with the MCP server launcher (`Hypha.Launcher`,
+see "MCP server launcher" below) by compiling the same source files until the hook is retired. It is
+**not** part of `Hypha.Tools` itself. `Hypha.Tools.Hook` is NativeAOT-published and committed to git,
+at `hooks/native/<rid>/hypha-hook(.exe)`: unlike the main
 CLI, it never generates anything, only downloads and launches the CLI that does, so it carries none of
 the reflection-heavy dependencies (Handlebars.Net, uml4net) that keep `Hypha.Tools` off AOT, which is
 what makes it small enough (single-digit MB per platform) to commit rather than download on demand.
@@ -352,6 +354,33 @@ release has thousands. And five prompts give a client's prompt menu the guided f
 `explain_metaclass`, `cite_specification`, `validate_notation` and `api_lookup`. Each is a request
 naming the tools to use, starting from what is installed; everything they do is also reachable through
 the tools, for clients that support neither.
+
+## MCP server launcher
+
+Every client package starts the MCP server through one command, `bin/hypha-launch`: a package is a
+git repository or a zip, which can carry a small launcher per platform but not a `hypha` of tens of MB.
+The Claude plugin registers it in `.claude-plugin/plugin.json` (`mcpServers`); the other packages
+follow (Step 7 of `hypha-mcp-refactor-plan.md`).
+
+- **One path for every platform.** On Windows a client finds `bin/hypha-launch.exe` from the
+  extensionless `bin/hypha-launch`; on macOS and Linux that path is a POSIX script that execs
+  `bin/<rid>/hypha-launch`. A Node spawn and `cross-spawn`, which the MCP TypeScript SDK uses, both
+  start the `.exe` from the extensionless path on Windows.
+- **The matching `hypha`.** `bin/hypha-launch.json` names the `hypha` version the package starts. The
+  launcher downloads `hypha-<version>-<rid>.zip` from the `tools-v<version>` release once, checks it
+  against the checksum table in the release notes, keeps it in `HYPHA_HOME/bin/<version>/<rid>/`, and
+  runs `hypha serve` on the same standard input and output, passing on any arguments it was given.
+  It resolves the package from its own location and `HYPHA_HOME` itself, never from a client's path
+  variables, and the download honours `HTTPS_PROXY` and `GITHUB_TOKEN`.
+- **`HYPHA_BIN`** names a `hypha` to start instead, for an offline or locked-down machine.
+- **A failure the model can see.** When there is no `hypha` to start (the download is blocked, the
+  package is damaged, `HYPHA_HOME` cannot be used), the launcher serves a minimal MCP server itself.
+  Its `instructions` and its one tool, `hypha_status`, say why and how to fix it, so the model tells
+  the user rather than the server failing to start.
+
+The launcher is NativeAOT (`tools/hypha-cli/Hypha.Launcher`) and references nothing else in the
+repository. `.github/workflows/hook-binaries.yml` builds it on each platform's own runner and commits it
+into `bin/`, beside the hook's binaries.
 
 ## Moving to HYPHA_HOME
 

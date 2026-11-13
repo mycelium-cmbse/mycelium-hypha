@@ -38,6 +38,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The download and verification of the hypha CLI is the launcher's (tools/hypha-cli/Hypha.Launcher);
+         the hook compiles the same sources until it is retired (Step 8 of hypha-mcp-refactor-plan.md),
+         rather than reference the launcher, which is an executable of its own. -->
+    <Compile Include="..\Hypha.Launcher\Provisioning\*.cs" Link="Provisioning\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- So the tests can exercise the pure functions (checksum parsing, status summarisation, cache
          path resolution, lock staleness) directly. -->
     <InternalsVisibleTo Include="Hypha.Tools.Hook.Tests" />

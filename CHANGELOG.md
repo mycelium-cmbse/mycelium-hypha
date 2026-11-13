@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`hypha-launch`, the MCP server's launcher** (`refs #198`): the one command every client package
+  starts, `bin/hypha-launch`, which the Claude plugin now registers as its `hypha` MCP server. It finds
+  the package from its own location, downloads and verifies the `hypha` that `bin/hypha-launch.json`
+  names into `HYPHA_HOME/bin/` once, and runs `hypha serve` on the same standard input and output;
+  `HYPHA_BIN` names a `hypha` to start instead. When there is none to start, it serves a minimal MCP
+  server whose one tool, `hypha_status`, says why and how to fix it. On Windows the extensionless path
+  finds `bin/hypha-launch.exe`; on macOS and Linux it is a script that execs the platform's binary. The
+  download of the CLI moved from the SessionStart hook into the launcher, which the hook shares until it
+  is retired.
 - **A one-time move of existing installs into `HYPHA_HOME`** (`refs #196`): the first time `hypha`
   reads an empty `HYPHA_HOME`, it copies every release and API version the Claude plugin and the VS
   Code extension installed in their own folders, with their sources, so nothing is fetched or

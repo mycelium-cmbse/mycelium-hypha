@@ -1,0 +1,23 @@
+#!/bin/sh
+# Starts the hypha MCP server through this platform's hypha-launch, for clients on macOS and Linux.
+#
+# Every client package names this one extensionless path. On Windows a client finds
+# bin/hypha-launch.exe from it instead; elsewhere this script execs bin/<rid>/hypha-launch, which
+# provisions the matching hypha into HYPHA_HOME and runs "hypha serve" on the same standard input and
+# output. See tools/hypha-cli/README.md.
+set -eu
+
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+case "$(uname -s)-$(uname -m)" in
+  Linux-x86_64 | Linux-amd64) rid=linux-x64 ;;
+  Darwin-arm64) rid=osx-arm64 ;;
+  Darwin-x86_64) rid=osx-x64 ;;
+  MINGW* | MSYS* | CYGWIN*) exec "$here/hypha-launch.exe" "$@" ;;
+  *)
+    echo "hypha-launch: $(uname -s) on $(uname -m) is not supported yet; set HYPHA_BIN and start \"hypha serve\" directly" >&2
+    exit 1
+    ;;
+esac
+
+exec "$here/$rid/hypha-launch" "$@"

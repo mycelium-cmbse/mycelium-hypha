@@ -7,7 +7,7 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hook
+namespace Hypha.Launcher.Provisioning
 {
     using System;
     using System.IO;
