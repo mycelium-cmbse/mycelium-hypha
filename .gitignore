@@ -33,6 +33,11 @@ obj/
 # once a parent-matching pattern like "bin/" has excluded it). See tools/hypha-cli/README.md and
 # .github/workflows/hook-binaries.yml.
 
+# The plugin's own top-level bin/ is committed: it holds hypha-launch, the MCP server's launcher, for
+# each platform, and its dispatch script (see tools/hypha-cli/README.md). Root-anchored, so every build
+# output folder named bin/ stays ignored.
+!/bin/
+
 # ---------------------------------------------------------------------------
 # Python (tools/spec-extract)
 # ---------------------------------------------------------------------------

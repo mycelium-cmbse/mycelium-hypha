@@ -19,7 +19,6 @@ namespace Hypha.Tools.Hook
     /// reflection-based mode is not safe here; a source-generated context sidesteps that entirely.
     /// </remarks>
     [JsonSerializable(typeof(PluginManifest))]
-    [JsonSerializable(typeof(GitHubRelease))]
     [JsonSerializable(typeof(HookCheckResult))]
     [JsonSerializable(typeof(HookOutput))]
     public sealed partial class HookJsonContext : JsonSerializerContext

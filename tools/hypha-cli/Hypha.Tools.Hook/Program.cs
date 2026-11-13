@@ -16,6 +16,8 @@ namespace Hypha.Tools.Hook
     using System.Text.Json;
     using System.Threading.Tasks;
 
+    using Hypha.Launcher.Provisioning;
+
     /// <summary>
     /// The <c>SessionStart</c> hook entry point: ensures the real <c>hypha</c> CLI is cached, runs
     /// <c>hypha check</c> to compare local releases against what is offerable upstream, and reports

@@ -7,10 +7,12 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hook.Tests
+namespace Hypha.Launcher.Tests
 {
     using System;
     using System.IO;
+
+    using Hypha.Launcher.Provisioning;
 
     [TestFixture]
     public class CacheLayoutTests

@@ -187,9 +187,12 @@ SKILL.md` for the interactive `hypha discover`/`fetch`/`use`/`remove` surface th
   `knowledge/model-library.schema.json`, `knowledge/keywords.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
   `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT binary the plugin's `SessionStart` hook
-  dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section), the only
-  compiled binary this repository commits, and deliberately *not* under `bin/`, which `.gitignore`
-  otherwise excludes at any depth.
+  dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section); and the plugin's
+  top-level `bin/`: `hypha-launch.exe` and `<rid>/hypha-launch`, the NativeAOT launcher of the MCP
+  server (`tools/hypha-cli/Hypha.Launcher`), its POSIX dispatch script `hypha-launch` and
+  `hypha-launch.json`, the `hypha` version it starts (see the README's "MCP server launcher" section).
+  These are the only compiled binaries this repository commits; `.gitignore` excludes `bin/` at every
+  other depth.
 - **Committed as a test fixture, not a distributed one:** `tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests
   /Fixtures/xmi/` holds one real release's XMI (captured from `TestModel.FixtureTag`), so
   `Hypha.Knowledge.Metamodel.Tests` has something real to exercise the generators against without a network

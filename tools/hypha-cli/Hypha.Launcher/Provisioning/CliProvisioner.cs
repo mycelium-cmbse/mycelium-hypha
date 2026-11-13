@@ -7,7 +7,7 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hook
+namespace Hypha.Launcher.Provisioning
 {
     using System;
     using System.IO;
@@ -27,12 +27,15 @@ namespace Hypha.Tools.Hook
     /// </summary>
     /// <remarks>
     /// Never throws past a public method: any failure here (offline, rate-limited, corrupt download)
-    /// means this session's sync is simply skipped, silently, and retried automatically next session -
+    /// means this session's sync is simply skipped, silently, and retried automatically next session:
     /// there is no throttling upstream of this to make a failure here rare enough to be worth alarming
     /// the user over every time.
     /// </remarks>
     public sealed class CliProvisioner
     {
+        /// <summary>The suffix of the folder a download is extracted into before it is renamed into the cache.</summary>
+        public const string StagingSuffix = ".staging";
+
         /// <summary>The GitHub repository, <c>owner/name</c>, whose releases carry the CLI builds.</summary>
         private const string Repository = "mycelium-cmbse/mycelium-hypha";
 
@@ -53,6 +56,12 @@ namespace Hypha.Tools.Hook
 
             this.client = client;
         }
+
+        /// <summary>
+        /// Gets why the last <see cref="EnsureAsync"/> returned <c>null</c>, for a person; <c>null</c> when it
+        /// returned the executable.
+        /// </summary>
+        public string? LastFailure { get; private set; }
 
         /// <summary>Builds an <see cref="HttpClient"/> configured the way GitHub's API requires.</summary>
         /// <remarks>
@@ -125,6 +134,7 @@ namespace Hypha.Tools.Hook
             ArgumentException.ThrowIfNullOrWhiteSpace(rid);
 
             var executable = cache.CliExecutable(version, rid);
+            this.LastFailure = null;
 
             if (IsCached(cache, version, rid))
             {
@@ -140,72 +150,169 @@ namespace Hypha.Tools.Hook
                 response.EnsureSuccessStatusCode();
 
                 var release = await response.Content.ReadFromJsonAsync(
-                    HookJsonContext.Default.GitHubRelease, cancellationToken);
+                    ProvisioningJsonContext.Default.GitHubRelease, cancellationToken);
 
                 var asset = release?.Assets?.FirstOrDefault(
                     candidate => string.Equals(candidate.Name, assetName, StringComparison.Ordinal));
 
                 if (asset?.BrowserDownloadUrl is not { Length: > 0 } downloadUrl)
                 {
+                    this.LastFailure = $"the release tools-v{version} has no {assetName}";
+
                     return null;
                 }
 
                 var expectedSha256 = ChecksumTable.Find(release!.Body, assetName);
                 if (expectedSha256 is null)
                 {
+                    this.LastFailure = $"the release tools-v{version} publishes no checksum for {assetName}";
+
                     return null;
                 }
 
+                // Downloaded and extracted beside the cache under a name of its own, then renamed into place:
+                // several clients share HYPHA_HOME, and two launchers starting at once must neither write
+                // into one folder together nor overwrite a hypha the other is already running.
                 var binDirectory = cache.BinDirectory(version, rid);
-                binDirectory.Create();
+                Directory.CreateDirectory(binDirectory.Parent!.FullName);
+                ClearAbandonedStaging(binDirectory);
 
-                var archivePath = Path.Combine(binDirectory.FullName, assetName + ".download");
+                var stagingPath = $"{binDirectory.FullName}.{Guid.NewGuid():N}{StagingSuffix}";
+                var staging = Directory.CreateDirectory(stagingPath);
 
-                await using (var archiveStream = File.Create(archivePath))
-                await using (var downloadStream = await this.client.GetStreamAsync(downloadUrl, cancellationToken))
+                try
                 {
-                    await downloadStream.CopyToAsync(archiveStream, cancellationToken);
-                }
+                    var archivePath = Path.Combine(staging.FullName, assetName + ".download");
 
-                if (!VerifySha256(archivePath, expectedSha256))
-                {
+                    await using (var archiveStream = File.Create(archivePath))
+                    await using (var downloadStream = await this.client.GetStreamAsync(downloadUrl, cancellationToken))
+                    {
+                        await downloadStream.CopyToAsync(archiveStream, cancellationToken);
+                    }
+
+                    if (!VerifySha256(archivePath, expectedSha256))
+                    {
+                        this.LastFailure = $"{assetName} did not match the checksum the release tools-v{version} publishes";
+
+                        return null;
+                    }
+
+                    await ZipFile.ExtractToDirectoryAsync(
+                        archivePath, staging.FullName, overwriteFiles: true, cancellationToken);
                     File.Delete(archivePath);
 
-                    return null;
-                }
+                    var staged = new FileInfo(Path.Combine(staging.FullName, executable.Name));
+                    if (!staged.Exists)
+                    {
+                        this.LastFailure = $"{assetName} holds no {executable.Name}";
 
-                await ZipFile.ExtractToDirectoryAsync(
-                    archivePath, binDirectory.FullName, overwriteFiles: true, cancellationToken);
-                File.Delete(archivePath);
+                        return null;
+                    }
 
-                if (!OperatingSystem.IsWindows())
-                {
-                    executable.Refresh();
-                    if (executable.Exists)
+                    if (!OperatingSystem.IsWindows())
                     {
                         File.SetUnixFileMode(
-                            executable.FullName,
+                            staged.FullName,
                             UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
                             | UnixFileMode.GroupRead | UnixFileMode.GroupExecute
                             | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
                     }
+
+                    // Written last, only once extraction succeeded: its presence is what IsCached trusts
+                    // to skip the network on every later run.
+                    await File.WriteAllTextAsync(Path.Combine(staging.FullName, cache.OkMarker(version, rid).Name), expectedSha256, cancellationToken);
+
+                    return this.MoveIntoPlace(staging, binDirectory, cache, version, rid);
                 }
-
-                // Written last, only once extraction succeeded: its presence is what IsCached trusts
-                // to skip the network on every later run.
-                await File.WriteAllTextAsync(cache.OkMarker(version, rid).FullName, expectedSha256, cancellationToken);
-
-                executable.Refresh();
-
-                return executable.Exists ? executable : null;
+                finally
+                {
+                    // By its path: once renamed into place, the staging DirectoryInfo names the cache itself.
+                    TryDelete(new DirectoryInfo(stagingPath));
+                }
             }
             catch (Exception exception) when (
                 exception is HttpRequestException or IOException or JsonException
-                or TaskCanceledException or InvalidOperationException)
+                or TaskCanceledException or InvalidOperationException or UnauthorizedAccessException)
             {
                 TryLog(cache, exception);
+                this.LastFailure = $"downloading hypha {version} for {rid} from GitHub failed: {exception.Message}";
 
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Renames a verified download into the cache, unless another launcher already put one there.
+        /// </summary>
+        /// <param name="staging">The verified download, with its <c>.ok</c> marker.</param>
+        /// <param name="binDirectory">Where it goes.</param>
+        /// <param name="cache">The cache.</param>
+        /// <param name="version">The CLI version.</param>
+        /// <param name="rid">The runtime identifier.</param>
+        /// <returns>The cached executable.</returns>
+        /// <exception cref="IOException">The cache holds a folder that is neither verified nor removable.</exception>
+        private FileInfo MoveIntoPlace(DirectoryInfo staging, DirectoryInfo binDirectory, CacheLayout cache, string version, string rid)
+        {
+            var executable = cache.CliExecutable(version, rid);
+
+            if (!IsCached(cache, version, rid))
+            {
+                // Left by an interrupted run before the rename was used; never a verified one.
+                binDirectory.Refresh();
+                if (binDirectory.Exists)
+                {
+                    binDirectory.Delete(recursive: true);
+                }
+
+                try
+                {
+                    staging.MoveTo(binDirectory.FullName);
+                }
+                catch (IOException) when (IsCached(cache, version, rid))
+                {
+                    // Another launcher renamed its own verified copy into place first; that one serves.
+                }
+            }
+
+            executable.Refresh();
+            this.LastFailure = null;
+
+            return executable;
+        }
+
+        /// <summary>Removes the temporary folders of downloads that were abandoned an hour ago or more.</summary>
+        /// <param name="binDirectory">The cache folder the downloads were for.</param>
+        private static void ClearAbandonedStaging(DirectoryInfo binDirectory)
+        {
+            try
+            {
+                foreach (var abandoned in binDirectory.Parent!.EnumerateDirectories($"{binDirectory.Name}.*{StagingSuffix}")
+                             .Where(folder => folder.LastWriteTimeUtc < DateTime.UtcNow.AddHours(-1)))
+                {
+                    TryDelete(abandoned);
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Only housekeeping.
+            }
+        }
+
+        /// <summary>Deletes a folder if it still exists, ignoring a failure to.</summary>
+        /// <param name="folder">The folder.</param>
+        private static void TryDelete(DirectoryInfo folder)
+        {
+            try
+            {
+                folder.Refresh();
+                if (folder.Exists)
+                {
+                    folder.Delete(recursive: true);
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Cleared by a later run, an hour on.
             }
         }
 
@@ -236,7 +343,7 @@ namespace Hypha.Tools.Hook
                     cache.DownloadErrorLog.FullName,
                     $"[{DateTimeOffset.UtcNow:O}] {exception.GetType().Name}: {exception.Message}{Environment.NewLine}");
             }
-            catch (IOException)
+            catch (Exception logging) when (logging is IOException or UnauthorizedAccessException)
             {
                 // Nothing more useful to do: this is diagnostic-only, and the session must still exit.
             }

@@ -7,12 +7,13 @@
 // </copyright>
 // ------------------------------------------------------------------------------------------------
 
-namespace Hypha.Tools.Hook.Tests
+namespace Hypha.Launcher.Tests
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Security.Cryptography;
@@ -20,6 +21,8 @@ namespace Hypha.Tools.Hook.Tests
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+
+    using Hypha.Launcher.Provisioning;
 
     [TestFixture]
     public class CliProvisionerEnsureAsyncTests
@@ -195,6 +198,126 @@ namespace Hypha.Tools.Hook.Tests
                     File.Exists(Path.Combine(this.cache.BinDirectory(Version, Rid).FullName, AssetName + ".download")),
                     Is.False,
                     "a failed checksum must not leave the unverified archive behind");
+            });
+        }
+
+        [Test]
+        public async Task A_folder_the_download_cannot_write_to_is_a_failure_not_a_crash()
+        {
+            var handler = new StubHandler(_ => throw new UnauthorizedAccessException("Access to the path is denied."));
+            var provisioner = new CliProvisioner(CreateClient(handler));
+
+            var result = await provisioner.EnsureAsync(this.cache, Version, Rid, CancellationToken.None);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.Null);
+                Assert.That(provisioner.LastFailure, Does.Contain("Access to the path is denied"));
+            });
+        }
+
+        [Test]
+        public async Task Two_launchers_provisioning_at_once_both_get_the_one_verified_copy()
+        {
+            var zipBytes = BuildZip("hypha", "the one copy");
+            var sha256 = Sha256Hex(zipBytes);
+            var downloadUrl = "https://downloads.example.test/" + AssetName;
+
+            HttpResponseMessage Respond(HttpRequestMessage request)
+            {
+                // Slow enough that both downloads are under way at once.
+                Thread.Sleep(200);
+
+                return request.RequestUri!.ToString().Contains("releases/tags", StringComparison.Ordinal)
+                    ? ReleaseResponse(downloadUrl, sha256)
+                    : ZipResponse(zipBytes);
+            }
+
+            var first = new CliProvisioner(CreateClient(new StubHandler(Respond)));
+            var second = new CliProvisioner(CreateClient(new StubHandler(Respond)));
+
+            var results = await Task.WhenAll(
+                Task.Run(() => first.EnsureAsync(this.cache, Version, Rid, CancellationToken.None)),
+                Task.Run(() => second.EnsureAsync(this.cache, Version, Rid, CancellationToken.None)));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(results.Select(result => result?.FullName), Is.All.EqualTo(this.cache.CliExecutable(Version, Rid).FullName));
+                Assert.That(File.ReadAllText(results[0]!.FullName), Is.EqualTo("the one copy"));
+                Assert.That(CliProvisioner.IsCached(this.cache, Version, Rid), Is.True);
+                Assert.That(first.LastFailure, Is.Null);
+                Assert.That(second.LastFailure, Is.Null);
+                Assert.That(
+                    this.cache.BinDirectory(Version, Rid).Parent!.EnumerateDirectories("*" + CliProvisioner.StagingSuffix),
+                    Is.Empty,
+                    "neither download leaves its temporary folder behind");
+            });
+        }
+
+        [Test]
+        public async Task A_folder_left_without_its_marker_is_replaced_by_the_verified_download()
+        {
+            var leftover = this.cache.BinDirectory(Version, Rid);
+            leftover.Create();
+            File.WriteAllText(Path.Combine(leftover.FullName, "hypha"), "half an old download");
+            var zipBytes = BuildZip("hypha", "verified");
+            var downloadUrl = "https://downloads.example.test/" + AssetName;
+            var handler = new StubHandler(request =>
+                request.RequestUri!.ToString().Contains("releases/tags", StringComparison.Ordinal)
+                    ? ReleaseResponse(downloadUrl, Sha256Hex(zipBytes))
+                    : ZipResponse(zipBytes));
+
+            var result = await new CliProvisioner(CreateClient(handler)).EnsureAsync(this.cache, Version, Rid, CancellationToken.None);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(File.ReadAllText(result!.FullName), Is.EqualTo("verified"));
+                Assert.That(CliProvisioner.IsCached(this.cache, Version, Rid), Is.True);
+            });
+        }
+
+        [Test]
+        public async Task A_temporary_folder_abandoned_an_hour_ago_is_cleared_and_a_recent_one_is_left()
+        {
+            var bin = this.cache.BinDirectory(Version, Rid);
+            bin.Parent!.Create();
+            var abandoned = Directory.CreateDirectory($"{bin.FullName}.old{CliProvisioner.StagingSuffix}");
+            Directory.SetLastWriteTimeUtc(abandoned.FullName, DateTime.UtcNow.AddHours(-2));
+            var recent = Directory.CreateDirectory($"{bin.FullName}.busy{CliProvisioner.StagingSuffix}");
+            var zipBytes = BuildZip("hypha", "content");
+            var downloadUrl = "https://downloads.example.test/" + AssetName;
+            var handler = new StubHandler(request =>
+                request.RequestUri!.ToString().Contains("releases/tags", StringComparison.Ordinal)
+                    ? ReleaseResponse(downloadUrl, Sha256Hex(zipBytes))
+                    : ZipResponse(zipBytes));
+
+            await new CliProvisioner(CreateClient(handler)).EnsureAsync(this.cache, Version, Rid, CancellationToken.None);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(abandoned.FullName), Is.False);
+                Assert.That(Directory.Exists(recent.FullName), Is.True, "another launcher may still be downloading into it");
+            });
+        }
+
+        [Test]
+        public async Task An_archive_without_the_executable_is_not_cached_and_says_so()
+        {
+            var zipBytes = BuildZip("readme.txt", "no hypha in here");
+            var downloadUrl = "https://downloads.example.test/" + AssetName;
+            var handler = new StubHandler(request =>
+                request.RequestUri!.ToString().Contains("releases/tags", StringComparison.Ordinal)
+                    ? ReleaseResponse(downloadUrl, Sha256Hex(zipBytes))
+                    : ZipResponse(zipBytes));
+            var provisioner = new CliProvisioner(CreateClient(handler));
+
+            var result = await provisioner.EnsureAsync(this.cache, Version, Rid, CancellationToken.None);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.Null);
+                Assert.That(provisioner.LastFailure, Does.Contain("holds no hypha"));
+                Assert.That(CliProvisioner.IsCached(this.cache, Version, Rid), Is.False);
             });
         }
 
