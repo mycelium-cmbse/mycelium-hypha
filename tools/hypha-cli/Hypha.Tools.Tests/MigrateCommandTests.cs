@@ -53,7 +53,7 @@ namespace Hypha.Tools.Tests
                     Clients,
                     [new MigratedVersion(MigratedVersion.Release, "2026-05", "Claude plugin 2.1.2"), new MigratedVersion(MigratedVersion.Api, "2026-04", "VS Code")]));
 
-            using var console = new RecordedConsole();
+            using var console = new RecordedConsole(width: 1000);
             var result = await this.Invoke("migrate");
 
             Assert.Multiple(() =>
@@ -72,7 +72,7 @@ namespace Hypha.Tools.Tests
                 .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new MigrationResult(Home, Clients, []));
 
-            using var console = new RecordedConsole();
+            using var console = new RecordedConsole(width: 1000);
             var result = await this.Invoke("migrate");
 
             Assert.Multiple(() =>
@@ -89,7 +89,7 @@ namespace Hypha.Tools.Tests
                 .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new MigrationResult(Home, [], []));
 
-            using var console = new RecordedConsole();
+            using var console = new RecordedConsole(width: 1000);
             var result = await this.Invoke("migrate");
 
             Assert.Multiple(() =>
@@ -107,7 +107,7 @@ namespace Hypha.Tools.Tests
                 .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new System.ArgumentException("'C:\\typo' holds no knowledge/versions.json, so it has nothing to copy"));
 
-            using var console = new RecordedConsole();
+            using var console = new RecordedConsole(width: 1000);
             var result = await this.Invoke("migrate --from typo");
 
             Assert.Multiple(() =>
@@ -128,7 +128,7 @@ namespace Hypha.Tools.Tests
 
             var first = Path.Combine(Path.GetTempPath(), "one");
             var second = Path.Combine(Path.GetTempPath(), "two");
-            using var console = new RecordedConsole();
+            using var console = new RecordedConsole(width: 1000);
             await this.Invoke($"migrate --from \"{first}\" --from \"{second}\"");
 
             Assert.That(asked!.Select(folder => folder.FullName), Is.EqualTo(new[] { first, second }));
@@ -143,7 +143,7 @@ namespace Hypha.Tools.Tests
                 .Callback<IReadOnlyList<DirectoryInfo>?, CancellationToken>((from, _) => asked = from)
                 .ReturnsAsync(new MigrationResult(Home, [], []));
 
-            using var console = new RecordedConsole();
+            using var console = new RecordedConsole(width: 1000);
             await this.Invoke("migrate");
 
             Assert.That(asked, Is.Null.Or.Empty);

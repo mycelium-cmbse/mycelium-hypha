@@ -19,10 +19,13 @@ namespace Hypha.Tools.Tests
         private readonly IAnsiConsole previous;
         private readonly TestConsole console;
 
-        public RecordedConsole()
+        // The test console wraps at 80 columns by default, where the line breaks fall wherever a path's length
+        // puts them; a test asserting on whole sentences or paths asks for a width that never wraps them.
+        public RecordedConsole(int width = 80)
         {
             this.previous = AnsiConsole.Console;
             this.console = new TestConsole();
+            this.console.Profile.Width = width;
 
             AnsiConsole.Console = this.console;
         }
