@@ -325,6 +325,18 @@ namespace Hypha.Tools.Commands
                 question => Node(question.Knowledge.Search(question.Get(text)!, question.Get(kind), question.Get(limit), question.Tag)),
                 text, kind, limit);
 
+            var phrase = Required("--text", "The word or phrase to look for in the clause text, ignoring case and line breaks.");
+            var specification = Optional("--document", "Only this specification: kerml or sysml2.");
+            var clauses = new Option<int>("--limit")
+            {
+                Description = $"The most clauses returned, from 1 to {KnowledgeQuery.MaxSearchHits}.",
+                DefaultValueFactory = _ => 20,
+            };
+            this.Verb(this, "search-specification", "Search the text of the KerML and SysML specification clauses", Release,
+                question => Node(question.Knowledge.SearchSpecification(
+                    question.Get(phrase)!, question.Get(specification), question.Get(clauses), question.Tag)),
+                phrase, specification, clauses);
+
             var address = Required("--address", "The address, such as hypha://2026-05/metamodel/PartUsage.");
             this.Verb(this, "resolve", "The generated page a hypha:// address names", null,
                 question => Node(question.Knowledge.Resolve(HyphaAddress.Parse(question.Get(address)!))),

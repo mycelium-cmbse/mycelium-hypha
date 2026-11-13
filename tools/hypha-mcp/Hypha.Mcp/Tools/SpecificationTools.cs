@@ -78,13 +78,33 @@ namespace Hypha.Mcp.Tools
         [Description(
             "Searches a release's metaclasses, standard-library declarations and specification clauses by name, "
             + "qualified name, clause number or title, closest match first. Each hit has a hypha:// address that "
-            + "hypha_resolve reads.")]
+            + "hypha_resolve reads. To find what the specification text says about something, use hypha_search_spec.")]
         public string Search(
             [Description("The text to look for: a name, qualified name, clause number or title.")] string text,
             [Description($"Only hits of this kind: {HyphaAddress.Metamodel}, {HyphaAddress.ModelLibrary}, {HyphaAddress.Kerml} or {HyphaAddress.Sysml}.")] string? kind = null,
             [Description("The most hits returned, from 1 to 200.")] int limit = 20,
             [Description(TagDescription)] string? tag = null) =>
             Answer.Of(() => this.query.Search(text, kind, limit, tag));
+
+        /// <summary>Searches the text of a release's specification clauses.</summary>
+        /// <param name="text">The word or phrase to look for.</param>
+        /// <param name="document">Only this specification, or <c>null</c> for both.</param>
+        /// <param name="limit">The most clauses returned.</param>
+        /// <param name="tag">The release; the default release when <c>null</c>.</param>
+        /// <returns>The clauses, with their grounding, as JSON.</returns>
+        /// <exception cref="McpException">The search could not be run; the message says why.</exception>
+        [McpServerTool(Name = "hypha_search_spec", Title = "Search specification text", ReadOnly = true, Idempotent = true, OpenWorld = false, Destructive = false)]
+        [Description(
+            "Finds the KerML and SysML v2 specification clauses whose text contains a word or phrase, ignoring case and "
+            + "line breaks, the clauses that say it most first. Each has a hypha:// address, how often it says it and an "
+            + "excerpt. Use it to find where the specification talks about something, then read the clause with "
+            + "hypha_spec before quoting it: an excerpt is not a quotation.")]
+        public string SearchSpec(
+            [Description("The word or phrase to look for, such as 'redefinition' or 'is typed by'.")] string text,
+            [Description("Only this specification: kerml or sysml2.")] string? document = null,
+            [Description("The most clauses returned, from 1 to 200.")] int limit = 20,
+            [Description(TagDescription)] string? tag = null) =>
+            Answer.Of(() => this.query.SearchSpecification(text, document, limit, tag));
 
         /// <summary>Reads the page an address names.</summary>
         /// <param name="address">The address.</param>

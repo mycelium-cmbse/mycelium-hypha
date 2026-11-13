@@ -83,13 +83,19 @@ namespace Hypha.Knowledge.Query
             }
 
             // An incomplete escape such as '%A' is kept as written, which then matches no name.
-            address = new HyphaAddress(parts[0], parts[1], Uri.UnescapeDataString(parts[2]));
+            address = new HyphaAddress(parts[0], parts[1], System.Uri.UnescapeDataString(parts[2]));
 
             return true;
         }
 
         /// <summary>Writes the address.</summary>
         /// <returns>The address, with the name percent-encoded.</returns>
-        public override string ToString() => $"{Scheme}://{this.Tag}/{this.Kind}/{Uri.EscapeDataString(this.Name)}";
+        public override string ToString() => $"{Scheme}://{this.Tag}/{this.Kind}/{System.Uri.EscapeDataString(this.Name)}";
+
+        /// <summary>
+        /// Gets the address as text, as <see cref="ToString"/> writes it, so a JSON answer carries the one
+        /// value a client can open as an MCP resource or pass to <c>resolve</c>.
+        /// </summary>
+        public string Uri => this.ToString();
     }
 }

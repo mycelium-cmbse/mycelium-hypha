@@ -53,6 +53,8 @@ namespace Hypha.Mcp
             - hypha_spec: the verbatim text of a KerML or SysML clause, or the elements a clause treats.
             - hypha_search: find metaclasses, library declarations and clauses by name, qualified name,
               clause number or title; each hit has a hypha:// address.
+            - hypha_search_spec: find the specification clauses whose text says a word or phrase. Read a
+              clause with hypha_spec before quoting it; an excerpt is not a quotation.
             - hypha_resolve: the generated page a hypha:// address names.
             - hypha_lookup: an element page or a model-library declaration, a page at a time.
             - hypha_diff: what changed between two installed releases.
@@ -66,6 +68,9 @@ namespace Hypha.Mcp
             - hypha_use_release: make an installed release the default.
             - hypha_remove_release: delete an installed release that is not the default.
             Another client may be changing releases at the same time; these tools wait their turn.
+
+            Every hypha:// address is also a resource, hypha://{tag}/{kind}/{name}, whose contents are the
+            page as Markdown, for clients that read resources.
 
             Every tool answers from the default release unless given a tag (for hypha_api, a version).
             Names are metamodel names, such as PartUsage; qualified names use ::, such as ISQBase::mass.
