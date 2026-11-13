@@ -365,7 +365,10 @@ The first time `hypha` reads an empty `HYPHA_HOME`, it copies every release and 
 folders installed, with their sources, so nothing is fetched or generated again. Where two clients
 installed the same release, the one changed last wins, and so does its default. It copies rather
 than moves, so the clients keep answering from their own folders until they use `HYPHA_HOME`
-themselves, and it holds the release-operation lock while it copies. Each folder is copied under a
+themselves. It holds the release-operation lock of `HYPHA_HOME` while it copies, and each client
+folder's own lock while it copies from it, without waiting: a client installing a release at that
+moment has listed it before generating it, so the migration stops, records nothing and is done on a
+later run, rather than copy a half-built release. Each folder is copied under a
 temporary name and renamed into place, and the manifests are written last, so an interrupted copy is
 simply done again on the next run. A marker, `.migrated-from-clients`, then records that it ran and
 from where, so it never runs again on its own, even after every release is removed. `hypha serve`
@@ -373,7 +376,9 @@ copies beside answering, so a client's handshake does not wait for it; every oth
 Nothing is copied when the knowledge is read from anywhere else (a checkout or `--repository-root`).
 
 `hypha migrate` does it on request: it copies whatever `HYPHA_HOME` still lacks, keeping its default,
-from the clients' folders or from the folders named with `--from`.
+from the clients' folders or from the folders named with `--from`, each of which must hold a
+`knowledge/versions.json`. A `HYPHA_HOME` that cannot be used is never reported by the automatic run,
+only by the verbs that read from it.
 
 ## Rate limits
 

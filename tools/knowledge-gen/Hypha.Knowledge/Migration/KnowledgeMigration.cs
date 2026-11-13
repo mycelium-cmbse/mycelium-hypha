@@ -27,6 +27,12 @@ namespace Hypha.Knowledge.Migration
     /// <summary>
     /// Copies the releases and API versions the clients installed in their own folders into <c>HYPHA_HOME</c>.
     /// </summary>
+    /// <remarks>
+    /// It holds the release-operation lock of <c>HYPHA_HOME</c> throughout, and the lock of each client
+    /// folder while it copies from it, without waiting: a client installing a release at that moment has
+    /// listed it in its manifest before generating it, so its folder is half built, and the migration
+    /// stops rather than copy it, recording nothing, so the next run tries again.
+    /// </remarks>
     public sealed class KnowledgeMigration : IKnowledgeMigration
     {
         /// <summary>The file in <c>HYPHA_HOME</c> that records that a migration ran, and from where.</summary>
@@ -48,16 +54,16 @@ namespace Hypha.Knowledge.Migration
         /// <summary>Where the knowledge is read from now: <c>HYPHA_HOME</c>, a checkout or a folder given explicitly.</summary>
         private readonly IKnowledgeLayout layout;
 
-        /// <summary>The <c>HYPHA_HOME</c> folder, which may not exist yet.</summary>
-        private readonly DirectoryInfo home;
+        /// <summary>Resolves the <c>HYPHA_HOME</c> folder, which may not exist yet.</summary>
+        private readonly Func<DirectoryInfo> home;
 
         /// <summary>Finds the client folders.</summary>
         private readonly ILegacyInstallLocator locator;
 
-        /// <summary>Tells whether a lock's owner is alive, for the lock on <c>HYPHA_HOME</c>.</summary>
+        /// <summary>Tells whether a lock's owner is alive.</summary>
         private readonly IProcessProbe processes;
 
-        /// <summary>Logs the lock on <c>HYPHA_HOME</c>.</summary>
+        /// <summary>Logs the locks.</summary>
         private readonly ILogger<ReleaseOperationLock> lockLogger;
 
         /// <summary>Logs what was copied.</summary>
@@ -68,20 +74,24 @@ namespace Hypha.Knowledge.Migration
 
         /// <summary>Initializes a new instance of the <see cref="KnowledgeMigration"/> class.</summary>
         /// <param name="layout">Where the knowledge is read from now.</param>
-        /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
+        /// <param name="home">
+        /// Resolves the <c>HYPHA_HOME</c> folder. It is asked only when a migration needs it, and an automatic
+        /// one does not when it fails: a caller that reads its knowledge from elsewhere is never refused over
+        /// a <c>HYPHA_HOME</c> it does not use.
+        /// </param>
         /// <param name="locator">Finds the client folders.</param>
         /// <param name="processes">Tells whether a lock's owner is alive.</param>
-        /// <param name="lockLogger">Logs the lock on <c>HYPHA_HOME</c>.</param>
+        /// <param name="lockLogger">Logs the locks.</param>
         /// <param name="logger">Logs what was copied.</param>
         /// <param name="lockWait">
         /// How long to wait for the lock on <c>HYPHA_HOME</c>, as <see cref="HyphaKnowledgeOptions.ReleaseLockWait"/>.
-        /// The lock is taken on <paramref name="home"/> itself, not on <paramref name="layout"/>, which may be another folder.
+        /// A client folder's lock is never waited for.
         /// </param>
         /// <exception cref="ArgumentNullException">Any argument is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="lockWait"/> is negative.</exception>
         public KnowledgeMigration(
             IKnowledgeLayout layout,
-            DirectoryInfo home,
+            Func<DirectoryInfo> home,
             ILegacyInstallLocator locator,
             IProcessProbe processes,
             ILogger<ReleaseOperationLock> lockLogger,
@@ -105,9 +115,6 @@ namespace Hypha.Knowledge.Migration
             this.lockWait = lockWait;
         }
 
-        /// <summary>Gets the marker that records a migration ran.</summary>
-        private FileInfo Marker => new(Path.Combine(this.home.FullName, MarkerFileName));
-
         /// <summary>
         /// Migrates once, on its own: only when the knowledge is read from <c>HYPHA_HOME</c>, it has no release
         /// installed yet, and no migration ran before.
@@ -118,44 +125,62 @@ namespace Hypha.Knowledge.Migration
         /// <exception cref="IOException">A folder could not be copied; nothing is recorded, so the next run tries again.</exception>
         public async Task<MigrationResult> MigrateOnceAsync(CancellationToken cancellationToken = default)
         {
-            if (!SameFolder(this.layout.Root, this.home))
+            DirectoryInfo home;
+            try
             {
-                return this.Skip("the knowledge is not read from HYPHA_HOME");
+                home = this.home();
+            }
+            catch (InvalidOperationException exception)
+            {
+                // A HYPHA_HOME that cannot be used is the business of whoever uses it, not of every verb.
+                return new MigrationResult(this.layout.Root, [], [], $"HYPHA_HOME cannot be used ({exception.Message})");
             }
 
-            var target = new KnowledgeLayout(this.home);
-
-            if (this.Done(target) is { } done)
+            if (!SameFolder(this.layout.Root, home))
             {
-                return this.Skip(done);
+                return Skip(home, "the knowledge is not read from HYPHA_HOME");
+            }
+
+            var target = new KnowledgeLayout(home);
+
+            if (Done(home, target) is { } done)
+            {
+                return Skip(home, done);
             }
 
             // Nothing found records nothing: a client installed later is still found on a later run.
-            var installs = this.Found(null);
+            var installs = this.Found(home, null);
             if (installs.Count == 0)
             {
-                return new MigrationResult(this.home, []);
+                return new MigrationResult(home, [], []);
             }
 
             ReleaseOperationLease lease;
             try
             {
-                lease = await this.Lock().AcquireAsync(cancellationToken);
+                lease = await this.Lock(home, this.lockWait).AcquireAsync(cancellationToken);
             }
             catch (ReleaseOperationLockException exception)
             {
-                return this.Skip($"another hypha is changing releases ({exception.Message})");
+                return Skip(home, $"another hypha is changing releases ({exception.Message})");
             }
 
             await using (lease)
             {
                 // Checked again under the lock: another hypha may have installed or migrated meanwhile.
-                if (this.Done(target) is { } meanwhile)
+                if (Done(home, target) is { } meanwhile)
                 {
-                    return this.Skip(meanwhile);
+                    return Skip(home, meanwhile);
                 }
 
-                return new MigrationResult(this.home, this.Copy(installs, target, cancellationToken));
+                try
+                {
+                    return new MigrationResult(home, installs, await this.CopyAsync(home, installs, target, cancellationToken));
+                }
+                catch (ReleaseOperationLockException exception)
+                {
+                    return Skip(home, $"a client is changing its releases ({exception.Message})");
+                }
             }
         }
 
@@ -164,17 +189,29 @@ namespace Hypha.Knowledge.Migration
         /// </summary>
         /// <param name="from">The client folders to copy from; <c>null</c> or empty for the ones found.</param>
         /// <param name="cancellationToken">Cancels the migration between files.</param>
-        /// <returns>What it copied.</returns>
-        /// <exception cref="ReleaseOperationLockException">Another hypha is changing releases in <c>HYPHA_HOME</c>.</exception>
+        /// <returns>What it copied, and the client folders it looked in.</returns>
+        /// <exception cref="ArgumentException">A folder named in <paramref name="from"/> holds no <c>knowledge/versions.json</c>.</exception>
+        /// <exception cref="InvalidOperationException"><c>HYPHA_HOME</c> cannot be used.</exception>
+        /// <exception cref="ReleaseOperationLockException">Another hypha, or a client, is changing releases.</exception>
         /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
         /// <exception cref="IOException">A folder could not be copied.</exception>
         public async Task<MigrationResult> MigrateAsync(IReadOnlyList<DirectoryInfo>? from = null, CancellationToken cancellationToken = default)
         {
-            var installs = this.Found(from);
+            var home = this.home();
 
-            await using var lease = await this.Lock().AcquireAsync(cancellationToken);
+            foreach (var folder in from ?? [])
+            {
+                if (!new KnowledgeLayout(folder).VersionManifest.Exists)
+                {
+                    throw new ArgumentException($"'{folder.FullName}' holds no {Path.Combine("knowledge", VersionManifest.FileName)}, so it has nothing to copy");
+                }
+            }
 
-            return new MigrationResult(this.home, this.Copy(installs, new KnowledgeLayout(this.home), cancellationToken));
+            var installs = this.Found(home, from);
+
+            await using var lease = await this.Lock(home, this.lockWait).AcquireAsync(cancellationToken);
+
+            return new MigrationResult(home, installs, await this.CopyAsync(home, installs, new KnowledgeLayout(home), cancellationToken));
         }
 
         /// <summary>Whether two paths name the same folder.</summary>
@@ -186,6 +223,17 @@ namespace Hypha.Knowledge.Migration
                 Path.TrimEndingDirectorySeparator(Path.GetFullPath(left.FullName)),
                 Path.TrimEndingDirectorySeparator(Path.GetFullPath(right.FullName)),
                 OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+
+        /// <summary>The marker that records a migration ran.</summary>
+        /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
+        /// <returns>The marker file.</returns>
+        private static FileInfo Marker(DirectoryInfo home) => new(Path.Combine(home.FullName, MarkerFileName));
+
+        /// <summary>A migration that did not look, and why.</summary>
+        /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
+        /// <param name="reason">Why.</param>
+        /// <returns>The result.</returns>
+        private static MigrationResult Skip(DirectoryInfo home, string reason) => new(home, [], [], reason);
 
         /// <summary>
         /// Copies a folder to a temporary name beside its target, then renames it into place, replacing
@@ -230,11 +278,12 @@ namespace Hypha.Knowledge.Migration
         }
 
         /// <summary>Why a migration on its own need not run any more, or <c>null</c> when it should.</summary>
+        /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
         /// <param name="target">The <c>HYPHA_HOME</c> layout.</param>
         /// <returns>The reason, or <c>null</c>.</returns>
-        private string? Done(KnowledgeLayout target)
+        private static string? Done(DirectoryInfo home, KnowledgeLayout target)
         {
-            if (this.Marker.Exists)
+            if (Marker(home).Exists)
             {
                 return "a migration already ran";
             }
@@ -242,7 +291,7 @@ namespace Hypha.Knowledge.Migration
             if (target.InstalledTags.Count > 0)
             {
                 // Recorded, so that removing every release later does not bring the clients' back.
-                this.Record([]);
+                Record(home, []);
 
                 return "HYPHA_HOME already has a release";
             }
@@ -250,33 +299,49 @@ namespace Hypha.Knowledge.Migration
             return null;
         }
 
+        /// <summary>Writes the marker, naming the client folders looked through.</summary>
+        /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
+        /// <param name="installs">The client folders.</param>
+        private static void Record(DirectoryInfo home, IReadOnlyList<LegacyInstall> installs)
+        {
+            home.Create();
+
+            ReaderSafeFile.WriteAllText(
+                Marker(home).FullName,
+                "hypha copied the releases these clients had installed into this folder, once:\n"
+                + string.Concat(installs.Select(install => $"{install.Origin}: {install.Root.FullName}\n")));
+        }
+
         /// <summary>The client folders to copy from, without <c>HYPHA_HOME</c> itself.</summary>
+        /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
         /// <param name="from">The folders asked for; <c>null</c> or empty for the ones found.</param>
         /// <returns>The folders.</returns>
-        private List<LegacyInstall> Found(IReadOnlyList<DirectoryInfo>? from) =>
+        private List<LegacyInstall> Found(DirectoryInfo home, IReadOnlyList<DirectoryInfo>? from) =>
             (from is { Count: > 0 } ? from.Select(folder => new LegacyInstall(folder, folder.FullName)) : this.locator.Locate())
-                .Where(install => !SameFolder(install.Root, this.home))
+                .Where(install => !SameFolder(install.Root, home))
                 .ToList();
 
-        /// <summary>The release-operation lock of <c>HYPHA_HOME</c>.</summary>
+        /// <summary>The release-operation lock of a knowledge folder.</summary>
+        /// <param name="root">The folder.</param>
+        /// <param name="wait">How long to wait for it.</param>
         /// <returns>The lock.</returns>
-        private ReleaseOperationLock Lock() =>
-            new(new KnowledgeLayout(this.home), this.processes, this.lockLogger, this.lockWait);
-
-        /// <summary>A migration that did not look, and why.</summary>
-        /// <param name="reason">Why.</param>
-        /// <returns>The result.</returns>
-        private MigrationResult Skip(string reason) => new(this.home, [], reason);
+        private ReleaseOperationLock Lock(DirectoryInfo root, TimeSpan wait) =>
+            new(new KnowledgeLayout(root), this.processes, this.lockLogger, wait);
 
         /// <summary>
         /// Copies every release and API version <paramref name="target"/> lacks, the most recently changed
-        /// client folder first, then writes the manifests and the marker.
+        /// client folder first, each under that folder's own lock, then writes the manifests and the marker.
         /// </summary>
+        /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
         /// <param name="installs">The client folders.</param>
         /// <param name="target">The <c>HYPHA_HOME</c> layout.</param>
         /// <param name="cancellationToken">Cancels the copy between files.</param>
         /// <returns>What was copied.</returns>
-        private List<MigratedVersion> Copy(IReadOnlyList<LegacyInstall> installs, KnowledgeLayout target, CancellationToken cancellationToken)
+        /// <exception cref="ReleaseOperationLockException">
+        /// A client is changing its releases; nothing is recorded, and what was copied so far is not installed.
+        /// </exception>
+        private async Task<List<MigratedVersion>> CopyAsync(
+            DirectoryInfo home, IReadOnlyList<LegacyInstall> installs, KnowledgeLayout target, CancellationToken cancellationToken)
         {
             var apiTarget = new ApiLayout(target);
             var existing = VersionManifestFile.ReadIfPresent(target.VersionManifest.FullName);
@@ -297,6 +362,10 @@ namespace Hypha.Knowledge.Migration
 
             foreach (var install in ordered)
             {
+                // A client installing a release lists it before generating it, so its folder is not copied
+                // while the client holds its lock.
+                await using var clientLease = await this.Lock(install.Root, TimeSpan.Zero).AcquireAsync(cancellationToken);
+
                 var source = new KnowledgeLayout(install.Root);
                 var apiSource = new ApiLayout(source);
 
@@ -373,21 +442,9 @@ namespace Hypha.Knowledge.Migration
                     apiTarget.VersionManifest.FullName);
             }
 
-            this.Record(installs);
+            Record(home, installs);
 
             return copied;
-        }
-
-        /// <summary>Writes the marker, naming the client folders looked through.</summary>
-        /// <param name="installs">The client folders.</param>
-        private void Record(IReadOnlyList<LegacyInstall> installs)
-        {
-            this.home.Create();
-
-            ReaderSafeFile.WriteAllText(
-                this.Marker.FullName,
-                "hypha copied the releases these clients had installed into this folder, once:\n"
-                + string.Concat(installs.Select(install => $"{install.Origin}: {install.Root.FullName}\n")));
         }
     }
 }

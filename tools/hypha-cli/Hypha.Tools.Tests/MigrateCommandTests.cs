@@ -26,6 +26,12 @@ namespace Hypha.Tools.Tests
     {
         private static readonly DirectoryInfo Home = new(Path.Combine(Path.GetTempPath(), "hypha-home"));
 
+        private static readonly LegacyInstall[] Clients =
+        [
+            new(new DirectoryInfo(Path.Combine(Path.GetTempPath(), "plugin")), "Claude plugin 2.1.2"),
+            new(new DirectoryInfo(Path.Combine(Path.GetTempPath(), "vscode")), "VS Code"),
+        ];
+
         private RootCommand root = null!;
         private Mock<IKnowledgeMigration> migration = null!;
 
@@ -44,6 +50,7 @@ namespace Hypha.Tools.Tests
                 .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new MigrationResult(
                     Home,
+                    Clients,
                     [new MigratedVersion(MigratedVersion.Release, "2026-05", "Claude plugin 2.1.2"), new MigratedVersion(MigratedVersion.Api, "2026-04", "VS Code")]));
 
             using var console = new RecordedConsole();
@@ -63,7 +70,7 @@ namespace Hypha.Tools.Tests
         {
             this.migration
                 .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new MigrationResult(Home, []));
+                .ReturnsAsync(new MigrationResult(Home, Clients, []));
 
             using var console = new RecordedConsole();
             var result = await this.Invoke("migrate");
@@ -71,7 +78,42 @@ namespace Hypha.Tools.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.Zero);
-                Assert.That(console.Output, Does.Contain("Nothing to copy"));
+                Assert.That(console.Output, Does.Contain("Nothing to copy").And.Contain("those 2 folders"));
+            });
+        }
+
+        [Test]
+        public async Task With_no_client_install_found_it_says_so_and_points_at_from()
+        {
+            this.migration
+                .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new MigrationResult(Home, [], []));
+
+            using var console = new RecordedConsole();
+            var result = await this.Invoke("migrate");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.Zero);
+                Assert.That(console.Output, Does.Contain("No Claude plugin or VS Code extension install was found").And.Contain("--from"));
+                Assert.That(console.Output, Does.Not.Contain("Nothing to copy"));
+            });
+        }
+
+        [Test]
+        public async Task A_from_folder_without_knowledge_is_a_usage_error_naming_it()
+        {
+            this.migration
+                .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new System.ArgumentException("'C:\\typo' holds no knowledge/versions.json, so it has nothing to copy"));
+
+            using var console = new RecordedConsole();
+            var result = await this.Invoke("migrate --from typo");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(2));
+                Assert.That(console.Output, Does.Contain("holds no knowledge/versions.json"));
             });
         }
 
@@ -82,7 +124,7 @@ namespace Hypha.Tools.Tests
             this.migration
                 .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
                 .Callback<IReadOnlyList<DirectoryInfo>?, CancellationToken>((from, _) => asked = from)
-                .ReturnsAsync(new MigrationResult(Home, []));
+                .ReturnsAsync(new MigrationResult(Home, [], []));
 
             var first = Path.Combine(Path.GetTempPath(), "one");
             var second = Path.Combine(Path.GetTempPath(), "two");
@@ -99,7 +141,7 @@ namespace Hypha.Tools.Tests
             this.migration
                 .Setup(m => m.MigrateAsync(It.IsAny<IReadOnlyList<DirectoryInfo>?>(), It.IsAny<CancellationToken>()))
                 .Callback<IReadOnlyList<DirectoryInfo>?, CancellationToken>((from, _) => asked = from)
-                .ReturnsAsync(new MigrationResult(Home, []));
+                .ReturnsAsync(new MigrationResult(Home, [], []));
 
             using var console = new RecordedConsole();
             await this.Invoke("migrate");

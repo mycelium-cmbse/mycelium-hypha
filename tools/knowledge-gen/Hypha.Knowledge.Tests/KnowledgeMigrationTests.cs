@@ -22,6 +22,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Migration;
     using Hypha.Knowledge.Releases;
 
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
 
     [TestFixture]
@@ -81,6 +82,123 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(this.home.EnumerateDirectories("*" + KnowledgeMigration.StagingSuffix, SearchOption.AllDirectories), Is.Empty);
                 Assert.That(File.Exists(Path.Combine(this.home.FullName, ReleaseOperationLock.FileName)), Is.False, "the lock is released");
             });
+        }
+
+        [Test]
+        public async Task The_clients_folders_are_copied_from_and_left_as_they_were()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            var source = new KnowledgeLayout(plugin);
+            var manifest = File.ReadAllBytes(source.VersionManifest.FullName);
+            var files = plugin.EnumerateFiles("*", SearchOption.AllDirectories).ToDictionary(file => file.FullName, file => File.ReadAllText(file.FullName));
+
+            await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(File.ReadAllBytes(source.VersionManifest.FullName), Is.EqualTo(manifest));
+                Assert.That(
+                    plugin.EnumerateFiles("*", SearchOption.AllDirectories).ToDictionary(file => file.FullName, file => File.ReadAllText(file.FullName)),
+                    Is.EquivalentTo(files));
+                Assert.That(this.homeLayout.InstalledTags, Is.EqualTo(new[] { "2026-05" }));
+            });
+        }
+
+        [Test]
+        public async Task A_migration_cancelled_while_copying_installs_nothing_and_completes_next_time()
+        {
+            this.Install("plugin", "Claude plugin", "2026-05", "2026-02", "2026-05");
+            using var cancel = new CancellationTokenSource();
+
+            Assert.That(
+                () => this.Migration(logger: new CancelAfterFirstCopy(cancel)).MigrateOnceAsync(cancel.Token),
+                Throws.InstanceOf<OperationCanceledException>());
+            Assert.Multiple(() =>
+            {
+                Assert.That(File.Exists(this.homeLayout.VersionManifest.FullName), Is.False, "nothing is installed until the manifest is written");
+                Assert.That(File.Exists(Path.Combine(this.home.FullName, KnowledgeMigration.MarkerFileName)), Is.False);
+                Assert.That(File.Exists(Path.Combine(this.home.FullName, ReleaseOperationLock.FileName)), Is.False, "the lock is released");
+            });
+
+            var again = await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(again.Copied.Select(copied => copied.Tag), Is.EquivalentTo(new[] { "2026-05", "2026-02" }));
+                Assert.That(this.homeLayout.InstalledTags, Is.EquivalentTo(new[] { "2026-05", "2026-02" }));
+                Assert.That(this.home.EnumerateDirectories("*" + KnowledgeMigration.StagingSuffix, SearchOption.AllDirectories), Is.Empty);
+            });
+        }
+
+        [Test]
+        public async Task A_client_changing_its_releases_is_not_copied_from_and_the_migration_is_tried_again()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            this.HoldLock(plugin);
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Skipped, Does.Contain("a client is changing its releases"));
+                Assert.That(this.homeLayout.InstalledTags, Is.Empty);
+                Assert.That(File.Exists(Path.Combine(this.home.FullName, KnowledgeMigration.MarkerFileName)), Is.False);
+                Assert.That(File.Exists(Path.Combine(this.home.FullName, ReleaseOperationLock.FileName)), Is.False, "HYPHA_HOME's lock is released");
+                Assert.That(File.Exists(Path.Combine(plugin.FullName, ReleaseOperationLock.FileName)), Is.True, "the client's own lock is left alone");
+            });
+
+            File.Delete(Path.Combine(plugin.FullName, ReleaseOperationLock.FileName));
+            var again = await this.Migration().MigrateOnceAsync();
+
+            Assert.That(again.Copied.Select(copied => copied.Tag), Is.EqualTo(new[] { "2026-05" }));
+        }
+
+        [Test]
+        public void On_request_a_client_changing_its_releases_is_reported()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            this.HoldLock(plugin);
+
+            Assert.That(() => this.Migration().MigrateAsync(), Throws.TypeOf<ReleaseOperationLockException>());
+        }
+
+        [Test]
+        public async Task A_HYPHA_HOME_that_cannot_be_used_skips_the_migration_without_failing()
+        {
+            this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            var checkout = new KnowledgeLayout(Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "checkout")));
+
+            var result = await this.Migration(checkout, () => throw new InvalidOperationException("HYPHA_HOME must be an absolute path")).MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Skipped, Does.Contain("HYPHA_HOME cannot be used").And.Contain("absolute path"));
+                Assert.That(result.Copied, Is.Empty);
+            });
+        }
+
+        [Test]
+        public void On_request_a_from_folder_without_knowledge_is_refused_naming_it()
+        {
+            var empty = Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "typo"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    () => this.Migration().MigrateAsync([empty]),
+                    Throws.ArgumentException.With.Message.Contains(empty.FullName).And.Message.Contains("nothing to copy"));
+                Assert.That(this.home.Exists, Is.False);
+            });
+        }
+
+        [Test]
+        public async Task On_request_the_folders_looked_in_are_reported()
+        {
+            this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+
+            var result = await this.Migration().MigrateAsync();
+
+            Assert.That(result.Searched.Select(install => install.Origin), Is.EqualTo(new[] { "Claude plugin" }));
         }
 
         [Test]
@@ -325,14 +443,37 @@ namespace Hypha.Knowledge.Tests
         private void Older(DirectoryInfo root) =>
             File.SetLastWriteTimeUtc(new KnowledgeLayout(root).VersionManifest.FullName, DateTime.UtcNow.AddDays(-7));
 
-        private KnowledgeMigration Migration(IKnowledgeLayout? layout = null) =>
+        private KnowledgeMigration Migration(IKnowledgeLayout? layout = null, Func<DirectoryInfo>? home = null, ILogger<KnowledgeMigration>? logger = null) =>
             new(
                 layout ?? this.homeLayout,
-                this.home,
+                home ?? (() => this.home),
                 new Installs(this.installs),
                 new SystemProcessProbe(),
                 NullLogger<ReleaseOperationLock>.Instance,
-                NullLogger<KnowledgeMigration>.Instance);
+                logger ?? NullLogger<KnowledgeMigration>.Instance);
+
+        private void HoldLock(DirectoryInfo root)
+        {
+            root.Create();
+            File.WriteAllText(Path.Combine(root.FullName, ReleaseOperationLock.FileName), $"{{\"pid\":{Environment.ProcessId},\"token\":\"other\"}}");
+        }
+
+        // Cancels the migration as soon as it has copied its first release, so the next copy stops between files.
+        private sealed class CancelAfterFirstCopy(CancellationTokenSource source) : ILogger<KnowledgeMigration>
+        {
+            public IDisposable? BeginScope<TState>(TState state)
+                where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            {
+                if (eventId.Name == "Copied")
+                {
+                    source.Cancel();
+                }
+            }
+        }
 
         private sealed class Installs(List<LegacyInstall> installs) : ILegacyInstallLocator
         {

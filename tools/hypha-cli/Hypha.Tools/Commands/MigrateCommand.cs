@@ -64,18 +64,38 @@ namespace Hypha.Tools.Commands
             /// <summary>Copies what <c>HYPHA_HOME</c> lacks and says what it copied.</summary>
             /// <param name="parseResult">The parsed command line.</param>
             /// <param name="cancellationToken">Cancels the copy between files.</param>
-            /// <returns>0, whether or not anything was copied.</returns>
+            /// <returns>0, whether or not anything was copied; 2 when a <c>--from</c> folder holds no knowledge.</returns>
             /// <exception cref="ArgumentNullException"><paramref name="parseResult"/> is <c>null</c>.</exception>
             /// <exception cref="Hypha.Knowledge.Releases.ReleaseOperationLockException">Another hypha is changing releases.</exception>
             public async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
 
-                var result = await this.migration.MigrateAsync(parseResult.GetValue(From), cancellationToken);
+                MigrationResult result;
+                try
+                {
+                    result = await this.migration.MigrateAsync(parseResult.GetValue(From), cancellationToken);
+                }
+                catch (ArgumentException exception)
+                {
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}.[/]");
+
+                    return 2;
+                }
+
+                if (result.Searched.Count == 0)
+                {
+                    AnsiConsole.MarkupLine("No Claude plugin or VS Code extension install was found to copy from.");
+                    AnsiConsole.MarkupLine("[grey]Name a folder holding knowledge/ with --from.[/]");
+
+                    return 0;
+                }
 
                 if (result.Copied.Count == 0)
                 {
-                    AnsiConsole.MarkupLine($"Nothing to copy into [bold]{Markup.Escape(result.Home.FullName)}[/]: it has every release the clients installed.");
+                    AnsiConsole.MarkupLine(
+                        $"Nothing to copy into [bold]{Markup.Escape(result.Home.FullName)}[/]: it already has every release "
+                        + $"{(result.Searched.Count == 1 ? "that folder" : $"those {result.Searched.Count} folders")} installed.");
 
                     return 0;
                 }

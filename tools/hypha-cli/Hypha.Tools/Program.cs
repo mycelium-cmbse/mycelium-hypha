@@ -349,7 +349,9 @@ namespace Hypha.Tools
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or JsonException)
             {
-                MigrationFailedMessage(logger, exception.Message, exception);
+                // The message alone: a stack trace on every run would bury the verb's own output, and can fill
+                // the standard error of a caller that never reads it.
+                MigrationFailedMessage(logger, exception.Message, null);
             }
         }
 
