@@ -51,6 +51,7 @@ namespace Hypha.Knowledge.Query
     [JsonSerializable(typeof(QueryResult<ModelLibraryDeclarationEntry>))]
     [JsonSerializable(typeof(QueryResult<SpecificationClause>))]
     [JsonSerializable(typeof(QueryResult<IReadOnlyList<SearchHit>>))]
+    [JsonSerializable(typeof(QueryResult<IReadOnlyList<SpecificationMatch>>))]
     [JsonSerializable(typeof(QueryResult<ResolvedAddress>))]
     [JsonSerializable(typeof(QueryResult<ClassNode>))]
     [JsonSerializable(typeof(QueryResult<ApiTypeEntry>))]

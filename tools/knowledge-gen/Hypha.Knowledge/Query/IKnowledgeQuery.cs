@@ -477,5 +477,28 @@ namespace Hypha.Knowledge.Query
         /// page that is missing or outside the release's folder.
         /// </exception>
         QueryResult<ResolvedAddress> Resolve(HyphaAddress address);
+
+        /// <summary>
+        /// Searches the text of the release's specification clauses for a word or phrase, ignoring case
+        /// and line breaks.
+        /// </summary>
+        /// <param name="text">The word or phrase to look for.</param>
+        /// <param name="document">Only this specification, <c>kerml</c> or <c>sysml2</c>, or <c>null</c> for both.</param>
+        /// <param name="limit">The most clauses returned, from 1 to <c>200</c>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The clauses whose text contains it, the most occurrences first, then by specification and clause
+        /// number, each with an excerpt; empty when none does. Grounded as <see cref="Provenance.Derived"/>,
+        /// since the ranking is this library's: read a clause before quoting it.
+        /// <see cref="QueryResult{T}.Unavailable"/> when none of the specifications searched has been generated.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// <paramref name="text"/> is <c>null</c>, empty or white space, <paramref name="document"/> is not a
+        /// specification, or <paramref name="limit"/> is out of range.
+        /// </exception>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The release is not installed, has no default, or a specification index or page is invalid.
+        /// </exception>
+        QueryResult<IReadOnlyList<SpecificationMatch>> SearchSpecification(string text, string? document = null, int limit = 20, string? tag = null);
     }
 }

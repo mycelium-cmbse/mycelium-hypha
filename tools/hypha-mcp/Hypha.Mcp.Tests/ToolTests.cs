@@ -144,6 +144,7 @@ namespace Hypha.Mcp.Tests
             specification.Spec(SpecificationQuestion.Clause, "kerml", "7.4.2", tag: Tag);
             specification.Spec(SpecificationQuestion.ElementsInClause, "sysml2", "8.3.6", includeSubclauses: true, tag: Tag);
             specification.Search("Part", kind: "metamodel", limit: 5, tag: Tag);
+            specification.SearchSpec("is typed by", document: "kerml", limit: 7, tag: Tag);
             specification.Resolve("hypha://2026-05/metamodel/PartUsage");
             new MetamodelTools(this.query.Object).Package("Parts", Tag);
             releases.ReleaseStatus();
@@ -154,6 +155,7 @@ namespace Hypha.Mcp.Tests
                 this.query.Verify(q => q.Clause("kerml", "7.4.2", Tag), Times.Once);
                 this.query.Verify(q => q.ElementsInClause("sysml2", "8.3.6", true, Tag), Times.Once);
                 this.query.Verify(q => q.Search("Part", "metamodel", 5, Tag), Times.Once);
+                this.query.Verify(q => q.SearchSpecification("is typed by", "kerml", 7, Tag), Times.Once);
                 this.query.Verify(
                     q => q.Resolve(It.Is<HyphaAddress>(address => address.Tag == Tag && address.Kind == "metamodel" && address.Name == "PartUsage")),
                     Times.Once);
@@ -244,6 +246,7 @@ namespace Hypha.Mcp.Tests
             metamodel.TypedBy(TypedByQuestion.ClassesWithFeatureTyped, "Expression");
             new SpecificationTools(this.query.Object).Spec(SpecificationQuestion.ElementsInClause, "sysml2", "8.3.6");
             new SpecificationTools(this.query.Object).Search("Part");
+            new SpecificationTools(this.query.Object).SearchSpec("typed");
             new LookupTools(this.lookup.Object).Lookup(KnowledgeKind.Metamodel, "PartUsage");
 
             Assert.Multiple(() =>
@@ -254,6 +257,7 @@ namespace Hypha.Mcp.Tests
                 this.query.Verify(q => q.ClassesWithFeatureTyped("Expression", false, null), Times.Once);
                 this.query.Verify(q => q.ElementsInClause("sysml2", "8.3.6", false, null), Times.Once);
                 this.query.Verify(q => q.Search("Part", null, 20, null), Times.Once);
+                this.query.Verify(q => q.SearchSpecification("typed", null, 20, null), Times.Once);
                 this.lookup.Verify(
                     l => l.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "PartUsage", null, null, LookupRequest.DefaultMaxLines)),
                     Times.Once);

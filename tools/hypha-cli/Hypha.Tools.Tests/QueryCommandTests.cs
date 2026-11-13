@@ -129,6 +129,8 @@ namespace Hypha.Tools.Tests
             yield return Case("query clause --document D --clause 7.4 -t T", mock => mock.Clause("D", "7.4", "T"));
             yield return Case("query search --text X", mock => mock.Search("X", null, 20, null));
             yield return Case("query search --text X --kind K --limit 5 -t T", mock => mock.Search("X", "K", 5, "T"));
+            yield return Case("query search-specification --text X", mock => mock.SearchSpecification("X", null, 20, null));
+            yield return Case("query search-specification --text X --document kerml --limit 5 -t T", mock => mock.SearchSpecification("X", "kerml", 5, "T"));
             yield return Case("query resolve --address hypha://T/metamodel/N", mock => mock.Resolve(new HyphaAddress("T", "metamodel", "N")));
         }
 

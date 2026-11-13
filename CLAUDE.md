@@ -29,8 +29,9 @@ library. `Hypha.Mcp` (`tools/hypha-mcp`) is the MCP server that `hypha serve` ho
 tools over `Hypha.Knowledge.Query` and `Hypha.Knowledge.Lookup`, each grouping related questions
 behind a `question` argument whose values are the `hypha query` verb names; the release tools over
 `IReleaseOperations` (install, use, remove, each under the release lock), which send the
-installer's and the builder's `KnowledgeProgress` as MCP progress notifications; and the
-`instructions` that explain the grounding tiers. It references `Hypha.Knowledge`, never the reverse. A generator
+installer's and the builder's `KnowledgeProgress` as MCP progress notifications; one resource
+template, `hypha://{tag}/{kind}/{name}`, over the generated pages; the prompts (guided flows that name
+the tools to use); and the `instructions` that explain the grounding tiers. It references `Hypha.Knowledge`, never the reverse. A generator
 and the code that reads its output use the same C# types, serialized through a
 source-generated `JsonSerializerContext` (one per artifact, next to its types), not a
 reflection-based `JsonSerializer` call.

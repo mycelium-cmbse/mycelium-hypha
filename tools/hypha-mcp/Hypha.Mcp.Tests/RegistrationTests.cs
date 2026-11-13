@@ -38,6 +38,7 @@ namespace Hypha.Mcp.Tests
             "hypha_syntax",
             "hypha_spec",
             "hypha_search",
+            "hypha_search_spec",
             "hypha_resolve",
             "hypha_lookup",
             "hypha_diff",
@@ -66,6 +67,8 @@ namespace Hypha.Mcp.Tests
         public async Task TearDown() => await this.provider.DisposeAsync();
 
         private IReadOnlyList<McpServerTool> Tools => this.provider.GetServices<McpServerTool>().ToList();
+
+        private IReadOnlyList<McpServerPrompt> Prompts => this.provider.GetServices<McpServerPrompt>().ToList();
 
         [Test]
         public void Every_read_tool_and_release_change_tool_is_registered_and_nothing_else()
@@ -131,6 +134,53 @@ namespace Hypha.Mcp.Tests
             Assert.That(
                 ServerInstructions.Text,
                 Does.Contain("NORMATIVE").And.Contain("MODEL").And.Contain("DERIVED").And.Contain("unavailable"));
+        }
+
+        [Test]
+        public void Every_hypha_address_is_one_resource_template_of_markdown_pages()
+        {
+            var templates = this.provider.GetServices<McpServerResource>().Select(resource => resource.ProtocolResourceTemplate).ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(templates.Select(template => template.UriTemplate), Is.EqualTo(new[] { "hypha://{tag}/{kind}/{name}" }));
+                Assert.That(templates[0].MimeType, Is.EqualTo("text/markdown"));
+                Assert.That(templates[0].Description, Is.Not.Null.And.Contains("model-library"));
+            });
+        }
+
+        [Test]
+        public void The_guided_flows_are_registered_as_prompts_with_their_arguments_required()
+        {
+            var prompts = this.Prompts.Select(prompt => prompt.ProtocolPrompt).ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    prompts.Select(prompt => prompt.Name),
+                    Is.EquivalentTo(new[] { "overview", "explain_metaclass", "cite_specification", "validate_notation", "api_lookup" }));
+                Assert.That(prompts.Select(prompt => prompt.Description), Is.All.Not.Null.And.All.Length.GreaterThan(30));
+                Assert.That(prompts.SelectMany(prompt => prompt.Arguments ?? []).Select(argument => argument.Required), Is.All.True);
+                Assert.That(prompts.Single(prompt => prompt.Name == "overview").Arguments ?? [], Is.Empty);
+            });
+        }
+
+        [Test]
+        public void The_prompts_name_only_tools_the_server_has()
+        {
+            var texts = new[]
+            {
+                Hypha.Mcp.Prompts.KnowledgePrompts.Overview(),
+                Hypha.Mcp.Prompts.KnowledgePrompts.ExplainMetaclass("PartUsage"),
+                Hypha.Mcp.Prompts.KnowledgePrompts.CiteSpecification("redefinition"),
+                Hypha.Mcp.Prompts.KnowledgePrompts.ValidateNotation("part def Vehicle;"),
+                Hypha.Mcp.Prompts.KnowledgePrompts.ApiLookup("Which operation creates a project?"),
+            };
+            var registered = this.Tools.Select(tool => tool.ProtocolTool.Name).ToHashSet();
+
+            var named = texts.SelectMany(text => Regex.Matches(text, "hypha_[a-z_]+").Select(match => match.Value)).Distinct();
+
+            Assert.That(named, Is.All.Matches<string>(name => name is not null && registered.Contains(name)));
         }
 
         [Test]

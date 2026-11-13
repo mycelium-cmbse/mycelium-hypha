@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   JSON, grounding included. A question that cannot be answered is a tool error naming the fix. The
   server's `instructions` explain the grounding tiers and which tool answers what, for clients that
   load no skills. Standard output carries only the protocol; the log goes to standard error.
+- **Specification search, resources and prompts in the MCP server** (`refs #196`):
+  - `hypha_search_spec`, and `hypha query search-specification`, find the KerML and SysML clauses
+    whose text says a word or phrase, ignoring case and line breaks, the clauses that say it most
+    first, each with its address and an excerpt (`IKnowledgeQuery.SearchSpecification`).
+  - Every `hypha://{tag}/{kind}/{name}` address is a resource whose contents are the page as Markdown.
+    Every address in a JSON answer now carries its `uri`, the text a client opens.
+  - Five prompts: `overview`, `explain_metaclass`, `cite_specification`, `validate_notation` and
+    `api_lookup`, each naming the tools to use and starting from what is installed.
 - **Release tools in the MCP server** (`refs #196`): `hypha_install_release` (fetch and generate,
   the newest offered release when no tag is given), `hypha_use_release` and
   `hypha_remove_release`, run in the server's own process. An install sends MCP progress

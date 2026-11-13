@@ -119,7 +119,7 @@ namespace Hypha.Mcp.Tools
         /// <param name="question">Asks the question.</param>
         /// <returns>The result.</returns>
         /// <exception cref="McpException">The question could not be answered; the message says why.</exception>
-        private static T Ask<T>(Func<T> question)
+        public static T Ask<T>(Func<T> question)
         {
             ArgumentNullException.ThrowIfNull(question);
 

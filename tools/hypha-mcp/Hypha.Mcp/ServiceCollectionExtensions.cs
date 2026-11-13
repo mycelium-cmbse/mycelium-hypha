@@ -12,6 +12,8 @@ namespace Hypha.Mcp
     using System;
     using System.Reflection;
 
+    using Hypha.Mcp.Prompts;
+    using Hypha.Mcp.Resources;
     using Hypha.Mcp.Tools;
 
     using Microsoft.Extensions.DependencyInjection;
@@ -64,7 +66,9 @@ namespace Hypha.Mcp
                 .WithTools<SpecificationTools>()
                 .WithTools<LookupTools>()
                 .WithTools<ApiTools>()
-                .WithTools<ReleaseChangeTools>();
+                .WithTools<ReleaseChangeTools>()
+                .WithResources<KnowledgeResources>()
+                .WithPrompts<KnowledgePrompts>();
         }
     }
 }

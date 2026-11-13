@@ -16,6 +16,7 @@ namespace Hypha.Knowledge.Query
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.CrossReferences;
+    using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
@@ -35,6 +36,9 @@ namespace Hypha.Knowledge.Query
     {
         /// <summary>The most hits a search returns.</summary>
         public const int MaxSearchHits = 200;
+
+        /// <summary>How many characters of a specification search excerpt stand on either side of the match.</summary>
+        private const int ExcerptReach = 120;
 
         /// <summary>Where each release's generated knowledge lives, and which releases are installed.</summary>
         private readonly IKnowledgeLayout layout;
@@ -1241,6 +1245,132 @@ namespace Hypha.Knowledge.Query
                 .ToList();
 
             return new(hits, new Grounding(Provenance.Derived, release, this.Relative(this.layout.Knowledge(release).FullName)));
+        }
+
+        /// <summary>
+        /// Searches the text of the release's specification clauses for a word or phrase, ignoring case
+        /// and line breaks.
+        /// </summary>
+        /// <param name="text">The word or phrase to look for.</param>
+        /// <param name="document">Only this specification, <c>kerml</c> or <c>sysml2</c>, or <c>null</c> for both.</param>
+        /// <param name="limit">The most clauses returned, from 1 to <see cref="MaxSearchHits"/>.</param>
+        /// <param name="tag">The release, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The clauses whose text contains it, the most occurrences first, then by specification and clause
+        /// number, each with an excerpt; empty when none does. Grounded as <see cref="Provenance.Derived"/>,
+        /// since the ranking is this library's: read a clause before quoting it.
+        /// <see cref="QueryResult{T}.Unavailable"/> when none of the specifications searched has been generated.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="text"/> is <c>null</c>, empty or white space, <paramref name="document"/> is not a
+        /// specification, or <paramref name="limit"/> is out of range.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The release is not installed, has no default, or a specification index or page is invalid.
+        /// </exception>
+        public QueryResult<IReadOnlyList<SpecificationMatch>> SearchSpecification(
+            string text, string? document = null, int limit = 20, string? tag = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(text);
+
+            if (document is not null)
+            {
+                CheckDocument(document);
+            }
+
+            if (limit is < 1 or > MaxSearchHits)
+            {
+                throw new ArgumentException($"The limit must be between 1 and {MaxSearchHits}.", nameof(limit));
+            }
+
+            var release = this.Release(tag);
+            var wanted = CollapseWhiteSpace(text);
+            var documents = ReleaseStatus.SpecificationDocuments.Where(candidate => document is null || candidate == document).ToList();
+            var matches = new List<SpecificationMatch>();
+            var searched = 0;
+
+            foreach (var name in documents)
+            {
+                var catalog = this.layout.SpecificationCatalog(release, name);
+                var specification = this.specifications.ReadIndex(catalog, SpecificationCommand(release));
+
+                if (specification is null)
+                {
+                    continue;
+                }
+
+                searched++;
+
+                foreach (var clause in specification.Entries.Keys)
+                {
+                    var read = this.specifications.Read(
+                        catalog,
+                        name,
+                        clause,
+                        release,
+                        $"release {release}",
+                        SpecificationCommand(release),
+                        SpecificationUnavailable(release),
+                        file => this.Ground(Provenance.Normative, release, file));
+
+                    if (read.Value is { } found && Occurrences(CollapseWhiteSpace(found.Text), wanted) is { Count: > 0 } occurrences)
+                    {
+                        matches.Add(new SpecificationMatch(
+                            new HyphaAddress(release, name, clause), found.Title, occurrences.Count, occurrences.Excerpt));
+                    }
+                }
+            }
+
+            var grounding = new Grounding(Provenance.Derived, release, this.Relative(this.layout.Knowledge(release).FullName));
+
+            if (searched == 0)
+            {
+                return new(null, grounding, SpecificationUnavailable(release));
+            }
+
+            IReadOnlyList<SpecificationMatch> ranked = matches
+                .OrderByDescending(match => match.Occurrences)
+                .ThenBy(match => documents.IndexOf(match.Address.Kind))
+                .ThenBy(match => match.Address.Name, ClauseNumberComparer.Instance)
+                .Take(limit)
+                .ToList();
+
+            return new(ranked, grounding);
+        }
+
+        /// <summary>The text with every run of white space, line breaks included, made one space.</summary>
+        /// <param name="text">The text.</param>
+        /// <returns>The collapsed, trimmed text.</returns>
+        private static string CollapseWhiteSpace(string text) =>
+            string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+        /// <summary>How often a text contains a phrase, ignoring case, and the text around the first time.</summary>
+        /// <param name="text">The collapsed text searched.</param>
+        /// <param name="phrase">The collapsed phrase.</param>
+        /// <returns>The count, and an excerpt of about <see cref="ExcerptReach"/> characters either side.</returns>
+        private static (int Count, string Excerpt) Occurrences(string text, string phrase)
+        {
+            var first = text.IndexOf(phrase, StringComparison.OrdinalIgnoreCase);
+
+            if (first < 0)
+            {
+                return (0, string.Empty);
+            }
+
+            var count = 0;
+            for (var at = first; at >= 0; at = text.IndexOf(phrase, at + phrase.Length, StringComparison.OrdinalIgnoreCase))
+            {
+                count++;
+            }
+
+            // Widen to whole words, so the excerpt neither starts nor ends in the middle of one.
+            var start = Math.Max(0, first - ExcerptReach);
+            var end = Math.Min(text.Length, first + phrase.Length + ExcerptReach);
+            start = start == 0 ? 0 : text.LastIndexOf(' ', start) + 1;
+            var space = text.IndexOf(' ', end);
+            end = space < 0 ? text.Length : space;
+
+            return (count, (start > 0 ? "..." : string.Empty) + text[start..end] + (end < text.Length ? "..." : string.Empty));
         }
 
         /// <summary>Resolves an address to the generated page it names, through the release's indexes.</summary>

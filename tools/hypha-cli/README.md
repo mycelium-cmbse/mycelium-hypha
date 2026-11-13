@@ -127,6 +127,7 @@ hypha query keyword --word ':>>' --grammar sysml
 hypha query constraints --class PartUsage --own-only
 hypha query diff --from 2026-02 --to 2026-05 --element PartUsage
 hypha query search --text Feature --kind metamodel
+hypha query search-specification --text "is typed by" --document kerml
 hypha query resolve --address hypha://2026-05/metamodel/PartUsage
 hypha query api type --name Commit
 ```
@@ -319,6 +320,7 @@ values are the `hypha query` verbs that answer the same thing:
 | `hypha_syntax` | `cross-reference`, `feature-assignments`, `built-by`, `keyword`. |
 | `hypha_spec` | `clause` (verbatim text), `elements-in-clause`. |
 | `hypha_search` | Metaclasses, library declarations and clauses by name, each with a `hypha://` address. |
+| `hypha_search_spec` | The clauses whose text says a word or phrase, the ones that say it most first, each with its `hypha://` address and an excerpt. |
 | `hypha_resolve` | The page a `hypha://` address names. |
 | `hypha_lookup` | An element page or a model-library declaration, a page at a time. |
 | `hypha_diff` | What changed between two installed releases. |
@@ -341,6 +343,14 @@ Each takes the release-operation lock, so two servers, or a server and the VS Co
 the releases one at a time; under `serve` a tool waits up to ten minutes for another's change to
 finish. The query tools need no telling afterwards: they read the version manifest on every call and
 read a generated file again once it has changed on disk.
+
+Every `hypha://` address in an answer (its `uri`) is also a resource, through the one template
+`hypha://{tag}/{kind}/{name}`: reading it returns the page as Markdown, the whole metaclass or clause
+page, or a model-library declaration from where it is declared on. No resource is listed, since a
+release has thousands. And five prompts give a client's prompt menu the guided flows: `overview`,
+`explain_metaclass`, `cite_specification`, `validate_notation` and `api_lookup`. Each is a request
+naming the tools to use, starting from what is installed; everything they do is also reachable through
+the tools, for clients that support neither.
 
 ## Rate limits
 

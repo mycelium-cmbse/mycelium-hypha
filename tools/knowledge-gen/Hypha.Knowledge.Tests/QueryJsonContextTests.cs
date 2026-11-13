@@ -89,6 +89,28 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void An_address_is_written_with_the_uri_a_client_opens()
+        {
+            var node = Serialize(this.fixture.Query.Search("PartUsage"));
+
+            Assert.That((string?)node["value"]![0]!["address"]!["uri"], Is.EqualTo($"hypha://{QueryFixture.Tag}/metamodel/PartUsage"));
+        }
+
+        [Test]
+        public void A_specification_match_is_written_with_its_address_occurrences_and_excerpt()
+        {
+            var node = Serialize(this.fixture.Query.SearchSpecification("text of clause"));
+            var first = node["value"]![0]!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That((string?)first["address"]!["uri"], Does.StartWith($"hypha://{QueryFixture.Tag}/kerml/"));
+                Assert.That((int?)first["occurrences"], Is.EqualTo(1));
+                Assert.That((string?)first["excerpt"], Does.Contain("text of clause"));
+            });
+        }
+
+        [Test]
         public void The_readable_context_writes_operators_as_they_are()
         {
             var result = new QueryResult<IReadOnlyList<string>>([":>>", "=>"], new Grounding("DERIVED", QueryFixture.Tag, "knowledge/x.json"));

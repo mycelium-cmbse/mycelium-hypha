@@ -24,6 +24,7 @@ namespace Hypha.Tools.Tests
     using Hypha.Mcp.Tools;
     using Hypha.Tools.Commands;
 
+    using ModelContextProtocol;
     using ModelContextProtocol.Client;
     using ModelContextProtocol.Protocol;
 
@@ -89,7 +90,7 @@ namespace Hypha.Tools.Tests
         {
             var tools = await this.client.ListToolsAsync();
 
-            Assert.That(tools.Select(tool => tool.Name).ToList(), Has.Count.EqualTo(15).And.Contains("hypha_metaclass").And.Contains("hypha_install_release"));
+            Assert.That(tools.Select(tool => tool.Name).ToList(), Has.Count.EqualTo(16).And.Contains("hypha_metaclass").And.Contains("hypha_search_spec"));
         }
 
         [Test]
@@ -114,6 +115,44 @@ namespace Hypha.Tools.Tests
             var result = await this.client.CallToolAsync("hypha_release_status");
 
             Assert.That(Text(result), Does.Contain($"\"default\":\"{Tag}\""));
+        }
+
+        [Test]
+        public async Task A_hypha_address_reads_as_a_resource_of_markdown()
+        {
+            var templates = await this.client.ListResourceTemplatesAsync();
+            var page = await this.client.ReadResourceAsync($"hypha://{Tag}/metamodel/ActionUsage");
+            var contents = page.Contents.OfType<TextResourceContents>().Single();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(templates.Select(template => template.UriTemplate), Does.Contain("hypha://{tag}/{kind}/{name}"));
+                Assert.That(contents.MimeType, Is.EqualTo("text/markdown"));
+                Assert.That(contents.Uri, Is.EqualTo($"hypha://{Tag}/metamodel/ActionUsage"));
+                Assert.That(contents.Text, Does.Contain("ActionUsage"));
+            });
+        }
+
+        [Test]
+        public void A_hypha_address_that_names_nothing_is_a_resource_error()
+        {
+            Assert.That(
+                async () => await this.client.ReadResourceAsync($"hypha://{Tag}/metamodel/NoSuchMetaclass"),
+                Throws.InstanceOf<McpException>().With.Message.Contains("NoSuchMetaclass"));
+        }
+
+        [Test]
+        public async Task It_offers_its_guided_flows_as_prompts()
+        {
+            var prompts = await this.client.ListPromptsAsync();
+            var explain = await this.client.GetPromptAsync("explain_metaclass", new Dictionary<string, object?> { ["name"] = "PartUsage" });
+            var text = string.Concat(explain.Messages.Select(message => message.Content).OfType<TextContentBlock>().Select(block => block.Text));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(prompts.Select(prompt => prompt.Name), Does.Contain("explain_metaclass").And.Contain("cite_specification"));
+                Assert.That(text, Does.Contain("PartUsage").And.Contain("hypha_metaclass"));
+            });
         }
 
         [Test]
