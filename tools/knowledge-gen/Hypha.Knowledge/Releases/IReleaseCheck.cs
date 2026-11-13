@@ -17,8 +17,8 @@ namespace Hypha.Knowledge.Releases
     /// <c>hypha check</c> verb and the MCP server's <c>hypha_check_releases</c> answer.
     /// </summary>
     /// <remarks>
-    /// It only compares: it fetches, generates and writes nothing. It asks GitHub, so it is the one
-    /// check of the installed releases that reaches the network.
+    /// It only compares: it fetches, generates and writes nothing. It asks GitHub, whose anonymous API allows
+    /// 60 requests an hour, so each repository's tags are listed once per check.
     /// </remarks>
     public interface IReleaseCheck
     {
@@ -26,12 +26,17 @@ namespace Hypha.Knowledge.Releases
         /// <param name="cancellationToken">Cancels the requests to GitHub.</param>
         /// <returns>The comparison.</returns>
         /// <exception cref="System.Net.Http.HttpRequestException">GitHub could not be reached.</exception>
+        /// <remarks>Lists the Release and Pilot-Implementation repositories' tags.</remarks>
         Task<UpstreamComparison> CheckReleasesAsync(CancellationToken cancellationToken = default);
 
-        /// <summary>Compares the installed Systems Modeling API versions with the ones offered upstream.</summary>
+        /// <summary>
+        /// Compares the installed language releases and Systems Modeling API versions with the ones offered
+        /// upstream, listing each repository's tags once for both.
+        /// </summary>
         /// <param name="cancellationToken">Cancels the requests to GitHub.</param>
-        /// <returns>The comparison.</returns>
+        /// <returns>Both comparisons.</returns>
         /// <exception cref="System.Net.Http.HttpRequestException">GitHub could not be reached.</exception>
-        Task<UpstreamComparison> CheckApiAsync(CancellationToken cancellationToken = default);
+        /// <remarks>Lists the Release, Pilot-Implementation and API-Services repositories' tags, once each.</remarks>
+        Task<UpstreamCheck> CheckReleasesAndApiAsync(CancellationToken cancellationToken = default);
     }
 }

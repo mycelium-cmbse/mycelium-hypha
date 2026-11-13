@@ -37,8 +37,10 @@ namespace Hypha.Mcp.Tests
         [Test]
         public async Task It_answers_both_axes_with_the_newer_release_named()
         {
-            this.check.Setup(c => c.CheckApiAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new UpstreamComparison(["2026-04"], "2026-04", ["2026-04"], null));
+            this.check.Setup(c => c.CheckReleasesAndApiAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UpstreamCheck(
+                    new UpstreamComparison(["2026-05"], "2026-05", ["2026-09", "2026-05"], "2026-09"),
+                    new UpstreamComparison(["2026-04"], "2026-04", ["2026-04"], null)));
 
             using var answer = JsonDocument.Parse(await new UpstreamTools(this.check.Object).CheckReleases());
             var root = answer.RootElement;
@@ -59,13 +61,13 @@ namespace Hypha.Mcp.Tests
             using var answer = JsonDocument.Parse(await new UpstreamTools(this.check.Object).CheckReleases(api: false));
 
             Assert.That(answer.RootElement.GetProperty("api").ValueKind, Is.EqualTo(JsonValueKind.Null));
-            this.check.Verify(c => c.CheckApiAsync(It.IsAny<CancellationToken>()), Times.Never);
+            this.check.Verify(c => c.CheckReleasesAndApiAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
         public void GitHub_out_of_reach_is_a_tool_error_naming_the_token()
         {
-            this.check.Setup(c => c.CheckReleasesAsync(It.IsAny<CancellationToken>()))
+            this.check.Setup(c => c.CheckReleasesAndApiAsync(It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("Response status code does not indicate success: 403 (rate limit exceeded)."));
 
             Assert.That(

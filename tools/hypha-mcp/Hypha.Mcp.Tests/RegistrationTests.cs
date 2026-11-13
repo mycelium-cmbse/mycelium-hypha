@@ -101,7 +101,7 @@ namespace Hypha.Mcp.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(tool.Description, Is.Not.Null.And.Contains("GitHub").And.Contains("hypha_install_release"));
+                Assert.That(tool.Description, Is.Not.Null.And.Contains("GitHub").And.Contains("hypha_install_release").And.Contains("language releases only"));
                 Assert.That(tool.Annotations?.ReadOnlyHint, Is.True);
                 Assert.That(tool.Annotations?.IdempotentHint, Is.True);
                 Assert.That(tool.Annotations?.DestructiveHint, Is.False);

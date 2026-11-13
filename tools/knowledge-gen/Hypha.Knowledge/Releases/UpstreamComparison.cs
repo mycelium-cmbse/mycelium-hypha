@@ -21,8 +21,9 @@ namespace Hypha.Knowledge.Releases
     /// The newest tags offered upstream, newest first, at most <see cref="MaxOffered"/>: what can be installed.
     /// </param>
     /// <param name="Newer">
-    /// The newest offered tag that is newer than every installed one, or the newest offered one when nothing is
-    /// installed; <c>null</c> when nothing newer is offered.
+    /// The newest offered tag that is newer than every installed one; <c>null</c> when nothing newer is offered.
+    /// With nothing installed, it is the newest offered language release, but <c>null</c> for the API versions,
+    /// which only some users want.
     /// </param>
     public sealed record UpstreamComparison(
         IReadOnlyList<string> Installed, string? Default, IReadOnlyList<string> Offered, string? Newer)

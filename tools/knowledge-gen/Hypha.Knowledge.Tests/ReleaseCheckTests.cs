@@ -93,34 +93,66 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public async Task The_API_versions_are_compared_with_the_offered_API_versions()
+        public async Task Both_axes_are_compared_from_one_listing_of_each_repository()
         {
-            var api = new Mock<IApiDiscovery>();
-            api.Setup(discovery => discovery.AvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(["2026-04", "2025-09"]);
+            var discovery = new Mock<IReleaseDiscovery>(MockBehavior.Strict);
+            discovery.Setup(d => d.FetchTagsAsync(Upstream.ReleaseRepository, It.IsAny<CancellationToken>())).ReturnsAsync(["2026-09", "2026-05", "2026-04"]);
+            discovery.Setup(d => d.FetchTagsAsync(Upstream.PilotRepository, It.IsAny<CancellationToken>())).ReturnsAsync(["2026-09", "2026-05", "2026-04"]);
+            discovery.Setup(d => d.FetchTagsAsync(ApiUpstream.ServicesRepository, It.IsAny<CancellationToken>())).ReturnsAsync(["2026-04", "2025-09"]);
+            var layout = Layout(["2026-05"], "2026-05");
             var apiLayout = new Mock<IApiLayout>();
-            apiLayout.Setup(layout => layout.InstalledTags).Returns(["2025-09"]);
-            apiLayout.Setup(layout => layout.DefaultTag).Returns("2025-09");
-            var releases = new Mock<IReleaseDiscovery>(MockBehavior.Strict);
+            apiLayout.Setup(api => api.InstalledTags).Returns(["2025-09"]);
+            apiLayout.Setup(api => api.DefaultTag).Returns("2025-09");
 
-            var comparison = await new ReleaseCheck(releases.Object, api.Object, Mock.Of<IKnowledgeLayout>(), apiLayout.Object).CheckApiAsync();
+            var check = await new ReleaseCheck(discovery.Object, layout, apiLayout.Object).CheckReleasesAndApiAsync();
 
             Assert.Multiple(() =>
             {
-                Assert.That(comparison.Newer, Is.EqualTo("2026-04"));
-                Assert.That(comparison.Default, Is.EqualTo("2025-09"));
+                Assert.That(check.Releases.Newer, Is.EqualTo("2026-09"));
+                Assert.That(check.Api.Newer, Is.EqualTo("2026-04"));
+                Assert.That(check.Api.Default, Is.EqualTo("2025-09"));
             });
-            releases.VerifyNoOtherCalls();
+
+            // Each repository once, for both axes: the anonymous GitHub API allows 60 requests an hour.
+            discovery.Verify(d => d.FetchTagsAsync(Upstream.ReleaseRepository, It.IsAny<CancellationToken>()), Times.Once);
+            discovery.Verify(d => d.FetchTagsAsync(Upstream.PilotRepository, It.IsAny<CancellationToken>()), Times.Once);
+            discovery.Verify(d => d.FetchTagsAsync(ApiUpstream.ServicesRepository, It.IsAny<CancellationToken>()), Times.Once);
+            discovery.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public async Task With_no_API_version_installed_none_is_reported_as_newer()
+        {
+            var discovery = new Mock<IReleaseDiscovery>();
+            discovery.Setup(d => d.FetchTagsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(["2026-04"]);
+            var apiLayout = new Mock<IApiLayout>();
+            apiLayout.Setup(api => api.InstalledTags).Returns([]);
+
+            var check = await new ReleaseCheck(discovery.Object, Layout([], null), apiLayout.Object).CheckReleasesAndApiAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(check.Api.Offered, Is.EqualTo(new[] { "2026-04" }), "still listed, for a user who asks");
+                Assert.That(check.Api.Newer, Is.Null, "only some users want the API; it is not offered as an update");
+                Assert.That(check.Releases.Newer, Is.EqualTo("2026-04"), "every question needs a language release");
+            });
+        }
+
+        private static IKnowledgeLayout Layout(IReadOnlyList<string> installed, string? defaultTag)
+        {
+            var layout = new Mock<IKnowledgeLayout>();
+            layout.Setup(knowledge => knowledge.InstalledTags).Returns(installed);
+            layout.Setup(knowledge => knowledge.DefaultTag).Returns(defaultTag);
+
+            return layout.Object;
         }
 
         private static ReleaseCheck Check(IReadOnlyList<string> installed, string? defaultTag, IReadOnlyList<string> offered)
         {
             var discovery = new Mock<IReleaseDiscovery>();
             discovery.Setup(releases => releases.AvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(offered);
-            var layout = new Mock<IKnowledgeLayout>();
-            layout.Setup(knowledge => knowledge.InstalledTags).Returns(installed);
-            layout.Setup(knowledge => knowledge.DefaultTag).Returns(defaultTag);
 
-            return new ReleaseCheck(discovery.Object, Mock.Of<IApiDiscovery>(MockBehavior.Strict), layout.Object, Mock.Of<IApiLayout>());
+            return new ReleaseCheck(discovery.Object, Layout(installed, defaultTag), Mock.Of<IApiLayout>());
         }
     }
 }

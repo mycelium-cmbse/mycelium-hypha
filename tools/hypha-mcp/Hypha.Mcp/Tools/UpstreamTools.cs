@@ -52,15 +52,25 @@ namespace Hypha.Mcp.Tools
         [Description(
             "Compares the SysML v2 / KerML releases, and the Systems Modeling API versions, installed on this machine "
             + "with the ones offered upstream on GitHub. For each, 'newer' names the newest offered one that is newer than "
-            + "everything installed, or is null. Asks GitHub, so call it when the user asks about updates or once at the "
-            + "start of a session; when a newer release is offered, tell the user and offer hypha_install_release.")]
+            + "everything installed, or is null (for the API, also when no API version is installed). Asks GitHub, so call "
+            + "it when the user asks about updates or once at the start of a session. When releases.newer is set, tell the "
+            + "user and offer hypha_install_release; it installs language releases only, so for api.newer only tell the "
+            + "user, who installs an API version with 'hypha api fetch' and 'hypha api generate'.")]
         public Task<string> CheckReleases(
             [Description("Also compare the Systems Modeling API versions.")] bool api = true,
             CancellationToken cancellationToken = default) =>
             Answer.OfAsync(
-                async () => new CheckAnswer(
-                    await this.check.CheckReleasesAsync(cancellationToken),
-                    api ? await this.check.CheckApiAsync(cancellationToken) : null),
+                async () =>
+                {
+                    if (!api)
+                    {
+                        return new CheckAnswer(await this.check.CheckReleasesAsync(cancellationToken), null);
+                    }
+
+                    var both = await this.check.CheckReleasesAndApiAsync(cancellationToken);
+
+                    return new CheckAnswer(both.Releases, both.Api);
+                },
                 McpJsonContext.Readable.CheckAnswer);
     }
 }
