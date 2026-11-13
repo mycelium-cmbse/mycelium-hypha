@@ -29,6 +29,12 @@ namespace Hypha.Tools.Commands
     /// </remarks>
     public sealed class ServeCommand : Command
     {
+        /// <summary>
+        /// How long a release tool waits for another client's release change to finish: long enough for an
+        /// install with its specification text, which takes minutes.
+        /// </summary>
+        public static readonly TimeSpan ReleaseLockWait = TimeSpan.FromMinutes(10);
+
         /// <summary>Initializes a new instance of the <see cref="ServeCommand"/> class.</summary>
         public ServeCommand()
             : base("serve", "Run the hypha MCP server over standard input and output, for an AI client to start")

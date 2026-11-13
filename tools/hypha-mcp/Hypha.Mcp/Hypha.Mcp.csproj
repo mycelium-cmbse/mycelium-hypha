@@ -31,4 +31,8 @@
     <ProjectReference Include="..\..\knowledge-gen\Hypha.Knowledge\Hypha.Knowledge.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Hypha.Mcp.Tests" />
+  </ItemGroup>
+
 </Project>

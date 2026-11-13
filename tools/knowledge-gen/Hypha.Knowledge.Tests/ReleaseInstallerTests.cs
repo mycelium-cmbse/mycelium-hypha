@@ -102,6 +102,27 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task A_folder_without_the_UML_primitives_gets_the_ones_hypha_carries()
+        {
+            await this.installer.InstallAsync(new ReleaseInstallRequest { Tag = "2026-05" });
+
+            var committed = Path.Combine(KnowledgeLayout.Discover()!.Root.FullName, "sources", ReleaseInputs.SharedXmi);
+
+            Assert.That(File.ReadAllBytes(this.layout.SharedPrimitiveTypes.FullName), Is.EqualTo(File.ReadAllBytes(committed)));
+        }
+
+        [Test]
+        public async Task UML_primitives_already_there_are_kept_as_they_are()
+        {
+            Directory.CreateDirectory(this.layout.Sources.FullName);
+            File.WriteAllText(this.layout.SharedPrimitiveTypes.FullName, "<xmi:XMI/>");
+
+            await this.installer.InstallAsync(new ReleaseInstallRequest { Tag = "2026-05" });
+
+            Assert.That(File.ReadAllText(this.layout.SharedPrimitiveTypes.FullName), Is.EqualTo("<xmi:XMI/>"));
+        }
+
+        [Test]
         public async Task The_copyrighted_specifications_are_left_alone_unless_asked_for()
         {
             var without = await this.installer.InstallAsync(new ReleaseInstallRequest { Tag = "2026-05" });

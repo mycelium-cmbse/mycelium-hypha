@@ -20,6 +20,7 @@ namespace Hypha.Tools.Tests
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Releases;
     using Hypha.Mcp.Tools;
     using Hypha.Tools.Commands;
 
@@ -88,7 +89,7 @@ namespace Hypha.Tools.Tests
         {
             var tools = await this.client.ListToolsAsync();
 
-            Assert.That(tools.Select(tool => tool.Name).ToList(), Has.Count.EqualTo(12).And.Contains("hypha_metaclass").And.Contains("hypha_lookup"));
+            Assert.That(tools.Select(tool => tool.Name).ToList(), Has.Count.EqualTo(15).And.Contains("hypha_metaclass").And.Contains("hypha_install_release"));
         }
 
         [Test]
@@ -113,6 +114,35 @@ namespace Hypha.Tools.Tests
             var result = await this.client.CallToolAsync("hypha_release_status");
 
             Assert.That(Text(result), Does.Contain($"\"default\":\"{Tag}\""));
+        }
+
+        [Test]
+        public async Task It_switches_the_default_release_under_the_lock()
+        {
+            var result = await this.client.CallToolAsync("hypha_use_release", new Dictionary<string, object?> { ["tag"] = Tag });
+
+            using var answer = JsonDocument.Parse(Text(result));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.IsError, Is.Not.True, Text(result));
+                Assert.That(answer.RootElement.GetProperty("default").GetString(), Is.EqualTo(Tag));
+                Assert.That(answer.RootElement.GetProperty("changed").GetBoolean(), Is.False);
+                Assert.That(File.Exists(Path.Combine(this.knowledge.Root.FullName, ReleaseOperationLock.FileName)), Is.False, "the lock is released");
+            });
+        }
+
+        [Test]
+        public async Task It_refuses_to_remove_the_only_release_without_force()
+        {
+            var result = await this.client.CallToolAsync("hypha_remove_release", new Dictionary<string, object?> { ["tag"] = Tag });
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.IsError, Is.True);
+                Assert.That(Text(result), Does.Contain("only installed release"));
+                Assert.That(this.knowledge.Layout.Knowledge(Tag).Exists, Is.True);
+            });
         }
 
         [Test]

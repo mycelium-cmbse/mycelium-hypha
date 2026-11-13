@@ -17,10 +17,13 @@ namespace Hypha.Mcp.Tools
 
     /// <summary>
     /// The source-generated contract of the tool answers <see cref="Hypha.Knowledge.Query.QueryJsonContext"/>
-    /// does not hold: a lookup page.
+    /// does not hold: a lookup page, and what a release change did.
     /// </summary>
     [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
     [JsonSerializable(typeof(LookupResult))]
+    [JsonSerializable(typeof(InstallAnswer))]
+    [JsonSerializable(typeof(UseAnswer))]
+    [JsonSerializable(typeof(RemoveAnswer))]
     internal sealed partial class McpJsonContext : JsonSerializerContext
     {
         /// <summary>

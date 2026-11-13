@@ -135,6 +135,8 @@ namespace Hypha.Knowledge
             services.AddSingleton<IReleaseInstaller, ReleaseInstaller>();
             services.AddSingleton<IReleaseWindowEvictor, ReleaseWindowEvictor>();
             services.AddSingleton<IReleaseRemover, ReleaseRemover>();
+            services.AddSingleton<IReleaseSelector, ReleaseSelector>();
+            services.AddSingleton<IReleaseOperations, ReleaseOperations>();
             services.AddSingleton<IProcessProbe, SystemProcessProbe>();
             services.AddSingleton<IReleaseOperationLock>(provider => new ReleaseOperationLock(
                 provider.GetRequiredService<IKnowledgeLayout>(),

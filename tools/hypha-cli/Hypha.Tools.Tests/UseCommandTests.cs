@@ -116,13 +116,13 @@ namespace Hypha.Tools.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.EqualTo(2));
-                Assert.That(console.Output, Does.Contain("Nothing is installed"));
+                Assert.That(console.Output, Does.Contain("nothing is installed").And.Contains("hypha fetch"));
             });
         }
 
         private Task<int> Invoke(string commandLine)
         {
-            var handler = new UseCommand.Handler(this.layout);
+            var handler = new UseCommand.Handler(new ReleaseSelector(this.layout));
 
             return handler.InvokeAsync(this.root.Parse(commandLine), CancellationToken.None);
         }
