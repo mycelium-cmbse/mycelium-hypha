@@ -1,6 +1,6 @@
 ---
 name: version-management
-description: "Manage which OMG SysML v2 / KerML release(s) hypha has installed on this machine: list what's installed vs. available upstream, install a release, switch the default, or remove one that's no longer wanted. Use when the user asks what versions are available, wants to install/update/switch/remove a release, or when a check or a session-start message reports nothing installed yet or a newer release available."
+description: "Manage which OMG SysML v2 / KerML release(s) hypha has installed on this machine: list what's installed vs. available upstream, install a release, switch the default, or remove one that's no longer wanted. Use when the user asks what versions are available, wants to install/update/switch/remove a release, or when a check reports nothing installed yet or a newer release available."
 ---
 
 # Version management
@@ -39,8 +39,10 @@ releases and for the API versions, it lists what is `installed`, the `default`, 
 Call it when the user asks about updates, or once at the start of a session when that helps; it costs
 a request to GitHub, not a download.
 
-It lists the five newest releases offered. An older one can still be installed by its tag: ask the
-user which, and pass it to `hypha_install_release`.
+It lists the five newest releases offered. An older one can still be installed by its tag, which is
+`YYYY-MM`, sometimes with a point suffix (`YYYY-MM.N`): ask the user which, or point them to
+the upstream list at https://github.com/Systems-Modeling/SysML-v2-Release/releases, and pass it to
+`hypha_install_release`. A tag that is not offered upstream fails, and the error says so.
 
 ## Installing a release
 
@@ -55,7 +57,9 @@ reports progress while it runs:
   add a release alongside the current default without switching, such as an older one to compare
   against. The first release installed is always the default.
 
-Installing a release that is already installed keeps its files and generates again.
+Installing a release that is already installed keeps its files and generates again. That is also how
+to add the specification text to a release installed without it: install it again with
+`includeSpecifications` left on, which downloads the missing PDFs and extracts their text.
 
 The answer says what was fetched, by kind, and each artifact's outcome: generated, or skipped with a
 `reason` (such as the specification text when its PDFs or the tool that extracts them could not be
@@ -72,9 +76,9 @@ names the `previous` default and whether it `changed`.
 ## Removing a release
 
 `hypha_remove_release` with `tag` deletes an installed release: its downloaded sources and its
-generated knowledge. It refuses the default release (switch with `hypha_use_release` first) and the
-only installed release, unless `force` is set, which leaves nothing to answer from. Confirm the
-release with the user before calling it.
+generated knowledge. It refuses the default release whatever `force` says: switch with
+`hypha_use_release` first. It refuses the only installed release unless `force` is set, which leaves
+nothing to answer from. Confirm the release with the user before calling it.
 
 ## The Systems Modeling API is versioned separately
 
@@ -84,11 +88,13 @@ its own default.
 
 - `hypha_check_releases` (with `api` left on) and `hypha_release_status` report the API versions.
 - The release tools install, switch and remove **language releases only**. An API version is
-  installed with the `hypha` command-line tool, where it is installed (as a .NET tool or a release
-  download): `hypha api fetch --tag <version>`, then `hypha api generate --tag <version>`;
-  `hypha api use` and `hypha api remove` switch and remove one. Give the user those commands rather
-  than running them; if `hypha` is not on their path, say that the API knowledge cannot be installed
-  from here yet.
+  installed with the `hypha` command-line tool: `hypha api fetch --tag <version>`, then
+  `hypha api generate --tag <version>`; `hypha api use` and `hypha api remove` switch and remove one.
+  Give the user those commands rather than running them, with two conditions: they need `hypha` 1.6.0
+  or later (an older one does not share the folder the server reads), run outside a source checkout
+  of mycelium-hypha (inside one, it writes into the checkout). Without a `hypha` on the path, the one
+  the server's launcher downloaded is under `bin/<version>/<platform>/` in the per-user `hypha` data
+  folder.
 - An API version is a tag of the upstream API-Services repository, `2025-02` or later. That
   repository has not been tagged for every language release, so the newest API version is usually
   **older** than the newest language release. That is expected, not something to fix.

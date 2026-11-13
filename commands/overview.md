@@ -32,9 +32,8 @@ selected automatically. Four capabilities:
 ## Spec citation needs the OMG PDFs
 
 The specification text is **not shipped** (the OMG license forbids redistributing it), but nothing
-needs downloading or running by hand any more: `hypha fetch` downloads the PDFs into
-`sources/<tag>/specs/` by default (pass `--no-specs` to skip them), and `hypha generate` extracts the
-clause text from them automatically. It fetches and caches [`uv`](https://docs.astral.sh/uv/), which
+needs downloading or running by hand any more: installing a release (`hypha_install_release`, or ask
+to install one) downloads the PDFs by default and extracts the clause text from them automatically. It fetches and caches [`uv`](https://docs.astral.sh/uv/), which
 resolves or fetches a matching Python itself and runs `tools/spec-extract` through it, so no
 pre-installed Python or maintainer source checkout is needed. The source documents:
 
