@@ -218,6 +218,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   expression bodies lead on to, do not count: `true` comes from `BooleanValue`, not `Invariant`.
 
 ### Changed
+- **The metamodel and model-library skills answer through the MCP server** (`refs #197`):
+  `metamodel-lookup` and `model-library-lookup` call the server's tools by their bare names
+  (`hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`,
+  `hypha_lookup`, `hypha_search`, ...), with no jq and no file paths, so they work in any client that
+  starts the server. A question about a set, a closure or a comparison of metaclasses is one tool call.
+  A test checks that every tool a skill, agent or command names is one the server has, and every
+  question and argument it names one that tool accepts.
+
 - **A relative `HYPHA_HOME` is refused** (`refs #196`): it would be resolved against each process's
   working directory, so two clients started from different folders would not share one home or one
   lock. The error names the value and asks for an absolute path.
@@ -301,6 +309,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   install (`dotnet-sonarscanner`, `dotnet-coverage`, `nuget-license`) are pinned. Dependabot now
   proposes weekly updates for the workflows' actions, the NuGet packages, the extension's npm
   packages and `tools/spec-extract`, grouped per ecosystem and only for versions two weeks old.
+
+### Removed
+- **The `metamodel-navigator` agent** (`refs #197`): its fan-out questions are single tool calls now,
+  and `metamodel-lookup` says which.
 
 ### Fixed
 - **Installing into a folder that is not a source checkout generates the metamodel**
