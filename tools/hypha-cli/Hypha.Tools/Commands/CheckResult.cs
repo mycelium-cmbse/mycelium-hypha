@@ -34,6 +34,6 @@ namespace Hypha.Tools.Commands
         [property: JsonPropertyName("availableOnline")] IReadOnlyList<string> AvailableOnline)
     {
         /// <summary>How many upstream releases <see cref="AvailableOnline"/> ever carries.</summary>
-        public const int MaxAvailableOnline = 5;
+        public const int MaxAvailableOnline = Hypha.Knowledge.Releases.UpstreamComparison.MaxOffered;
     }
 }

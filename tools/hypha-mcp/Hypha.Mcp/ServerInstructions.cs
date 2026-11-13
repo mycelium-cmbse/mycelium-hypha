@@ -40,6 +40,8 @@ namespace Hypha.Mcp
             Which tool:
             - hypha_release_status: the installed releases and API versions, the defaults, and what each has
               generated. Call it first when unsure what is installed.
+            - hypha_check_releases: whether a newer release or API version is offered upstream; it asks
+              GitHub. When a newer release is, tell the user and offer hypha_install_release.
             - hypha_metaclass: one metaclass: its index entry, supertypes, subclasses, whether it specializes
               another, neighbours, constraints, operations, enumeration literals, and features.
             - hypha_feature: one feature: what redefines or subsets it, its opposite end, the constraints

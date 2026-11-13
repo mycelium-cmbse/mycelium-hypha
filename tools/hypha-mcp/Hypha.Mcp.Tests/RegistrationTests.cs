@@ -52,6 +52,8 @@ namespace Hypha.Mcp.Tests
             "hypha_remove_release",
         ];
 
+        private static readonly string[] UpstreamTools = ["hypha_check_releases"];
+
         private ServiceProvider provider = null!;
 
         [SetUp]
@@ -73,7 +75,7 @@ namespace Hypha.Mcp.Tests
         [Test]
         public void Every_read_tool_and_release_change_tool_is_registered_and_nothing_else()
         {
-            Assert.That(this.Tools.Select(tool => tool.ProtocolTool.Name), Is.EquivalentTo(ReadTools.Concat(ChangeTools)));
+            Assert.That(this.Tools.Select(tool => tool.ProtocolTool.Name), Is.EquivalentTo(ReadTools.Concat(ChangeTools).Concat(UpstreamTools)));
         }
 
         [Test]
@@ -89,6 +91,21 @@ namespace Hypha.Mcp.Tests
                     Assert.That(tool.Annotations?.DestructiveHint, Is.False, tool.Name);
                     Assert.That(tool.Annotations?.OpenWorldHint, Is.False, tool.Name);
                 }
+            });
+        }
+
+        [Test]
+        public void The_upstream_check_reads_only_but_reaches_GitHub()
+        {
+            var tool = this.Tools.Single(registered => registered.ProtocolTool.Name == "hypha_check_releases").ProtocolTool;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(tool.Description, Is.Not.Null.And.Contains("GitHub").And.Contains("hypha_install_release"));
+                Assert.That(tool.Annotations?.ReadOnlyHint, Is.True);
+                Assert.That(tool.Annotations?.IdempotentHint, Is.True);
+                Assert.That(tool.Annotations?.DestructiveHint, Is.False);
+                Assert.That(tool.Annotations?.OpenWorldHint, Is.True);
             });
         }
 
@@ -125,7 +142,7 @@ namespace Hypha.Mcp.Tests
 
             var named = Regex.Matches(instructions!, @"\bhypha_[a-z_]+\b").Select(match => match.Value).Distinct();
 
-            Assert.That(named, Is.EquivalentTo(ReadTools.Concat(ChangeTools)));
+            Assert.That(named, Is.EquivalentTo(ReadTools.Concat(ChangeTools).Concat(UpstreamTools)));
         }
 
         [Test]

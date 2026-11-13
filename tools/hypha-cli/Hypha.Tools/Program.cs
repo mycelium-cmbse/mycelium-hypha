@@ -157,7 +157,7 @@ namespace Hypha.Tools
 
             var check = new CheckCommand();
             check.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
-                new CheckCommand.Handler(provider.GetRequiredService<IReleaseDiscovery>(), provider.GetRequiredService<IKnowledgeLayout>())
+                new CheckCommand.Handler(provider.GetRequiredService<IReleaseCheck>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(check);
 

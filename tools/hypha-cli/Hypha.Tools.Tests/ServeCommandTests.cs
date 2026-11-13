@@ -90,7 +90,7 @@ namespace Hypha.Tools.Tests
         {
             var tools = await this.client.ListToolsAsync();
 
-            Assert.That(tools.Select(tool => tool.Name).ToList(), Has.Count.EqualTo(16).And.Contains("hypha_metaclass").And.Contains("hypha_search_spec"));
+            Assert.That(tools.Select(tool => tool.Name).ToList(), Has.Count.EqualTo(17).And.Contains("hypha_metaclass").And.Contains("hypha_check_releases"));
         }
 
         [Test]

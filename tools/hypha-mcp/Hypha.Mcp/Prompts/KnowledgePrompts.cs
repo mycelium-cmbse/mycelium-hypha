@@ -53,7 +53,8 @@ namespace Hypha.Mcp.Prompts
               snippet, such as "Is part def Vehicle { attribute mass : Real[2..1]; } valid SysML v2?";
             - the Systems Modeling API: PIM classes, API types and operations, such as "Which operation creates a
               project?";
-            - the releases themselves: what changed between two, and installing, switching or removing one.
+            - the releases themselves: whether a newer one is offered (hypha_check_releases), what changed between two,
+              and installing, switching or removing one.
             If nothing is installed, say so and offer to install the newest release with hypha_install_release,
             rather than answering from memory.
             """;
