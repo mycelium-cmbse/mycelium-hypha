@@ -449,13 +449,27 @@ namespace Hypha.Knowledge.Tests
                 home ?? (() => this.home),
                 new Installs(this.installs),
                 new SystemProcessProbe(),
-                NullLogger<ReleaseOperationLock>.Instance,
-                logger ?? NullLogger<KnowledgeMigration>.Instance);
+                logger is null ? NullLoggerFactory.Instance : new Loggers(logger));
 
         private void HoldLock(DirectoryInfo root)
         {
             root.Create();
             File.WriteAllText(Path.Combine(root.FullName, ReleaseOperationLock.FileName), $"{{\"pid\":{Environment.ProcessId},\"token\":\"other\"}}");
+        }
+
+        // Hands the migration the test's logger, and the locks a logger that drops everything.
+        private sealed class Loggers(ILogger<KnowledgeMigration> migration) : ILoggerFactory
+        {
+            public ILogger CreateLogger(string categoryName) =>
+                categoryName == typeof(KnowledgeMigration).FullName ? migration : NullLogger.Instance;
+
+            public void AddProvider(ILoggerProvider provider)
+            {
+            }
+
+            public void Dispose()
+            {
+            }
         }
 
         // Cancels the migration as soon as it has copied its first release, so the next copy stops between files.

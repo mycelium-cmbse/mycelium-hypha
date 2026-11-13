@@ -189,8 +189,7 @@ namespace Hypha.Knowledge
                 () => home.Value,
                 provider.GetRequiredService<ILegacyInstallLocator>(),
                 provider.GetRequiredService<IProcessProbe>(),
-                provider.GetRequiredService<ILogger<ReleaseOperationLock>>(),
-                provider.GetRequiredService<ILogger<KnowledgeMigration>>(),
+                provider.GetRequiredService<ILoggerFactory>(),
                 options.ReleaseLockWait));
 
             // Singletons on purpose: the one cache holds the documents read until their files change,

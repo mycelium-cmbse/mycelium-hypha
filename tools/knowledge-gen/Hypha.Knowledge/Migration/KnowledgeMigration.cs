@@ -55,7 +55,7 @@ namespace Hypha.Knowledge.Migration
         private readonly IKnowledgeLayout layout;
 
         /// <summary>Resolves the <c>HYPHA_HOME</c> folder, which may not exist yet.</summary>
-        private readonly Func<DirectoryInfo> home;
+        private readonly Func<DirectoryInfo> resolveHome;
 
         /// <summary>Finds the client folders.</summary>
         private readonly ILegacyInstallLocator locator;
@@ -63,11 +63,11 @@ namespace Hypha.Knowledge.Migration
         /// <summary>Tells whether a lock's owner is alive.</summary>
         private readonly IProcessProbe processes;
 
-        /// <summary>Logs the locks.</summary>
-        private readonly ILogger<ReleaseOperationLock> lockLogger;
+        /// <summary>Creates the locks' loggers.</summary>
+        private readonly ILoggerFactory loggers;
 
         /// <summary>Logs what was copied.</summary>
-        private readonly ILogger<KnowledgeMigration> logger;
+        private readonly ILogger logger;
 
         /// <summary>How long to wait for the lock on <c>HYPHA_HOME</c>.</summary>
         private readonly TimeSpan lockWait;
@@ -81,8 +81,7 @@ namespace Hypha.Knowledge.Migration
         /// </param>
         /// <param name="locator">Finds the client folders.</param>
         /// <param name="processes">Tells whether a lock's owner is alive.</param>
-        /// <param name="lockLogger">Logs the locks.</param>
-        /// <param name="logger">Logs what was copied.</param>
+        /// <param name="loggers">Creates the migration's logger, and the logger of each lock it takes.</param>
         /// <param name="lockWait">
         /// How long to wait for the lock on <c>HYPHA_HOME</c>, as <see cref="HyphaKnowledgeOptions.ReleaseLockWait"/>.
         /// A client folder's lock is never waited for.
@@ -94,24 +93,22 @@ namespace Hypha.Knowledge.Migration
             Func<DirectoryInfo> home,
             ILegacyInstallLocator locator,
             IProcessProbe processes,
-            ILogger<ReleaseOperationLock> lockLogger,
-            ILogger<KnowledgeMigration> logger,
+            ILoggerFactory loggers,
             TimeSpan lockWait = default)
         {
             ArgumentNullException.ThrowIfNull(layout);
             ArgumentNullException.ThrowIfNull(home);
             ArgumentNullException.ThrowIfNull(locator);
             ArgumentNullException.ThrowIfNull(processes);
-            ArgumentNullException.ThrowIfNull(lockLogger);
-            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(loggers);
             ArgumentOutOfRangeException.ThrowIfLessThan(lockWait, TimeSpan.Zero);
 
             this.layout = layout;
-            this.home = home;
+            this.resolveHome = home;
             this.locator = locator;
             this.processes = processes;
-            this.lockLogger = lockLogger;
-            this.logger = logger;
+            this.loggers = loggers;
+            this.logger = loggers.CreateLogger<KnowledgeMigration>();
             this.lockWait = lockWait;
         }
 
@@ -128,7 +125,7 @@ namespace Hypha.Knowledge.Migration
             DirectoryInfo home;
             try
             {
-                home = this.home();
+                home = this.resolveHome();
             }
             catch (InvalidOperationException exception)
             {
@@ -197,7 +194,7 @@ namespace Hypha.Knowledge.Migration
         /// <exception cref="IOException">A folder could not be copied.</exception>
         public async Task<MigrationResult> MigrateAsync(IReadOnlyList<DirectoryInfo>? from = null, CancellationToken cancellationToken = default)
         {
-            var home = this.home();
+            var home = this.resolveHome();
 
             foreach (var folder in from ?? [])
             {
@@ -326,7 +323,7 @@ namespace Hypha.Knowledge.Migration
         /// <param name="wait">How long to wait for it.</param>
         /// <returns>The lock.</returns>
         private ReleaseOperationLock Lock(DirectoryInfo root, TimeSpan wait) =>
-            new(new KnowledgeLayout(root), this.processes, this.lockLogger, wait);
+            new(new KnowledgeLayout(root), this.processes, this.loggers.CreateLogger<ReleaseOperationLock>(), wait);
 
         /// <summary>
         /// Copies every release and API version <paramref name="target"/> lacks, the most recently changed

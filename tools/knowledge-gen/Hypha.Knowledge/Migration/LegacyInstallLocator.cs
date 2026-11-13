@@ -90,12 +90,7 @@ namespace Hypha.Knowledge.Migration
         /// <returns>Each version's folder.</returns>
         private IEnumerable<LegacyInstall> Plugins()
         {
-            var configured = this.getEnvironmentVariable("CLAUDE_CONFIG_DIR");
-            var home = this.getFolderPath(Environment.SpecialFolder.UserProfile);
-            var config = !string.IsNullOrWhiteSpace(configured)
-                ? configured.Trim()
-                : string.IsNullOrEmpty(home) ? null : Path.Combine(home, ".claude");
-
+            var config = this.ClaudeConfigFolder();
             var cache = config is null ? null : new DirectoryInfo(Path.Combine(config, "plugins", "cache"));
 
             if (cache is null || !cache.Exists)
@@ -114,14 +109,7 @@ namespace Hypha.Knowledge.Migration
         /// <returns>Each build's storage folder.</returns>
         private IEnumerable<LegacyInstall> Extensions()
         {
-            var home = this.getFolderPath(Environment.SpecialFolder.UserProfile);
-            var configured = this.getEnvironmentVariable("XDG_CONFIG_HOME");
-
-            var settings = this.windows
-                ? this.getFolderPath(Environment.SpecialFolder.ApplicationData)
-                : this.macOS
-                    ? string.IsNullOrEmpty(home) ? null : Path.Combine(home, "Library", "Application Support")
-                    : !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : string.IsNullOrEmpty(home) ? null : Path.Combine(home, ".config");
+            var settings = this.SettingsFolder();
 
             if (string.IsNullOrEmpty(settings))
             {
@@ -132,6 +120,57 @@ namespace Hypha.Knowledge.Migration
                 .Select(product => (product, storage: new DirectoryInfo(Path.Combine(settings, product, "User", "globalStorage", ExtensionId))))
                 .Where(candidate => candidate.storage.Exists)
                 .Select(candidate => new LegacyInstall(candidate.storage, candidate.product == "Code" ? "VS Code" : candidate.product));
+        }
+
+        /// <summary>The Claude configuration folder: <c>CLAUDE_CONFIG_DIR</c>, or <c>.claude</c> in the user's home.</summary>
+        /// <returns>The folder, or <c>null</c> when neither is known.</returns>
+        private string? ClaudeConfigFolder()
+        {
+            var configured = this.getEnvironmentVariable("CLAUDE_CONFIG_DIR");
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                return configured.Trim();
+            }
+
+            return this.InHome(".claude");
+        }
+
+        /// <summary>
+        /// The per-user folder VS Code keeps its configuration in: the roaming application data on Windows,
+        /// <c>~/Library/Application Support</c> on macOS, and <c>$XDG_CONFIG_HOME</c> or <c>~/.config</c> on Linux.
+        /// </summary>
+        /// <returns>The folder, or <c>null</c> when it is not known.</returns>
+        private string? SettingsFolder()
+        {
+            if (this.windows)
+            {
+                var data = this.getFolderPath(Environment.SpecialFolder.ApplicationData);
+
+                return string.IsNullOrEmpty(data) ? null : data;
+            }
+
+            if (this.macOS)
+            {
+                return this.InHome("Library", "Application Support");
+            }
+
+            var configured = this.getEnvironmentVariable("XDG_CONFIG_HOME");
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                return configured.Trim();
+            }
+
+            return this.InHome(".config");
+        }
+
+        /// <summary>A folder in the user's home.</summary>
+        /// <param name="parts">The folder's path below the home.</param>
+        /// <returns>The folder, or <c>null</c> when the home is not known.</returns>
+        private string? InHome(params string[] parts)
+        {
+            var home = this.getFolderPath(Environment.SpecialFolder.UserProfile);
+
+            return string.IsNullOrEmpty(home) ? null : Path.Combine([home, .. parts]);
         }
     }
 }

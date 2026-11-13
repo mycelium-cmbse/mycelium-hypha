@@ -100,37 +100,37 @@ namespace Hypha.Tools
             root.Options.Add(GlobalOptions.NoLogo);
 
             var discover = new DiscoverCommand();
-            discover.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            discover.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new DiscoverCommand.Handler(provider.GetRequiredService<IReleaseDiscovery>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(discover);
 
             var fetch = new FetchCommand();
-            fetch.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            fetch.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new FetchCommand.Handler(provider.GetRequiredService<IReleaseInstaller>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(fetch);
 
             var generate = new GenerateCommand();
-            generate.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            generate.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new GenerateCommand.Handler(provider.GetRequiredService<IKnowledgeBuilder<IKnowledgeGenerator>>(), provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken),
                 parseResult.GetValue(GenerateCommand.Output)));
             root.Add(generate);
 
             var list = new ListCommand();
-            list.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            list.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new ListCommand.Handler(provider.GetRequiredService<IKnowledgeQuery>(), provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(list);
 
             var lookup = new LookupCommand();
-            lookup.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            lookup.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new LookupCommand.Handler(provider.GetRequiredService<IKnowledgeLookup>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(lookup);
 
             var query = new QueryCommand();
             foreach (var verb in query.Verbs)
             {
-                verb.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                verb.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                     new QueryCommand.Handler(query, provider.GetRequiredService<IKnowledgeQuery>(), provider.GetRequiredService<IApiQuery>())
                         .InvokeAsync(parseResult, cancellationToken)));
             }
@@ -138,7 +138,7 @@ namespace Hypha.Tools
             root.Add(query);
 
             var moveWindow = new MoveWindowCommand();
-            moveWindow.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            moveWindow.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new MoveWindowCommand.Handler(provider.GetRequiredService<IReleaseInstaller>(), provider.GetRequiredService<IKnowledgeBuilder<IKnowledgeGenerator>>(),
                         provider.GetRequiredService<IKnowledgeLayout>(), provider.GetRequiredService<IReleaseWindowEvictor>(),
                         provider.GetRequiredService<IProcessRunner>(), provider.GetRequiredService<ILogger<MoveWindowCommand.Handler>>())
@@ -146,17 +146,17 @@ namespace Hypha.Tools
             root.Add(moveWindow);
 
             var use = new UseCommand();
-            use.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            use.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new UseCommand.Handler(provider.GetRequiredService<IReleaseSelector>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(use);
 
             var remove = new RemoveCommand();
-            remove.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            remove.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new RemoveCommand.Handler(provider.GetRequiredService<IReleaseRemover>()).InvokeAsync(parseResult, cancellationToken)));
             root.Add(remove);
 
             var check = new CheckCommand();
-            check.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+            check.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
                 new CheckCommand.Handler(provider.GetRequiredService<IReleaseDiscovery>(), provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(check);
@@ -166,17 +166,18 @@ namespace Hypha.Tools
             var serve = new ServeCommand();
             serve.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new ServeCommand.Handler(
                         provider.GetRequiredService<ModelContextProtocol.Server.McpServer>(),
                         provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(cancellationToken),
-                configure: services => services.AddHyphaMcp().WithStdioServerTransport(),
-                cancellationToken: cancellationToken));
+                configure: services => services.AddHyphaMcp().WithStdioServerTransport()));
             root.Add(serve);
 
             var migrate = new MigrateCommand();
             migrate.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new MigrateCommand.Handler(provider.GetRequiredService<IKnowledgeMigration>())
                     .InvokeAsync(parseResult, cancellationToken)));
             root.Add(migrate);
@@ -198,6 +199,7 @@ namespace Hypha.Tools
             var discover = new ApiDiscoverCommand();
             discover.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new ApiDiscoverCommand.Handler(provider.GetRequiredService<IApiDiscovery>())
                     .InvokeAsync(parseResult, cancellationToken)));
             api.Add(discover);
@@ -205,6 +207,7 @@ namespace Hypha.Tools
             var fetch = new ApiFetchCommand();
             fetch.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new ApiFetchCommand.Handler(provider.GetRequiredService<IApiInstaller>())
                     .InvokeAsync(parseResult, cancellationToken)));
             api.Add(fetch);
@@ -212,6 +215,7 @@ namespace Hypha.Tools
             var generate = new ApiGenerateCommand();
             generate.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new GenerateCommand.Handler(
                         provider.GetRequiredService<IKnowledgeBuilder<IApiKnowledgeGenerator>>(),
                         ApiGenerateCommand.Scope(provider.GetRequiredService<IApiLayout>()))
@@ -222,6 +226,7 @@ namespace Hypha.Tools
             var list = new ApiListCommand();
             list.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new ApiListCommand.Handler(provider.GetRequiredService<IApiLayout>())
                     .InvokeAsync(parseResult, cancellationToken)));
             api.Add(list);
@@ -229,6 +234,7 @@ namespace Hypha.Tools
             var use = new ApiUseCommand();
             use.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new ApiUseCommand.Handler(provider.GetRequiredService<IApiLayout>())
                     .InvokeAsync(parseResult, cancellationToken)));
             api.Add(use);
@@ -236,6 +242,7 @@ namespace Hypha.Tools
             var remove = new ApiRemoveCommand();
             remove.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
+                cancellationToken,
                 provider => new ApiRemoveCommand.Handler(provider.GetRequiredService<IApiRemover>())
                     .InvokeAsync(parseResult, cancellationToken)));
             api.Add(remove);
@@ -248,25 +255,25 @@ namespace Hypha.Tools
         /// exit code and a sentence.
         /// </summary>
         /// <param name="parseResult">The parsed command line of the verb that runs.</param>
+        /// <param name="cancellationToken">
+        /// The verb's cancellation, which also stops the one-time migration into <c>HYPHA_HOME</c> that runs before
+        /// the verb, or beside it under <c>serve</c>. Required, so that no verb forgets to pass it.
+        /// </param>
         /// <param name="handler">Builds the verb's handler from the composed services and runs it.</param>
         /// <param name="outputRoot">
         /// Where generated artifacts go; <c>null</c> writes them into the repository. Only <c>generate</c> passes one.
         /// </param>
         /// <param name="configure">Adds the verb's own services to the composed ones; only <c>serve</c> passes one.</param>
-        /// <param name="cancellationToken">
-        /// Cancels the one-time migration into <c>HYPHA_HOME</c> that runs before the verb; only <c>serve</c>, which
-        /// runs it beside the server, passes one.
-        /// </param>
         /// <returns>
         /// The handler's exit code; 130 when cancelled; 1 when composition fails, the upstream cannot be reached or a
         /// knowledge file cannot be read.
         /// </returns>
         private static async Task<int> Run(
             ParseResult parseResult,
+            CancellationToken cancellationToken,
             Func<IServiceProvider, Task<int>> handler,
             DirectoryInfo? outputRoot = null,
-            Action<IServiceCollection>? configure = null,
-            CancellationToken cancellationToken = default)
+            Action<IServiceCollection>? configure = null)
         {
             Banner(parseResult);
 
