@@ -54,12 +54,13 @@ namespace Hypha.Mcp
               examples), which syntax fills in a feature, what a production builds, and where a keyword
               or operator is used.
             - hypha_spec: the verbatim text of a KerML or SysML clause, or the elements a clause treats.
-            - hypha_search: find metaclasses, library declarations and clauses by name, qualified name,
-              clause number or title; each hit has a hypha:// address.
+            - hypha_search: find metaclasses, library declarations, clauses and worked examples by name,
+              qualified name, clause number or title; each hit has a hypha:// address.
             - hypha_search_spec: find the specification clauses whose text says a word or phrase. Read a
               clause with hypha_spec before quoting it; an excerpt is not a quotation.
             - hypha_resolve: the generated page a hypha:// address names.
-            - hypha_lookup: an element page or a model-library declaration, a page at a time.
+            - hypha_lookup: an element page, a model-library declaration or a worked example model the
+              release ships, a page at a time.
             - hypha_diff: what changed between two installed releases.
             - hypha_api: the Systems Modeling API: a PIM class, an API type or operation, a REST schema's
               properties, or a clause of the API specification.

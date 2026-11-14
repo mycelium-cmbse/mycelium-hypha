@@ -50,7 +50,8 @@ namespace Hypha.Mcp.Tests
 
         [TestCase("metamodel", "PartUsage", "knowledge/2026-05/metamodel/elements/PartUsage.md")]
         [TestCase("kerml", "7.4.2", "knowledge/2026-05/spec/kerml/07.04.02-feature.md")]
-        public void A_metaclass_or_clause_is_its_whole_page_as_markdown(string kind, string name, string page)
+        [TestCase("examples", "sysml-src-examples-vehicle-example-vehicle", "knowledge/2026-05/textual-notation/examples/sysml-src-examples-vehicle-example-vehicle.md")]
+        public void A_metaclass_clause_or_example_is_its_whole_page_as_markdown(string kind, string name, string page)
         {
             var address = new HyphaAddress(Tag, kind, name);
             this.query

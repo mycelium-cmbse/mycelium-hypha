@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The worked examples through the MCP server and the CLI** (`refs #228`): `hypha_lookup` and
+  `hypha lookup` take `examples` as a kind, by an example's page name or its model's name (a name
+  several examples share lists their pages), `hypha_search` finds examples by name or upstream path,
+  and `hypha://<tag>/examples/<page name>` reads one whole. The `sysml-validation` skill reads the
+  examples that `hypha_syntax` `cross-reference` names, where it could only name them before. The
+  textual-notation generator writes `textual-notation/examples/index.json` for this (with
+  `knowledge/examples.schema.json`). A release generated before, including one the migration copies
+  into `HYPHA_HOME`, reports its textual notation as not generated (`hypha_release_status`,
+  `hypha list`), and reading an example names the command that generates it; installing the release
+  again (`hypha_install_release`) adds the index.
 - **The REST schema properties of the Systems Modeling API** (`refs #228`): `hypha_api` with
   `question: "schema"`, and `hypha query api schema --name <schema>`, answer a schema of the REST/HTTP
   API as its OpenAPI document states it: each property's name, type, whether it is required or

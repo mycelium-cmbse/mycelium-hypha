@@ -67,6 +67,9 @@ namespace Hypha.Knowledge.Layout
         /// <summary><c>knowledge/keywords.schema.json</c>, which is not per release.</summary>
         FileInfo KeywordsSchema { get; }
 
+        /// <summary>Gets the committed <c>knowledge/examples.schema.json</c> under <see cref="Root"/>.</summary>
+        FileInfo ExamplesSchema { get; }
+
         /// <summary><c>knowledge/metamodel.schema.json</c>, which is not per release.</summary>
         FileInfo MetamodelSchema { get; }
 
@@ -113,6 +116,11 @@ namespace Hypha.Knowledge.Layout
 
         /// <summary><c>knowledge/&lt;tag&gt;/textual-notation/examples</c>.</summary>
         DirectoryInfo Examples(string tag);
+
+        /// <summary>Resolves <c>knowledge/&lt;tag&gt;/textual-notation/examples/index.json</c> under <see cref="OutputRoot"/>.</summary>
+        /// <param name="tag">The release tag.</param>
+        /// <returns>The worked-example index, whether or not it exists.</returns>
+        FileInfo ExamplesIndex(string tag);
 
         /// <summary>
         /// <c>knowledge/&lt;tag&gt;/textual-notation/keywords.json</c>: each grammar's keywords and

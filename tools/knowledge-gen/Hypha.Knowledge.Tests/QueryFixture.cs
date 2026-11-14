@@ -23,6 +23,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Query;
     using Hypha.Knowledge.Releases;
+    using Hypha.Knowledge.TextualNotation;
 
     // A scratch knowledge folder with one release and one API version installed. The metamodel is the
     // committed golden metamodel.json and index.json of Hypha.Knowledge.Metamodel.Tests, so the queries
@@ -65,6 +66,9 @@ namespace Hypha.Knowledge.Tests
 
             Directory.CreateDirectory(this.Layout.TextualNotation(Tag).FullName);
             File.WriteAllText(this.Layout.Keywords(Tag).FullName, KeywordFile.Render(Keywords(this.Layout.MetamodelGraph(Tag))));
+            Directory.CreateDirectory(this.Layout.Examples(Tag).FullName);
+            File.WriteAllText(this.Layout.ExamplesIndex(Tag).FullName, ExampleFile.Render(Examples()));
+            File.WriteAllText(Path.Combine(this.Layout.Examples(Tag).FullName, "sysml-src-examples-vehicle-example-vehicle.md"), "```sysml\npart vehicle;\n```\n");
 
             Directory.CreateDirectory(this.Layout.ModelLibrary(Tag).FullName);
             File.WriteAllText(this.Layout.ModelLibraryIndex(Tag).FullName, ModelLibraryFile.Render(ModelLibrary()));
@@ -264,6 +268,17 @@ namespace Hypha.Knowledge.Tests
                         new SharedGrammar("kerml", parser.Parse(kerml))),
                 });
         }
+
+        // One worked example, named as the generator names it: the page by its slugged path, the model by
+        // its own file name.
+        private static ExampleDocument Examples() =>
+            new(
+                ExampleDocument.CurrentSchemaVersion,
+                Tag,
+                new Dictionary<string, ExampleIndexEntry>(StringComparer.Ordinal)
+                {
+                    ["sysml-src-examples-vehicle-example-vehicle"] = new("Vehicle", "SysML", "sysml/src/examples/Vehicle Example/Vehicle.sysml", "sysml-src-examples-vehicle-example-vehicle.md", ["PartUsage"]),
+                });
 
         private static ModelLibraryDocument ModelLibrary() =>
             new(

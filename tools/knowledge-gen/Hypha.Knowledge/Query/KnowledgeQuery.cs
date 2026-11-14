@@ -1161,8 +1161,8 @@ namespace Hypha.Knowledge.Query
         }
 
         /// <summary>
-        /// Searches the release's metaclasses, standard-library declarations and specification clauses by
-        /// name, qualified name, clause number or title.
+        /// Searches the release's metaclasses, standard-library declarations, specification clauses and
+        /// worked examples by name, qualified name, clause number, title or an example's upstream path.
         /// </summary>
         /// <param name="text">The text to look for.</param>
         /// <param name="kind">Only hits of this kind, one of <see cref="HyphaAddress.Kinds"/>, or <c>null</c> for any.</param>
@@ -1170,10 +1170,11 @@ namespace Hypha.Knowledge.Query
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
         /// The hits, closest match first, then by kind and name; empty when nothing matches. A clause whose
-        /// title is the text matches as closely as one whose number is. Grounded as
+        /// title is the text matches as closely as one whose number is, and so does an example whose model
+        /// has that name. Grounded as
         /// <see cref="Provenance.Derived"/>, since the ranking is this library's, with the release's
-        /// knowledge folder as the source. The model library and the specification text are searched
-        /// when they have been generated.
+        /// knowledge folder as the source. The model library, the specification text and the worked
+        /// examples are searched when they have been generated.
         /// </returns>
         /// <exception cref="ArgumentException">
         /// <paramref name="text"/> is <c>null</c>, empty or white space, <paramref name="kind"/> is not a
@@ -1216,6 +1217,15 @@ namespace Hypha.Knowledge.Query
                 var library = this.ModelLibraryIndex(release);
                 candidates.AddRange(library.Declarations.Select(entry => (
                     new HyphaAddress(release, HyphaAddress.ModelLibrary, entry.Key), entry.Key, entry.Value.Kind, false)));
+            }
+
+            if (kind is null or HyphaAddress.Examples && this.layout.ExamplesIndex(release).Exists)
+            {
+                // An example's page name is a slug of its path; the model's own name titles it, and its
+                // upstream path is what a person would recognise, so both are matched.
+                var examples = ReleaseIndexes.Examples(this.documents, this.layout, release);
+                candidates.AddRange(examples.Examples.Select(entry => (
+                    new HyphaAddress(release, HyphaAddress.Examples, entry.Key), entry.Value.Source, entry.Value.Name, true)));
             }
 
             foreach (var document in new[] { HyphaAddress.Kerml, HyphaAddress.Sysml }.Where(document => kind is null || kind == document))
@@ -1377,8 +1387,9 @@ namespace Hypha.Knowledge.Query
         /// <param name="address">The address.</param>
         /// <returns>
         /// The page, grounded as <see cref="Provenance.Model"/> for a metaclass, <see cref="Provenance.Derived"/>
-        /// for a library declaration and <see cref="Provenance.Normative"/> for a clause; <c>null</c> when the
-        /// release has no such element, declaration or clause. <see cref="QueryResult{T}.Unavailable"/> for a
+        /// for a library declaration, <see cref="Provenance.Normative"/> for a clause and <see cref="Provenance.Model"/>
+        /// for a worked example, a verbatim upstream model; <c>null</c> when the release has no such element,
+        /// declaration, clause or example. <see cref="QueryResult{T}.Unavailable"/> for a
         /// clause of a specification the release has not generated.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="address"/> is <c>null</c>.</exception>
@@ -1413,6 +1424,16 @@ namespace Hypha.Knowledge.Query
                     return entry is null
                         ? new(null, this.Ground(Provenance.Derived, release, index))
                         : this.Resolved(address, entry.Kind, this.layout.ModelLibrary(release), entry.File, Provenance.Derived);
+                }
+
+                case HyphaAddress.Examples:
+                {
+                    var index = this.layout.ExamplesIndex(release);
+                    var entry = ReleaseIndexes.Examples(this.documents, this.layout, release).Examples.GetValueOrDefault(address.Name);
+
+                    return entry is null
+                        ? new(null, this.Ground(Provenance.Model, release, index))
+                        : this.Resolved(address, entry.Name, this.layout.Examples(release), entry.File, Provenance.Model);
                 }
 
                 case HyphaAddress.Kerml or HyphaAddress.Sysml:

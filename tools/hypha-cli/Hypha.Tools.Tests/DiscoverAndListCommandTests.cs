@@ -128,6 +128,7 @@ namespace Hypha.Tools.Tests
                 .Install("2026-09", "2026-05")
                 .Write("2026-09", "metamodel/index.json", "{}")
                 .Write("2026-09", "textual-notation/index.md", "#")
+                .Write("2026-09", "textual-notation/examples/index.json", "{}")
                 .Write("2026-09", "model-library/index.json", "{}")
                 .Write("2026-09", "cross-references.json", "{}");
             using var console = new RecordedConsole();

@@ -89,6 +89,8 @@ namespace Hypha.Knowledge.Tests
 
             public FileInfo KeywordsSchema => inner.KeywordsSchema;
 
+            public FileInfo ExamplesSchema => inner.ExamplesSchema;
+
             public FileInfo Keywords(string tag) => inner.Keywords(tag);
 
             public FileInfo MetamodelSchema => inner.MetamodelSchema;
@@ -118,6 +120,8 @@ namespace Hypha.Knowledge.Tests
             public DirectoryInfo TextualNotation(string tag) => inner.TextualNotation(tag);
 
             public DirectoryInfo Examples(string tag) => inner.Examples(tag);
+
+            public FileInfo ExamplesIndex(string tag) => inner.ExamplesIndex(tag);
 
             public DirectoryInfo ModelLibrary(string tag) => inner.ModelLibrary(tag);
 

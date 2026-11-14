@@ -22,5 +22,12 @@ namespace Hypha.Knowledge.Lookup
         /// <summary><c>knowledge/&lt;tag&gt;/model-library/index.json</c>: standard-library declarations.</summary>
         [JsonStringEnumMemberName("model-library")]
         ModelLibrary,
+
+        /// <summary>
+        /// <c>knowledge/&lt;tag&gt;/textual-notation/examples/index.json</c>: the worked examples, by page name
+        /// or by the model's own name.
+        /// </summary>
+        [JsonStringEnumMemberName("examples")]
+        Examples,
     }
 }

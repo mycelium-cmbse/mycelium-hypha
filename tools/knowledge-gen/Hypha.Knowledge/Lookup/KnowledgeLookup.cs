@@ -19,7 +19,7 @@ namespace Hypha.Knowledge.Lookup
     using Hypha.Knowledge.Query;
 
     /// <summary>
-    /// Resolves a metamodel or model-library name to its generated page in an installed release and
+    /// Resolves a metamodel, model-library or worked-example name to its generated page in an installed release and
     /// returns one page of it, reading the release's <c>index.json</c> and never fetching or generating.
     /// </summary>
     /// <remarks>
@@ -112,6 +112,7 @@ namespace Hypha.Knowledge.Lookup
             {
                 KnowledgeKind.Metamodel => (this.layout.Metamodel(tag), this.MetamodelEntries(tag)),
                 KnowledgeKind.ModelLibrary => (this.layout.ModelLibrary(tag), this.ModelLibraryEntries(tag)),
+                KnowledgeKind.Examples => (this.layout.Examples(tag), this.ExampleEntries(tag)),
                 _ => throw new ArgumentOutOfRangeException(nameof(request), request.Kind, "Unknown knowledge kind."),
             };
             var name = request.Name.Trim();
@@ -254,6 +255,20 @@ namespace Hypha.Knowledge.Lookup
             var index = ReleaseIndexes.ModelLibrary(this.documents, this.layout, tag);
 
             return [.. index.Declarations.Select(pair => new IndexEntry(pair.Key, [pair.Key], pair.Value.Kind, pair.Value.File))];
+        }
+
+        /// <summary>
+        /// The examples of a release's worked-example index, each answering to its page name and to the
+        /// model's own name, which several examples can share.
+        /// </summary>
+        /// <param name="tag">The release.</param>
+        /// <returns>The examples, in index order.</returns>
+        /// <exception cref="KnowledgeLookupException">The index has not been generated or is not valid.</exception>
+        private List<IndexEntry> ExampleEntries(string tag)
+        {
+            var index = ReleaseIndexes.Examples(this.documents, this.layout, tag);
+
+            return [.. index.Examples.Select(pair => new IndexEntry(pair.Key, [pair.Key, pair.Value.Name], string.Empty, pair.Value.File))];
         }
 
         /// <summary>

@@ -136,6 +136,49 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void A_worked_example_is_found_by_its_page_name_or_by_its_model_name_when_only_one_has_it()
+        {
+            this.WriteExamples();
+
+            var byModel = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Examples, "Camera"));
+            var byPage = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Examples, "kerml-src-examples-camera"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(byModel.Status, Is.EqualTo(LookupStatus.Found));
+                Assert.That(byModel.Name, Is.EqualTo("kerml-src-examples-camera"));
+                Assert.That(byModel.Path, Is.EqualTo(this.PathOf("textual-notation/examples/kerml-src-examples-camera.md")));
+                Assert.That(byModel.Content, Does.StartWith("Camera line 1\n"));
+                Assert.That(byModel.DeclarationLine, Is.Null);
+                Assert.That(byPage.Name, Is.EqualTo("kerml-src-examples-camera"));
+            });
+        }
+
+        [Test]
+        public void A_model_name_two_examples_share_is_ambiguous_and_lists_their_pages()
+        {
+            this.WriteExamples();
+
+            var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Examples, "Example"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Status, Is.EqualTo(LookupStatus.Ambiguous));
+                Assert.That(result.Matches, Is.EqualTo(new[] { "sysml-src-examples-a-example", "sysml-src-examples-b-example" }));
+            });
+        }
+
+        [Test]
+        public void A_release_without_its_example_index_says_how_to_generate_it()
+        {
+            Assert.That(
+                () => this.lookup.Lookup(new LookupRequest(KnowledgeKind.Examples, "Camera")),
+                Throws.TypeOf<KnowledgeLookupException>()
+                    .With.Message.Contains("worked-example index")
+                    .And.Message.Contains($"hypha generate --tag {Tag}"));
+        }
+
+        [Test]
         public void An_exact_metamodel_name_returns_the_first_page_of_its_element_file()
         {
             var result = this.lookup.Lookup(new LookupRequest(KnowledgeKind.Metamodel, "PartUsage"));
@@ -964,6 +1007,26 @@ namespace Hypha.Knowledge.Tests
 
         private static string Lines(string prefix, int count) =>
             string.Join('\n', Enumerable.Range(1, count).Select(index => $"{prefix} {index}")) + "\n";
+
+        private void WriteExamples()
+        {
+            this.Write(
+                "textual-notation/examples/index.json",
+                $$"""
+                {
+                  "schemaVersion": "{{TextualNotation.ExampleDocument.CurrentSchemaVersion}}",
+                  "tag": "{{Tag}}",
+                  "examples": {
+                    "kerml-src-examples-camera": { "name": "Camera", "language": "KerML", "source": "kerml/src/examples/Camera.kerml", "file": "kerml-src-examples-camera.md", "elements": [] },
+                    "sysml-src-examples-a-example": { "name": "Example", "language": "SysML", "source": "sysml/src/examples/A/Example.sysml", "file": "sysml-src-examples-a-example.md", "elements": [] },
+                    "sysml-src-examples-b-example": { "name": "Example", "language": "SysML", "source": "sysml/src/examples/B/Example.sysml", "file": "sysml-src-examples-b-example.md", "elements": [] }
+                  }
+                }
+                """);
+            this.Write("textual-notation/examples/kerml-src-examples-camera.md", Lines("Camera line", 10));
+            this.Write("textual-notation/examples/sysml-src-examples-a-example.md", Lines("A line", 10));
+            this.Write("textual-notation/examples/sysml-src-examples-b-example.md", Lines("B line", 10));
+        }
 
         private string PathOf(string relative) =>
             Path.Combine(this.root.FullName, "knowledge", Tag, relative.Replace('/', Path.DirectorySeparatorChar));

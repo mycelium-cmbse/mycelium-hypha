@@ -76,12 +76,12 @@ namespace Hypha.Mcp.Tools
         /// <exception cref="McpException">The search could not be run; the message says why.</exception>
         [McpServerTool(Name = "hypha_search", Title = "Search", ReadOnly = true, Idempotent = true, OpenWorld = false, Destructive = false)]
         [Description(
-            "Searches a release's metaclasses, standard-library declarations and specification clauses by name, "
-            + "qualified name, clause number or title, closest match first. Each hit has a hypha:// address that "
+            "Searches a release's metaclasses, standard-library declarations, specification clauses and worked "
+            + "examples by name, qualified name, clause number, title or an example's upstream path, closest match first. Each hit has a hypha:// address that "
             + "hypha_resolve reads. To find what the specification text says about something, use hypha_search_spec.")]
         public string Search(
             [Description("The text to look for: a name, qualified name, clause number or title.")] string text,
-            [Description($"Only hits of this kind: {HyphaAddress.Metamodel}, {HyphaAddress.ModelLibrary}, {HyphaAddress.Kerml} or {HyphaAddress.Sysml}.")] string? kind = null,
+            [Description($"Only hits of this kind: {HyphaAddress.Metamodel}, {HyphaAddress.ModelLibrary}, {HyphaAddress.Kerml}, {HyphaAddress.Sysml} or {HyphaAddress.Examples}.")] string? kind = null,
             [Description("The most hits returned, from 1 to 200.")] int limit = 20,
             [Description(TagDescription)] string? tag = null) =>
             Answer.Of(() => this.query.Search(text, kind, limit, tag));

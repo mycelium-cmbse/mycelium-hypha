@@ -27,6 +27,7 @@ namespace Hypha.Knowledge.Migration
     using Hypha.Knowledge.Metamodel;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
+    using Hypha.Knowledge.TextualNotation;
 
     using Microsoft.Extensions.Logging;
 
@@ -301,6 +302,7 @@ namespace Hypha.Knowledge.Migration
             (layout.CrossReferences(tag), CrossReferenceDocument.CurrentSchemaVersion),
             (layout.Keywords(tag), KeywordDocument.CurrentSchemaVersion),
             (layout.ModelLibraryIndex(tag), ModelLibraryDocument.CurrentSchemaVersion),
+            (layout.ExamplesIndex(tag), ExampleDocument.CurrentSchemaVersion),
         ];
 
         /// <summary>

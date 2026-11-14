@@ -91,8 +91,13 @@ grammar states (`MODEL`) or one matched on its title (`DERIVED`). Cite it as a *
 it only through `spec-citation`.
 
 **Worked examples.** The same answer also names the release's own example models that declare the
-element (their `file`). A construct that appears in one is valid for that release. The tools do not
-read an example's text, so name the example as evidence, never quote it from memory.
+element (their `file`). A construct that appears in one is valid for that release. To read one, call
+`hypha_lookup` with `kind: "examples"` and the file's name without its folder or `.md` (for
+`textual-notation/examples/sysml-src-examples-camera-example-camera.md`, the name
+`sysml-src-examples-camera-example-camera`), and follow `nextLine` for a long model. `hypha_search`
+with `kind: "examples"` finds one by its model's name, such as `Camera`. Quote an example only from
+what the lookup returned, and name it with its upstream `source` path as evidence; never quote one
+from memory.
 
 ## Large inputs
 

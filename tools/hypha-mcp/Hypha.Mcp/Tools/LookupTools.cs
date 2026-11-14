@@ -47,13 +47,17 @@ namespace Hypha.Mcp.Tools
         /// <exception cref="McpException">The lookup could not be run; the message says why.</exception>
         [McpServerTool(Name = "hypha_lookup", Title = "Look up", ReadOnly = true, Idempotent = true, OpenWorld = false, Destructive = false)]
         [Description(
-            "Reads a SysML v2 or KerML metamodel element page ('metamodel', by name such as PartUsage) or a "
-            + "standard-library declaration ('model-library', by qualified name such as ISQBase::mass), a page at a "
-            + "time. A name that is not exact returns the candidates instead. When 'nextLine' is set, call again with "
+            "Reads a SysML v2 or KerML metamodel element page ('metamodel', by name such as PartUsage), a "
+            + "standard-library declaration ('model-library', by qualified name such as ISQBase::mass) or a worked "
+            + "example model the release ships ('examples', by its page name, or by its model's name such as Camera), "
+            + "a page at a time. A name that is not exact returns the candidates instead. When 'nextLine' is set, call again with "
             + "it as 'startLine' for the rest.")]
         public string Lookup(
-            [Description("What to look up: metamodel or model-library.")] KnowledgeKind kind,
-            [Description("The element's name, such as PartUsage, or the declaration's qualified name, such as ISQBase::mass.")] string name,
+            [Description("What to look up: metamodel, model-library or examples.")] KnowledgeKind kind,
+            [Description(
+                "The element's name, such as PartUsage, the declaration's qualified name, such as ISQBase::mass, or the "
+                + "example's page name (the file name hypha_syntax cross-reference gives, without .md) or model name.")]
+            string name,
             [Description("The first line to return, 1-based. The start of the page (for a declaration, its declaration) when omitted.")] int? startLine = null,
             [Description("How many lines one page holds, at most 2000.")] int maxLines = LookupRequest.DefaultMaxLines,
             [Description("The installed release to answer from, such as 2026-05. The default release when omitted.")] string? tag = null) =>
