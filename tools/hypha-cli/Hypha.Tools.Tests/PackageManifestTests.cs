@@ -137,6 +137,34 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
+        public void Every_platform_the_dispatch_script_starts_is_built_and_released()
+        {
+            // Three places name the platforms and nothing else ties them together: the script every POSIX
+            // client runs, the workflow that builds the launcher it execs, and the release that publishes
+            // the hypha that launcher downloads. A platform in one and not the others starts nothing.
+            var script = Regex.Matches(Read("bin/hypha-launch"), @"\brid=([a-z0-9-]+)").Select(match => match.Groups[1].Value).ToList();
+            var workflow = Read(".github/workflows/launcher-binaries.yml");
+            var built = Regex.Matches(workflow, @"^\s+rid: ([a-z0-9-]+)\s*$", RegexOptions.Multiline).Select(match => match.Groups[1].Value).ToList();
+            var placed = Regex.Match(workflow, @"for rid in ([a-z0-9 -]+); do").Groups[1].Value.Split(' ');
+            var released = Regex.Matches(Read(".github/workflows/release.yml"), @"for RID in ([a-z0-9 -]+); do")
+                .Select(match => match.Groups[1].Value.Split(' '))
+                .ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(script, Is.EquivalentTo(new[] { "linux-x64", "linux-arm64", "osx-arm64", "osx-x64" }));
+                Assert.That(built, Is.EquivalentTo(script.Append("win-x64")), "the launcher workflow builds each platform");
+                Assert.That(placed, Is.EquivalentTo(script), "and places each POSIX one under bin/<rid>/");
+                Assert.That(released, Has.Count.EqualTo(2), "the publish loop and the archive loop");
+                Assert.That(released, Has.All.EquivalentTo(script.Append("win-x64")), "the release publishes a hypha for each");
+                Assert.That(
+                    script.Where(rid => !File.Exists(Absolute($"bin/{rid}/hypha-launch"))),
+                    Is.Empty,
+                    "a launcher is committed for each: run the Launcher binaries workflow after adding a platform");
+            });
+        }
+
+        [Test]
         public void Every_manifest_with_a_version_carries_the_package_version()
         {
             var version = this.source["version"]!.GetValue<string>();

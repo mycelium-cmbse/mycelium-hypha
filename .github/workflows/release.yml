@@ -112,7 +112,7 @@ jobs:
         # into each platform's zip below, alongside its own bytes.
         run: |
           set -euo pipefail
-          for RID in win-x64 linux-x64 osx-x64 osx-arm64; do
+          for RID in win-x64 linux-x64 linux-arm64 osx-x64 osx-arm64; do
             dotnet publish tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj \
               -c Release -r "$RID" --self-contained true \
               -p:PublishSingleFile=true -p:Version="${VERSION}" -p:GenerateSBOM=true \
@@ -175,7 +175,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ReleaseBuilds
-          for RID in win-x64 linux-x64 osx-x64 osx-arm64; do
+          for RID in win-x64 linux-x64 linux-arm64 osx-x64 osx-arm64; do
             cp THIRD-PARTY-NOTICES.txt NOTICE LICENSE "publish/$RID/" 2>/dev/null || true
             (cd "publish/$RID" && zip -r "../../ReleaseBuilds/hypha-${VERSION}-${RID}.zip" .)
           done

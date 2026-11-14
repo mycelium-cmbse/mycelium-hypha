@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Linux on Arm** (`refs #200`): the release publishes a self-contained `hypha` for `linux-arm64`, the
+  launcher is built for it, and `bin/hypha-launch` starts it on an `aarch64` Linux, the platform the VS
+  Code extension already shipped for.
 - **Manifests for Agent Plugins clients and Gemini CLI** (`refs #199`): a root `plugin.json` and
   `mcp.json` in the Agent Plugins 1.0 format (GitHub Copilot, Cursor, Codex, Kiro) and a
   `gemini-extension.json`, each starting the same `bin/hypha-launch` and sharing `skills/` with the

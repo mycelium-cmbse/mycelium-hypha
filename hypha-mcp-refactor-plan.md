@@ -431,7 +431,7 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 
 - [x] Rename `hook-binaries.yml` after the launcher: since the hook was removed it builds and commits only the per-RID `hypha-launch`.
 - [x] Remove `Hypha.Tools.Hook`.
-- [ ] Linux arm64 (`linux-arm64`), which the VS Code extension already ships for: the self-contained `hypha` in `release.yml`, the launcher in the binaries workflow, and the `bin/hypha-launch` script's `uname` case.
+- [x] Linux arm64 (`linux-arm64`), which the VS Code extension already ships for: the self-contained `hypha` in `release.yml`, the launcher in the binaries workflow, and the `bin/hypha-launch` script's `uname` case.
 - [ ] ReadyToRun for the self-contained `hypha`: measure the server's start time with and without it, and turn it on in `release.yml` or leave it off, on that evidence.
 - [ ] Update `RELEASING.md`: the plugin depends on the tools release that `bin/hypha-launch.json` names, so the tools release comes first; the pre-release that Step 9 verifies; and the order of Step 10.
 

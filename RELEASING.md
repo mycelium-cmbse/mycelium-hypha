@@ -65,7 +65,7 @@ The generator CLI ships two ways from one codebase: a `dotnet tool` package for 
 10 SDK, and a **self-contained** executable per platform for anyone without a toolchain.
 
 Run the **Release** workflow (`workflow_dispatch`) with a SemVer version. It builds and tests the
-solution, packs `Hypha.Tools`, publishes `win-x64` / `linux-x64` / `osx-x64` / `osx-arm64`
+solution, packs `Hypha.Tools`, publishes `win-x64` / `linux-x64` / `linux-arm64` / `osx-x64` / `osx-arm64`
 self-contained single files, generates `THIRD-PARTY-NOTICES.txt` for the bundled dependency closure,
 tags `tools-vX.Y.Z` and opens a **draft** release with the archives attached. Review the draft and
 publish it.

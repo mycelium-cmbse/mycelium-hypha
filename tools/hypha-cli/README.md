@@ -431,7 +431,8 @@ dotnet publish tools/hypha-cli/Hypha.Tools -c Release -r win-x64 \
   --self-contained true -p:PublishSingleFile=true -o publish/win-x64
 ```
 
-`linux-x64`, `osx-x64` and `osx-arm64` work the same way; the release workflow does all four.
+`linux-x64`, `linux-arm64`, `osx-x64` and `osx-arm64` work the same way; the release workflow does all
+five.
 **NativeAOT is deliberately out of scope for `Hypha.Tools` itself**: Handlebars.Net compiles its
 templates at runtime through expression trees, which AOT forbids, and uml4net is reflection-heavy over
 XMI. Trimming carries a milder version of the same risk and is left off until someone verifies it.

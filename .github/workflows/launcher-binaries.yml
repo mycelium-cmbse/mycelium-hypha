@@ -36,6 +36,11 @@ jobs:
           - os: ubuntu-latest
             rid: linux-x64
             suffix: ''
+          # NativeAOT does not cross-compile between architectures without a cross toolchain and a
+          # sysroot, so the Arm build runs on an Arm runner.
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+            suffix: ''
           - os: macos-latest
             rid: osx-x64
             suffix: ''
@@ -52,6 +57,13 @@ jobs:
         uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: '10.0.x'
+
+      - name: Install the NativeAOT prerequisites
+        # The x64 image has them; the Arm image is not guaranteed to.
+        if: matrix.rid == 'linux-arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang zlib1g-dev
 
       - name: Publish ${{ matrix.rid }}
         run: |
@@ -85,12 +97,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Each artifact holds its one file at its root: an upload of a single file keeps no folder.
           # Windows finds bin/hypha-launch.exe from the extensionless path a manifest names; macOS and
           # Linux run the bin/hypha-launch script, which execs its platform's binary.
-          cp downloaded/binaries-win-x64/launch/hypha-launch.exe bin/hypha-launch.exe
-          for rid in linux-x64 osx-x64 osx-arm64; do
+          cp downloaded/binaries-win-x64/hypha-launch.exe bin/hypha-launch.exe
+          for rid in linux-x64 linux-arm64 osx-x64 osx-arm64; do
             mkdir -p "bin/${rid}"
-            cp "downloaded/binaries-${rid}/launch/hypha-launch" "bin/${rid}/hypha-launch"
+            cp "downloaded/binaries-${rid}/hypha-launch" "bin/${rid}/hypha-launch"
             chmod +x "bin/${rid}/hypha-launch"
           done
 
