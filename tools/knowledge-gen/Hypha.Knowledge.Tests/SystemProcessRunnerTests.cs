@@ -147,6 +147,25 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task A_process_that_reads_its_standard_input_finds_it_closed_rather_than_waiting_on_ours()
+        {
+            // Under `hypha serve` this process's own input is the pipe an MCP client keeps open, so a child
+            // that inherited it would wait for ever, or take a request meant for the server. Whatever the
+            // test host's own input is, the child's is closed at once: a command that reads to the end
+            // of its input returns.
+            var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);
+            using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+            var (command, arguments) = OperatingSystem.IsWindows() ? ("cmd", "/c findstr x") : ("cat", string.Empty);
+
+            Assert.That(
+                async () => await runner.RunAsync(command, arguments, this.workingDirectory, cancellationToken: limit.Token),
+                Throws.Nothing);
+
+            await Task.CompletedTask;
+        }
+
+        [Test]
         public void A_cancelled_run_kills_the_process_and_throws()
         {
             var runner = new SystemProcessRunner(NullLogger<SystemProcessRunner>.Instance);

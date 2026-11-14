@@ -79,6 +79,12 @@ namespace Hypha.Knowledge.Hosting
                 WorkingDirectory = workingDirectory.FullName,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+
+                // The child gets an input of its own, closed at once below, never this process's: under
+                // `hypha serve` that is the pipe the MCP client writes its requests to. A child that
+                // inherits it can take a request meant for the server, and on Windows a Python child
+                // hangs at start-up while the server is waiting to read from the same pipe.
+                RedirectStandardInput = true,
                 UseShellExecute = false,
             };
 
@@ -106,6 +112,7 @@ namespace Hypha.Knowledge.Hosting
             };
 
             process.Start();
+            process.StandardInput.Close();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
