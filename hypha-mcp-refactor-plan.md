@@ -165,11 +165,11 @@ Read-only, no network, source-generated JSON, thread-safe. Loads each release la
 
 1. **Layout and path resolution**: today's `Layout/` (`KnowledgeLayout`, `ReleaseArtifacts`, `ReleaseStatus`); resolves `HYPHA_HOME`.
 2. **Release inventory**: reads `knowledge/versions.json` and `knowledge/api/versions.json`: installed releases and API versions, the default, which artifacts are generated. Detects changes by other processes.
-3. **Typed contracts and readers**: shared DTOs and JSON contexts for `metamodel.json`, `cross-references.json`, the model-library `index.json`, and the API cross-references and PIM. The generators write these same types.
+3. **Typed contracts and readers**: shared DTOs and JSON contexts for `metamodel.json`, `cross-references.json`, `keywords.json`, the model-library and worked-example `index.json`, and the API cross-references, OpenAPI index and PIM. The generators write these same types.
 4. **Paged lookup**: today's `Lookup/` (`KnowledgeLookup`, `DeclarationLocator`).
 5. **Query API** (the jq replacements): subclasses (concrete or not), classes with a feature typed T, origin of an inherited attribute, redefinitions, cross-reference clauses / grammar productions / feature assignments per element, reverse lookup feature → productions, model-library declarations, API types and operations.
 6. **Spec text access**: clauses in `knowledge/<tag>/spec/` for citation, with an explicit "not generated" status.
-7. **Search and addressing**: name/kind search; build, parse and resolve `hypha://{tag}/{kind}/{name}` only through the index.
+7. **Search and addressing**: name/kind search over metaclasses, library declarations, clauses and worked examples; build, parse and resolve `hypha://{tag}/{kind}/{name}` only through the index.
 8. **Grounding metadata**: NORMATIVE (spec text), MODEL (metamodel) or DERIVED (closures, cross-references), plus release and source location, on every result.
 
 Stays out: discovery, fetch, generation, every write. Validation reasoning stays in the skill; the query API supplies the facts.
@@ -187,18 +187,18 @@ As today, plus:
 Official `ModelContextProtocol` C# SDK, stdio transport, attribute-based with explicit `WithTools<T>()` / `WithResources<T>()` / `WithPrompts<T>()` registration. Logs to stderr only.
 
 - **Tools** (primary surface; every client supports them). All prefixed `hypha_`; 17 today, to stay under 20 (Windsurf caps all servers combined at 100 tools):
-  - query tools, grouping related questions behind a `question` argument whose values are the `hypha query` verb names: `hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`, `hypha_spec`, `hypha_api`, `hypha_diff`
-  - `hypha_search` (by name, number or title), `hypha_search_spec` (the clause text), `hypha_resolve` (a `hypha://` address), `hypha_lookup` (paged)
+  - query tools, grouping related questions behind a `question` argument whose values are the `hypha query` verb names: `hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`, `hypha_spec`, `hypha_api` (with the REST schemas' properties), `hypha_diff`
+  - `hypha_search` (by name, number or title), `hypha_search_spec` (the clause text), `hypha_resolve` (a `hypha://` address), `hypha_lookup` (paged: a metaclass, a library declaration or a worked example)
   - `hypha_release_status`, and `hypha_check_releases` (what is offered upstream; the one read tool that reaches the network)
-  - `hypha_install_release`, `hypha_use_release`, `hypha_remove_release` (in-process, under the release lock, with progress; the default switches only once a release is generated)
-- **Resources**: the template `hypha://{tag}/{kind}/{name}` over the generated pages: a metaclass or clause page whole, a model-library declaration from where it is declared on. An address names its page exactly, and every address in a JSON answer carries its `uri`. Everything is also reachable through a tool, since client support for resources is uneven.
+  - `hypha_install_release`, `hypha_use_release`, `hypha_remove_release` (in-process, under the release lock, with progress; the default switches only once a release is generated). Each takes an `axis` argument, `release` or `api`, so the same three tools manage the Systems Modeling API versions without adding to the count
+- **Resources**: the template `hypha://{tag}/{kind}/{name}` over the generated pages: a metaclass, clause or worked-example page whole, a model-library declaration from where it is declared on. An address names its page exactly, and every address in a JSON answer carries its `uri`. Everything is also reachable through a tool, since client support for resources is uneven.
 - **Prompts**: guided flows from `commands/overview.md`: `overview`, `explain_metaclass`, `cite_specification`, `validate_notation`, `api_lookup`.
 - **`instructions`**: the NORMATIVE / MODEL / DERIVED grounding rules and a short "which tool when" guide. This is the only guidance clients without skills (Claude Desktop, Zed, Windsurf) get, so it must be enough on its own.
 
 ### 1.10 `hypha` executable
 
 - CLI verbs: `discover`, `fetch`, `generate`, `list`, `lookup`, `query …` (new, one verb per query, `search-specification` included), `use`, `remove`, `check`, `move-window`, `api …`, `serve` (new) and `migrate` (new).
-- Build: self-contained, single-file, per RID (win-x64, linux-x64, linux-arm64, osx-x64, osx-arm64). Not trimmed, because uml4net and Handlebars use reflection. ReadyToRun to shorten startup.
+- Build: self-contained, single-file, per RID (win-x64, linux-x64, linux-arm64, osx-x64, osx-arm64). Not trimmed, because uml4net and Handlebars use reflection. ReadyToRun would shorten startup, but is not turned on; Step 8 decides it on a measurement.
 - Also published as a .NET tool (`PackAsTool`) for .NET users.
 
 ### 1.11 `Hypha.Launcher` (`hypha-launch`)
@@ -226,12 +226,12 @@ HYPHA_HOME/
 │       ├── versions.json
 │       └── <version>/
 ├── sources/                     fetched upstream inputs
-├── bin/<version>/               hypha binaries provisioned by hypha-launch
-├── toolchain/                   uv + Python for spec-extract
+├── bin/<version>/<rid>/         hypha binaries provisioned by hypha-launch
+├── toolchain/                   uv + Python for spec-extract, and the extractor itself (#237)
 └── .release-operation.lock      ReleaseOperationLock
 ```
 
-Schemas for `metamodel.json`, `cross-references.json`, `model-library` and API cross-references stay committed in the repo.
+Schemas for `metamodel.json`, `cross-references.json`, `model-library`, `keywords.json`, the worked-example index and API cross-references stay committed in the repo.
 
 ### 1.13 Contracts
 
@@ -315,7 +315,7 @@ State after Step 4 (November 2026): `hypha serve` and every tool, resource and p
 
 State after Step 6's skills (November 2026): the Claude plugin starts the server through the launcher and its skills answer through the MCP tools; the hook, the agents and jq are gone. Nothing of this is released yet.
 
-Order from here, decided in November 2026: first feature complete (the rest of Step 6 in #228, Steps 7 and 8, and the follow-ups in #224), then a pre-release verified in every client (Step 9), then the release (Step 10). Announcing the release is outside this plan.
+Order from here, decided in November 2026: first feature complete (the rest of Step 6 in #228, the specification extractor in #237, Steps 7 and 8, and the follow-ups in #224), then a pre-release verified in every client (Step 9), then the release (Step 10). Announcing the release is outside this plan.
 
 Every open item below lives in exactly one GitHub issue, worded the same in both; an item added or moved here is added or moved there in the same change, so the two never need reconciling.
 
@@ -324,7 +324,8 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | 1 to 4 | #193, #194, #195, #196 | Done |
 | 5: launcher, Claude plugin over MCP | #198 | Done; its client prototype moved to Step 9 |
 | 6: portable skills | #197 | Skills done (#227, #229, #230, #231) |
-| 6, what the tools cannot answer yet | #228 | Open; before the release |
+| 6, what the tools cannot answer yet | #228 | Done (#234, #235, #236) |
+| The specification extractor in `HYPHA_HOME` | #237 | Open; before the release, and before Steps 7 and 8 |
 | 7: every other client | #199, with #158, #163 and #165 | Open; before the release |
 | 8: CI and release | #200 | Open; before the release |
 | Follow-ups from the reviews | #224 | Fixes done (#232); the test gaps open |
@@ -407,12 +408,21 @@ Left out of the skills' rewrite, and due before the release: things the tools ca
 - [x] The worked examples through the tools: add an `examples` kind to `hypha_lookup`, `hypha_search` and the `hypha://` resource, so `sysml-validation` can read an example model that `hypha_syntax` `cross-reference` names.
 - [x] API versions through the release tools: install, switch and remove an API version from the server, so a plugin user need not run the `hypha api` commands with a `hypha` of their own.
 
+#### The specification extractor in `HYPHA_HOME` (#237)
+
+Found in November 2026, checking the plan against the code: `SpecGenerator` and `ApiSpecGenerator` run the extractor from `<root>/tools/spec-extract`, which a source checkout and a plugin's own folder have and `HYPHA_HOME` does not. Over MCP an install therefore skips the specification text, and `spec-citation` cannot quote a clause.
+
+- [ ] Embed the `tools/spec-extract` sources (`pyproject.toml`, `uv.lock`, `src/`) in `hypha`, and unpack them into `HYPHA_HOME/toolchain/spec-extract/` when they are missing or differ from the embedded copy. `SpecGenerator` and `ApiSpecGenerator` run the extractor from there; a source checkout keeps using its own `tools/spec-extract`.
+- [ ] Tests: in a root without `tools/` the extractor is unpacked and the generators run it from there; a checkout keeps its own; an unpacked copy that differs is replaced.
+- [ ] Generate a release's specification text in a real `HYPHA_HOME` once, through `hypha serve`, and record the result here.
+- [ ] The VS Code extension stops packaging its own copy of the extractor once it reads `HYPHA_HOME` (Step 7, #158).
+
 ### Step 7: Package for every other client (#199, #158, #163, #165)
 
-- [ ] **Single source of truth** for name, version, description and server command; generate the manifests from it in CI, with a drift check. It includes the `hypha` version, which `bin/hypha-launch.json` (the launcher's) carries today; the plugin manifest's `hyphaCliVersion` went with the hook.
+- [ ] **Single source of truth** for name, version, description and server command: one version across `hypha`, the launcher, the skills and every manifest. Generate the manifests from it in CI, with a drift check. It includes the `hypha` version, which `bin/hypha-launch.json` (the launcher's) carries today; the plugin manifest's `hyphaCliVersion` went with the hook.
 - [ ] **Agent Plugins 1.0**: root `plugin.json` (with `$schema`) and `mcp.json` to `bin/hypha-launch`, sharing `skills/`. Covers Copilot (VS Code, CLI, app, cloud agent), Cursor, Codex and Kiro.
 - [ ] **Gemini CLI**: `gemini-extension.json` with `mcpServers` to `bin/hypha-launch`, sharing `skills/`.
-- [ ] **Claude Desktop**: per-platform `.mcpb` (`server.type = "binary"`, entry point `hypha-launch`) as a release asset.
+- [ ] **Claude Desktop**: per-platform `.mcpb` (`server.type = "binary"`, entry point `hypha-launch`), built by the release workflow as a release asset.
 - [ ] **Manual-config clients** (Junie, Windsurf, Zed, Cline, Roo): document a config snippet per client, plus where to copy the skills.
 - [ ] **VS Code extension** (section 1.15; re-scopes #158): register the server through `vscode.lm.registerMcpServerDefinitionProvider`, delete the two `vscode.lm.registerTool` tools, and drop the `--repository-root` to global storage, so the extension reads `HYPHA_HOME`. Then add the `win32-arm64` target and publish the validated macOS and Windows on Arm packages (#163), and publish to Open VSX (#165); their validation is in Step 9.
 - [ ] Keep the tools under 20, all prefixed `hypha_`; make `instructions` sufficient on their own for clients without skills.
@@ -420,10 +430,9 @@ Left out of the skills' rewrite, and due before the release: things the tools ca
 ### Step 8: CI and release (#200)
 
 - [ ] Rename `hook-binaries.yml` after the launcher: since the hook was removed it builds and commits only the per-RID `hypha-launch`.
-- [ ] Build the `.mcpb` bundles per platform as release assets.
-- [ ] One version across `hypha`, launcher, skills and every manifest.
 - [ ] Remove `Hypha.Tools.Hook`.
 - [ ] Linux arm64 (`linux-arm64`), which the VS Code extension already ships for: the self-contained `hypha` in `release.yml`, the launcher in the binaries workflow, and the `bin/hypha-launch` script's `uname` case.
+- [ ] ReadyToRun for the self-contained `hypha`: measure the server's start time with and without it, and turn it on in `release.yml` or leave it off, on that evidence.
 - [ ] Update `RELEASING.md`: the plugin depends on the tools release that `bin/hypha-launch.json` names, so the tools release comes first; the pre-release that Step 9 verifies; and the order of Step 10.
 
 ### Step 9: A pre-release, verified across clients (#201)
