@@ -15,6 +15,7 @@ namespace Hypha.Knowledge.Tests
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Keywords;
@@ -78,6 +79,8 @@ namespace Hypha.Knowledge.Tests
 
             Directory.CreateDirectory(this.ApiLayout.Knowledge(ApiVersion).FullName);
             File.WriteAllText(this.ApiLayout.CrossReferences(ApiVersion).FullName, ApiJson.Render(ApiCrossReferences()));
+            Directory.CreateDirectory(this.ApiLayout.OpenApiIndex(ApiVersion).DirectoryName!);
+            File.WriteAllText(this.ApiLayout.OpenApiIndex(ApiVersion).FullName, ApiJson.Render(OpenApiIndex()));
 
             // The specification text spec-extract would write: an index and one page per clause, with the
             // same front matter. The clause numbers and titles match the cross-reference fixture's.
@@ -272,6 +275,37 @@ namespace Hypha.Knowledge.Tests
                     ["ISQBase::mass"] = new("attribute", "packages/ISQBase.md", "ISQBase.sysml"),
                     ["ScalarValues::Real"] = new("datatype", "packages/ScalarValues.md", "ScalarValues.kerml"),
                 });
+
+        // An object schema of the API with its properties, a union, and a schema that mirrors a metamodel
+        // element, which the index lists without a page or properties.
+        private static OpenApiIndexDocument OpenApiIndex() =>
+            new(
+                OpenApiIndexDocument.CurrentSchemaVersion,
+                ApiVersion,
+                "Systems Modeling API",
+                "1.0",
+                "3.1.0",
+                new OpenApiIndexCounts(3, 2, 0),
+                new Dictionary<string, OpenApiIndexSchema>(StringComparer.Ordinal)
+                {
+                    ["Commit"] = new(
+                        "https://www.omg.org/spec/SystemsModelingAPI/20230201/Commit",
+                        "api",
+                        "object",
+                        "response",
+                        "schemas/Commit.md",
+                        [
+                            new OpenApiProperty("@id", "string (uuid)", Required: true, Nullable: false, RefersTo: null),
+                            new OpenApiProperty("description", "string", Required: true, Nullable: true, RefersTo: null),
+                            new OpenApiProperty("previousCommit", "Identified[]", Required: true, Nullable: false, RefersTo: "Commit"),
+                        ],
+                        null),
+                    ["DataVersion.payload"] = new(
+                        "https://www.omg.org/spec/SystemsModelingAPI/20230201/Data", "api", "union", "response", "schemas/Data.md", null, ["Element", "Relationship"]),
+                    ["PartUsage"] = new(
+                        "https://www.omg.org/spec/SysML/20230201/PartUsage", "metamodel", "object", "response", null, null, null),
+                },
+                []);
 
         private static ApiCrossReferenceDocument ApiCrossReferences() =>
             new(

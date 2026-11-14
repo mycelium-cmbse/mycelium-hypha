@@ -1,6 +1,6 @@
 ---
 name: api-lookup
-description: "Look up the OMG Systems Modeling API & Services (the SysML v2 API, not the language metamodel): a PIM type's attributes, multiplicities, derivation, subsetting and redefinition (Project, Commit, Branch, Tag, DataVersion, DataIdentity, Query, PrimitiveConstraint, ...), a PIM service operation, which PSM (OpenAPI) schema a PIM type maps to and which of its members the request and response models carry, an endpoint, or a clause of the API specification. Use when the user asks how the SysML v2 API models something, whether a PIM member is in a request or response model, or which endpoint a service operation maps to."
+description: "Look up the OMG Systems Modeling API & Services (the SysML v2 API, not the language metamodel): a PIM type's attributes, multiplicities, derivation, subsetting and redefinition (Project, Commit, Branch, Tag, DataVersion, DataIdentity, Query, PrimitiveConstraint, ...), a PIM service operation, which PSM (OpenAPI) schema a PIM type maps to and which of its members the request and response models carry, a PSM schema's properties (type, required, nullable, what an identifier refers to), an endpoint, or a clause of the API specification. Use when the user asks how the SysML v2 API models something, whether a PIM member is in a request or response model, what fields a REST schema has, or which endpoint a service operation maps to."
 ---
 
 # Systems Modeling API lookup
@@ -36,6 +36,7 @@ default. `hypha_release_status` lists the installed API versions (`apiVersions`)
 | A PIM class, including the six services: its attributes (owned and inherited), operations, supertypes and documentation | `pim-class` | `name`, such as `Project` or `ProjectService` |
 | How a PIM type lines up with the PSM and the specification: its clauses, its PSM schemas, and which of its members each model carries | `type` | `name`, such as `Commit` |
 | A PIM service operation: the clauses that list it and the endpoints it maps to | `operation` | `name`, qualified by its service, such as `ProjectService.createProject` |
+| A PSM schema as the OpenAPI document states it: its properties, each with its type and whether it is required or nullable, or a union's variants | `schema` | `name`, such as `Commit` or `CommitRequest` |
 | A clause of the API specification, with its verbatim text | `clause` | `clause`, such as `7.1.4` |
 
 Every one takes `version` for another installed API version.
@@ -44,7 +45,7 @@ Every one takes `version` for another installed API version.
 
 Every result carries a `value`, a `grounding` (tier, API version and the generated file it was read
 from) and, when part of the knowledge was never generated, `unavailable` saying why and how to
-generate it. A `null` value means the API version has no such class, type, operation or clause: say
+generate it. A `null` value means the API version has no such class, type, operation, schema or clause: say
 so, and never invent one.
 
 ### A PIM class (`pim-class`)
@@ -77,6 +78,25 @@ specification maps it to: each with its HTTP `method`, its `path` and its OpenAP
 operation with `mappingClause` set and no `endpoints` **is** mapped, but in prose that spans several
 table rows: read that clause with `question: "clause"`, or name it when its text is not generated.
 
+### A PSM schema (`schema`)
+
+What the OpenAPI document states about one schema, grounded as `MODEL`. Take the schema names from
+`type` (`schema.response`, `schema.request`): a type's request schema is usually named apart, such as
+`CommitRequest`, and the two differ.
+
+- `kind`: `object`, `union`, `enumeration` or a JSON type; `role`: whether the endpoints use it in a
+  request body, a response, both or neither.
+- `properties`, for an object: each with its `name`, its `type` in a compact notation
+  (`string (uuid)`, `Commit[]`, `const "Commit"`), `required` and `nullable`. These are the wire
+  format's own flags: report them as they are, and never derive them from a PIM multiplicity.
+- `refersTo`: for a property typed `Identified`, which carries only an `@id`, the type that
+  identifier points at, when the document states it.
+- `variants`, for a union: the schemas it is one of.
+
+Only the API's own schemas (`namespace: "api"`) hold properties. A schema that mirrors a language
+metamodel element (`namespace: "metamodel"`, such as `PartUsage`) has none here: its content is the
+metaclass, which `metamodel-lookup` answers.
+
 ### How far to trust a link
 
 Every link between the PIM, the PSM and the specification names the method that produced it. Say
@@ -94,22 +114,15 @@ A type or operation with no clauses, or no schema, can mean the specification or
 was not present when the knowledge was generated: when `unavailable` says so, report that rather than
 concluding the link does not exist.
 
-## What the tools do not answer yet
-
-The **properties of a PSM schema** (each member's type, whether it is required, whether it is
-nullable, and what an `Identified` member refers to) are not answered by any tool yet. `type` says
-which PIM members the request and response models carry, but not those flags. When the user asks for
-them, say plainly that this version of hypha cannot answer them, rather than guessing from the PIM
-multiplicities: a PIM attribute's multiplicity does not say whether the wire format requires or
-nulls it.
-
 ## Procedure
 
 1. Pick the `question` from the table above; pass `version` only when the user names one.
 2. A question about **one PIM type** (its attributes, multiplicities, derivation, subsetting):
    `pim-class`.
 3. A question that **compares** the PIM with the PSM (which members a request or response carries),
-   or asks for a schema: `type`. For an endpoint: `operation`.
-4. State the API version, and say which method backs any link you report.
-5. Quote specification wording only from `question: "clause"`, following the `spec-citation` skill:
+   or asks which schema a type has: `type`. For an endpoint: `operation`.
+4. A question about the **wire format** (a property's type, whether it is required or nullable, what
+   an identifier refers to): `type` for the schema names, then `schema` for each one asked about.
+5. State the API version, and say which method backs any link you report.
+6. Quote specification wording only from `question: "clause"`, following the `spec-citation` skill:
    the cross-reference holds clause numbers, never wording.

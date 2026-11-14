@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The REST schema properties of the Systems Modeling API** (`refs #228`): `hypha_api` with
+  `question: "schema"`, and `hypha query api schema --name <schema>`, answer a schema of the REST/HTTP
+  API as its OpenAPI document states it: each property's name, type, whether it is required or
+  nullable and what an identifier refers to, and a union's variants. The `api-lookup` skill answers
+  them, where it said before that it could not.
 - **`hypha_check_releases`, the upstream check in the MCP server** (`refs #197`): compares the
   installed releases and Systems Modeling API versions with those offered upstream, and names a newer
   one when there is, so a newer release still reaches the user once the SessionStart hook is gone. It
@@ -238,8 +243,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   installed with the `hypha api` commands.
 - **The API skill answers through the MCP server** (`refs #197`): `api-lookup` reads PIM classes,
   how a PIM type lines up with its PSM schemas and the specification, service operations with their
-  endpoints, and API specification clauses through `hypha_api`, with no jq and no file paths. Each
-  PSM schema property's type, required and nullable flags are not answered yet, and the skill says so.
+  endpoints, and API specification clauses through `hypha_api`, with no jq and no file paths.
 - **Installing the Claude plugin needs nothing else** (`refs #197`): no Git for Windows, no new
   session for a hook to run, and no `jq`. The plugin starts the MCP server through its launcher, which
   downloads `hypha` the first time.

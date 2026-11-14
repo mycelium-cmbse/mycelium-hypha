@@ -82,6 +82,7 @@ namespace Hypha.Mcp.Tests
             yield return Case(ApiQuestion.PimClass, (IApiQuery api) => api.PimClass("Commit", "2026-04"));
             yield return Case(ApiQuestion.Type, (IApiQuery api) => api.Type("Commit", "2026-04"));
             yield return Case(ApiQuestion.Operation, (IApiQuery api) => api.Operation("Commit", "2026-04"));
+            yield return Case(ApiQuestion.Schema, (IApiQuery api) => api.Schema("Commit", "2026-04"));
             yield return Case(ApiQuestion.Clause, (IApiQuery api) => api.Clause("7.1.4", "2026-04"));
         }
 

@@ -125,7 +125,7 @@ namespace Hypha.Mcp.Prompts
             $"""
             Answer this question about the OMG Systems Modeling API and Services: {Required(question, nameof(question))}
             Call hypha_release_status first and check that an API version is installed; if none is, say so rather
-            than answering from memory. Use hypha_api with 'pim-class', 'type', 'operation' and 'clause', and say
+            than answering from memory. Use hypha_api with 'pim-class', 'type', 'operation', 'schema' and 'clause', and say
             which API version answered and how each link between the PIM and the REST API was established, as the
             result states it. {Grounding}
             """;
