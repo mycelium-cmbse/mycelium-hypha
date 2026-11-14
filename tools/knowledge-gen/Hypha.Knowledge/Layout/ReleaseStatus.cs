@@ -58,7 +58,10 @@ namespace Hypha.Knowledge.Layout
 
             var artifacts = new ReleaseArtifacts(
                 Present(layout.MetamodelIndex(tag)),
-                Present(new FileInfo(Path.Combine(layout.TextualNotation(tag).FullName, "index.md"))),
+                // A release generated before the example index existed has the pages but not the index
+                // the readers find them by, so it is not complete until it is generated again.
+                Present(new FileInfo(Path.Combine(layout.TextualNotation(tag).FullName, "index.md")))
+                    && Present(layout.ExamplesIndex(tag)),
                 Present(layout.ModelLibraryIndex(tag)),
                 Present(layout.CrossReferences(tag)),
                 SpecificationDocuments.All(document => Present(layout.SpecificationCatalog(tag, document))));

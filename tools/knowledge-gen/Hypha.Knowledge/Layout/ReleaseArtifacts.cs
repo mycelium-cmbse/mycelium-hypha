@@ -19,7 +19,10 @@ namespace Hypha.Knowledge.Layout
     /// every host that reads it.
     /// </remarks>
     /// <param name="Metamodel"><c>metamodel/index.json</c> is present.</param>
-    /// <param name="TextualNotation"><c>textual-notation/index.md</c> is present.</param>
+    /// <param name="TextualNotation">
+    /// <c>textual-notation/index.md</c> and the worked-example index <c>textual-notation/examples/index.json</c>
+    /// are present.
+    /// </param>
     /// <param name="ModelLibrary"><c>model-library/index.json</c> is present.</param>
     /// <param name="CrossReferences"><c>cross-references.json</c> is present.</param>
     /// <param name="Specification">

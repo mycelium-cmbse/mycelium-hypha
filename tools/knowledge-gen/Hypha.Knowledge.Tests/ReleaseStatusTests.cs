@@ -82,6 +82,22 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Textual_notation_generated_before_the_example_index_is_not_complete()
+        {
+            KnowledgeLookupTests.Install(this.layout, "2026-05");
+            this.GenerateCore("2026-05");
+            this.layout.ExamplesIndex("2026-05").Delete();
+
+            var status = ReleaseStatus.Read(this.layout, "2026-05");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(status.Artifacts.TextualNotation, Is.False);
+                Assert.That(status.Artifacts.Core, Is.False);
+            });
+        }
+
+        [Test]
         public void The_specification_text_needs_both_documents()
         {
             KnowledgeLookupTests.Install(this.layout, "2026-09");
@@ -123,6 +139,7 @@ namespace Hypha.Knowledge.Tests
         {
             Touch(this.layout.MetamodelIndex(tag));
             Touch(new FileInfo(Path.Combine(this.layout.TextualNotation(tag).FullName, "index.md")));
+            Touch(this.layout.ExamplesIndex(tag));
             Touch(this.layout.ModelLibraryIndex(tag));
             Touch(this.layout.CrossReferences(tag));
         }
