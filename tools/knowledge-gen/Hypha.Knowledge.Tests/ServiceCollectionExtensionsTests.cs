@@ -176,6 +176,43 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void A_relative_HYPHA_HOME_with_a_root_alone_is_refused_when_the_layout_is_resolved()
+        {
+            var root = new DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+
+            WithHyphaHome("relative-home", () =>
+            {
+                using var provider = new ServiceCollection()
+                    .AddHyphaKnowledge(options => options.RepositoryRoot = root)
+                    .BuildServiceProvider();
+
+                Assert.That(
+                    () => provider.GetRequiredService<IKnowledgeLayout>(),
+                    Throws.InvalidOperationException.With.Message.Contains(HyphaHome.EnvironmentVariable));
+            });
+        }
+
+        [Test]
+        public void A_relative_HYPHA_HOME_is_not_refused_when_a_home_folder_is_given()
+        {
+            var root = new DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));
+
+            WithHyphaHome("relative-home", () =>
+            {
+                using var provider = new ServiceCollection()
+                    .AddHyphaKnowledge(options =>
+                    {
+                        options.RepositoryRoot = root;
+                        options.Home = home;
+                    })
+                    .BuildServiceProvider();
+
+                Assert.That(provider.GetRequiredService<IKnowledgeLayout>().Root.FullName, Is.EqualTo(root.FullName));
+            });
+        }
+
+        [Test]
         public async Task Without_a_root_a_chosen_home_folder_wins_over_the_checkout_above_the_assembly()
         {
             // The tests run inside the repository, so a checkout is found above the assembly; a home
@@ -379,6 +416,22 @@ namespace Hypha.Knowledge.Tests
             Assert.That(
                 provider.GetServices<IKnowledgeGenerator>(),
                 Has.None.InstanceOf<IApiKnowledgeGenerator>());
+        }
+
+        // The tests in this assembly do not run in parallel, so the variable can be set for one test.
+        private static void WithHyphaHome(string value, Action test)
+        {
+            var before = Environment.GetEnvironmentVariable(HyphaHome.EnvironmentVariable);
+            Environment.SetEnvironmentVariable(HyphaHome.EnvironmentVariable, value);
+
+            try
+            {
+                test();
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(HyphaHome.EnvironmentVariable, before);
+            }
         }
     }
 }

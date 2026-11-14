@@ -339,6 +339,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`jq`** (`refs #197`): no skill runs it any more, and the README no longer recommends it.
 
 ### Fixed
+- **`hypha serve` keeps the MCP SDK's per-request log lines off standard error** (`refs #224`): they
+  are held to warnings and errors, as the HTTP request lines already were, so a client that never
+  reads standard error cannot fill it. `--log-level Debug` still shows them.
+- **The model-library resource says how far it reaches** (`refs #224`): its description says a
+  declaration's page is up to 160 lines of its package's source from the declaration on, and that
+  `hypha_lookup` reads further, so a declaration longer than that is not taken for a whole one.
+- **A prompt called without its argument names the argument** (`refs #224`), rather than the SDK's
+  generic "An error occurred.".
+- **The migration into `HYPHA_HOME` leaves out a release generated in an older format**
+  (`refs #224`): a release or API version whose generated documents state an older schema version
+  than this `hypha` reads is not copied, with a warning, so it is installed again rather than read
+  wrongly.
+- **A relative `HYPHA_HOME` is refused before any work** (`refs #224`), also with `--repository-root`,
+  rather than once a generation first needs the toolchain kept there. Giving `--toolchain-cache-root`
+  as well leaves `HYPHA_HOME` unused, and unchecked.
+- **The launcher refuses a relative `HYPHA_BIN`** (`refs #224`): it would be resolved against the
+  folder each client starts the server in. The model is told why, through `hypha_status`.
 - **Installing into a folder that is not a source checkout generates the metamodel**
   (`refs #196`): `sources/PrimitiveTypes.xmi`, the OMG UML primitives every release's metamodel
   refers to, is committed in a checkout but was nowhere else, so an install into `HYPHA_HOME` failed

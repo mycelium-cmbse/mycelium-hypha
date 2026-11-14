@@ -17,9 +17,15 @@ namespace Hypha.Knowledge.Tests
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
+    using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
+    using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Hosting;
+    using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Metamodel;
     using Hypha.Knowledge.Migration;
+    using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.Logging;
@@ -323,6 +329,181 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task A_release_generated_in_an_older_format_is_not_copied()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-02", "2026-05");
+            var layout = new KnowledgeLayout(plugin);
+            Seed(layout.Keywords("2026-02").FullName, """{"schemaVersion": "1.0.0"}""");
+            Seed(layout.Keywords("2026-05").FullName, $$"""{"schemaVersion": "{{KeywordDocument.CurrentSchemaVersion}}"}""");
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Copied.Select(copied => copied.Tag), Is.EqualTo(new[] { "2026-05" }));
+                Assert.That(this.homeLayout.InstalledTags, Is.EqualTo(new[] { "2026-05" }));
+                Assert.That(VersionManifestFile.Read(this.homeLayout.VersionManifest.FullName).Default, Is.EqualTo("2026-05"));
+            });
+        }
+
+        [Test]
+        public async Task A_release_outdated_in_the_client_changed_last_is_copied_from_another_client()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            var code = this.Install("vscode", "VS Code", "2026-05", "2026-05");
+            Seed(new KnowledgeLayout(code).Keywords("2026-05").FullName, """{"schemaVersion": "1.0.0"}""");
+            SeedCurrent(new KnowledgeLayout(plugin), "2026-05");
+            this.Older(plugin);
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Copied.Select(copied => copied.From), Is.EqualTo(new[] { "Claude plugin" }));
+                Assert.That(File.ReadAllText(Path.Combine(this.homeLayout.Knowledge("2026-05").FullName, "metamodel", "page.md")), Is.EqualTo("2026-05 from plugin"));
+            });
+        }
+
+        [TestCase("metamodel")]
+        [TestCase("metamodel-index")]
+        [TestCase("cross-references")]
+        [TestCase("keywords")]
+        [TestCase("model-library")]
+        public async Task A_release_with_one_document_in_an_older_format_is_not_copied(string document)
+        {
+            var layout = new KnowledgeLayout(this.Install("plugin", "Claude plugin", "2026-05", "2026-05"));
+            SeedCurrent(layout, "2026-05");
+            var file = document switch
+            {
+                "metamodel" => layout.MetamodelGraph("2026-05"),
+                "metamodel-index" => layout.MetamodelIndex("2026-05"),
+                "cross-references" => layout.CrossReferences("2026-05"),
+                "keywords" => layout.Keywords("2026-05"),
+                _ => layout.ModelLibraryIndex("2026-05"),
+            };
+            Seed(file.FullName, """{"schemaVersion": "0.0.1"}""");
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.That(result.Copied, Is.Empty);
+        }
+
+        [Test]
+        public async Task A_default_release_in_an_older_format_leaves_the_newest_copied_release_the_default()
+        {
+            var layout = new KnowledgeLayout(this.Install("plugin", "Claude plugin", "2026-05", "2026-02", "2026-05"));
+            SeedCurrent(layout, "2026-02");
+            Seed(layout.Keywords("2026-05").FullName, """{"schemaVersion": "1.0.0"}""");
+
+            await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(this.homeLayout.InstalledTags, Is.EqualTo(new[] { "2026-02" }));
+                Assert.That(VersionManifestFile.Read(this.homeLayout.VersionManifest.FullName).Default, Is.EqualTo("2026-02"));
+            });
+        }
+
+        [Test]
+        public async Task A_release_in_an_older_format_is_skipped_with_a_warning_saying_to_install_it_again()
+        {
+            var layout = new KnowledgeLayout(this.Install("plugin", "Claude plugin", "2026-05", "2026-02", "2026-05"));
+            Seed(layout.Keywords("2026-02").FullName, """{"schemaVersion": "1.0.0"}""");
+            var logger = new Recording();
+
+            await this.Migration(logger: logger).MigrateOnceAsync();
+
+            var outdated = logger.Entries.Where(entry => entry.Event.Id == 3).ToList();
+            Assert.Multiple(() =>
+            {
+                Assert.That(outdated, Has.Count.EqualTo(1));
+                Assert.That(outdated[0].Level, Is.EqualTo(LogLevel.Warning));
+                Assert.That(
+                    outdated[0].Message,
+                    Does.Contain("2026-02").And.Contain("Claude plugin").And.Contain("keywords.json").And.Contain("1.0.0").And.Contain("install it again"));
+            });
+        }
+
+        [TestCase("{ not json")]
+        [TestCase("""{"grammars": {}}""")]
+        [TestCase("[]")]
+        public async Task A_release_whose_document_states_no_schema_version_is_not_copied(string content)
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            Seed(new KnowledgeLayout(plugin).CrossReferences("2026-05").FullName, content);
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.That(result.Copied, Is.Empty);
+        }
+
+        [Test]
+        public async Task A_release_in_the_current_format_is_copied_with_every_document()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            var layout = new KnowledgeLayout(plugin);
+            Seed(layout.MetamodelGraph("2026-05").FullName, $$"""{"schemaVersion": "{{MetamodelDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.MetamodelIndex("2026-05").FullName, $$"""{"schemaVersion": "{{MetamodelDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.CrossReferences("2026-05").FullName, $$"""{"schemaVersion": "{{CrossReferenceDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.Keywords("2026-05").FullName, $$"""{"schemaVersion": "{{KeywordDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.ModelLibraryIndex("2026-05").FullName, $$"""{"schemaVersion": "{{ModelLibraryDocument.CurrentSchemaVersion}}"}""");
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Copied.Select(copied => copied.Tag), Is.EqualTo(new[] { "2026-05" }));
+                Assert.That(File.Exists(this.homeLayout.Keywords("2026-05").FullName), Is.True);
+            });
+        }
+
+        [Test]
+        public async Task An_API_version_generated_in_an_older_format_is_not_copied()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            this.InstallApi(plugin, "2026-04");
+            Seed(new ApiLayout(new KnowledgeLayout(plugin)).CrossReferences("2026-04").FullName, """{"schemaVersion": "0.9.0"}""");
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.That(result.Copied.Select(copied => (copied.Kind, copied.Tag)), Is.EqualTo(new[] { (MigratedVersion.Release, "2026-05") }));
+        }
+
+        [TestCase("pim")]
+        [TestCase("openapi")]
+        [TestCase("cross-references")]
+        public async Task An_API_version_with_one_document_in_an_older_format_is_not_copied(string document)
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            this.InstallApi(plugin, "2026-04");
+            var api = new ApiLayout(new KnowledgeLayout(plugin));
+            SeedCurrent(api, "2026-04");
+            var file = document switch
+            {
+                "pim" => api.PimGraph("2026-04"),
+                "openapi" => api.OpenApiIndex("2026-04"),
+                _ => api.CrossReferences("2026-04"),
+            };
+            Seed(file.FullName, """{"schemaVersion": "0.9.0"}""");
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.That(result.Copied.Select(copied => (copied.Kind, copied.Tag)), Is.EqualTo(new[] { (MigratedVersion.Release, "2026-05") }));
+        }
+
+        [Test]
+        public async Task An_API_version_in_the_current_format_is_copied_with_every_document()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            this.InstallApi(plugin, "2026-04");
+            SeedCurrent(new ApiLayout(new KnowledgeLayout(plugin)), "2026-04");
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.That(result.Copied.Select(copied => (copied.Kind, copied.Tag)), Does.Contain((MigratedVersion.Api, "2026-04")));
+        }
+
+        [Test]
         public async Task A_folder_left_from_an_interrupted_copy_is_replaced()
         {
             this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
@@ -421,6 +602,22 @@ namespace Hypha.Knowledge.Tests
             File.WriteAllText(path, content);
         }
 
+        private static void SeedCurrent(KnowledgeLayout layout, string tag)
+        {
+            Seed(layout.MetamodelGraph(tag).FullName, $$"""{"schemaVersion": "{{MetamodelDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.MetamodelIndex(tag).FullName, $$"""{"schemaVersion": "{{MetamodelDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.CrossReferences(tag).FullName, $$"""{"schemaVersion": "{{CrossReferenceDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.Keywords(tag).FullName, $$"""{"schemaVersion": "{{KeywordDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.ModelLibraryIndex(tag).FullName, $$"""{"schemaVersion": "{{ModelLibraryDocument.CurrentSchemaVersion}}"}""");
+        }
+
+        private static void SeedCurrent(ApiLayout layout, string version)
+        {
+            Seed(layout.PimGraph(version).FullName, $$"""{"schemaVersion": "{{MetamodelDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.OpenApiIndex(version).FullName, $$"""{"schemaVersion": "{{OpenApiIndexDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.CrossReferences(version).FullName, $$"""{"schemaVersion": "{{ApiCrossReferenceDocument.CurrentSchemaVersion}}"}""");
+        }
+
         private DirectoryInfo Install(string folder, string origin, string defaultTag, params string[] tags)
         {
             var root = new DirectoryInfo(Path.Combine(this.workspace.FullName, folder));
@@ -470,6 +667,20 @@ namespace Hypha.Knowledge.Tests
             public void Dispose()
             {
             }
+        }
+
+        // Keeps every entry the migration logs, with its message as written.
+        private sealed class Recording : ILogger<KnowledgeMigration>
+        {
+            public List<(LogLevel Level, EventId Event, string Message)> Entries { get; } = [];
+
+            public IDisposable? BeginScope<TState>(TState state)
+                where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+                this.Entries.Add((logLevel, eventId, formatter(state, exception)));
         }
 
         // Cancels the migration as soon as it has copied its first release, so the next copy stops between files.

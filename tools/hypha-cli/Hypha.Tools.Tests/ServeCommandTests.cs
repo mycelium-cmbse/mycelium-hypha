@@ -156,6 +156,39 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
+        public async Task A_prompt_without_its_argument_says_which_argument_it_needs()
+        {
+            Assert.That(
+                async () => await this.client.GetPromptAsync("explain_metaclass", new Dictionary<string, object?>()),
+                Throws.InstanceOf<McpException>().With.Message.Contains("'name'"));
+        }
+
+        [Test]
+        public async Task A_prompt_with_a_blank_argument_is_refused_naming_the_prompt()
+        {
+            Assert.That(
+                async () => await this.client.GetPromptAsync("explain_metaclass", new Dictionary<string, object?> { ["name"] = "   " }),
+                Throws.InstanceOf<McpException>().With.Message.Contains("'explain_metaclass'"));
+        }
+
+        [Test]
+        public async Task A_prompt_without_arguments_is_served_without_any()
+        {
+            var overview = await this.client.GetPromptAsync("overview");
+
+            Assert.That(overview.Messages, Is.Not.Empty);
+        }
+
+        [Test]
+        public async Task A_prompt_with_its_required_argument_marks_it_required()
+        {
+            var prompts = await this.client.ListPromptsAsync();
+            var explain = prompts.Single(prompt => prompt.Name == "explain_metaclass").ProtocolPrompt;
+
+            Assert.That(explain.Arguments, Has.Some.Matches<PromptArgument>(argument => argument is { Name: "name", Required: true }));
+        }
+
+        [Test]
         public async Task It_switches_the_default_release_under_the_lock()
         {
             var result = await this.client.CallToolAsync("hypha_use_release", new Dictionary<string, object?> { ["tag"] = Tag });
@@ -226,6 +259,36 @@ namespace Hypha.Tools.Tests
                 Assert.That(lines, Is.All.Matches<string>(line => line is not null && IsJsonRpc(line)), string.Join(Environment.NewLine, lines));
                 Assert.That(standardError.Result, Is.Not.Empty, "the log should have gone to standard error");
             });
+        }
+
+        [Test]
+        public async Task A_relative_HYPHA_HOME_with_a_repository_root_is_refused_before_any_work()
+        {
+            using var list = Start(
+                ["list", "--repository-root", this.knowledge.Root.FullName],
+                environment: new Dictionary<string, string> { [HyphaHome.EnvironmentVariable] = "relative-home" });
+            var output = list.StandardOutput.ReadToEndAsync();
+            var error = list.StandardError.ReadToEndAsync();
+            await list.WaitForExitAsync().WaitAsync(TimeSpan.FromMinutes(1));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(list.ExitCode, Is.Not.Zero);
+                Assert.That(output.Result + error.Result, Does.Contain("HYPHA_HOME must be an absolute path").And.Contain("relative-home"));
+            });
+        }
+
+        [Test]
+        public async Task A_relative_HYPHA_HOME_is_not_refused_when_the_toolchain_has_a_root_of_its_own()
+        {
+            using var list = Start(
+                ["list", "--repository-root", this.knowledge.Root.FullName, "--toolchain-cache-root", Path.Combine(this.knowledge.Root.FullName, "toolchain")],
+                environment: new Dictionary<string, string> { [HyphaHome.EnvironmentVariable] = "relative-home" });
+            var error = list.StandardError.ReadToEndAsync();
+            await list.StandardOutput.ReadToEndAsync().WaitAsync(TimeSpan.FromMinutes(1));
+            await list.WaitForExitAsync().WaitAsync(TimeSpan.FromMinutes(1));
+
+            Assert.That(list.ExitCode, Is.Zero, error.Result);
         }
 
         [Test]

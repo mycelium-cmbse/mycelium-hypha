@@ -9,7 +9,9 @@
 
 namespace Hypha.Mcp.Tests
 {
+    using System.ComponentModel;
     using System.IO;
+    using System.Reflection;
 
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
@@ -83,6 +85,28 @@ namespace Hypha.Mcp.Tests
                 Assert.That(contents.Text, Is.EqualTo("attribute mass;"));
                 Assert.That(contents.Uri, Is.EqualTo("hypha://2026-05/model-library/ISQBase%3A%3Amass"));
             });
+        }
+
+        [Test]
+        public void A_library_declaration_is_the_window_alone_even_when_its_package_goes_on()
+        {
+            this.Declares("ISQBase::mass");
+            this.lookup
+                .Setup(l => l.Lookup(new LookupRequest(KnowledgeKind.ModelLibrary, "ISQBase::mass", Tag, null, LookupRequest.DefaultMaxLines)))
+                .Returns(Found("ISQBase::mass", "attribute mass;") with { NextLine = 321 });
+
+            var text = ((TextResourceContents)this.resources.Page(Tag, "model-library", "ISQBase::mass")).Text;
+
+            Assert.That(text, Is.EqualTo("attribute mass;"));
+        }
+
+        [Test]
+        public void The_template_says_how_far_a_library_declaration_reaches_and_how_to_read_further()
+        {
+            var description = typeof(KnowledgeResources).GetMethod(nameof(KnowledgeResources.Page))!
+                .GetCustomAttribute<DescriptionAttribute>()!.Description;
+
+            Assert.That(description, Does.Contain($"up to {LookupRequest.DefaultMaxLines} lines").And.Contain("hypha_lookup"));
         }
 
         [TestCase("isqbase%3A%3AMASS")]

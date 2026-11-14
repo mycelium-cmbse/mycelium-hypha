@@ -127,6 +127,15 @@ namespace Hypha.Launcher
 
             if (this.getEnvironmentVariable(BinVariable)?.Trim() is { Length: > 0 } configured)
             {
+                // A relative path would be resolved against whatever folder the client starts the server
+                // in, which differs between clients and between their sessions.
+                if (!Path.IsPathFullyQualified(configured))
+                {
+                    return LaunchTarget.Missing(
+                        $"{BinVariable} must be an absolute path to an installed hypha {MinimumVersion} or later, but is '{configured}'. "
+                        + "Give its full path, or unset it to let the launcher download one.");
+                }
+
                 var executable = new FileInfo(configured);
 
                 return executable.Exists

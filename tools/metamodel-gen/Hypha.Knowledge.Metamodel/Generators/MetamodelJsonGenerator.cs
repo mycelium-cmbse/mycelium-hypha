@@ -34,7 +34,7 @@ namespace Hypha.Knowledge.Metamodel.Generators
     public class MetamodelJsonGenerator : Generator
     {
         /// <summary>The version of the JSON shape produced by this generator.</summary>
-        public const string SchemaVersion = "2.1.0";
+        public const string SchemaVersion = MetamodelDocument.CurrentSchemaVersion;
 
         /// <summary>
         /// The fixed serializer options: indented, camel-cased property names and relaxed escaping, so

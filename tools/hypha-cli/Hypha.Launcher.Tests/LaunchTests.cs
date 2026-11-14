@@ -82,6 +82,37 @@ namespace Hypha.Launcher.Tests
             });
         }
 
+        [TestCase("hypha.exe")]
+        [TestCase("tools/hypha")]
+        public async Task A_relative_HYPHA_BIN_is_refused_rather_than_resolved_against_the_working_directory(string relative)
+        {
+            this.environment[Launch.BinVariable] = relative;
+
+            var target = await this.Launcher(Unreachable()).FindAsync(this.workspace, "win-x64");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(target.Executable, Is.Null);
+                Assert.That(target.Failure, Does.Contain("HYPHA_BIN must be an absolute path").And.Contain(relative));
+            });
+        }
+
+        [TestCase(@"\tools\hypha.exe")]
+        [TestCase("C:hypha.exe")]
+        [Platform("Win")]
+        public async Task A_HYPHA_BIN_rooted_but_not_fully_qualified_is_refused_on_Windows(string rooted)
+        {
+            this.environment[Launch.BinVariable] = rooted;
+
+            var target = await this.Launcher(Unreachable()).FindAsync(this.workspace, "win-x64");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(target.Executable, Is.Null);
+                Assert.That(target.Failure, Does.Contain("HYPHA_BIN must be an absolute path").And.Contain(rooted));
+            });
+        }
+
         [Test]
         public async Task A_HYPHA_BIN_that_does_not_exist_says_so_rather_than_downloading()
         {

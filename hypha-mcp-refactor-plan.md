@@ -441,20 +441,20 @@ Left out of the pull requests by choice, and recorded there; none blocks the ste
 
 From Steps 1 to 4 (#220 to #223):
 
-- [ ] The SDK logs two lines per request to standard error under `serve`; hold `ModelContextProtocol` at Warning, as the HTTP categories are.
-- [ ] A model-library resource is cut at 160 lines from its declaration without saying so.
-- [ ] A prompt called without its argument gets the SDK's generic error.
-- [ ] The migration copies a release that only an old plugin version has, possibly in an older generated format; check each artifact's schema version, or copy only from the newest plugin version.
-- [ ] A relative `HYPHA_HOME` with `--repository-root` is refused only once the toolchain is needed.
+- [x] The SDK logs two lines per request to standard error under `serve`; hold `ModelContextProtocol` at Warning, as the HTTP categories are.
+- [x] A model-library resource is cut at 160 lines from its declaration without saying so.
+- [x] A prompt called without its argument gets the SDK's generic error.
+- [x] The migration copies a release that only an old plugin version has, possibly in an older generated format; check each artifact's schema version, or copy only from the newest plugin version.
+- [x] A relative `HYPHA_HOME` with `--repository-root` is refused only once the toolchain is needed.
 - [ ] Test gaps noted in the reviews of #220 to #223: the serve-only lock wait, the progress token over stdio, the default switch over stdio, the specification search's clause ordering, the automatic migration through a real process.
 
 From Step 5's first part (#225):
 
 - [ ] Tests of each download failure reason `hypha_status` gives (no asset, no checksum, a checksum mismatch).
 - [ ] Tests: `hypha serve`'s arguments and exit code pass through the launcher; no per-user application data folder; a blank `HYPHA_BIN`; the manifest search at its depth limits; the fallback server's remaining edge cases; where the download error log goes.
-- [ ] `CacheLayout`'s doc comments still describe the hook's `%LOCALAPPDATA%\mycelium-hypha` root, with hyphens used as dashes.
-- [ ] The binaries workflow's header still says to run it after changes to the hook only; name the launcher and the shared `Provisioning/` sources.
-- [ ] A relative `HYPHA_BIN` resolves against the client's working directory; say so, or refuse it.
+- [x] `CacheLayout`'s doc comments still describe the hook's `%LOCALAPPDATA%\mycelium-hypha` root, with hyphens used as dashes.
+- [x] The binaries workflow's header still says to run it after changes to the hook only; name the launcher and the shared `Provisioning/` sources.
+- [x] A relative `HYPHA_BIN` resolves against the client's working directory; say so, or refuse it.
 
 ### Notes
 

@@ -217,6 +217,15 @@ namespace Hypha.Knowledge
 
             services.AddSingleton<IKnowledgeLayout>(_ =>
             {
+                // The toolchain lives in HYPHA_HOME unless it has a root of its own, so a HYPHA_HOME that
+                // cannot be used is refused here, before any work, rather than once a generation first
+                // needs uv, after the release was fetched. A caller that gives both roots, or the home
+                // itself, does not use the variable and is not refused over it.
+                if (options.RepositoryRoot is not null && options.Home is null && options.ToolchainCacheRoot is null)
+                {
+                    HyphaHome.Configured();
+                }
+
                 // A home folder the caller or the user chose wins over a checkout found only because
                 // of where the assembly sits; that checkout is a maintainer's build, and anyone else
                 // uses the home folder's default location.

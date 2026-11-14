@@ -13,6 +13,7 @@ namespace Hypha.Tools.Hosting
     using System.Collections.Generic;
     using System.CommandLine;
     using System.IO;
+    using System.Linq;
 
     using Hypha.Knowledge;
     using Hypha.Knowledge.Layout;
@@ -104,7 +105,12 @@ namespace Hypha.Tools.Hosting
                 {
                     var quiet = (LogEventLevel)Math.Max((int)level, (int)LogEventLevel.Warning);
 
-                    foreach (var category in RequestCategories)
+                    // Under serve, a Debug or Verbose level asked for on purpose keeps the SDK's lines.
+                    var categories = ServeCommand.Owns(parseResult) && level >= LogEventLevel.Information
+                        ? RequestCategories.Concat(ServeCategories)
+                        : RequestCategories;
+
+                    foreach (var category in categories)
                     {
                         configuration = configuration.MinimumLevel.Override(category, quiet);
                     }
@@ -131,6 +137,13 @@ namespace Hypha.Tools.Hosting
         /// </summary>
         public static readonly IReadOnlyList<string> RequestCategories =
             ["System.Net.Http", "Microsoft.Extensions.Http", "Polly"];
+
+        /// <summary>
+        /// The log categories that write at <c>Information</c> for every MCP request, which <c>serve</c>
+        /// holds to warnings and errors as well, unless a <c>Debug</c> or more detailed level was asked
+        /// for: the client may never read standard error either, and two lines per tool call would fill it.
+        /// </summary>
+        public static readonly IReadOnlyList<string> ServeCategories = ["ModelContextProtocol"];
 
         /// <summary>How each console log line is rendered.</summary>
         private const string OutputTemplate = "[{Level:u3}] {Message:lj}{NewLine}{Exception}";

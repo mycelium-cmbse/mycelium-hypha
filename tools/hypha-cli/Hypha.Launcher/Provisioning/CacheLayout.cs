@@ -15,25 +15,24 @@ namespace Hypha.Launcher.Provisioning
     using System.Text;
 
     /// <summary>
-    /// Where the downloaded CLI binary and this install's operational state live: deliberately
-    /// outside the plugin's own git-managed folder, since a plugin update/reinstall could reset that
-    /// tree mid-run and an in-tree file would show as untracked noise in a maintainer's own checkout.
+    /// Where the downloaded CLI binary and an install's operational state live, under a root outside
+    /// the plugin's own git-managed folder: a plugin update or reinstall could reset that tree mid-run,
+    /// and an in-tree file would show as untracked noise in a maintainer's own checkout.
     /// </summary>
     /// <remarks>
-    /// Resolved from <see cref="System.Environment.SpecialFolder.LocalApplicationData"/> - the
-    /// standard cross-platform .NET API (<c>%LOCALAPPDATA%</c> on Windows, <c>~/.local/share</c> on
-    /// Linux, <c>~/Library/Application Support</c> on macOS), so this hand-rolls no per-OS env var
-    /// lookup of its own.
+    /// The launcher passes the <c>HYPHA_HOME</c> folder as the root (see <c>HomeFolder</c>), the one
+    /// every client shares. <see cref="ResolveRoot"/> is the root the retired <c>SessionStart</c> hook
+    /// used, which <c>Hypha.Tools.Hook</c> still compiles against until it is removed.
     /// </remarks>
     public sealed class CacheLayout
     {
-        /// <summary>The folder, under the local application data folder, the cache lives in.</summary>
+        /// <summary>The folder, under the local application data folder, the hook's cache lives in.</summary>
         private const string CacheFolderName = "mycelium-hypha";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheLayout"/> class.
         /// </summary>
-        /// <param name="root">The cache root (see <see cref="ResolveRoot"/>).</param>
+        /// <param name="root">The cache root: the <c>HYPHA_HOME</c> folder for the launcher.</param>
         /// <param name="installKey">See <see cref="ComputeInstallKey"/>.</param>
         public CacheLayout(DirectoryInfo root, string installKey)
         {
@@ -44,13 +43,13 @@ namespace Hypha.Launcher.Provisioning
             this.InstallKey = installKey;
         }
 
-        /// <summary>Gets the cache root, e.g. <c>%LOCALAPPDATA%\mycelium-hypha</c>.</summary>
+        /// <summary>Gets the cache root, such as the <c>HYPHA_HOME</c> folder.</summary>
         public DirectoryInfo Root { get; }
 
         /// <summary>Gets the short key identifying this plugin install among possibly several.</summary>
         public string InstallKey { get; }
 
-        /// <summary><c>bin/&lt;version&gt;/&lt;rid&gt;/</c> - where one CLI build is cached.</summary>
+        /// <summary><c>bin/&lt;version&gt;/&lt;rid&gt;/</c>: where one CLI build is cached.</summary>
         /// <param name="version">The CLI version.</param>
         /// <param name="rid">The runtime identifier the build targets, e.g. <c>win-x64</c>.</param>
         /// <returns>The folder, which need not exist.</returns>
@@ -60,7 +59,7 @@ namespace Hypha.Launcher.Provisioning
         /// <summary>The cached <c>hypha</c> executable itself.</summary>
         /// <remarks>
         /// The extension is derived from <paramref name="rid"/>, not the host OS: in practice they
-        /// always agree (a published hook binary only ever asks for its own platform's RID), but
+        /// always agree (a published launcher only ever asks for its own platform's RID), but
         /// deriving it from the RID keeps this a pure function of its arguments rather than of the
         /// environment it happens to run in.
         /// </remarks>
@@ -82,14 +81,16 @@ namespace Hypha.Launcher.Provisioning
         public FileInfo OkMarker(string version, string rid) =>
             new(Path.Combine(this.BinDirectory(version, rid).FullName, ".ok"));
 
-        /// <summary><c>state/&lt;install-key&gt;/</c> - this install's operational state.</summary>
+        /// <summary><c>state/&lt;install-key&gt;/</c>: this install's operational state.</summary>
         public DirectoryInfo StateDirectory => new(Path.Combine(this.Root.FullName, "state", this.InstallKey));
 
         /// <summary>Where a failed CLI download/verification is recorded for manual diagnosis.</summary>
         public FileInfo DownloadErrorLog => new(Path.Combine(this.StateDirectory.FullName, "download-error.log"));
 
         /// <summary>
-        /// Resolves the cache root via <see cref="System.Environment.SpecialFolder.LocalApplicationData"/>.
+        /// Resolves the retired hook's cache root via <see cref="System.Environment.SpecialFolder.LocalApplicationData"/>
+        /// (<c>%LOCALAPPDATA%</c> on Windows, <c>~/.local/share</c> on Linux, <c>~/Library/Application Support</c>
+        /// on macOS). The launcher does not use it.
         /// </summary>
         /// <param name="getFolderPath">
         /// Injectable for tests; defaults to <see cref="System.Environment.GetFolderPath(System.Environment.SpecialFolder)"/>.
