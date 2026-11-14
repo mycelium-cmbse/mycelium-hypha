@@ -360,6 +360,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`jq`** (`refs #197`): no skill runs it any more, and the README no longer recommends it.
 
 ### Fixed
+- **An install through `hypha serve` no longer hangs at the specification text** (`refs #237`): the
+  processes `hypha` starts (`uv`, and the Python it runs) inherited its standard input, which under
+  `hypha serve` is the pipe the MCP client writes to, and on Windows the extractor's build never
+  started, holding the release lock. Each child now gets an input of its own, closed at once.
 - **The specification text is generated in `HYPHA_HOME` too** (`refs #237`): the specification
   generators ran the Python extractor from `tools/spec-extract` under the knowledge folder, which only
   a source checkout or a plugin's own folder has, so an install through the MCP server, or a
