@@ -52,6 +52,12 @@ updates:
     groups:
       npm:
         update-types: [minor, patch]
+    ignore:
+      # The Node types follow the Node the extension is built and tested with (node-version in the
+      # workflows), not the newest Node: newer types would let code compile that the older Node
+      # cannot run. Move this major by hand, together with node-version.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   # The specification extractor: uv.lock is what the CLI and the VS Code extension install through
   # uv, and what CI installs to lint and test it, so an update here is tested as it ships.
