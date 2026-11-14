@@ -18,8 +18,14 @@ namespace Hypha.Knowledge.Migration
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
+    using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
+    using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Hosting;
+    using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Metamodel;
+    using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
 
     using Microsoft.Extensions.Logging;
@@ -50,6 +56,13 @@ namespace Hypha.Knowledge.Migration
         private static readonly Action<ILogger, string, string, Exception?> UnreadableMessage =
             LoggerMessage.Define<string, string>(
                 LogLevel.Warning, new EventId(2, "Unreadable"), "Skipped {From}: its version manifest cannot be read ({Reason})");
+
+        /// <summary>The compiled <c>Skipped {Kind} {Tag}</c> message (event 3, warning), for knowledge in an older format.</summary>
+        private static readonly Action<ILogger, string, string, string, string, Exception?> OutdatedMessage =
+            LoggerMessage.Define<string, string, string, string>(
+                LogLevel.Warning,
+                new EventId(3, "Outdated"),
+                "Skipped {Kind} {Tag} from {From}: {Reason}, so it would answer wrongly; install it again instead");
 
         /// <summary>Where the knowledge is read from now: <c>HYPHA_HOME</c>, a checkout or a folder given explicitly.</summary>
         private readonly IKnowledgeLayout layout;
@@ -274,6 +287,90 @@ namespace Hypha.Knowledge.Migration
             staging.MoveTo(to.FullName);
         }
 
+        /// <summary>
+        /// The generated documents of a release that carry the version of their JSON shape, each with the
+        /// version this hypha writes and reads.
+        /// </summary>
+        /// <param name="layout">The client folder's layout.</param>
+        /// <param name="tag">The release.</param>
+        /// <returns>The documents and their current versions.</returns>
+        private static IEnumerable<(FileInfo File, string Version)> Generated(KnowledgeLayout layout, string tag) =>
+        [
+            (layout.MetamodelGraph(tag), MetamodelDocument.CurrentSchemaVersion),
+            (layout.MetamodelIndex(tag), MetamodelDocument.CurrentSchemaVersion),
+            (layout.CrossReferences(tag), CrossReferenceDocument.CurrentSchemaVersion),
+            (layout.Keywords(tag), KeywordDocument.CurrentSchemaVersion),
+            (layout.ModelLibraryIndex(tag), ModelLibraryDocument.CurrentSchemaVersion),
+        ];
+
+        /// <summary>
+        /// The generated documents of an API version that carry the version of their JSON shape, each with
+        /// the version this hypha writes and reads.
+        /// </summary>
+        /// <param name="layout">The client folder's API layout.</param>
+        /// <param name="version">The API version.</param>
+        /// <returns>The documents and their current versions.</returns>
+        private static IEnumerable<(FileInfo File, string Version)> Generated(ApiLayout layout, string version) =>
+        [
+            (layout.PimGraph(version), MetamodelDocument.CurrentSchemaVersion),
+            (layout.OpenApiIndex(version), OpenApiIndexDocument.CurrentSchemaVersion),
+            (layout.CrossReferences(version), ApiCrossReferenceDocument.CurrentSchemaVersion),
+        ];
+
+        /// <summary>
+        /// Why knowledge an older client generated is in a JSON shape this hypha does not read, or <c>null</c>
+        /// when every document it has is in the current one.
+        /// </summary>
+        /// <remarks>
+        /// A client that installed a release with an older hypha wrote its documents in the shape of that
+        /// version. Copied as it is, such a release would be read as if it were current and give wrong
+        /// answers, so it is left for the user to install again. A document the release does not have (an
+        /// artifact skipped for lack of its inputs) is not a reason.
+        /// </remarks>
+        /// <param name="documents">The documents and the versions this hypha reads.</param>
+        /// <returns>The reason, or <c>null</c>.</returns>
+        private static string? Outdated(IEnumerable<(FileInfo File, string Version)> documents)
+        {
+            foreach (var (file, version) in documents)
+            {
+                file.Refresh();
+                if (!file.Exists)
+                {
+                    continue;
+                }
+
+                var found = SchemaVersion(file);
+                if (!string.Equals(found, version, StringComparison.Ordinal))
+                {
+                    return $"its {file.Name} is in schema {found ?? "(none)"}, not {version}";
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>The <c>schemaVersion</c> a generated JSON document states.</summary>
+        /// <param name="file">The document.</param>
+        /// <returns>The version, or <c>null</c> when the document states none or cannot be read.</returns>
+        private static string? SchemaVersion(FileInfo file)
+        {
+            try
+            {
+                using var stream = file.OpenRead();
+                using var document = JsonDocument.Parse(stream);
+
+                return document.RootElement.ValueKind == JsonValueKind.Object
+                       && document.RootElement.TryGetProperty("schemaVersion", out var version)
+                       && version.ValueKind == JsonValueKind.String
+                    ? version.GetString()
+                    : null;
+            }
+            catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
         /// <summary>Why a migration on its own need not run any more, or <c>null</c> when it should.</summary>
         /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
         /// <param name="target">The <c>HYPHA_HOME</c> layout.</param>
@@ -388,6 +485,12 @@ namespace Hypha.Knowledge.Migration
                         continue;
                     }
 
+                    if (Outdated(Generated(source, version.Tag)) is { } releaseFormat)
+                    {
+                        OutdatedMessage(this.logger, MigratedVersion.Release, version.Tag, install.Origin, releaseFormat, null);
+                        continue;
+                    }
+
                     CopyFolder(source.Knowledge(version.Tag), target.Knowledge(version.Tag), cancellationToken);
                     CopyFolder(source.ReleaseSources(version.Tag), target.ReleaseSources(version.Tag), cancellationToken);
                     releases.Add(version);
@@ -403,6 +506,12 @@ namespace Hypha.Knowledge.Migration
                         || apis.Any(installed => installed.Tag == version.Tag)
                         || !apiSource.Knowledge(version.Tag).Exists)
                     {
+                        continue;
+                    }
+
+                    if (Outdated(Generated(apiSource, version.Tag)) is { } apiFormat)
+                    {
+                        OutdatedMessage(this.logger, MigratedVersion.Api, version.Tag, install.Origin, apiFormat, null);
                         continue;
                     }
 

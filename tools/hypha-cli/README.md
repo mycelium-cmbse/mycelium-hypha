@@ -357,7 +357,9 @@ follow (Step 7 of `hypha-mcp-refactor-plan.md`).
   It resolves the package from its own location and `HYPHA_HOME` itself, never from a client's path
   variables, and the download honours `HTTPS_PROXY` and `GITHUB_TOKEN`.
 - **`HYPHA_BIN`** names a `hypha` to start instead, for an offline or locked-down machine. It must be
-  `hypha` 1.6.0 or later: an older one has no `serve`, and prints its help on standard output.
+  `hypha` 1.6.0 or later (an older one has no `serve`, and prints its help on standard output), given
+  by its absolute path: a relative one would be resolved against whatever folder the client starts
+  the server in, so the launcher refuses it.
 - **A failure the model can see.** When there is no `hypha` to start (the download is blocked or
   cannot be written, the package is damaged, `HYPHA_HOME` cannot be used, the `hypha` found cannot be
   started), the launcher serves a minimal MCP server itself.

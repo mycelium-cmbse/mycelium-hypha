@@ -38,6 +38,12 @@ namespace Hypha.Knowledge.Metamodel
         IReadOnlyList<PrimitiveTypeNode> PrimitiveTypes)
     {
         /// <summary>
+        /// The version of the JSON shape <c>metamodel.json</c> and the metamodel's <c>index.json</c> are
+        /// written in, which <c>Hypha.Knowledge.Metamodel</c> writes and a reader expects.
+        /// </summary>
+        public const string CurrentSchemaVersion = "2.1.0";
+
+        /// <summary>
         /// Gets the interfaces, or <c>null</c> for a model that declares none, which leaves the
         /// property out of the document, so a KerML or SysML document keeps its exact shape.
         /// </summary>

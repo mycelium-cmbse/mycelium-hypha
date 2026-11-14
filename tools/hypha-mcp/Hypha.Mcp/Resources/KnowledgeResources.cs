@@ -81,7 +81,8 @@ namespace Hypha.Mcp.Resources
         [McpServerResource(UriTemplate = UriTemplate, Name = "hypha_page", Title = "hypha knowledge page", MimeType = "text/markdown")]
         [Description(
             "A page of the SysML v2 / KerML knowledge base: a metaclass (metamodel), a standard-library declaration "
-            + "(model-library, by qualified name), or a KerML or SysML specification clause (kerml, sysml2, by number).")]
+            + "(model-library, by qualified name: up to 160 lines of its package's source from the declaration on, "
+            + "which hypha_lookup reads further), or a KerML or SysML specification clause (kerml, sysml2, by number).")]
         public ResourceContents Page(
             [Description("The release, such as 2026-05.")] string tag,
             [Description("What the page is.")][AllowedValues(HyphaAddress.Metamodel, HyphaAddress.ModelLibrary, HyphaAddress.Kerml, HyphaAddress.Sysml)] string kind,
@@ -118,10 +119,15 @@ namespace Hypha.Mcp.Resources
         }
 
         /// <summary>
-        /// A model-library declaration, as the lookup pages it: from the declaration on, rather than the whole
-        /// library file, which can run to thousands of lines.
+        /// A model-library declaration, as the lookup pages it: one page of its package's source from the
+        /// declaration on, rather than the whole package, which can run to thousands of lines.
         /// </summary>
         /// <remarks>
+        /// The page is a window on the package, not the declaration: the scanner finds where a declaration
+        /// starts, not where it ends, so most windows run past a short declaration into the next ones. That is
+        /// why the window says nothing about where the package goes on; the template's description says how
+        /// far it reaches, and how to read further.
+        ///
         /// An address names one declaration exactly, by its qualified name, as <c>hypha_resolve</c> reads it,
         /// so each page has one address. The lookup also matches ignoring case and by a trailing part of the
         /// name, so it is asked only once the address is known to name a declaration, to find where that

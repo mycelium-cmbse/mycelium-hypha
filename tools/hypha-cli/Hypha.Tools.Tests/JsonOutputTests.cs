@@ -130,7 +130,7 @@ namespace Hypha.Tools.Tests
         [TestCase("Polly")]
         public void With_json_request_and_retry_chatter_is_held_to_warnings(string category)
         {
-            // A caller that never reads standard error (the SessionStart hook) would otherwise hang
+            // A caller that never reads standard error (a script, say) would otherwise hang
             // once enough of these filled the pipe.
             var (_, quiet) = Log("list --json", category, LogLevel.Information);
             var (_, warning) = Log("list --json", category, LogLevel.Warning);
@@ -140,6 +140,37 @@ namespace Hypha.Tools.Tests
                 Assert.That(quiet, Does.Not.Contain("a log line"));
                 Assert.That(warning, Does.Contain("a log line"));
             });
+        }
+
+        [Test]
+        public void Under_serve_the_mcp_sdk_request_chatter_is_held_to_warnings()
+        {
+            // The client starts serve and may never read its standard error: two lines per tool call
+            // would fill the pipe.
+            var (_, quiet) = Log("serve", "ModelContextProtocol.Server.McpServer", LogLevel.Information);
+            var (_, warning) = Log("serve", "ModelContextProtocol.Server.McpServer", LogLevel.Warning);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(quiet, Does.Not.Contain("a log line"));
+                Assert.That(warning, Does.Contain("a log line"));
+            });
+        }
+
+        [Test]
+        public void Under_serve_a_debug_level_asked_for_keeps_the_mcp_sdk_lines()
+        {
+            var (_, error) = Log("serve --log-level Debug", "ModelContextProtocol.Server.McpServer", LogLevel.Information);
+
+            Assert.That(error, Does.Contain("a log line"));
+        }
+
+        [Test]
+        public void Outside_serve_the_mcp_sdk_category_is_not_held()
+        {
+            var (_, error) = Log("list --json", "ModelContextProtocol.Server.McpServer", LogLevel.Information);
+
+            Assert.That(error, Does.Contain("a log line"));
         }
 
         [Test]
