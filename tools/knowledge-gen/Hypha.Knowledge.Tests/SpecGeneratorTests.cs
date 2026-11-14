@@ -35,6 +35,8 @@ namespace Hypha.Knowledge.Tests
 
         private Mock<IUvProvisioner> uv = null!;
 
+        private Mock<ISpecExtractProject> project = null!;
+
         private Mock<IProcessRunner> processes = null!;
 
         private SpecGenerator generator = null!;
@@ -63,8 +65,15 @@ namespace Hypha.Knowledge.Tests
             this.uv = new Mock<IUvProvisioner>();
             this.processes = new Mock<IProcessRunner>();
 
+            // The project is wherever the provider says, here a folder that is not under the root, as in
+            // HYPHA_HOME, where the copy hypha carries is unpacked beside uv.
+            this.project = new Mock<ISpecExtractProject>();
+            this.project
+                .Setup(p => p.EnsureAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DirectoryInfo(Path.Combine(this.outputRoot.FullName, "toolchain", "spec-extract")));
+
             this.generator = new SpecGenerator(
-                this.layout.Object, this.uv.Object, this.processes.Object, NullLogger<SpecGenerator>.Instance);
+                this.layout.Object, this.project.Object, this.uv.Object, this.processes.Object, NullLogger<SpecGenerator>.Instance);
         }
 
         [TearDown]

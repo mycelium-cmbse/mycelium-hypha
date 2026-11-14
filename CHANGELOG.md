@@ -360,6 +360,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`jq`** (`refs #197`): no skill runs it any more, and the README no longer recommends it.
 
 ### Fixed
+- **The specification text is generated in `HYPHA_HOME` too** (`refs #237`): the specification
+  generators ran the Python extractor from `tools/spec-extract` under the knowledge folder, which only
+  a source checkout or a plugin's own folder has, so an install through the MCP server, or a
+  `dotnet tool` install, skipped the specification text. `hypha` now carries the extractor and unpacks
+  it into `toolchain/spec-extract/`, next to `uv`, keeping it in step with the copy it carries; a
+  source checkout still runs its own.
 - **`hypha serve` keeps the MCP SDK's per-request log lines off standard error** (`refs #224`): they
   are held to warnings and errors, as the HTTP request lines already were, so a client that never
   reads standard error cannot fill it. `--log-level Debug` still shows them.

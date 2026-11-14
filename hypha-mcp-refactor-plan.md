@@ -412,8 +412,8 @@ Left out of the skills' rewrite, and due before the release: things the tools ca
 
 Found in November 2026, checking the plan against the code: `SpecGenerator` and `ApiSpecGenerator` run the extractor from `<root>/tools/spec-extract`, which a source checkout and a plugin's own folder have and `HYPHA_HOME` does not. Over MCP an install therefore skips the specification text, and `spec-citation` cannot quote a clause.
 
-- [ ] Embed the `tools/spec-extract` sources (`pyproject.toml`, `uv.lock`, `src/`) in `hypha`, and unpack them into `HYPHA_HOME/toolchain/spec-extract/` when they are missing or differ from the embedded copy. `SpecGenerator` and `ApiSpecGenerator` run the extractor from there; a source checkout keeps using its own `tools/spec-extract`.
-- [ ] Tests: in a root without `tools/` the extractor is unpacked and the generators run it from there; a checkout keeps its own; an unpacked copy that differs is replaced.
+- [x] Embed the `tools/spec-extract` sources (`pyproject.toml`, `uv.lock`, `src/`) in `hypha`, and unpack them into `HYPHA_HOME/toolchain/spec-extract/` when they are missing or differ from the embedded copy. `SpecGenerator` and `ApiSpecGenerator` run the extractor from there; a source checkout keeps using its own `tools/spec-extract`.
+- [x] Tests: in a root without `tools/` the extractor is unpacked and the generators run it from there; a checkout keeps its own; an unpacked copy that differs is replaced.
 - [ ] Generate a release's specification text in a real `HYPHA_HOME` once, through `hypha serve`, and record the result here.
 - [ ] The VS Code extension stops packaging its own copy of the extractor once it reads `HYPHA_HOME` (Step 7, #158).
 
