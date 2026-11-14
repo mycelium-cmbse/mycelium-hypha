@@ -325,10 +325,10 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | 5: launcher, Claude plugin over MCP | #198 | Done; its client prototype moved to Step 9 |
 | 6: portable skills | #197 | Skills done (#227, #229, #230, #231) |
 | 6, what the tools cannot answer yet | #228 | Done (#234, #235, #236) |
-| The specification extractor in `HYPHA_HOME` | #237 | Open; before the release, and before Steps 7 and 8 |
+| The specification extractor in `HYPHA_HOME` | #237 | Done (#238, #241) but for the VS Code extension's copy, which goes with Step 7 |
 | 7: every other client | #199, with #158, #163 and #165 | Open; before the release |
-| 8: CI and release | #200 | Open; before the release |
-| Follow-ups from the reviews | #224 | Fixes done (#232); the test gaps open |
+| 8: CI and release | #200 | Hook project removed, workflow renamed (#239); Linux arm64, ReadyToRun and `RELEASING.md` open |
+| Follow-ups from the reviews | #224 | Fixes done (#232); the test gaps and four findings of the end-to-end run open |
 | 9: a pre-release, verified across clients | #201 | Open; every manual check is here |
 | 10: release tools 1.6.0 and plugin 3.0.0 | #197 | Open; after Step 9 |
 
@@ -414,7 +414,7 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 
 - [x] Embed the `tools/spec-extract` sources (`pyproject.toml`, `uv.lock`, `src/`) in `hypha`, and unpack them into `HYPHA_HOME/toolchain/spec-extract/` when they are missing or differ from the embedded copy. `SpecGenerator` and `ApiSpecGenerator` run the extractor from there; a source checkout keeps using its own `tools/spec-extract`.
 - [x] Tests: in a root without `tools/` the extractor is unpacked and the generators run it from there; a checkout keeps its own; an unpacked copy that differs is replaced.
-- [ ] Generate a release's specification text in a real `HYPHA_HOME` once, through `hypha serve`, and record the result here.
+- [x] Generate a release's specification text in a real `HYPHA_HOME` once, through `hypha serve`, and record the result here.
 - [ ] The VS Code extension stops packaging its own copy of the extractor once it reads `HYPHA_HOME` (Step 7, #158).
 
 ### Step 7: Package for every other client (#199, #158, #163, #165)
@@ -483,6 +483,13 @@ From Step 5's first part (#225):
 - [x] `CacheLayout`'s doc comments still describe the hook's `%LOCALAPPDATA%\mycelium-hypha` root, with hyphens used as dashes.
 - [x] The binaries workflow's header still says to run it after changes to the hook only; name the launcher and the shared `Provisioning/` sources.
 - [x] A relative `HYPHA_BIN` resolves against the client's working directory; say so, or refuse it.
+
+From the end-to-end run (#237), seen in the run through the launcher in a clean `HYPHA_HOME`; none stopped it:
+
+- [ ] The anonymous GitHub rate limit (60 requests an hour) runs out quickly: two install attempts and a few checks used it up. Count the requests an install makes and bring them down, or tell the user about `GITHUB_TOKEN` before the limit is met, not only once it is.
+- [ ] A skipped migration is silent: installs left out for being in an older format are a warning on standard error only, so `hypha_release_status` says nothing is installed without saying why. Say it in the answer.
+- [ ] A refusal the client gets a proper message for (removing the default, a version not installed) is logged as `[ERR] "hypha_remove_release" threw an unhandled exception`. Log it at a lower level, or not as unhandled.
+- [ ] `hypha_search_spec` takes 18 to 33 seconds on its first call in a release, against instant answers from every other read tool. Find out where the time goes and cut it, or index the text.
 
 ### Notes
 
