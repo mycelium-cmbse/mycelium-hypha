@@ -48,6 +48,16 @@ A release therefore means: **bump the version, point the source at a new tag, an
    Tag **after** the PR merges, so the tagged tree already carries the bumped `version`.
 4. Users receive it via `/plugin marketplace update` → `/reload-plugins` (prompted because `version`
    changed).
+5. Pushing the tag starts the **Claude Desktop bundle** workflow (`desktop-bundle.yml`), which packs
+   `hypha-X.Y.Z.mcpb` from the tagged tree (`packaging/mcpb/manifest.json`, the launchers in `bin/` and
+   an icon) and keeps it as a workflow artifact. It refuses a tag whose version the manifest does not
+   carry, so bless the manifests (step 2) before tagging, and check that this run is green before
+   writing the release. The launchers in the bundle are the committed ones: run **Launcher binaries**
+   first if `Hypha.Launcher` changed since they were built.
+6. Write the GitHub release `vX.Y.Z` and publish it. Publishing starts the same workflow again, which
+   attaches `hypha-X.Y.Z.mcpb` to the release; the workflow never creates a release itself. Check that
+   the asset is there: the README sends Claude Desktop users to it. To attach it again, start the
+   workflow by hand with the tag.
 
 ## Conventions
 

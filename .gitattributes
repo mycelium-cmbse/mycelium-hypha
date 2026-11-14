@@ -20,3 +20,4 @@ mcp.json text eol=lf
 gemini-extension.json text eol=lf
 .claude-plugin/*.json text eol=lf
 bin/hypha-launch.json text eol=lf
+packaging/mcpb/manifest.json text eol=lf

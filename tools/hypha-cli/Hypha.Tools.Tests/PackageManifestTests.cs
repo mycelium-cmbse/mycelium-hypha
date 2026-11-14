@@ -60,12 +60,75 @@ namespace Hypha.Tools.Tests
         {
             foreach (var (path, content) in PackageManifests.Render(this.source))
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(Absolute(path))!);
                 File.WriteAllText(Absolute(path), content);
             }
 
             File.WriteAllText(
                 Absolute(PackageManifests.ClaudeMarketplace),
                 PackageManifests.RenderMarketplace(this.source, Read(PackageManifests.ClaudeMarketplace)));
+        }
+
+        [Test]
+        public void The_desktop_bundle_starts_the_launcher_it_carries_on_every_platform()
+        {
+            var manifest = JsonNode.Parse(PackageManifests.Render(this.source)[PackageManifests.DesktopBundle])!.AsObject();
+            var server = manifest["server"]!.AsObject();
+            var config = server["mcp_config"]!.AsObject();
+
+            Assert.Multiple(() =>
+            {
+                // What the bundle format requires of a manifest.
+                foreach (var required in new[] { "manifest_version", "name", "version", "description", "author", "server" })
+                {
+                    Assert.That(manifest.ContainsKey(required), Is.True, required);
+                }
+
+                Assert.That(manifest["author"]!["name"]!.GetValue<string>(), Is.Not.Empty);
+                Assert.That(manifest["version"]!.GetValue<string>(), Is.EqualTo(this.source["version"]!.GetValue<string>()));
+
+                // The bundle's server/ folder is the plugin's bin/ folder, so the same dispatch applies:
+                // the script on macOS and Linux, and the .exe beside it on Windows.
+                Assert.That(server["type"]!.GetValue<string>(), Is.EqualTo("binary"));
+                Assert.That(server["entry_point"]!.GetValue<string>(), Is.EqualTo("server/hypha-launch"));
+                Assert.That(config["command"]!.GetValue<string>(), Is.EqualTo("${__dirname}/server/hypha-launch"));
+                Assert.That(
+                    config["platform_overrides"]!["win32"]!["command"]!.GetValue<string>(),
+                    Is.EqualTo("${__dirname}/server/hypha-launch.exe"));
+                Assert.That(config["args"]!.AsArray(), Is.Empty, "the launcher adds serve itself, and no folder is named");
+                Assert.That(manifest["tools_generated"]!.GetValue<bool>(), Is.True, "the server lists its own tools");
+                Assert.That(
+                    manifest["compatibility"]!["platforms"]!.AsArray().Select(platform => platform!.GetValue<string>()),
+                    Is.EquivalentTo(new[] { "darwin", "win32", "linux" }));
+            });
+        }
+
+        [Test]
+        public void The_bundle_workflow_attaches_to_a_release_and_never_creates_one()
+        {
+            var workflow = Read(".github/workflows/desktop-bundle.yml");
+
+            // The release is written by hand: one made here would be a second release for the same tag.
+            Assert.Multiple(() =>
+            {
+                Assert.That(workflow, Does.Contain("gh release upload"));
+                Assert.That(workflow, Does.Not.Contain("gh release create"));
+            });
+        }
+
+        [Test]
+        public void The_bundle_workflow_packs_the_manifest_the_launchers_and_the_icon_it_names()
+        {
+            var workflow = Read(".github/workflows/desktop-bundle.yml");
+            var manifest = JsonNode.Parse(Read(PackageManifests.DesktopBundle))!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(workflow, Does.Contain(PackageManifests.DesktopBundle), "the committed, rendered manifest goes in");
+                Assert.That(workflow, Does.Contain("cp -R bin/. bundle/server/"), "bin/ whole, as server/");
+                Assert.That(workflow, Does.Contain("bundle/" + manifest["icon"]!.GetValue<string>()), "the icon the manifest names");
+                Assert.That(File.Exists(Absolute("extensions/vscode/icon.png")), Is.True, "the icon the workflow copies");
+            });
         }
 
         [Test]

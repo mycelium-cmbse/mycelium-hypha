@@ -266,7 +266,7 @@ mycelium-hypha/
 └── …                            sources, tools, tests (as today)
 ```
 
-Release assets (not committed): self-contained `hypha` per RID, and `hypha-<version>-<rid>.mcpb` per platform for Claude Desktop (`server.type = "binary"`, entry point `hypha-launch`).
+Release assets (not committed): on a tools release, the self-contained `hypha` per RID; on a plugin release, one `hypha-<version>.mcpb` for Claude Desktop (`server.type = "binary"`), which holds the committed `bin/` folder as `server/` and so serves every platform through the same dispatch script. It carries the package version, and its manifest, `packaging/mcpb/manifest.json`, is rendered from `manifest.source.json` like the others.
 
 The three manifests and the Agent Plugins MCP config are generated from one source of truth (name, version, description, server command) in CI, and a check fails the build if they drift. Claude Code's server entry is in its manifest, not in a root `.mcp.json`, which Claude Code would also load as this repository's own project configuration.
 
@@ -422,7 +422,7 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 - [x] **Single source of truth** (`manifest.source.json`) for name, description, server command and the two versions: the package version, which the plugin and every client manifest carry, and the `hypha` version the launcher downloads (`bin/hypha-launch.json`), on the tools' own version line. The manifests are rendered from it, and `dotnet test` fails in CI when one drifts (`PackageManifestTests`).
 - [x] **Agent Plugins 1.0**: root `plugin.json` (with `$schema`) and `mcp.json` to `bin/hypha-launch`, sharing `skills/`. Covers Copilot (VS Code, CLI, app, cloud agent), Cursor, Codex and Kiro.
 - [x] **Gemini CLI**: `gemini-extension.json` with `mcpServers` to `bin/hypha-launch`, sharing `skills/`.
-- [ ] **Claude Desktop**: per-platform `.mcpb` (`server.type = "binary"`, entry point `hypha-launch`), built by the release workflow as a release asset.
+- [x] **Claude Desktop**: one `.mcpb` for every platform (`server.type = "binary"`, entry point `server/hypha-launch`, with the plugin's `bin/` folder as its `server/`), built from the committed launchers by the *Claude Desktop bundle* workflow, which packs it when a plugin tag is pushed and attaches it when that release is published.
 - [ ] **Manual-config clients** (Junie, Windsurf, Zed, Cline, Roo): document a config snippet per client, plus where to copy the skills.
 - [x] **VS Code extension** (section 1.15; re-scopes #158): register the server through `vscode.lm.registerMcpServerDefinitionProvider`, delete the two `vscode.lm.registerTool` tools, and drop the `--repository-root` to global storage, so the extension reads `HYPHA_HOME`. Its five release commands went too, since Copilot does the same through the server's tools; VS Code 1.101 is the minimum.
 - [ ] **VS Code extension, more platforms**: add the `win32-arm64` target and publish the validated macOS and Windows on Arm packages (#163), and publish to Open VSX (#165); their validation is in Step 9.
