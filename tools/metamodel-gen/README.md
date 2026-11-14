@@ -54,9 +54,11 @@ pass, so the two never drift), committed under `knowledge/metamodel/`:
 Multiplicity upper bound `-1` denotes unbounded (`*`); output is deterministic (sorted, LF, no
 timestamps) and golden-tested against the committed files.
 
-### Querying with `jq`
+### Querying the graph
 
-These structural questions are one-shot `jq` queries against the precomputed graph:
+The MCP server's tools and `hypha query` answer structural questions from this graph through
+`IKnowledgeQuery`, without re-deriving anything. For a quick look by hand, the same questions are
+one-shot `jq` queries against it (the query API's tests compare its answers with `jq` queries like these):
 
 ```sh
 # Concrete subclasses of Usage (anywhere in the hierarchy)
@@ -75,13 +77,7 @@ jq -r '.classes[] | select(.ownedAttributes[]? | .isComposite and .type=="Expres
 jq '.entries["PartUsage"]' knowledge/metamodel/index.json
 ```
 
-**Recommended:** `jq` is a small standalone binary (not Python/Node); install via `brew install jq`,
-`sudo apt install jq`, or `winget install jqlang.jq`. It is not a hard requirement, but at ~8 MB
-`metamodel.json` is too large to read whole, so without `jq` the skills fall back to the per-element
-markdown, which is slower, far heavier on context, and unable to distinguish a field match from a mention in
-prose. The plugin-facing note lives in the [root README](../../README.md#recommended-jq); this file
-is not shipped with the plugin. A future MCP server would load the same JSON in memory and need
-neither `jq` nor a shell.
+Neither the plugin nor the MCP server needs `jq`; this file is not shipped with the plugin.
 
 ## Status
 

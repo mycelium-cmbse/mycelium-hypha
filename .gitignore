@@ -28,11 +28,6 @@ obj/
 *.suo
 .vs/
 
-# NOTE: the committed NativeAOT hook binaries live under hooks/native/, not hooks/bin/ - deliberately,
-# so they are never caught by the blanket bin/ ignore above (git cannot cleanly re-include a directory
-# once a parent-matching pattern like "bin/" has excluded it). See tools/hypha-cli/README.md and
-# .github/workflows/hook-binaries.yml.
-
 # The plugin's own top-level bin/ is committed: it holds hypha-launch, the MCP server's launcher, for
 # each platform, and its dispatch script (see tools/hypha-cli/README.md). Root-anchored, so every build
 # output folder named bin/ stays ignored.

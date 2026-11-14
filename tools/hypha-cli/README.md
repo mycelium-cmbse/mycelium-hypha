@@ -62,7 +62,7 @@ everything it provisions in its own storage, such as an editor extension, passes
 | `hypha move-window --tag <release> [--keep N]` | Maintainer-only: fetches, regenerates, re-extracts specifications, re-blesses the metamodel-gen fixtures, verifies, then prunes locally-installed releases beyond `--keep` (default 2). |
 | `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
 | `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
-| `hypha check [--json]` | Compares installed releases against what is offerable upstream, with no fetching and no generating; the one verb the plugin's `SessionStart` hook drives. |
+| `hypha check [--json]` | Compares installed releases against what is offerable upstream, with no fetching and no generating; the MCP server's `hypha_check_releases` runs the same check. |
 | `hypha serve` | Runs the hypha MCP server over standard input and output, for an AI client to start (see "MCP server" below). |
 | `hypha migrate [--from <folder>]` | Copies the releases the Claude plugin and the VS Code extension installed in their own folders into `HYPHA_HOME` (see "Moving to HYPHA_HOME" below). |
 
@@ -118,7 +118,7 @@ for `hypha generate`.
 ### Asking a question
 
 `hypha query` answers the questions of the query API (`IKnowledgeQuery`, `IApiQuery`), the same
-facts the skills read with `jq`, one verb per question. `hypha query --help` lists them; each verb's
+facts the MCP server's tools answer, one verb per question. `hypha query --help` lists them; each verb's
 `--help` lists its options.
 
 ```sh
@@ -152,7 +152,7 @@ generators could not have written is refused by both.
 
 - standard output holds exactly one line with one JSON document, with no banner and no wrapping, and every
   log line goes to standard error. HTTP request and retry logging is held to warnings and errors there,
-  so a caller that never reads standard error (the `SessionStart` hook) cannot fill the pipe and stall
+  so a caller that never reads standard error (a script, say) cannot fill the pipe and stall
   the command;
 - every property of the document is always present, `null` when it has no value;
 - a failure is a document too, `{"error": "..."}`, with a non-zero exit code: 1, or 130 when
@@ -212,7 +212,8 @@ Pilot-Implementation repository (all at the same tag), and the PIM model from th
 server, because no repository carries it. That last request goes through a client of its own that
 carries no credentials: `--token` is for GitHub and is never sent anywhere else.
 
-`hypha check`, `hypha move-window` and the `SessionStart` hook cover the language releases only.
+`hypha check` and `hypha move-window` cover the language releases only, and so do the MCP server's
+release tools.
 
 ### Moving the release window
 
@@ -233,14 +234,14 @@ provisioned `tools/spec-extract/.venv`** (`uv sync --extra dev`, or `python -m v
 -e .[dev]`, from `tools/spec-extract/`): its re-bless and verify steps shell out to `dotnet test`, and specification
 extraction shells out to `pytest`. It cannot run from the standalone distributed binary.
 
-### Automatic version check
+### Checking for newer releases
 
 Nothing generated is committed to git (see the repository root `CLAUDE.md`): the plugin fetches and
 generates every release entirely on the user's machine, on request, and holds none of that content in
-git. `hypha check` is what the plugin's `SessionStart` hook runs, every session, to compare what is
-installed locally against what is offerable upstream, and *only* to compare. It never fetches or
-generates anything itself; deciding whether to act on what it reports is left entirely to the user,
-through the `version-management` skill (`skills/version-management/SKILL.md`).
+git. `hypha check` compares what is installed locally against what is offerable upstream, and *only*
+compares; the MCP server's `hypha_check_releases` runs the same check (`IReleaseCheck`), which the
+`version-management` skill calls when the user asks about updates. Neither fetches or generates
+anything; deciding whether to act on what they report is left entirely to the user.
 
 That is a deliberate difference from `move-window`, not a smaller version of it:
 
@@ -249,33 +250,8 @@ That is a deliberate difference from `move-window`, not a smaller version of it:
   not just from a full source checkout.
 - It is **read-only**: a couple of GitHub API calls, nothing written to disk. There is nothing here for
   `IReleaseWindowEvictor` (which deletes indiscriminately by tag age) to get wrong, because nothing is
-  ever deleted or fetched by this verb: only `hypha remove`, run because a user asked for exactly that
-  tag to go, ever deletes a release.
-
-It is driven by a small companion project, `Hypha.Tools.Hook` (`tools/hypha-cli/Hypha.Tools.Hook`),
-which shares its download and verification of the CLI with the MCP server launcher (`Hypha.Launcher`,
-see "MCP server launcher" below) by compiling the same source files until the hook is retired. It is
-**not** part of `Hypha.Tools` itself. `Hypha.Tools.Hook` is NativeAOT-published and committed to git,
-at `hooks/native/<rid>/hypha-hook(.exe)`: unlike the main
-CLI, it never generates anything, only downloads and launches the CLI that does, so it carries none of
-the reflection-heavy dependencies (Handlebars.Net, uml4net) that keep `Hypha.Tools` off AOT, which is
-what makes it small enough (single-digit MB per platform) to commit rather than download on demand.
-`.claude-plugin/plugin.json` registers a `SessionStart` hook whose command is a one-line POSIX shell
-dispatch shim (pure glue, no logic) that `exec`s the right platform binary for the current OS and
-architecture; see `.github/workflows/hook-binaries.yml` for how those binaries are built.
-
-Each session start, that binary:
-
-1. Downloads and checksum-verifies the pinned `hypha` CLI version (`plugin.json`'s
-   `hyphaCliVersion`) from GitHub Releases the first time it is needed, caching it outside the
-   plugin's own git-managed folder (under the OS's local application data directory) so a plugin
-   update/reinstall can never disturb it mid-run.
-2. Runs `hypha check --json`, **synchronously**: cheap enough to wait for inline (SessionStart's
-   default timeout is 10 minutes), with nothing to poll for later the way a background fetch would
-   need.
-3. Reports the result as one line of `additionalContext`: nothing installed yet (names what is
-   available online), a newer release exists (names it), or nothing to report (silent), matching the
-   tone of the OMG-PDF-presence check this hook also folds in (see `CheckResultSummarizer`).
+  ever deleted or fetched by this verb: only `hypha remove` (or `hypha_remove_release`), run because a
+  user asked for exactly that tag to go, ever deletes a release.
 
 ### Fetching the specification PDFs
 
@@ -390,7 +366,7 @@ follow (Step 7 of `hypha-mcp-refactor-plan.md`).
 
 The launcher is NativeAOT (`tools/hypha-cli/Hypha.Launcher`) and references nothing else in the
 repository. `.github/workflows/hook-binaries.yml` builds it on each platform's own runner and commits it
-into `bin/`, beside the hook's binaries.
+into `bin/`.
 
 ## Moving to HYPHA_HOME
 
@@ -455,18 +431,18 @@ dotnet publish tools/hypha-cli/Hypha.Tools -c Release -r win-x64 \
 templates at runtime through expression trees, which AOT forbids, and uml4net is reflection-heavy over
 XMI. Trimming carries a milder version of the same risk and is left off until someone verifies it.
 
-`Hypha.Tools.Hook` (see "Automatic version check" above) is the exception: it carries neither dependency, so it
-*is* NativeAOT-published, and the result is committed to `hooks/native/<rid>/` rather than downloaded
-on demand:
+`Hypha.Launcher` (see "MCP server launcher" above) is the exception: it carries neither dependency,
+so it *is* NativeAOT-published, and the result is committed to `bin/` rather than downloaded on
+demand:
 
 ```sh
-dotnet publish tools/hypha-cli/Hypha.Tools.Hook -c Release -r win-x64 -p:PublishAot=true \
-  -o publish/hook/win-x64
-dotnet test tools/hypha-cli/Hypha.Tools.Hook.Tests/Hypha.Tools.Hook.Tests.csproj
+dotnet publish tools/hypha-cli/Hypha.Launcher -c Release -r win-x64 -p:PublishAot=true \
+  -o publish/launch/win-x64
+dotnet test tools/hypha-cli/Hypha.Launcher.Tests/Hypha.Launcher.Tests.csproj
 ```
 
 NativeAOT publishing needs a platform linker (`Desktop development with C++` on Windows, `clang` on
 Linux/macOS) that a plain `dotnet build`/`dotnet test` does not; see
 [the NativeAOT prerequisites](https://aka.ms/nativeaot-prerequisites). `.github/workflows/hook-binaries.yml`
 runs the four platforms on their native runners and commits the results; that workflow, not a local
-publish, is the normal way `hooks/native/` gets updated.
+publish, is the normal way `bin/` gets updated.

@@ -28,7 +28,7 @@ mycelium-hypha contains three related parts:
 ```
 mycelium-hypha/
 ├── .claude-plugin/   Plugin + marketplace manifests
-├── hooks/            SessionStart hook: checks installed releases against upstream
+├── bin/              The MCP server's launcher: starts the hypha server, downloading it the first time
 ├── skills/           Conversational workflows (metamodel lookup, API lookup, spec citation, validation, ...)
 ├── extensions/vscode/ VS Code GitHub Copilot extension
 ├── knowledge/        Knowledge base, fetched and generated locally, one folder per release tag
@@ -67,39 +67,22 @@ download the self-contained executable for your platform from the
    /plugin install hypha@mycelium
    ```
 
-   `/plugin list` confirms it's installed, but installing adds a `SessionStart` hook, and that hook
-   only runs at session start, so nothing about SysML v2/KerML data happens yet.
+   `/plugin list` confirms it's installed. The plugin starts the hypha MCP server through its
+   launcher (`bin/hypha-launch`), which downloads the `hypha` version the plugin names the first time
+   and keeps it in the per-user `hypha` data folder, so nothing else needs installing.
 
-2. **Start a new session, or resume one** (`claude --resume`/`--continue`), so that hook actually
-   runs (it doesn't fire mid-session). It quietly compares what's installed locally against what's
-   offerable upstream and feeds the result into Claude's context; expect no visible output from this
-   step. **On Windows, this hook requires [Git for Windows](https://gitforwindows.org/)** (for Git
-   Bash); Claude Code reports a clear error naming the missing shell if it isn't installed.
+2. Ask it, for example, "what SysML v2 releases are available?" Claude will report that nothing is
+   installed yet, name the releases available upstream, and ask which one to install. Confirm a
+   release, and it downloads and generates it for you (see [Releases](#releases)).
 
-3. Ask it, for example, "what SysML v2 releases are available?" Claude will report that nothing is
-   installed yet, name the releases available upstream, and ask which one to fetch. This is the
-   first visible sign anything happened. Confirm a release, and it fetches and generates it for you
-   (see [Releases](#releases)).
-
-4. Ask your real question. Metamodel lookup and validation now work from what's installed;
+3. Ask your real question. Metamodel lookup and validation now work from what's installed;
    **spec citation additionally needs the specification text generated locally** (see
    [The knowledge base](#the-knowledge-base)).
 
-### Recommended: `jq`
+Releases installed through the plugin are shared with every other client that starts the hypha
+server on the same machine.
 
-Install [`jq`](https://jqlang.github.io/jq/): `brew install jq`, `sudo apt install jq`, or
-`winget install jqlang.jq`.
-
-The metamodel ships as a structural graph (`knowledge/<tag>/metamodel/metamodel.json`, ~16 MB) with the
-inheritance closures precomputed. Set-shaped and cross-cutting questions (*"which metaclasses have a
-feature typed by `Expression`"*, *"every concrete subclass of `Usage`"*) are one query against it,
-and `jq` is how the skills run that query. It is a small standalone binary with no runtime behind it.
-
-Hypha still works without `jq`: the skills fall back to reading the per-element markdown, which is
-slower, pulls far more into context, and cannot distinguish a field match from a mention in prose. If
-you use metamodel lookup or validation regularly, install it.
-
-Example prompts for step 4 above:
+Example prompts for step 3 above:
 
 - *Metamodel lookup*: "What features does `PartUsage` own and inherit?", "How does `ConnectionUsage`
   relate to `ConnectionDefinition`?", or "Which metaclasses specialize `Feature`?"
@@ -113,11 +96,12 @@ KerML and SysML v2 are released on a rolling tag cadence (`YYYY-MM`), and hypha 
 knowledge base **per release tag**. Nothing is pre-installed: the first thing a fresh install does
 is ask which release to fetch.
 
-Manage this conversationally, in plain language ("what releases are available", "fetch the latest",
-"switch to 2026-04", "remove 2026-03"), and Claude drives the underlying `hypha` CLI for you (`check`
-/ `fetch` / `generate` / `use` / `remove`; see [tools/hypha-cli](tools/hypha-cli/README.md) if you
-want to run it yourself). It always says what the current default release is, and asks before
-fetching (real time, real bandwidth) or removing (deletes that release's files for good).
+Manage this conversationally, in plain language ("what releases are available", "install the
+latest", "switch to 2026-04", "remove 2026-03"), and Claude uses the hypha server's release tools for
+you (check, install, use, remove; the `hypha` CLI's `check` / `fetch` / `generate` / `use` /
+`remove` do the same, see [tools/hypha-cli](tools/hypha-cli/README.md) if you want to run it
+yourself). It always says what the current default release is, and asks before installing (real
+time, real bandwidth) or removing (deletes that release's files for good).
 
 The skills state which release an answer came from, and answer from the default unless you name one.
 

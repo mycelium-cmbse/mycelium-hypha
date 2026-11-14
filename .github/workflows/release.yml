@@ -79,7 +79,7 @@ jobs:
       - name: Build and test
         # The knowledge base is committed, and the tests prove the generators still reproduce it.
         # Shipping a build that cannot is the one failure this release must not carry. jq is on the
-        # runner, so the query API's comparison with the documented jq queries must run, not skip.
+        # runner, so the query API's comparison with the jq queries it replaced must run, not skip.
         env:
           HYPHA_REQUIRE_JQ: "1"
         run: |

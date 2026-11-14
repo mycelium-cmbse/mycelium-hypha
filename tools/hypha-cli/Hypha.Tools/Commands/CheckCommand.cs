@@ -25,10 +25,9 @@ namespace Hypha.Tools.Commands
     /// read-only: no fetching, no generating.
     /// </summary>
     /// <remarks>
-    /// This is what the plugin's <c>SessionStart</c> hook runs, synchronously, every session: cheap
-    /// enough (a couple of GitHub API calls) that it needs no background process, lock file or status
-    /// file the way the fetch+generate it used to trigger automatically did. Deciding whether to act
-    /// on what it reports is left entirely to the user, through a skill; this command never fetches.
+    /// The MCP server's <c>hypha_check_releases</c> runs the same check: cheap enough (a couple of
+    /// GitHub API calls) to run whenever the user asks about updates. Deciding whether to act on what
+    /// it reports is left entirely to the user; this command never fetches.
     /// </remarks>
     public sealed class CheckCommand : Command
     {

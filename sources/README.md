@@ -100,27 +100,24 @@ committed.
 The OMG PDFs are downloaded by default now (`hypha fetch --tag <release>`, opt out with
 `--no-specs`): a fully local install needs everything a plain HTTP call can get it. *Quoting* their
 text is `hypha generate`'s `spec` artifact (see `tools/spec-extract/README.md`), which fetches and
-caches `uv` to run it, so no maintainer source checkout is needed any more. The plugin's `SessionStart` hook
-(`Hypha.Tools.Hook`, see `tools/hypha-cli/README.md`'s "Automatic version check" section) still names
-the exact files and tagged URLs when they're missing for the default
-release, folded into the same message that reports newer releases.
+caches `uv` to run it, so no maintainer source checkout is needed any more. The MCP server's
+`hypha_install_release` fetches them by default too, and says in its answer when the specification
+text was skipped and why.
 
 ### One uniform model, entirely local
 
 A fresh plugin install starts with nothing fetched: no committed floor means no offline-zero-setup
-release either. The `SessionStart` hook only ever **compares** what's installed locally against what's
-offerable upstream (`hypha check`) and reports the result; it never fetches or generates anything
-itself. Getting a release, first one or another, is always something the user asks for
-(conversationally, through the `version-management` skill, or directly): `hypha fetch --tag <tag>` +
-`hypha generate --tag <tag>` lands it as an ordinary, git-ignored `knowledge/<tag>/` + `sources/<tag>/`
+release either. Comparing what's installed locally against what's offerable upstream (`hypha check`,
+or the MCP server's `hypha_check_releases`) only reports the result; it never fetches or generates
+anything itself. Getting a release, first one or another, is always something the user asks for
+(conversationally, through the `version-management` skill and the server's `hypha_install_release`,
+or directly): `hypha fetch --tag <tag>` + `hypha generate --tag <tag>` lands it as an ordinary, git-ignored `knowledge/<tag>/` + `sources/<tag>/`
 - every release is handled identically, none of them privileged by being committed. `hypha use --tag
 <tag>` switches which installed release every skill answers from; `hypha remove --tag <tag>` drops one
 no longer wanted (refusing on the current default or the last release without `--force`).
 
-Two gaps are permanent, by design, rather than bugs to fix: the hook only runs on the four RIDs
-`.github/workflows/release.yml` publishes (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`), and the
-plugin's dispatch shim needs a POSIX-compatible shell (present via Git Bash on essentially every
-Windows development machine, but not guaranteed) to pick the right platform binary.
+One gap is permanent, by design, rather than a bug to fix: the plugin's launcher only runs on the
+four RIDs `.github/workflows/release.yml` publishes (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`).
 
 ## Licensing
 

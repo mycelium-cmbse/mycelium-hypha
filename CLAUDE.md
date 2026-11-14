@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** standards (not UML):
 
-1. The **`hypha` Claude plugin**: `.claude-plugin/`, `skills/`, `commands/`, `hooks/`, `bin/`, and
+1. The **`hypha` Claude plugin**: `.claude-plugin/`, `skills/`, `commands/`, `bin/`, and
    the `knowledge/` base the plugin reads at runtime. Nothing per-release under `knowledge/` is
    committed (see "Committed vs git-ignored" below): a plugin install fetches and generates it on the
    user's own machine, on request.
@@ -163,8 +163,8 @@ to the release machinery rather than folded into it:
   generators with `ModelVocabulary.Model`), `openapi` (20), `spec` (30), `cross-references` (40). A
   generator registered under the wrong interface would run against the wrong kind of tag.
 - **CLI:** `hypha api discover|fetch|generate|list|use|remove`. `generate` reuses
-  `GenerateCommand.Handler` through a `GenerationScope`; `check`, `move-window` and the
-  `SessionStart` hook know only the language releases.
+  `GenerateCommand.Handler` through a `GenerationScope`; `check` and `move-window` know only the
+  language releases, and the MCP release tools install, switch and remove only those too.
 - **Cross-references:** `knowledge/api/<version>/cross-references.json` carries identifiers only,
   never clause text, and every edge names the `method` that produced it; a link the specification or
   the OpenAPI document **states** (`mapping-table`, `type-constant`) is preferred over one matched on
@@ -188,9 +188,7 @@ drives it.
 - **Committed, not per release:** `knowledge/README.md`, `knowledge/cross-references.schema.json`,
   `knowledge/model-library.schema.json`, `knowledge/keywords.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
-  `hooks/native/<rid>/hypha-hook(.exe)`, the small NativeAOT binary the plugin's `SessionStart` hook
-  dispatches to (see `tools/hypha-cli/README.md`'s "Automatic version check" section); and the plugin's
-  top-level `bin/`: `hypha-launch.exe` and `<rid>/hypha-launch`, the NativeAOT launcher of the MCP
+  and the plugin's top-level `bin/`: `hypha-launch.exe` and `<rid>/hypha-launch`, the NativeAOT launcher of the MCP
   server (`tools/hypha-cli/Hypha.Launcher`), its POSIX dispatch script `hypha-launch` and
   `hypha-launch.json`, the `hypha` version it starts (see the README's "MCP server launcher" section).
   These are the only compiled binaries this repository commits; `.gitignore` excludes `bin/` at every
@@ -208,8 +206,8 @@ drives it.
   (`SpecGenerator`) drives this: it fetches and caches `uv`, which resolves or fetches a matching
   Python itself and runs `tools/spec-extract` through it, so this no longer needs a maintainer source
   checkout or a pre-provisioned `.venv`, only the PDFs (`hypha fetch`, by default) and, the first time,
-  network access to provision `uv`. The plugin's `SessionStart` hook (`Hypha.Tools.Hook`,
-  `hooks/native/<rid>/hypha-hook`) tells the user when the PDFs are missing for the default release.
+  network access to provision `uv`. The MCP server's `hypha_install_release` fetches the PDFs by
+  default, and says in its answer when the specification text was skipped.
 - Exact upstream sources, commits and licenses are recorded in `sources/README.md` and `NOTICE`.
   (Metamodel XMI ← `SysML-v2-Pilot-Implementation`; PDFs + textual sources ← `SysML-v2-Release`.)
 
