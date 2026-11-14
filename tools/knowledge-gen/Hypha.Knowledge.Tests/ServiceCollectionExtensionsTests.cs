@@ -50,6 +50,32 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task The_extractor_is_unpacked_under_the_toolchain_root_when_the_root_has_no_tools()
+        {
+            var root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "hypha-root-" + Guid.NewGuid().ToString("N")));
+            var toolchain = new DirectoryInfo(Path.Combine(root.FullName, "toolchain"));
+
+            try
+            {
+                using var provider = new ServiceCollection()
+                    .AddHyphaKnowledge(options =>
+                    {
+                        options.RepositoryRoot = root;
+                        options.ToolchainCacheRoot = toolchain;
+                    })
+                    .BuildServiceProvider();
+
+                var project = await provider.GetRequiredService<ISpecExtractProject>().EnsureAsync();
+
+                Assert.That(project.FullName, Is.EqualTo(Path.Combine(toolchain.FullName, SpecExtractProject.FolderName)));
+            }
+            finally
+            {
+                root.Delete(recursive: true);
+            }
+        }
+
+        [Test]
         public void Without_a_toolchain_cache_root_the_toolchain_is_kept_in_the_home_folder()
         {
             var home = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "hypha-home-" + Guid.NewGuid().ToString("N")));

@@ -29,8 +29,8 @@ namespace Hypha.Knowledge.Generation
     /// resolves or fetches a matching Python itself and installs <c>tools/spec-extract</c>'s
     /// dependencies into a managed venv on demand, so this needs neither a pre-existing Python nor a
     /// provisioned <c>.venv</c> - the one thing that used to make spec-citation quoting maintainer-only.
-    /// <c>tools/spec-extract</c> is already present on disk for an installed plugin (it ships as a
-    /// tag-pinned full checkout); only the runtime to execute it was ever missing.
+    /// The <c>spec-extract</c> project itself comes from <see cref="ISpecExtractProject"/>: a source
+    /// checkout's own <c>tools/spec-extract</c>, or the copy hypha carries, unpacked next to <c>uv</c>.
     /// <para>
     /// Runs before <see cref="CrossReferenceGenerator"/> (<see cref="CrossReferenceGenerator.Order"/> 40) so a single
     /// <c>hypha generate</c> pass gives the cross-references the freshly generated spec catalog to read,
@@ -45,8 +45,11 @@ namespace Hypha.Knowledge.Generation
         /// <summary>The file name of the SysML v2 specification PDF under <c>sources/&lt;tag&gt;/specs/</c>.</summary>
         private const string SysmlPdf = "2a-OMG_Systems_Modeling_Language.pdf";
 
-        /// <summary>Where the PDFs are read from, <c>tools/spec-extract</c> is found and the clause text is written.</summary>
+        /// <summary>Where the PDFs are read from and the clause text is written.</summary>
         private readonly IKnowledgeLayout layout;
+
+        /// <summary>Finds the <c>spec-extract</c> project, unpacking it when the knowledge folder has none.</summary>
+        private readonly ISpecExtractProject project;
 
         /// <summary>Provides the cached <c>uv</c> executable and the environment it runs with.</summary>
         private readonly IUvProvisioner uv;
@@ -60,13 +63,16 @@ namespace Hypha.Knowledge.Generation
         /// <summary>
         /// Initializes a new instance of the <see cref="SpecGenerator"/> class.
         /// </summary>
-        /// <param name="layout">Where the PDFs are read from, <c>tools/spec-extract</c> is found and the clause text is written.</param>
+        /// <param name="layout">Where the PDFs are read from and the clause text is written.</param>
+        /// <param name="project">Finds the <c>spec-extract</c> project, unpacking it when the knowledge folder has none.</param>
         /// <param name="uv">Provides the cached <c>uv</c> executable and the environment it runs with.</param>
         /// <param name="processes">Runs <c>uv</c> as a child process.</param>
         /// <param name="logger">The log, which receives the generation's progress and the reason for a skip.</param>
-        public SpecGenerator(IKnowledgeLayout layout, IUvProvisioner uv, IProcessRunner processes, ILogger<SpecGenerator> logger)
+        public SpecGenerator(
+            IKnowledgeLayout layout, ISpecExtractProject project, IUvProvisioner uv, IProcessRunner processes, ILogger<SpecGenerator> logger)
         {
             this.layout = layout;
+            this.project = project;
             this.uv = uv;
             this.processes = processes;
             this.logger = logger;
@@ -118,7 +124,7 @@ namespace Hypha.Knowledge.Generation
                     .Report(this.logger, this.Artifact, tag);
             }
 
-            var specExtract = new DirectoryInfo(Path.Combine(this.layout.Root.FullName, "tools", "spec-extract"));
+            var specExtract = await this.project.EnsureAsync(cancellationToken);
 
             var exitCode = await this.processes.RunAsync(
                 executable.FullName,

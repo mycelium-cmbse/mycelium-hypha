@@ -175,7 +175,8 @@ order because the cross-references read what the others write.
 `--no-specs` to skip) and, the first time it runs, fetches and caches its own copy of
 [`uv`](https://github.com/astral-sh/uv), which resolves or fetches a matching Python itself and
 installs `tools/spec-extract`'s dependencies into a managed venv on demand, so it needs neither a
-pre-existing Python nor a provisioned `.venv`. Either input being unavailable (no PDFs fetched, offline
+pre-existing Python nor a provisioned `.venv`. Outside a source checkout, `hypha` unpacks the extractor
+it carries into `toolchain/spec-extract/`, next to `uv`. Either input being unavailable (no PDFs fetched, offline
 on first `uv` provisioning) is a `Skipped` result, the same as any other generator missing its inputs;
 it never blocks the rest of a `hypha generate` run.
 

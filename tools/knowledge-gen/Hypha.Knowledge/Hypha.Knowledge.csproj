@@ -34,6 +34,12 @@
     <!-- The OMG UML primitives every release's metamodel refers to. A checkout commits it under
          sources/; an install anywhere else gets it from here (ReleaseInstaller). -->
     <EmbeddedResource Include="..\..\..\sources\PrimitiveTypes.xmi" Link="Releases\PrimitiveTypes.xmi" LogicalName="Hypha.Knowledge.Releases.PrimitiveTypes.xmi" />
+
+    <!-- The spec-extract Python project the specification generators run through uv. A checkout runs its
+         own tools/spec-extract; a knowledge folder anywhere else (HYPHA_HOME) gets it unpacked from here
+         (SpecExtractProject). Its tests and caches are left out. -->
+    <EmbeddedResource Include="..\..\spec-extract\pyproject.toml;..\..\spec-extract\uv.lock;..\..\spec-extract\README.md" Link="Toolchain\SpecExtract\%(Filename)%(Extension)" LogicalName="Hypha.Knowledge.SpecExtract/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\spec-extract\src\**\*.py" Link="Toolchain\SpecExtract\src\%(RecursiveDir)%(Filename)%(Extension)" LogicalName="Hypha.Knowledge.SpecExtract/src/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

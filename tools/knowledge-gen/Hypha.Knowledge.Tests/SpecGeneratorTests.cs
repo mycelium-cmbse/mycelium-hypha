@@ -35,6 +35,8 @@ namespace Hypha.Knowledge.Tests
 
         private Mock<IUvProvisioner> uv = null!;
 
+        private Mock<ISpecExtractProject> project = null!;
+
         private Mock<IProcessRunner> processes = null!;
 
         private SpecGenerator generator = null!;
@@ -63,8 +65,15 @@ namespace Hypha.Knowledge.Tests
             this.uv = new Mock<IUvProvisioner>();
             this.processes = new Mock<IProcessRunner>();
 
+            // The project is wherever the provider says, here a folder that is not under the root, as in
+            // HYPHA_HOME, where the copy hypha carries is unpacked beside uv.
+            this.project = new Mock<ISpecExtractProject>();
+            this.project
+                .Setup(p => p.EnsureAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DirectoryInfo(Path.Combine(this.outputRoot.FullName, "toolchain", "spec-extract")));
+
             this.generator = new SpecGenerator(
-                this.layout.Object, this.uv.Object, this.processes.Object, NullLogger<SpecGenerator>.Instance);
+                this.layout.Object, this.project.Object, this.uv.Object, this.processes.Object, NullLogger<SpecGenerator>.Instance);
         }
 
         [TearDown]
@@ -179,6 +188,48 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(result.Outcome, Is.EqualTo(GenerationOutcome.Generated));
                 Assert.That(result.Written, Has.Count.EqualTo(1));
                 Assert.That(result.Written[0].Name, Is.EqualTo("01-scope.md"));
+            });
+        }
+
+        [Test]
+        public async Task Runs_spec_extract_from_the_project_the_provider_names()
+        {
+            this.SeedPdfs("2026-05");
+            var uvExe = this.FakeUvExecutable();
+            this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(uvExe);
+
+            string? fileName = null;
+            string? arguments = null;
+            DirectoryInfo? workingDirectory = null;
+            this.processes
+                .Setup(p => p.RunAsync(
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                .Callback((string file, string args, DirectoryInfo directory, IReadOnlyDictionary<string, string>? _, CancellationToken _) =>
+                {
+                    fileName = file;
+                    arguments = args;
+                    workingDirectory = directory;
+                })
+                .ReturnsAsync(0);
+
+            await this.generator.GenerateAsync("2026-05");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(fileName, Is.EqualTo(uvExe.FullName));
+                Assert.That(arguments, Does.Contain("python -m spec_extract"));
+
+                // The provider's folder, which is not under the root: a knowledge folder such as HYPHA_HOME
+                // has no tools/spec-extract of its own, so the root must not be assumed to hold the project.
+                Assert.That(
+                    arguments,
+                    Does.Contain($"--project \"{Path.Combine(this.outputRoot.FullName, "toolchain", "spec-extract")}\""));
+                Assert.That(arguments, Does.Not.Contain(Path.Combine(this.root.FullName, "tools", "spec-extract")));
+                Assert.That(arguments, Does.Contain($"--repo-root \"{this.root.FullName}\""));
+                Assert.That(arguments, Does.Contain("--tag 2026-05"));
+                Assert.That(arguments, Does.Contain($"--out-root \"{this.outputRoot.FullName}\""));
+                Assert.That(workingDirectory!.FullName, Is.EqualTo(this.root.FullName));
             });
         }
 

@@ -37,10 +37,12 @@ namespace Hypha.Knowledge.Api
         private readonly IApiLayout layout;
 
         /// <summary>
-        /// The repository layout: <c>tools/spec-extract</c> and the inputs resolve against its root, the
-        /// output against its output root.
+        /// The repository layout: the inputs resolve against its root, the output against its output root.
         /// </summary>
         private readonly IKnowledgeLayout repository;
+
+        /// <summary>Finds the <c>spec-extract</c> project, unpacking it when the knowledge folder has none.</summary>
+        private readonly ISpecExtractProject project;
 
         /// <summary>Provisions the <c>uv</c> executable <c>spec-extract</c> runs through.</summary>
         private readonly IUvProvisioner uv;
@@ -56,27 +58,30 @@ namespace Hypha.Knowledge.Api
         /// </summary>
         /// <param name="layout">Where the specification PDF is read from and the clause text is written to.</param>
         /// <param name="repository">
-        /// The repository layout: <c>tools/spec-extract</c> and the inputs resolve against its root, the
-        /// output against its output root.
+        /// The repository layout: the inputs resolve against its root, the output against its output root.
         /// </param>
+        /// <param name="project">Finds the <c>spec-extract</c> project, unpacking it when the knowledge folder has none.</param>
         /// <param name="uv">Provisions the <c>uv</c> executable <c>spec-extract</c> runs through.</param>
         /// <param name="processes">Runs <c>uv</c>.</param>
         /// <param name="logger">The logger progress and outcomes are reported to.</param>
         public ApiSpecGenerator(
             IApiLayout layout,
             IKnowledgeLayout repository,
+            ISpecExtractProject project,
             IUvProvisioner uv,
             IProcessRunner processes,
             ILogger<ApiSpecGenerator> logger)
         {
             ArgumentNullException.ThrowIfNull(layout);
             ArgumentNullException.ThrowIfNull(repository);
+            ArgumentNullException.ThrowIfNull(project);
             ArgumentNullException.ThrowIfNull(uv);
             ArgumentNullException.ThrowIfNull(processes);
             ArgumentNullException.ThrowIfNull(logger);
 
             this.layout = layout;
             this.repository = repository;
+            this.project = project;
             this.uv = uv;
             this.processes = processes;
             this.logger = logger;
@@ -130,7 +135,7 @@ namespace Hypha.Knowledge.Api
                     .Report(this.logger, this.Artifact, tag);
             }
 
-            var specExtract = new DirectoryInfo(Path.Combine(this.repository.Root.FullName, "tools", "spec-extract"));
+            var specExtract = await this.project.EnsureAsync(cancellationToken);
 
             var exitCode = await this.processes.RunAsync(
                 executable.FullName,

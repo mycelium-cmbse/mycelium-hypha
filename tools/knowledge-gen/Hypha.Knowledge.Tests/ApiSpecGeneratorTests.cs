@@ -63,9 +63,15 @@ namespace Hypha.Knowledge.Tests
             this.uv = new Mock<IUvProvisioner>();
             this.processes = new Mock<IProcessRunner>();
 
+            var project = new Mock<ISpecExtractProject>();
+            project
+                .Setup(p => p.EnsureAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DirectoryInfo(Path.Combine(this.root.FullName, "toolchain", "spec-extract")));
+
             this.generator = new ApiSpecGenerator(
                 this.layout.Object,
                 this.repository.Object,
+                project.Object,
                 this.uv.Object,
                 this.processes.Object,
                 NullLogger<ApiSpecGenerator>.Instance);
@@ -218,7 +224,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(arguments, Does.Contain($"--out-root \"{this.outputRoot.FullName}\""));
                 Assert.That(
                     arguments,
-                    Does.Contain($"--project \"{Path.Combine(this.root.FullName, "tools", "spec-extract")}\""));
+                    Does.Contain($"--project \"{Path.Combine(this.root.FullName, "toolchain", "spec-extract")}\""));
                 Assert.That(workingDirectory!.FullName, Is.EqualTo(this.root.FullName));
             });
         }

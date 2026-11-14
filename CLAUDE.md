@@ -207,7 +207,9 @@ drives it.
   (`SpecGenerator`) drives this: it fetches and caches `uv`, which resolves or fetches a matching
   Python itself and runs `tools/spec-extract` through it, so this no longer needs a maintainer source
   checkout or a pre-provisioned `.venv`, only the PDFs (`hypha fetch`, by default) and, the first time,
-  network access to provision `uv`. The MCP server's `hypha_install_release` fetches the PDFs by
+  network access to provision `uv`. A source checkout runs its own `tools/spec-extract`; anywhere else
+  (`HYPHA_HOME`) `ISpecExtractProject` unpacks the copy embedded in `Hypha.Knowledge` into
+  `toolchain/spec-extract/`, next to `uv`. The MCP server's `hypha_install_release` fetches the PDFs by
   default, and says in its answer when the specification text was skipped.
 - Exact upstream sources, commits and licenses are recorded in `sources/README.md` and `NOTICE`.
   (Metamodel XMI ← `SysML-v2-Pilot-Implementation`; PDFs + textual sources ← `SysML-v2-Release`.)

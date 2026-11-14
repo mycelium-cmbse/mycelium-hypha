@@ -181,6 +181,11 @@ namespace Hypha.Knowledge
                 options.ToolchainCacheRoot ?? HyphaHome.Toolchain(home.Value),
                 ownsToolchain: true));
 
+            // The extractor uv runs: a checkout's own, or the copy hypha carries, unpacked beside uv.
+            services.AddSingleton<ISpecExtractProject>(provider => new SpecExtractProject(
+                provider.GetRequiredService<IKnowledgeLayout>(),
+                options.ToolchainCacheRoot ?? HyphaHome.Toolchain(home.Value)));
+
             services.AddSingleton<IKnowledgeLookup, KnowledgeLookup>();
 
             // Copies what the clients installed in their own folders into HYPHA_HOME, which the migration
