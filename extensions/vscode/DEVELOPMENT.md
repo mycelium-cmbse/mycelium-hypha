@@ -23,9 +23,11 @@ variable names. Nothing is kept in `ExtensionContext.globalStorageUri` any more;
 version of the extension installed there are copied into `HYPHA_HOME` once by hypha itself
 (`IKnowledgeMigration`), unless they are in an older generated format.
 
-A maintainer's caveat: hypha prefers a source checkout above its working directory over
-`HYPHA_HOME`. With this repository open as the workspace, the server may therefore answer from the
-checkout's own `knowledge/`.
+The server's working directory is set to the extension's own folder. Left unset, the editor would
+start it in the workspace folder, and hypha prefers a folder above its working directory that holds
+both `sources/` and `knowledge/` over `HYPHA_HOME`, so a workspace that looks like that would capture
+the server. A maintainer's caveat remains: under **F5** the extension's folder is inside this
+checkout, so the development host's server answers from the checkout's own `knowledge/`.
 
 The package holds the executable and the license notices, and **no specification PDFs, extracted
 normative text or per-release knowledge**. It no longer carries the specification extractor or the

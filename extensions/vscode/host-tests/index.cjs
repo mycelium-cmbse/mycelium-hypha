@@ -9,12 +9,12 @@ const vscode = require("vscode");
  * The editor only starts a registered MCP server once a chat needs it, which this host has no way to
  * trigger, so the server is driven directly: the same executable, arguments and transport.
  */
-function askServer(executable, home) {
+function askServer(executable, home, cwd) {
   return new Promise((resolve, reject) => {
-    // Started from the scratch home: hypha prefers a source checkout above its working directory, and
-    // this test is usually run from inside one.
+    // Started in the extension's own folder, as the extension tells the editor to: never the folder
+    // this test happens to run from, which is usually a source checkout that hypha would prefer.
     const child = spawn(executable, ["serve"], {
-      cwd: home,
+      cwd,
       env: { ...process.env, HYPHA_HOME: home },
       windowsHide: true
     });
@@ -77,7 +77,7 @@ exports.run = async function () {
     "hypha carries the specification extractor and the UML primitives; the extension ships no copy");
 
   const home = process.env.HYPHA_TEST_HOME;
-  const { initialize, tools, status } = await askServer(executable, home);
+  const { initialize, tools, status } = await askServer(executable, home, extension.extensionPath);
   assert.equal(initialize.result.serverInfo.name, "hypha");
   const names = tools.result.tools.map((tool) => tool.name);
   assert.ok(names.length >= 17 && names.length < 20, `expected hypha's tools, got ${names.length}`);

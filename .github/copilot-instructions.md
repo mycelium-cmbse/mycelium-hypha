@@ -22,7 +22,7 @@ uv run --extra dev pytest
 uv run --extra dev pytest tests/test_clauses.py::test_detects_clauses_and_groups_body   # one test, or -k <expr>
 ```
 
-VS Code extension (`extensions/vscode/`): `npm test` (clean, tsc, copy assets, `node --test out/*.test.js`), `npm run compile`, `npm run package`. See its `DEVELOPMENT.md`.
+VS Code extension (`extensions/vscode/`): `npm test` (clean, tsc, `node --test out/*.test.js`), `npm run compile`, `npm run package`. See its `DEVELOPMENT.md`.
 
 ## Architecture
 

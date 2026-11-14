@@ -71,9 +71,15 @@ text, the metamodel, or something Hypha derived. Ask Copilot to cite both.
 ## Where your data lives
 
 Hypha keeps downloaded inputs, generated knowledge and its managed toolchain in one per-user folder,
-outside your modeling workspace: the `hypha` folder in your user's application-data folder
-(`%APPDATA%\hypha` on Windows), or the folder the `HYPHA_HOME` environment variable names. Every
-Hypha client on the machine uses it, so a release is installed once.
+outside your modeling workspace: the `hypha` folder in your user's local application-data folder,
+or the folder the `HYPHA_HOME` environment variable names. Every Hypha client on the machine uses it,
+so a release is installed once.
+
+| Platform | Default folder |
+| --- | --- |
+| Windows | `%LOCALAPPDATA%\hypha` |
+| Linux | `$XDG_DATA_HOME/hypha`, or `~/.local/share/hypha` |
+| macOS | `~/Library/Application Support/hypha` |
 
 Windows, WSL, SSH hosts and other machines each have their own folder; releases are not synchronized
 between them.

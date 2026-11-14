@@ -40,10 +40,17 @@ export function deactivate(): void {}
  *
  * No `--repository-root` and no environment of its own: `hypha` reads `HYPHA_HOME`, the per-user
  * folder every client shares, so a release installed in one client answers in this one.
+ *
+ * The working directory is the extension's own folder. Left unset, the editor starts the server in
+ * the workspace folder, and `hypha` prefers a folder above its working directory that holds both
+ * `sources/` and `knowledge/` over `HYPHA_HOME`: a workspace that happens to look like that would
+ * capture the server, and the releases installed through it.
  * @param extensionPath Root folder of the installed extension.
  * @param version The extension's version; a change makes the editor refresh the server's tools.
  * @returns The stdio server definition.
  */
 export function serverDefinition(extensionPath: string, version: string): vscode.McpStdioServerDefinition {
-  return new vscode.McpStdioServerDefinition(serverLabel, cliPath(extensionPath), ["serve"], {}, version);
+  const server = new vscode.McpStdioServerDefinition(serverLabel, cliPath(extensionPath), ["serve"], {}, version);
+  server.cwd = vscode.Uri.file(extensionPath);
+  return server;
 }

@@ -10,6 +10,7 @@ interface ServerDefinition {
   args: string[];
   env: Record<string, unknown>;
   version?: string;
+  cwd?: { fsPath: string };
 }
 
 interface Provider {
@@ -18,9 +19,10 @@ interface Provider {
 }
 
 // Loads the compiled extension with a stand-in for the editor's API, and activates it.
-function activateExtension(cliPresent: boolean) {
+function activateExtension(cliPresent: boolean, packageJSON: Record<string, unknown> = { version: "9.8.7" }) {
   const providers = new Map<string, Provider>();
   const registrations: string[] = [];
+  const checked: string[] = [];
   const vscode = {
     lm: {
       registerMcpServerDefinitionProvider(id: string, provider: Provider) {
@@ -38,7 +40,12 @@ function activateExtension(cliPresent: boolean) {
         return { dispose() {} };
       }
     },
+    Uri: {
+      file(fsPath: string) { return { fsPath }; }
+    },
     McpStdioServerDefinition: class {
+      cwd?: { fsPath: string };
+
       constructor(
         public label: string,
         public command: string,
@@ -51,6 +58,7 @@ function activateExtension(cliPresent: boolean) {
   const cli = {
     cliPath(extensionPath: string) { return `${extensionPath}/out/cli/hypha`; },
     async ensureCli(extensionPath: string) {
+      checked.push(extensionPath);
       if (!cliPresent) {
         throw new Error("The bundled Hypha CLI is missing or not executable.");
       }
@@ -70,10 +78,10 @@ function activateExtension(cliPresent: boolean) {
   exports.activate({
     subscriptions,
     extensionUri: { fsPath: "/extension" },
-    extension: { packageJSON: { version: "9.8.7" } }
+    extension: { packageJSON }
   });
 
-  return { providers, registrations, subscriptions, providerId: exports.providerId as string };
+  return { providers, registrations, subscriptions, checked, providerId: exports.providerId as string };
 }
 
 const manifest = JSON.parse(readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
@@ -100,13 +108,28 @@ test("the server is the bundled hypha, started as hypha serve on the shared HYPH
   assert.deepEqual([...server.args], ["serve"], "no --repository-root: hypha reads HYPHA_HOME");
   assert.deepEqual({ ...server.env }, {}, "no folder or toolchain of the extension's own");
   assert.equal(server.version, "9.8.7", "a new extension version makes the editor refresh the tools");
+  assert.equal(server.cwd?.fsPath, "/extension",
+    "started in the extension's own folder, never the workspace, which hypha could take for its knowledge folder");
+});
+
+test("a manifest without a version gives the server an empty version", () => {
+  const extension = activateExtension(true, {});
+  const [server] = extension.providers.get(extension.providerId)!.provideMcpServerDefinitions();
+
+  assert.equal(server.version, "");
+});
+
+test("the manifest activates the extension at startup, since no command or tool does", () => {
+  assert.deepEqual(manifest.activationEvents, ["onStartupFinished"]);
 });
 
 test("starting the server checks the executable, and a missing one says so", async () => {
   const present = activateExtension(true);
   const provider = present.providers.get(present.providerId)!;
   const [server] = provider.provideMcpServerDefinitions();
+  assert.deepEqual(present.checked, [], "discovery does not touch the disk");
   assert.equal(await provider.resolveMcpServerDefinition(server), server);
+  assert.deepEqual(present.checked, ["/extension"], "the executable is looked for in the extension's own folder");
 
   const missing = activateExtension(false);
   const broken = missing.providers.get(missing.providerId)!;

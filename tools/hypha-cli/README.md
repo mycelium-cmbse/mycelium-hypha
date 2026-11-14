@@ -322,8 +322,8 @@ Three more tools change the installed releases, in the server's own process:
 | `hypha_use_release` | Makes an installed release, or with `axis: "api"` an API version, the default. |
 | `hypha_remove_release` | Deletes an installed release, or with `axis: "api"` an API version, that is not the default (`force` for the last one). |
 
-Each takes the release-operation lock, so two servers, or a server and the VS Code extension, change
-the releases one at a time; under `serve` a tool waits up to ten minutes for another's change to
+Each takes the release-operation lock, so two servers, each started by its own client, change the
+releases one at a time; under `serve` a tool waits up to ten minutes for another's change to
 finish. The query tools need no telling afterwards: they read the version manifest on every call and
 read a generated file again once it has changed on disk.
 

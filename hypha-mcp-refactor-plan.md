@@ -452,7 +452,7 @@ Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 
 - [ ] Check Windsurf's tool count with Hypha alongside other servers.
 - [ ] Check Copilot cloud agent install time in a fresh environment; document it.
 - [ ] The VS Code extension on macOS (`darwin-arm64`, `darwin-x64`; from #163):
-  - [ ] `npm run test:host` on macOS against VS Code stable and 1.100.0.
+  - [ ] `npm run test:host` on macOS against VS Code stable and 1.101.0.
   - [ ] The server end to end from the extension, over `HYPHA_HOME`: install a release including specification text through `uv` (with an installed Python and with a managed one), `hypha_release_status`, a query and a lookup.
   - [ ] Gatekeeper and quarantine: the bundled `hypha` and the `uv` it downloads must run without a "cannot be opened" prompt.
   - [ ] Cancellation during extraction (no `hypha`, `uv` or `python` left; the POSIX path kills the process group) and the release-operation lock between two processes.
