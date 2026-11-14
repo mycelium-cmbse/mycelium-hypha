@@ -370,7 +370,7 @@ follow (Step 7 of `hypha-mcp-refactor-plan.md`).
   the user rather than the server failing to start.
 
 The launcher is NativeAOT (`tools/hypha-cli/Hypha.Launcher`) and references nothing else in the
-repository. `.github/workflows/hook-binaries.yml` builds it on each platform's own runner and commits it
+repository. `.github/workflows/launcher-binaries.yml` builds it on each platform's own runner and commits it
 into `bin/`.
 
 ## Moving to HYPHA_HOME
@@ -448,6 +448,6 @@ dotnet test tools/hypha-cli/Hypha.Launcher.Tests/Hypha.Launcher.Tests.csproj
 
 NativeAOT publishing needs a platform linker (`Desktop development with C++` on Windows, `clang` on
 Linux/macOS) that a plain `dotnet build`/`dotnet test` does not; see
-[the NativeAOT prerequisites](https://aka.ms/nativeaot-prerequisites). `.github/workflows/hook-binaries.yml`
+[the NativeAOT prerequisites](https://aka.ms/nativeaot-prerequisites). `.github/workflows/launcher-binaries.yml`
 runs the four platforms on their native runners and commits the results; that workflow, not a local
 publish, is the normal way `bin/` gets updated.

@@ -29,8 +29,8 @@ namespace Hypha.Knowledge.Toolchain
     /// time it is needed.
     /// </summary>
     /// <remarks>
-    /// Mirrors <c>Hypha.Tools.Hook</c>'s <c>CliProvisioner</c> architecturally (cache-check, download,
-    /// checksum-verify, extract, mark-ok, never throw) but is independent code: the hook project is
+    /// Mirrors the launcher's <c>CliProvisioner</c> architecturally (cache-check, download,
+    /// checksum-verify, extract, mark-ok, never throw) but is independent code: the launcher is
     /// deliberately kept free of this project's reflection-heavy dependencies (Handlebars.Net, uml4net)
     /// to stay NativeAOT-friendly, so neither project references the other.
     /// <para>

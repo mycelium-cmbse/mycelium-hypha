@@ -17,11 +17,9 @@ namespace Hypha.Tools.Commands
     /// generating done to produce it.
     /// </summary>
     /// <remarks>
-    /// This is the one piece of machine-readable output in the CLI, read by the plugin's
-    /// <c>SessionStart</c> hook (<c>Hypha.Tools.Hook</c>, which keeps its own equivalent shape rather
-    /// than referencing this type directly; see that project's <c>HookCheckResult</c> and the note on
-    /// why it stays dependency-free). Changing these property names is a breaking change for that
-    /// parser.
+    /// Scripts read this output, and the plugin's <c>SessionStart</c> hook did until it was removed
+    /// (the MCP server's <c>hypha_check_releases</c> answers the same question now). Changing these
+    /// property names is a breaking change for anything that parses it.
     /// </remarks>
     /// <param name="InstalledTags">Locally installed releases, newest first; empty if none.</param>
     /// <param name="DefaultTag">The release every skill answers from by default, or <c>null</c>.</param>

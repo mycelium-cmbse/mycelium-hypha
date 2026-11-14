@@ -13,7 +13,7 @@ namespace Hypha.Launcher.Provisioning
 
     /// <summary>
     /// The source-generated contract of the GitHub Releases API response, so that reading it stays
-    /// NativeAOT-safe in the launcher and the hook alike.
+    /// NativeAOT-safe in the launcher.
     /// </summary>
     [JsonSerializable(typeof(GitHubRelease))]
     public sealed partial class ProvisioningJsonContext : JsonSerializerContext

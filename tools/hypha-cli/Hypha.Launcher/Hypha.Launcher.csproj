@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Assembly">
-    <!-- Not a package of its own: hook-binaries.yml publishes it with NativeAOT into the plugin's bin/. -->
+    <!-- Not a package of its own: launcher-binaries.yml publishes it with NativeAOT into the plugin's bin/. -->
     <IsPackable>false</IsPackable>
     <Description>
       The launcher every hypha client starts: it provisions the hypha executable matching the package's

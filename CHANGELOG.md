@@ -350,6 +350,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   packages and `tools/spec-extract`, grouped per ecosystem and only for versions two weeks old.
 
 ### Removed
+- **The `Hypha.Tools.Hook` project** (`refs #200`): the retired `SessionStart` hook's source and tests,
+  which only shared the launcher's download code. The workflow that builds the launcher binaries is
+  now `launcher-binaries.yml` (*Launcher binaries*), renamed from `hook-binaries.yml`.
 - **The `metamodel-navigator`, `spec-citation` and `sysml-validator` agents** (`refs #197`): their
   fan-out questions are single tool calls now. `metamodel-lookup` says which, and `spec-citation` and
   `sysml-validation` take over the other two, including a whole model to check.
