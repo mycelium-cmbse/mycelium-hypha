@@ -14,26 +14,25 @@ namespace Hypha.Knowledge.Releases
 
     /// <summary>
     /// Serialises operations that change the installed releases of one repository root, across
-    /// processes, including the Hypha VS Code extension, which takes the same lock.
+    /// processes: every hypha that reads the same folder takes the same lock.
     /// </summary>
     /// <remarks>
     /// <para>
     /// The lock is the file <c>.release-operation.lock</c> in the repository root, created
     /// exclusively and holding <c>{"pid": …, "token": …}</c>. A lock whose owner process is gone is
     /// stale and is recovered, under the exclusively created <c>.release-operation.lock.recovery</c>;
-    /// a lock that cannot be read, or an existing recovery file, is never removed automatically. This
-    /// is the protocol of the extension's <c>acquireReleaseLock</c> in
-    /// <c>extensions/vscode/src/releaseCommands.ts</c>; both sides must keep to it, or they no longer
-    /// exclude each other.
+    /// a lock that cannot be read, or an existing recovery file, is never removed automatically. The
+    /// Hypha VS Code extension up to 0.1 took the same lock from TypeScript, on its own storage folder,
+    /// and this protocol is the one it used; since it hands Copilot the MCP server it takes none.
     /// </para>
     /// <para>
-    /// The CLI's own verbs (<c>fetch</c>, <c>generate</c>, <c>use</c>, <c>remove</c>) deliberately do
-    /// not take it: the extension runs them while it holds the lock itself, so a verb that took it
-    /// would refuse every extension install. It is for operations that change releases on their own,
-    /// instead of through the extension, such as an install driven by an MCP tool.
+    /// The CLI's own verbs (<c>fetch</c>, <c>generate</c>, <c>use</c>, <c>remove</c>) do not take it.
+    /// That was so that the extension could run them while holding the lock itself; no client does
+    /// that any more, so the reason is gone and the verbs could take it. Today it is taken by the
+    /// operations that change releases on their own, such as an install driven by an MCP tool.
     /// </para>
     /// <para>
-    /// By default a held lock is refused at once, as the extension does. With
+    /// By default a held lock is refused at once. With
     /// <see cref="HyphaKnowledgeOptions.ReleaseLockWait"/> set, it is tried again until the wait is
     /// over, which also covers a lock held by another operation of this same process: two overlapping
     /// tool calls of one MCP server take it one after the other.

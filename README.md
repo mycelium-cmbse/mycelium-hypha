@@ -44,8 +44,8 @@ Install **Hypha – SysML v2 and KerML** from the Extensions view, or from its
 [Marketplace page](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha).
 It is published as a pre-release for Windows x64 and for Linux x64 and arm64, which also covers WSL
 and SSH remotes; on macOS, build a VSIX with the [development guide](extensions/vscode/DEVELOPMENT.md).
-Its release data is stored in VS Code extension-global storage, shared across workspaces on the same
-extension host. See its [user guide](extensions/vscode/README.md).
+It gives Copilot the hypha MCP server, and shares its release data with every other Hypha client on
+the machine. See its [user guide](extensions/vscode/README.md).
 
 ### Command line
 

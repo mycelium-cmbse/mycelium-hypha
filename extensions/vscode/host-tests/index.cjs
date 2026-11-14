@@ -1,58 +1,97 @@
 const assert = require("node:assert/strict");
-const path = require("node:path");
+const { spawn } = require("node:child_process");
 const fs = require("node:fs/promises");
+const path = require("node:path");
 const vscode = require("vscode");
+
+/**
+ * Starts the bundled `hypha serve` as the editor would and asks it, over stdio, what it offers.
+ * The editor only starts a registered MCP server once a chat needs it, which this host has no way to
+ * trigger, so the server is driven directly: the same executable, arguments and transport.
+ */
+function askServer(executable, home, cwd) {
+  return new Promise((resolve, reject) => {
+    // Started in the extension's own folder, as the extension tells the editor to: never the folder
+    // this test happens to run from, which is usually a source checkout that hypha would prefer.
+    const child = spawn(executable, ["serve"], {
+      cwd,
+      env: { ...process.env, HYPHA_HOME: home },
+      windowsHide: true
+    });
+    const answers = new Map();
+    let buffer = "";
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error("The bundled hypha serve did not answer within two minutes."));
+    }, 120000);
+    const send = (message) => child.stdin.write(JSON.stringify(message) + "\n");
+
+    child.on("error", (error) => { clearTimeout(timer); reject(error); });
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => {
+      buffer += chunk;
+      let newline;
+      while ((newline = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, newline).trim();
+        buffer = buffer.slice(newline + 1);
+        if (!line) { continue; }
+        const message = JSON.parse(line);
+        if (message.id === undefined || message.method !== undefined) { continue; }
+        answers.set(message.id, message);
+        if (message.id === 1) {
+          send({ jsonrpc: "2.0", method: "notifications/initialized" });
+          send({ jsonrpc: "2.0", id: 2, method: "tools/list" });
+          send({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "hypha_release_status", arguments: {} } });
+        }
+        if (answers.has(2) && answers.has(3)) {
+          clearTimeout(timer);
+          child.stdin.end();
+          child.on("close", () => resolve({ initialize: answers.get(1), tools: answers.get(2), status: answers.get(3) }));
+        }
+      }
+    });
+    send({
+      jsonrpc: "2.0", id: 1, method: "initialize",
+      params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "hypha-host-test", version: "0" } }
+    });
+  });
+}
 
 exports.run = async function () {
   const extension = vscode.extensions.getExtension("mycelium-cmbse.mycelium-hypha");
   assert.ok(extension, "VSIX must be installed");
   assert.ok(extension.extensionPath.startsWith(process.env.HYPHA_EXPECTED_EXTENSION_DIRECTORY),
     "Must load the installed VSIX, not the source checkout");
+
+  // Activation registers the MCP server definition provider; the editor throws there when the
+  // provider's id is not the one the manifest declares.
   await extension.activate();
-  await fs.access(path.join(extension.extensionPath, "out/cli", process.platform === "win32" ? "hypha.exe" : "hypha"));
-  const status = await vscode.lm.invokeTool("mycelium-hypha_get_release_status", {
-    input: {}, toolInvocationToken: undefined
-  });
-  assert.match(status.content.map(part => part.value ?? "").join(""), /2026-09/);
-  const result = await vscode.lm.invokeTool("mycelium-hypha_lookup_knowledge", {
-    input: { kind: "metamodel", name: "PartUsage" }, toolInvocationToken: undefined
-  });
-  const data = JSON.parse(result.content[0].value);
-  assert.equal(data.release, "2026-09");
-  assert.match(data.content, /Host test fixture only/);
-  assert.match(data.source, /globalStorage/);
-  const storage = process.env.HYPHA_EXPECTED_STORAGE_DIRECTORY;
-  const { ensureCli, runCli } = require(path.join(extension.extensionPath, "out/cli.js"));
-  const output = { append() {} };
-  const cancellation = new vscode.CancellationTokenSource();
-  const cli = await ensureCli(extension.extensionPath);
-  assert.match(await runCli(cli, storage, ["--version"], output, cancellation.token), /\d+\.\d+/);
-  const probe = JSON.parse(await runCli(process.env.HYPHA_TEST_NODE, storage, ["-e", `
-    console.log(JSON.stringify({
-      args: process.argv.slice(1),
-      cache: process.env.UV_CACHE_DIR,
-      python: process.env.UV_PYTHON_INSTALL_DIR
-    }))
-  `, "--"], output, cancellation.token));
-  cancellation.dispose();
-  assert.equal(probe.cache, path.join(storage, "toolchain", "uv-cache"));
-  assert.equal(probe.python, path.join(storage, "toolchain", "python"));
-  assert.deepEqual(probe.args, [
-    "--repository-root", storage, "--toolchain-cache-root", path.join(storage, "toolchain"), "--no-logo"
-  ]);
-  const spec = path.join(storage, "knowledge/2026-09/spec");
-  await fs.mkdir(path.join(spec, "kerml"), { recursive: true });
-  await fs.writeFile(path.join(spec, "index.md"), "obsolete layout");
-  await fs.writeFile(path.join(spec, "kerml/index.json"), "{}");
-  const statusBeforeSysmlCatalog = await vscode.lm.invokeTool("mycelium-hypha_get_release_status", {
-    input: {}, toolInvocationToken: undefined
-  });
-  assert.match(statusBeforeSysmlCatalog.content.map(part => part.value ?? "").join(""), /specification text not present/);
-  await fs.mkdir(path.join(spec, "sysml2"), { recursive: true });
-  await fs.writeFile(path.join(spec, "sysml2/index.json"), "{}");
-  const statusAfterSysmlCatalog = await vscode.lm.invokeTool("mycelium-hypha_get_release_status", {
-    input: {}, toolInvocationToken: undefined
-  });
-  assert.match(statusAfterSysmlCatalog.content.map(part => part.value ?? "").join(""), /specification text present/);
-  console.log("Installed VSIX activated and both Copilot tools returned global-storage data.");
+  const providers = extension.packageJSON.contributes.mcpServerDefinitionProviders;
+  assert.deepEqual(providers.map((provider) => provider.id), ["mycelium-hypha.server"]);
+  assert.equal(extension.packageJSON.contributes.languageModelTools, undefined, "the extension has no tools of its own");
+  assert.equal(extension.packageJSON.contributes.commands, undefined, "nor commands");
+
+  const executable = path.join(extension.extensionPath, "out/cli", process.platform === "win32" ? "hypha.exe" : "hypha");
+  await fs.access(executable);
+  await assert.rejects(fs.access(path.join(extension.extensionPath, "out/resources")),
+    "hypha carries the specification extractor and the UML primitives; the extension ships no copy");
+
+  const home = process.env.HYPHA_TEST_HOME;
+  const { initialize, tools, status } = await askServer(executable, home, extension.extensionPath);
+  assert.equal(initialize.result.serverInfo.name, "hypha");
+  const names = tools.result.tools.map((tool) => tool.name);
+  assert.ok(names.length >= 17 && names.length < 20, `expected hypha's tools, got ${names.length}`);
+  assert.ok(names.every((name) => name.startsWith("hypha_")));
+  for (const name of ["hypha_release_status", "hypha_install_release", "hypha_metaclass", "hypha_lookup", "hypha_spec"]) {
+    assert.ok(names.includes(name), `${name} is offered`);
+  }
+
+  // Nothing is installed in the scratch home, and the server says so rather than failing.
+  assert.notEqual(status.result.isError, true);
+  const answer = JSON.parse(status.result.content[0].text);
+  assert.deepEqual(answer.releases, []);
+  assert.deepEqual((await fs.readdir(home)).filter((name) => name === "knowledge"), [],
+    "a read-only question installs nothing");
+
+  console.log(`Installed VSIX activated, and its bundled hypha serve offered ${names.length} tools on a scratch HYPHA_HOME.`);
 };

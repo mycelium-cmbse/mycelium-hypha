@@ -23,11 +23,10 @@ namespace Hypha.Knowledge.Releases
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// The release-operation lock, as a file in the repository root shared with the VS Code extension.
+    /// The release-operation lock, as a file in the repository root every hypha reading it shares.
     /// </summary>
     /// <remarks>
-    /// See <see cref="IReleaseOperationLock"/> for the protocol. Every step mirrors the extension's
-    /// <c>acquireReleaseLock</c> and <c>recoverReleaseLock</c>: two attempts, each recovering a stale
+    /// See <see cref="IReleaseOperationLock"/> for the protocol: two attempts, each recovering a stale
     /// lock first; the lock file is written and closed, never held open, so the other side can always
     /// read it; and a lock is stale only when its owner process is known to be gone. The one addition is
     /// the wait (<see cref="HyphaKnowledgeOptions.ReleaseLockWait"/>): while it lasts, a refusal is
@@ -249,7 +248,7 @@ namespace Hypha.Knowledge.Releases
         }
 
         /// <summary>
-        /// The two attempts of the extension's protocol: create the lock, and when it exists, recover it
+        /// The two attempts of the protocol: create the lock, and when it exists, recover it
         /// if it is stale and create it once more.
         /// </summary>
         /// <param name="root">The repository root.</param>

@@ -2,16 +2,12 @@
 
 For installation and everyday use, see [Hypha for VS Code](README.md).
 
-This prototype delivers release-aware SysML v2/KerML knowledge through one standard VS Code
-extension. It contributes release-management commands and two GitHub Copilot tools:
-
-- **Hypha Release Status** (`#hyphaReleaseStatus`) reports the default release and artifact presence.
-- **Hypha Grounded Knowledge Lookup** (`#hyphaLookup`) reads generated metamodel elements and
-  standard-library declarations, returning release-qualified source citations and paginated text.
-
-The extension is not yet published to the Marketplace. Release status and knowledge lookup are read
-from the bundled CLI's JSON commands; the TypeScript host owns VS Code interaction, not the release
-manifest or generated-file layout. Lookups are not compiler validation or normative specification searches.
+The extension is a thin package around the hypha MCP server. It has no tools and no commands of its
+own: at activation it registers one MCP server definition provider
+(`vscode.lm.registerMcpServerDefinitionProvider`, declared as `mycelium-hypha.server` under
+`contributes.mcpServerDefinitionProviders`), which hands the editor the bundled `hypha`, started as
+`hypha serve`. Everything Copilot can ask, and installing, switching and removing releases, goes
+through the server's tools, as in every other client (`tools/hypha-cli/README.md` lists them).
 
 ## Shared runtime and data
 
@@ -21,34 +17,24 @@ Supported targets are Windows x64, Linux x64/arm64 and macOS x64/arm64; web host
 The extension runs on the workspace extension host, including WSL/SSH, in trusted, non-virtual
 workspaces.
 
-The bundled CLI is shared through the extension installation. Mutable inputs, generated knowledge,
-the release manifest, and managed toolchain caches live under `ExtensionContext.globalStorageUri`:
+The server is started without `--repository-root` and without an environment of its own, so it
+reads `HYPHA_HOME`: the per-user `hypha` data folder every client shares, or the folder the
+variable names. Nothing is kept in `ExtensionContext.globalStorageUri` any more; releases an earlier
+version of the extension installed there are copied into `HYPHA_HOME` once by hypha itself
+(`IKnowledgeMigration`), unless they are in an older generated format.
 
-```text
-<globalStorageUri>/
-  knowledge/versions.json
-  knowledge/<tag>/
-  sources/PrimitiveTypes.xmi
-  sources/<tag>/
-  tools/spec-extract/
-  toolchain/
-```
+The server's working directory is set to the extension's own folder. Left unset, the editor would
+start it in the workspace folder, and hypha prefers a folder above its working directory that holds
+both `sources/` and `knowledge/` over `HYPHA_HOME`, so a workspace that looks like that would capture
+the server. A maintainer's caveat remains: under **F5** the extension's folder is inside this
+checkout, so the development host's server answers from the checkout's own `knowledge/`.
 
-This data is available across workspaces on the same extension host, not synchronized across
-Windows/WSL, hosts or machines. **Hypha: Show Installed Releases** logs the actual storage URI.
-The CLI always receives this root explicitly; nothing is written into the modeling workspace.
+The package holds the executable and the license notices, and **no specification PDFs, extracted
+normative text or per-release knowledge**. It no longer carries the specification extractor or the
+UML primitives either: hypha embeds both and unpacks them into `HYPHA_HOME` when it needs them.
 
-The package includes the shared primitives input, specification-extraction code and license notices,
-but **no specification PDFs, extracted normative text or per-release knowledge**. After explicit user
-confirmation, **Hypha: Install a SysML v2 Release** fetches upstream inputs and generates knowledge
-locally, then makes the release the default only after generation succeeds. First specification
-extraction may download checksum-verified `uv`, a matching Python and Python dependencies. Cancellation
-or an unavailable toolchain can leave partial data; status reports presence rather than treating a
-manifest entry as proof of completion. Cancellation terminates the CLI process tree.
-
-**Hypha: Change Default Release** selects another installed release. **Hypha: Remove a Release**
-removes a selected release after confirmation; change the default first when removing the current
-default. Release mutations are serialized within the extension host.
+The minimum VS Code is 1.101, the first with the MCP server definition provider API. Activation is
+`onStartupFinished`, which `vsce` requires to be stated now that no command or tool implies one.
 
 ## Build and package
 
@@ -68,9 +54,10 @@ Set `HYPHA_CLI_VERSION` to the hypha tools release a VSIX is built from (for exa
 it is meant for publication; the bundled CLI then reports that version (`hypha --version` prints
 it with the source commit, e.g. `1.5.0+f4c0548…`). Without it the CLI is marked as a development
 build, `0.0.0-dev`.
-The package command builds the CLI and extension and includes the required runtime assets.
+The package command builds the CLI and the extension.
 The repository CI runs `npm test`, packages the extension and smoke-tests the installed VSIX on
-Linux x64 and on Windows x64; on Windows against VS Code stable and against 1.100.0, the two archive
+Linux x64 and on Windows x64; on Windows against VS Code stable and against 1.101.0, the oldest
+supported release, which are also the two archive
 layouts `scripts/test-host.mjs` has to find VS Code's `cli.js` in.
 Development-only packaging dependencies currently have five moderate npm audit advisories, all in
 `@vscode/vsce`'s own dependency tree; `npm audit --omit=dev` is clean and no Node dependencies ship
@@ -107,45 +94,31 @@ F5 copy in the same host when comparing results.
 
 ## Validate
 
-The automated installed-package smoke test uses isolated user-data/extensions directories, a
-synthetic knowledge fixture and an unrelated workspace:
+The automated installed-package smoke test uses isolated user-data and extensions directories, a
+scratch `HYPHA_HOME` and an unrelated workspace:
 
 ```sh
 npm run test:host
 ```
 
 It downloads desktop VS Code and needs that application's normal system libraries and a display
-(`xvfb-run -a npm run test:host` on headless Linux). It checks installed-package activation, the bundled
-CLI and both language-model tools without changing the personal VS Code profile.
-Linux/WSL is the currently exercised package and host-test target.
+(`xvfb-run -a npm run test:host` on headless Linux). It checks that the installed package activates
+and registers its provider, that the bundled CLI is there and no copy of the extractor is, and then
+starts the bundled `hypha serve` itself, over stdio, to check that it offers hypha's tools and
+answers `hypha_release_status`. The editor only starts a registered MCP server once a chat needs
+it, which the test host cannot trigger, so the test drives the same executable, arguments and
+transport directly. It never touches the personal VS Code profile or the per-user `HYPHA_HOME`.
 The installer ignores the launching terminal's VS Code remote CLI hook so that, even from a WSL
 VS Code terminal, the VSIX is installed into the isolated extensions directory.
 
-For interactive validation:
+For interactive validation, which is the part the automated test cannot cover:
 
-1. Run **Hypha: Check Available Releases**. It only reads local status and upstream tag catalogs.
-2. Run **Hypha: Install a SysML v2 Release** and first cancel the confirmation. No fetch or generation
-   should occur. Run it again and confirm.
-3. Inspect the Hypha output channel and **Hypha: Show Installed Releases**. Core readiness requires
-   metamodel, textual notation, model library and cross-references; specification readiness requires
-   both KerML and SysML document indexes.
-4. Enable Hypha's tools in Copilot Chat and try:
-
-   ```text
-   Use #hyphaReleaseStatus to report the default release and artifact readiness.
-   Do not fetch or generate anything.
-
-   Use #hyphaLookup to explain PartUsage from the default release's metamodel.
-   Cite the release and source; follow pagination as needed.
-
-   Use #hyphaLookup to find ScalarValues::Real in the default release's model library.
-   Cite the release and source, not general knowledge.
-   ```
-
-5. Open an unrelated folder on the same host. Confirm the storage URI, release and lookup results
-   remain the same. Ambiguous names must return alternatives, not an arbitrary source.
-
-If an older build failed on missing primitives or skipped specification generation because of `uv`,
-rebuild/reinstall and run installation again for the same tag. Existing fetched inputs are reused;
-generation refreshes cross-references after successful specification extraction. Do not delete the
-global data directory or replace its manifest with a synthetic one.
+1. Install the VSIX, open Copilot Chat in Agent mode and check under **Configure Tools** that the
+   **hypha** server and its tools are listed. **MCP: List Servers** shows the server and its log.
+2. Ask which releases are installed and which are offered. Nothing should be downloaded.
+3. Ask Copilot to install a release, and decline the confirmation first: nothing should be fetched.
+   Ask again and confirm. Progress is reported while it runs.
+4. Try a metamodel question, a model-library lookup and a specification quotation, and check that
+   each answer names its release and grounding.
+5. Open an unrelated folder on the same host and confirm the same release answers. If another Hypha
+   client is installed on the machine, confirm it sees the release too.

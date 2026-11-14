@@ -73,7 +73,7 @@ namespace Hypha.Tools.Hosting
                     options.ToolchainCacheRoot = parseResult.GetValue(GlobalOptions.ToolchainCacheRoot);
                     options.Token = token;
 
-                    // Several MCP servers and the VS Code extension share one knowledge folder, so a
+                    // Several MCP servers, one per client, share one knowledge folder, so a
                     // release tool waits for another's change to finish rather than refusing at once.
                     options.ReleaseLockWait = ServeCommand.Owns(parseResult) ? ServeCommand.ReleaseLockWait : TimeSpan.Zero;
                 })

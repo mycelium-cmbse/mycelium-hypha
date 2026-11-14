@@ -1,143 +1,143 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import vm from "node:vm";
 
-function createExtensionHarness() {
-  const tools = new Map<string, { invoke: (options: unknown, token: unknown) => Promise<any> }>();
-  const outputLines: string[] = [];
-  const calls: string[][] = [];
-  let lookupResult: Record<string, unknown> | Error = {
-    release: "2026-09",
-    kind: "metamodel",
-    status: "found",
-    name: "PartUsage",
-    path: "/storage/knowledge/2026-09/metamodel/elements/PartUsage.md",
-    declarationLine: null,
-    startLine: 1,
-    endLine: 2,
-    totalLines: 2,
-    nextLine: null,
-    content: "PartUsage",
-    matches: [],
-    totalMatches: 1
-  };
-  const listResult = { defaultTag: null, releases: [] };
+interface ServerDefinition {
+  label: string;
+  command: string;
+  args: string[];
+  env: Record<string, unknown>;
+  version?: string;
+  cwd?: { fsPath: string };
+}
+
+interface Provider {
+  provideMcpServerDefinitions(): ServerDefinition[];
+  resolveMcpServerDefinition(server: ServerDefinition): Promise<ServerDefinition>;
+}
+
+// Loads the compiled extension with a stand-in for the editor's API, and activates it.
+function activateExtension(cliPresent: boolean, packageJSON: Record<string, unknown> = { version: "9.8.7" }) {
+  const providers = new Map<string, Provider>();
+  const registrations: string[] = [];
+  const checked: string[] = [];
   const vscode = {
     lm: {
-      registerTool(name: string, tool: { invoke: (options: unknown, token: unknown) => Promise<any> }) {
-        tools.set(name, tool);
+      registerMcpServerDefinitionProvider(id: string, provider: Provider) {
+        providers.set(id, provider);
+        return { dispose() {} };
+      },
+      registerTool(name: string) {
+        registrations.push(`tool ${name}`);
         return { dispose() {} };
       }
     },
     commands: {
-      registerCommand() { return { dispose() {} }; }
-    },
-    window: {
-      createOutputChannel() {
-        return {
-          append(value: string) { outputLines.push(value); },
-          appendLine(value: string) { outputLines.push(value); },
-          show() {}
-        };
+      registerCommand(name: string) {
+        registrations.push(`command ${name}`);
+        return { dispose() {} };
       }
     },
     Uri: {
-      file(value: string) { return { toString: () => `file://${value}` }; }
+      file(fsPath: string) { return { fsPath }; }
     },
-    LanguageModelToolResult: class {
-      constructor(public content: unknown[]) {}
-    },
-    LanguageModelTextPart: class {
-      constructor(public value: string) {}
-    },
-    CancellationError: class extends Error {}
+    McpStdioServerDefinition: class {
+      cwd?: { fsPath: string };
+
+      constructor(
+        public label: string,
+        public command: string,
+        public args: string[],
+        public env: Record<string, unknown>,
+        public version?: string
+      ) {}
+    }
   };
   const cli = {
-    async ensureCli() { return "/extension/hypha"; },
-    async runCliJson(_executable: string, _storage: string, args: string[]) {
-      calls.push([...args]);
-      if (args[0] === "lookup") {
-        if (typeof lookupResult === "object" && lookupResult !== null && "message" in lookupResult) {
-          throw lookupResult;
-        }
-        return lookupResult;
+    cliPath(extensionPath: string) { return `${extensionPath}/out/cli/hypha`; },
+    async ensureCli(extensionPath: string) {
+      checked.push(extensionPath);
+      if (!cliPresent) {
+        throw new Error("The bundled Hypha CLI is missing or not executable.");
       }
-      return listResult;
+      return `${extensionPath}/out/cli/hypha`;
     }
   };
   const exports: Record<string, any> = {};
-  const context = {
+  vm.runInNewContext(readFileSync(path.join(__dirname, "extension.js"), "utf8"), {
     exports,
     require(name: string) {
       if (name === "vscode") { return vscode; }
       if (name === "./cli") { return cli; }
-      if (name === "./releaseCommands") { return { registerReleaseCommands: () => [] }; }
       throw new Error(`Unexpected import: ${name}`);
     }
-  };
-  vm.runInNewContext(require("node:fs").readFileSync(path.join(__dirname, "extension.js"), "utf8"), context);
+  });
+  const subscriptions: unknown[] = [];
   exports.activate({
-    subscriptions: [],
+    subscriptions,
     extensionUri: { fsPath: "/extension" },
-    globalStorageUri: { fsPath: "/storage", toString: () => "file:///storage" }
+    extension: { packageJSON }
   });
 
-  return {
-    calls,
-    outputLines,
-    tools,
-    setLookupResult(value: Record<string, unknown> | Error) { lookupResult = value; },
-    setLookupError(message: string) { lookupResult = vm.runInNewContext(`new Error(${JSON.stringify(message)})`, context); }
-  };
+  return { providers, registrations, subscriptions, checked, providerId: exports.providerId as string };
 }
 
-test("lookup builds optional arguments and puts JSON last", async () => {
-  const harness = createExtensionHarness();
-  const tool = harness.tools.get("mycelium-hypha_lookup_knowledge")!;
-  const token = { isCancellationRequested: false };
+const manifest = JSON.parse(readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
 
-  await tool.invoke({
-    input: { kind: "metamodel", name: "PartUsage", tag: "2026-09", startLine: 5 }
-  }, token);
-  assert.deepEqual(harness.calls[0], [
-    "lookup", "--kind", "metamodel", "--name", "PartUsage",
-    "--tag", "2026-09", "--start-line", "5", "--json"
-  ]);
+test("the extension registers the provider its manifest declares, and nothing else", () => {
+  const extension = activateExtension(true);
+  const declared = manifest.contributes.mcpServerDefinitionProviders.map((provider: { id: string }) => provider.id);
 
-  await tool.invoke({ input: { kind: "metamodel", name: "PartUsage" } }, token);
-  assert.deepEqual(harness.calls[1], ["lookup", "--kind", "metamodel", "--name", "PartUsage", "--json"]);
+  assert.deepEqual([...extension.providers.keys()], [extension.providerId]);
+  assert.deepEqual(declared, [extension.providerId], "the editor refuses a provider whose id the manifest does not declare");
+  assert.deepEqual(extension.registrations, [], "no tools and no commands of its own");
+  assert.equal(extension.subscriptions.length, 1);
+  assert.equal(manifest.contributes.commands, undefined);
+  assert.equal(manifest.contributes.languageModelTools, undefined);
 });
 
-test("lookup converts source paths to URIs and omits sources for ambiguous or missing results", async () => {
-  const harness = createExtensionHarness();
-  const tool = harness.tools.get("mycelium-hypha_lookup_knowledge")!;
-  const token = { isCancellationRequested: false };
+test("the server is the bundled hypha, started as hypha serve on the shared HYPHA_HOME", () => {
+  const extension = activateExtension(true);
+  const [server, ...others] = extension.providers.get(extension.providerId)!.provideMcpServerDefinitions();
 
-  const found = await tool.invoke({ input: { kind: "metamodel", name: "PartUsage" } }, token);
-  assert.equal(JSON.parse(found.content[0].value).source, "file:///storage/knowledge/2026-09/metamodel/elements/PartUsage.md");
-
-  for (const status of ["ambiguous", "not-found"]) {
-    harness.setLookupResult({ status, path: null, matches: [] });
-    const result = await tool.invoke({ input: { kind: "metamodel", name: "PartUsage" } }, token);
-    assert.equal(JSON.parse(result.content[0].value).source, null);
-  }
+  assert.equal(others.length, 0);
+  assert.equal(server.label, "hypha", "the same server name as in every other client's manifest");
+  assert.equal(server.command, "/extension/out/cli/hypha");
+  assert.deepEqual([...server.args], ["serve"], "no --repository-root: hypha reads HYPHA_HOME");
+  assert.deepEqual({ ...server.env }, {}, "no folder or toolchain of the extension's own");
+  assert.equal(server.version, "9.8.7", "a new extension version makes the editor refresh the tools");
+  assert.equal(server.cwd?.fsPath, "/extension",
+    "started in the extension's own folder, never the workspace, which hypha could take for its knowledge folder");
 });
 
-test("lookup wraps CLI errors with actionable context and release status handles an empty manifest", async () => {
-  const harness = createExtensionHarness();
-  const lookup = harness.tools.get("mycelium-hypha_lookup_knowledge")!;
-  harness.setLookupError("No release is installed.");
-  await assert.rejects(
-    lookup.invoke({ input: { kind: "metamodel", name: "PartUsage" } }, { isCancellationRequested: false }),
-    /Hypha lookup failed: No release is installed/
-  );
-  assert.ok(harness.outputLines.some((line) => line.includes("Knowledge lookup failed")));
+test("a manifest without a version gives the server an empty version", () => {
+  const extension = activateExtension(true, {});
+  const [server] = extension.providers.get(extension.providerId)!.provideMcpServerDefinitions();
 
-  const status = await harness.tools.get("mycelium-hypha_get_release_status")!.invoke(
-    { input: {} },
-    { isCancellationRequested: false }
-  );
-  assert.match(status.content[0].value, /No Hypha releases are recorded as installed/);
+  assert.equal(server.version, "");
+});
+
+test("the manifest activates the extension at startup, since no command or tool does", () => {
+  assert.deepEqual(manifest.activationEvents, ["onStartupFinished"]);
+});
+
+test("starting the server checks the executable, and a missing one says so", async () => {
+  const present = activateExtension(true);
+  const provider = present.providers.get(present.providerId)!;
+  const [server] = provider.provideMcpServerDefinitions();
+  assert.deepEqual(present.checked, [], "discovery does not touch the disk");
+  assert.equal(await provider.resolveMcpServerDefinition(server), server);
+  assert.deepEqual(present.checked, ["/extension"], "the executable is looked for in the extension's own folder");
+
+  const missing = activateExtension(false);
+  const broken = missing.providers.get(missing.providerId)!;
+  assert.equal(broken.provideMcpServerDefinitions().length, 1, "discovery does not touch the disk");
+  await assert.rejects(broken.resolveMcpServerDefinition(server), /bundled Hypha CLI is missing/);
+});
+
+test("the manifest needs the first VS Code that has the provider API", () => {
+  assert.equal(manifest.engines.vscode, "^1.101.0");
+  assert.equal(manifest.devDependencies["@types/vscode"], "1.101.0");
 });

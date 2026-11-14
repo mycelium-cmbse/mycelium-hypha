@@ -290,7 +290,7 @@ The three manifests and the Agent Plugins MCP config are generated from one sour
 
 Manual-config clients get a documented snippet pointing at the launcher from the release archive.
 
-**VS Code extension**: VS Code installs Agent Plugins natively, so the plugin covers Copilot. Decision (November 2026, after Step 4): keep the extension, but only as a thin installer for its Marketplace listing and install UI. It hands the same MCP server to Copilot through `vscode.lm.registerMcpServerDefinitionProvider`, contains no tools of its own, and passes no `--repository-root`, so it reads `HYPHA_HOME` like every other client. Retiring it instead stays possible; it would close #158, #163 and #165.
+**VS Code extension**: VS Code installs Agent Plugins natively, so the plugin covers Copilot. Decision (November 2026, after Step 4): keep the extension, but only as a thin installer for its Marketplace listing and install UI, with no commands and no storage of its own. It hands the same MCP server to Copilot through `vscode.lm.registerMcpServerDefinitionProvider`, contains no tools of its own, and passes no `--repository-root`, so it reads `HYPHA_HOME` like every other client. Retiring it instead stays possible; it would close #158, #163 and #165.
 
 No client contains its own tools, agents, hooks or `jq` instructions.
 
@@ -325,7 +325,7 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | 5: launcher, Claude plugin over MCP | #198 | Done; its client prototype moved to Step 9 |
 | 6: portable skills | #197 | Skills done (#227, #229, #230, #231) |
 | 6, what the tools cannot answer yet | #228 | Done (#234, #235, #236) |
-| The specification extractor in `HYPHA_HOME` | #237 | Done (#238, #241) but for the VS Code extension's copy, which goes with Step 7 |
+| The specification extractor in `HYPHA_HOME` | #237 | Done (#238, #241, and the VS Code extension's copy with #158) |
 | 7: every other client | #199, with #158, #163 and #165 | Open; before the release |
 | 8: CI and release | #200 | Hook project removed, workflow renamed (#239); Linux arm64, ReadyToRun and `RELEASING.md` open |
 | Follow-ups from the reviews | #224 | Fixes done (#232); the test gaps and four findings of the end-to-end run open |
@@ -415,7 +415,7 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 - [x] Embed the `tools/spec-extract` sources (`pyproject.toml`, `uv.lock`, `src/`) in `hypha`, and unpack them into `HYPHA_HOME/toolchain/spec-extract/` when they are missing or differ from the embedded copy. `SpecGenerator` and `ApiSpecGenerator` run the extractor from there; a source checkout keeps using its own `tools/spec-extract`.
 - [x] Tests: in a root without `tools/` the extractor is unpacked and the generators run it from there; a checkout keeps its own; an unpacked copy that differs is replaced.
 - [x] Generate a release's specification text in a real `HYPHA_HOME` once, through `hypha serve`, and record the result here.
-- [ ] The VS Code extension stops packaging its own copy of the extractor once it reads `HYPHA_HOME` (Step 7, #158).
+- [x] The VS Code extension stops packaging its own copy of the extractor once it reads `HYPHA_HOME` (Step 7, #158).
 
 ### Step 7: Package for every other client (#199, #158, #163, #165)
 
@@ -424,7 +424,8 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 - [x] **Gemini CLI**: `gemini-extension.json` with `mcpServers` to `bin/hypha-launch`, sharing `skills/`.
 - [ ] **Claude Desktop**: per-platform `.mcpb` (`server.type = "binary"`, entry point `hypha-launch`), built by the release workflow as a release asset.
 - [ ] **Manual-config clients** (Junie, Windsurf, Zed, Cline, Roo): document a config snippet per client, plus where to copy the skills.
-- [ ] **VS Code extension** (section 1.15; re-scopes #158): register the server through `vscode.lm.registerMcpServerDefinitionProvider`, delete the two `vscode.lm.registerTool` tools, and drop the `--repository-root` to global storage, so the extension reads `HYPHA_HOME`. Then add the `win32-arm64` target and publish the validated macOS and Windows on Arm packages (#163), and publish to Open VSX (#165); their validation is in Step 9.
+- [x] **VS Code extension** (section 1.15; re-scopes #158): register the server through `vscode.lm.registerMcpServerDefinitionProvider`, delete the two `vscode.lm.registerTool` tools, and drop the `--repository-root` to global storage, so the extension reads `HYPHA_HOME`. Its five release commands went too, since Copilot does the same through the server's tools; VS Code 1.101 is the minimum.
+- [ ] **VS Code extension, more platforms**: add the `win32-arm64` target and publish the validated macOS and Windows on Arm packages (#163), and publish to Open VSX (#165); their validation is in Step 9.
 - [ ] Keep the tools under 20, all prefixed `hypha_`; make `instructions` sufficient on their own for clients without skills.
 
 ### Step 8: CI and release (#200)
@@ -451,7 +452,7 @@ Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 
 - [ ] Check Windsurf's tool count with Hypha alongside other servers.
 - [ ] Check Copilot cloud agent install time in a fresh environment; document it.
 - [ ] The VS Code extension on macOS (`darwin-arm64`, `darwin-x64`; from #163):
-  - [ ] `npm run test:host` on macOS against VS Code stable and 1.100.0.
+  - [ ] `npm run test:host` on macOS against VS Code stable and 1.101.0.
   - [ ] The server end to end from the extension, over `HYPHA_HOME`: install a release including specification text through `uv` (with an installed Python and with a managed one), `hypha_release_status`, a query and a lookup.
   - [ ] Gatekeeper and quarantine: the bundled `hypha` and the `uv` it downloads must run without a "cannot be opened" prompt.
   - [ ] Cancellation during extraction (no `hypha`, `uv` or `python` left; the POSIX path kills the process group) and the release-operation lock between two processes.
@@ -490,6 +491,10 @@ From the end-to-end run (#237), seen in the run through the launcher in a clean 
 - [ ] A skipped migration is silent: installs left out for being in an older format are a warning on standard error only, so `hypha_release_status` says nothing is installed without saying why. Say it in the answer.
 - [ ] A refusal the client gets a proper message for (removing the default, a version not installed) is logged as `[ERR] "hypha_remove_release" threw an unhandled exception`. Log it at a lower level, or not as unhandled.
 - [ ] `hypha_search_spec` takes 18 to 33 seconds on its first call in a release, against instant answers from every other read tool. Find out where the time goes and cut it, or index the text.
+
+From the review of the VS Code extension (#244):
+
+- [ ] A project folder that holds both `sources/` and `knowledge/` captures the server: `hypha` prefers such a folder above its working directory over `HYPHA_HOME`, and a client such as Claude Code starts the launcher in the project folder. Releases installed through the server then land in the project, not in the shared folder. Decide whether `serve` should look above its working directory at all, or only accept a real checkout (one that also holds `mycelium-hypha.sln`). The VS Code extension avoids it by starting the server in its own folder (#244).
 
 ### Notes
 

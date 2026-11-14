@@ -7,6 +7,28 @@ bundles has its own changelog, in the
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions with an
 odd minor number are Marketplace pre-releases; an even minor number marks a release.
 
+## [Unreleased]
+
+### Changed
+
+- **The extension gives Copilot the hypha MCP server.** It registers the bundled `hypha serve` as an
+  MCP server, so Copilot has every hypha tool: the metamodel, the model library, the specification
+  text, textual notation, the worked examples, the Systems Modeling API and release management. It is
+  the same server the Hypha plugins for other AI clients use.
+- **Releases live in the shared `HYPHA_HOME` folder**, not in the extension's own storage, so a
+  release installed in one Hypha client answers in every other. Releases an earlier version installed
+  are copied over once; one generated in an older format is left out and has to be installed again.
+- **VS Code 1.101 or later is required**, the first with the API for registering an MCP server.
+
+### Removed
+
+- **The two Copilot tools of the extension's own**, `#hyphaReleaseStatus` and `#hyphaLookup`: the
+  server's `hypha_release_status` and `hypha_lookup` answer the same, and more.
+- **The five commands** (*Show Installed Releases*, *Check Available Releases*, *Install a SysML v2
+  Release*, *Change Default Release*, *Remove a Release*): ask Copilot instead, which does each
+  through the server's tools.
+- **The bundled copy of the specification extractor and the UML primitives**: `hypha` carries both.
+
 ## [0.1.1] (pre-release)
 
 Bundles hypha tools `1.5.1`.
