@@ -30,8 +30,13 @@ A release therefore means: **bump the version, point the source at a new tag, an
 
 1. Get `development` into a releasable state (all intended PRs merged, `dotnet test` / `pytest` green).
 2. On a branch off `development`:
-   - `.claude-plugin/plugin.json`: bump `version` to `X.Y.Z`.
-   - `.claude-plugin/marketplace.json`: set the `hypha` entry's `source.ref` to `vX.Y.Z`.
+   - `manifest.source.json`: bump `version` to `X.Y.Z`. It is the one place the version is written;
+     never edit a manifest by hand.
+   - Write the manifests from it:
+     `dotnet test mycelium-hypha.sln --filter "FullyQualifiedName~PackageManifestTests.Bless_the_manifests"`.
+     That sets `version` in `.claude-plugin/plugin.json`, `plugin.json` and `gemini-extension.json`, and
+     the `hypha` entry's `source.ref` in `.claude-plugin/marketplace.json` to `vX.Y.Z`. `dotnet test`
+     fails while a manifest differs from the source.
    - `CHANGELOG.md`: move the `[Unreleased]` items under a new `## [X.Y.Z] - <YYYY-MM-DD>` heading and
      leave a fresh empty `[Unreleased]`.
    - Open a PR into `development` and merge it.
@@ -46,8 +51,11 @@ A release therefore means: **bump the version, point the source at a new tag, an
 
 ## Conventions
 
-- `version` (no `v`) in `plugin.json` always equals the tag minus its leading `v`
-  (`version: "1.0.0"` ↔ tag `v1.0.0` ↔ `source.ref: "v1.0.0"`).
+- `version` (no `v`) in `manifest.source.json`, and so in every manifest, always equals the tag minus
+  its leading `v` (`version: "1.0.0"` ↔ tag `v1.0.0` ↔ `source.ref: "v1.0.0"`).
+- `hyphaVersion` in `manifest.source.json` is the tools release the launcher downloads
+  (`bin/hypha-launch.json`), on its own version line: bump it, and bless, when a new `tools-v*`
+  release should reach plugin users.
 - Use [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/).
 - Never point `source.ref` at a tag that does not yet exist on the remote.
 

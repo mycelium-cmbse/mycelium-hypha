@@ -12,3 +12,11 @@ tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Expected/** text eol=lf
 
 # The launcher's POSIX dispatch script runs under /bin/sh, which a CRLF line ending breaks.
 bin/hypha-launch text eol=lf
+
+# The client manifests are rendered with LF by PackageManifests; keep them so on every platform.
+manifest.source.json text eol=lf
+plugin.json text eol=lf
+mcp.json text eol=lf
+gemini-extension.json text eol=lf
+.claude-plugin/*.json text eol=lf
+bin/hypha-launch.json text eol=lf

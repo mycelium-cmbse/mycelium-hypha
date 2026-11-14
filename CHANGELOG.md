@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Manifests for Agent Plugins clients and Gemini CLI** (`refs #199`): a root `plugin.json` and
+  `mcp.json` in the Agent Plugins 1.0 format (GitHub Copilot, Cursor, Codex, Kiro) and a
+  `gemini-extension.json`, each starting the same `bin/hypha-launch` and sharing `skills/` with the
+  Claude plugin. Not yet checked in those clients.
+- **One source for every manifest** (`refs #199`): `manifest.source.json` holds the package's name,
+  description, server command and its two versions, the package version and the `hypha` version the
+  launcher downloads. Every manifest is rendered from it, and the tests fail when one drifts.
 - **API versions through the MCP release tools** (`refs #228`): `hypha_install_release`,
   `hypha_use_release` and `hypha_remove_release` take `axis: "api"` to install, switch or remove a
   Systems Modeling API version, under the same release-operation lock as a release; an install
