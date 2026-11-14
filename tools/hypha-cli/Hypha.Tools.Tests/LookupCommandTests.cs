@@ -64,6 +64,16 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
+        public async Task The_examples_kind_looks_up_a_worked_example()
+        {
+            this.lookup.Setup(mock => mock.Lookup(It.IsAny<LookupRequest>())).Returns(Found);
+
+            await this.Invoke("lookup --kind examples --name Camera --json");
+
+            this.lookup.Verify(mock => mock.Lookup(new LookupRequest(KnowledgeKind.Examples, "Camera", null, null, LookupRequest.DefaultMaxLines)));
+        }
+
+        [Test]
         public async Task The_defaults_leave_the_start_to_the_lookup_and_use_the_default_page()
         {
             this.lookup.Setup(mock => mock.Lookup(It.IsAny<LookupRequest>())).Returns(Found);

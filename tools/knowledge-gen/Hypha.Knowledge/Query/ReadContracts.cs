@@ -20,6 +20,7 @@ namespace Hypha.Knowledge.Query
     using Hypha.Knowledge.Metamodel;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Specification;
+    using Hypha.Knowledge.TextualNotation;
 
     /// <summary>
     /// The source-generated contracts the query API reads the generated documents through, set to
@@ -54,6 +55,10 @@ namespace Hypha.Knowledge.Query
         /// <summary>Gets the contract for a release's <c>textual-notation/keywords.json</c>.</summary>
         public static JsonTypeInfo<KeywordDocument> Keywords { get; } =
             new KeywordJsonContext(Strict(requireMembers: true)).KeywordDocument;
+
+        /// <summary>Gets the contract for a release's <c>textual-notation/examples/index.json</c>.</summary>
+        public static JsonTypeInfo<ExampleDocument> Examples { get; } =
+            new ExampleJsonContext(Strict(requireMembers: true)).ExampleDocument;
 
         /// <summary>Gets the contract for an API version's <c>cross-references.json</c>.</summary>
         public static JsonTypeInfo<ApiCrossReferenceDocument> ApiCrossReferences { get; } =

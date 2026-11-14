@@ -439,8 +439,8 @@ namespace Hypha.Knowledge.Query
         QueryResult<SpecificationClause> Clause(string document, string clause, string? tag = null);
 
         /// <summary>
-        /// Searches the release's metaclasses, standard-library declarations and specification clauses by
-        /// name, qualified name, clause number or title.
+        /// Searches the release's metaclasses, standard-library declarations, specification clauses and
+        /// worked examples by name, qualified name, clause number, title or an example's upstream path.
         /// </summary>
         /// <param name="text">The text to look for.</param>
         /// <param name="kind">Only hits of this kind, one of <see cref="HyphaAddress.Kinds"/>, or <c>null</c> for any.</param>
@@ -448,8 +448,9 @@ namespace Hypha.Knowledge.Query
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
         /// The hits, closest match first, then by kind and name; empty when nothing matches. A clause whose
-        /// title is the text matches as closely as one whose number is. The model library and the
-        /// specification text are searched when they have been generated.
+        /// title is the text matches as closely as one whose number is, and so does an example whose model has
+        /// that name. The model library, the specification text and the worked examples are searched when
+        /// they have been generated.
         /// </returns>
         /// <exception cref="System.ArgumentException">
         /// <paramref name="text"/> is <c>null</c>, empty or white space, <paramref name="kind"/> is not a
@@ -464,7 +465,7 @@ namespace Hypha.Knowledge.Query
         /// <summary>Resolves an address to the generated page it names, through the release's indexes.</summary>
         /// <param name="address">The address.</param>
         /// <returns>
-        /// The page; <c>null</c> when the release has no such element, declaration or clause.
+        /// The page; <c>null</c> when the release has no such element, declaration, clause or example.
         /// <see cref="QueryResult{T}.Unavailable"/> for a clause of a specification the release has not generated.
         /// </returns>
         /// <exception cref="System.ArgumentNullException"><paramref name="address"/> is <c>null</c>.</exception>

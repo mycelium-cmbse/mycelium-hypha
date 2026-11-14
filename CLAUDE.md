@@ -186,7 +186,7 @@ drives it.
   only match this per-repository-root layout, not the small, deliberately-committed XMI fixture under
   `tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/` (see below).
 - **Committed, not per release:** `knowledge/README.md`, `knowledge/cross-references.schema.json`,
-  `knowledge/model-library.schema.json`, `knowledge/keywords.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
+  `knowledge/model-library.schema.json`, `knowledge/keywords.schema.json`, `knowledge/examples.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
   and the plugin's top-level `bin/`: `hypha-launch.exe` and `<rid>/hypha-launch`, the NativeAOT launcher of the MCP
   server (`tools/hypha-cli/Hypha.Launcher`), its POSIX dispatch script `hypha-launch` and
@@ -236,7 +236,9 @@ kind of test tolerates non-deterministic output.
 - `knowledge/<tag>/textual-notation/index.md`: the release's keyword reference (read from its own
   BNF) and a link to every example; and `examples/`, one page per model the release ships (309),
   each ` ```sysml ` / ` ```kerml ` block a **byte-exact copy** of a `sources/<tag>/textual/` model,
-  with front matter naming its upstream path and the metaclasses it declares.
+  with front matter naming its upstream path and the metaclasses it declares; `examples/index.json`
+  (+ `knowledge/examples.schema.json`) lists them by page name, which is the name a `hypha://` address
+  and `hypha_lookup` `examples` take.
 - `knowledge/<tag>/textual-notation/keywords.json` (+ `knowledge/keywords.schema.json`): per grammar,
   each keyword and operator with the productions that write it and the metaclasses whose syntax
   includes it, following only **bare calls** (a reference that is not an assignment's value) into

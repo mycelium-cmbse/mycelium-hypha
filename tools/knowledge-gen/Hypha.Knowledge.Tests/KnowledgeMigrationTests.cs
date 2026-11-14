@@ -27,6 +27,7 @@ namespace Hypha.Knowledge.Tests
     using Hypha.Knowledge.Migration;
     using Hypha.Knowledge.ModelLibrary;
     using Hypha.Knowledge.Releases;
+    using Hypha.Knowledge.TextualNotation;
 
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
@@ -369,6 +370,7 @@ namespace Hypha.Knowledge.Tests
         [TestCase("cross-references")]
         [TestCase("keywords")]
         [TestCase("model-library")]
+        [TestCase("examples")]
         public async Task A_release_with_one_document_in_an_older_format_is_not_copied(string document)
         {
             var layout = new KnowledgeLayout(this.Install("plugin", "Claude plugin", "2026-05", "2026-05"));
@@ -379,6 +381,7 @@ namespace Hypha.Knowledge.Tests
                 "metamodel-index" => layout.MetamodelIndex("2026-05"),
                 "cross-references" => layout.CrossReferences("2026-05"),
                 "keywords" => layout.Keywords("2026-05"),
+                "examples" => layout.ExamplesIndex("2026-05"),
                 _ => layout.ModelLibraryIndex("2026-05"),
             };
             Seed(file.FullName, """{"schemaVersion": "0.0.1"}""");
@@ -609,6 +612,7 @@ namespace Hypha.Knowledge.Tests
             Seed(layout.CrossReferences(tag).FullName, $$"""{"schemaVersion": "{{CrossReferenceDocument.CurrentSchemaVersion}}"}""");
             Seed(layout.Keywords(tag).FullName, $$"""{"schemaVersion": "{{KeywordDocument.CurrentSchemaVersion}}"}""");
             Seed(layout.ModelLibraryIndex(tag).FullName, $$"""{"schemaVersion": "{{ModelLibraryDocument.CurrentSchemaVersion}}"}""");
+            Seed(layout.ExamplesIndex(tag).FullName, $$"""{"schemaVersion": "{{ExampleDocument.CurrentSchemaVersion}}"}""");
         }
 
         private static void SeedCurrent(ApiLayout layout, string version)

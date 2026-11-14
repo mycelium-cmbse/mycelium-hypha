@@ -26,7 +26,10 @@ namespace Hypha.Knowledge.Query
     /// </remarks>
     /// <param name="Tag">The release.</param>
     /// <param name="Kind">One of <see cref="Kinds"/>.</param>
-    /// <param name="Name">The element name, the library declaration's qualified name, or the clause number.</param>
+    /// <param name="Name">
+    /// The element name, the library declaration's qualified name, the clause number, or the example's page
+    /// name (its file name without <c>.md</c>).
+    /// </param>
     public sealed record HyphaAddress(string Tag, string Kind, string Name)
     {
         /// <summary>The address scheme.</summary>
@@ -44,8 +47,11 @@ namespace Hypha.Knowledge.Query
         /// <summary>A clause of the SysML specification, by number.</summary>
         public const string Sysml = "sysml2";
 
+        /// <summary>The kind of a worked example the release ships, named by its page.</summary>
+        public const string Examples = "examples";
+
         /// <summary>Gets every kind an address may name.</summary>
-        public static IReadOnlyList<string> Kinds { get; } = [Metamodel, ModelLibrary, Kerml, Sysml];
+        public static IReadOnlyList<string> Kinds { get; } = [Metamodel, ModelLibrary, Kerml, Sysml, Examples];
 
         /// <summary>Reads an address.</summary>
         /// <param name="text">The address, such as <c>hypha://2026-05/metamodel/PartUsage</c>.</param>

@@ -404,7 +404,7 @@ One thin slice, end to end: the Claude plugin starts `hypha serve` through the l
 Left out of the skills' rewrite, and due before the release: things the tools cannot answer or do yet, so the skill that needs them gives a weaker answer until then.
 
 - [x] The REST schema properties as a fact the tools answer: `openapi/index.json` already holds each REST schema's properties (name, type, required, nullable, what each refers to) and variants; add a `schema` question to `hypha_api` and `hypha query api` that reads them, then add them to `api-lookup`.
-- [ ] The worked examples through the tools: add an `examples` kind to `hypha_lookup`, `hypha_search` and the `hypha://` resource, so `sysml-validation` can read an example model that `hypha_syntax` `cross-reference` names. Until then the skill names the example without reading it.
+- [x] The worked examples through the tools: add an `examples` kind to `hypha_lookup`, `hypha_search` and the `hypha://` resource, so `sysml-validation` can read an example model that `hypha_syntax` `cross-reference` names.
 - [ ] API versions through the release tools: install, switch and remove an API version from the server, so a plugin user need not run the `hypha api` commands with a `hypha` of their own. Until then `version-management` gives those commands to run.
 
 ### Step 7: Package for every other client (#199, #158, #163, #165)

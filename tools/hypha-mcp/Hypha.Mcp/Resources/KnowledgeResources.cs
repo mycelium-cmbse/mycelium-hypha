@@ -72,7 +72,7 @@ namespace Hypha.Mcp.Resources
         /// <summary>Reads the page an address names.</summary>
         /// <param name="tag">The release.</param>
         /// <param name="kind">What the page is: one of <see cref="HyphaAddress.Kinds"/>.</param>
-        /// <param name="name">The metaclass, the declaration's qualified name or the clause number.</param>
+        /// <param name="name">The metaclass, the declaration's qualified name, the clause number or the example's page name.</param>
         /// <returns>The page as Markdown.</returns>
         /// <exception cref="McpException">
         /// The address is not one, names nothing in the release, or its page was never generated; the message
@@ -82,11 +82,12 @@ namespace Hypha.Mcp.Resources
         [Description(
             "A page of the SysML v2 / KerML knowledge base: a metaclass (metamodel), a standard-library declaration "
             + "(model-library, by qualified name: up to 160 lines of its package's source from the declaration on, "
-            + "which hypha_lookup reads further), or a KerML or SysML specification clause (kerml, sysml2, by number).")]
+            + "which hypha_lookup reads further), a KerML or SysML specification clause (kerml, sysml2, by number), "
+            + "or a worked example model the release ships (examples, by its page name).")]
         public ResourceContents Page(
             [Description("The release, such as 2026-05.")] string tag,
-            [Description("What the page is.")][AllowedValues(HyphaAddress.Metamodel, HyphaAddress.ModelLibrary, HyphaAddress.Kerml, HyphaAddress.Sysml)] string kind,
-            [Description("The metaclass, the declaration's qualified name, or the clause number.")] string name) =>
+            [Description("What the page is.")][AllowedValues(HyphaAddress.Metamodel, HyphaAddress.ModelLibrary, HyphaAddress.Kerml, HyphaAddress.Sysml, HyphaAddress.Examples)] string kind,
+            [Description("The metaclass, the declaration's qualified name, the clause number, or the example's page name.")] string name) =>
             Answer.Ask(() =>
             {
                 var address = HyphaAddress.Parse($"{HyphaAddress.Scheme}://{tag}/{kind}/{name}");
@@ -99,7 +100,7 @@ namespace Hypha.Mcp.Resources
                 };
             });
 
-        /// <summary>A metaclass or clause page, whole.</summary>
+        /// <summary>A metaclass, clause or example page, whole.</summary>
         /// <param name="address">The address.</param>
         /// <returns>The page's text.</returns>
         /// <exception cref="McpException">The address names nothing, or its page was never generated.</exception>

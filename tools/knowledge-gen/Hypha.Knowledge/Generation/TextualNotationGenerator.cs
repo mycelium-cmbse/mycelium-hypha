@@ -150,6 +150,7 @@ namespace Hypha.Knowledge.Generation
 
             var written = new List<FileInfo>();
             var entries = new List<ExampleEntry>();
+            var indexed = new SortedDictionary<string, ExampleIndexEntry>(StringComparer.Ordinal);
 
             foreach (var model in models)
             {
@@ -162,13 +163,17 @@ namespace Hypha.Knowledge.Generation
                     : "SysML";
 
                 var fileName = this.renderer.ExampleFileName(model);
+                var elements = surfaceForms.ElementsIn(text);
 
                 written.Add(await KnowledgeFile.WriteAsync(
                     Path.Combine(examples.FullName, fileName),
-                    this.renderer.RenderExample(model, text, surfaceForms.ElementsIn(text), language),
+                    this.renderer.RenderExample(model, text, elements, language),
                     cancellationToken));
 
                 entries.Add(new ExampleEntry(fileName, model));
+                indexed.TryAdd(
+                    fileName[..^ExampleDocument.PageExtension.Length],
+                    new ExampleIndexEntry(ModelName(model), language, model, fileName, elements));
             }
 
             // The pages land in one flat folder, so a slug collision would silently lose a model:
@@ -179,12 +184,30 @@ namespace Hypha.Knowledge.Generation
                     $"two models at {tag} slugified to the same example file name");
             }
 
+            // The index the readers find an example by: written after the collision check, so it never
+            // names a page that another model overwrote.
+            written.Add(await KnowledgeFile.WriteAsync(
+                this.layout.ExamplesIndex(tag).FullName,
+                ExampleFile.Render(new ExampleDocument(ExampleDocument.CurrentSchemaVersion, tag, indexed)),
+                cancellationToken));
+
             written.Add(await KnowledgeFile.WriteAsync(
                 Path.Combine(this.layout.TextualNotation(tag).FullName, "index.md"),
                 this.renderer.RenderIndex(tag, entries, await this.KeywordsAsync(tag, cancellationToken)),
                 cancellationToken));
 
             return GenerationResult.Generated(written).Report(this.logger, this.Artifact, tag);
+        }
+
+        /// <summary>A model's own name: the last segment of its path, without the extension.</summary>
+        /// <param name="sourcePath">The model's path relative to the textual sources, <c>/</c>-separated.</param>
+        /// <returns>The name, as the example's page titles it.</returns>
+        private static string ModelName(string sourcePath)
+        {
+            var lastSegment = sourcePath[(sourcePath.LastIndexOf('/') + 1)..];
+            var dot = lastSegment.LastIndexOf('.');
+
+            return dot < 0 ? lastSegment : lastSegment[..dot];
         }
 
         /// <summary>The reserved keywords of each grammar the release ships.</summary>

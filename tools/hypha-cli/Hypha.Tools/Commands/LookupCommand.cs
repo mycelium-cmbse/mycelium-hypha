@@ -28,15 +28,15 @@ namespace Hypha.Tools.Commands
         public static readonly Option<string> Kind =
             new Option<string>("--kind", "-k")
             {
-                Description = "metamodel or model-library.",
+                Description = "metamodel, model-library or examples.",
                 Required = true,
-            }.AcceptOnlyFromAmong("metamodel", "model-library");
+            }.AcceptOnlyFromAmong("metamodel", "model-library", "examples");
 
         /// <summary>The name to look up.</summary>
         public static readonly Option<string> ElementName =
             new("--name", "-n")
             {
-                Description = "A short or qualified name, e.g. PartUsage, Real or ScalarValues::Real.",
+                Description = "A short or qualified name, e.g. PartUsage, Real or ScalarValues::Real; for an example, its page name or its model's name, e.g. Camera.",
                 Required = true,
             };
 
@@ -72,7 +72,7 @@ namespace Hypha.Tools.Commands
         /// Initializes a new instance of the <see cref="LookupCommand"/> class.
         /// </summary>
         public LookupCommand()
-            : base("lookup", "Print the generated page of a metamodel element or model-library declaration")
+            : base("lookup", "Print the generated page of a metamodel element, model-library declaration or worked example")
         {
             this.Options.Add(Kind);
             this.Options.Add(ElementName);
@@ -115,7 +115,12 @@ namespace Hypha.Tools.Commands
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var json = parseResult.GetValue(Json);
-                var kind = parseResult.GetValue(Kind) == "model-library" ? KnowledgeKind.ModelLibrary : KnowledgeKind.Metamodel;
+                var kind = parseResult.GetValue(Kind) switch
+                {
+                    "model-library" => KnowledgeKind.ModelLibrary,
+                    "examples" => KnowledgeKind.Examples,
+                    _ => KnowledgeKind.Metamodel,
+                };
                 var request = new LookupRequest(kind, parseResult.GetValue(ElementName)!, parseResult.GetValue(Tag),
                     parseResult.GetValue(StartLine), parseResult.GetValue(MaxLines));
 

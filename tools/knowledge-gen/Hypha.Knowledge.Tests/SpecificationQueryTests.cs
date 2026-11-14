@@ -474,6 +474,40 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Search_finds_a_worked_example_by_its_model_name_its_page_name_or_its_upstream_path()
+        {
+            var byModel = this.fixture.Query.Search("vehicle", kind: HyphaAddress.Examples).Value!;
+            var byPage = this.fixture.Query.Search("sysml-src-examples-vehicle-example-vehicle").Value!;
+            var byPath = this.fixture.Query.Search("Vehicle Example").Value!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(byModel.Single().Address, Is.EqualTo(new HyphaAddress(QueryFixture.Tag, HyphaAddress.Examples, "sysml-src-examples-vehicle-example-vehicle")));
+                Assert.That(byModel.Single().Title, Is.EqualTo("Vehicle"));
+                Assert.That(byModel.Single().Match, Is.EqualTo(SearchMatch.IgnoringCase));
+                Assert.That(byPage.Select(hit => hit.Address.Kind), Has.Some.EqualTo(HyphaAddress.Examples));
+                Assert.That(byPath.Select(hit => hit.Address.Name), Has.Some.EqualTo("sysml-src-examples-vehicle-example-vehicle"));
+            });
+        }
+
+        [Test]
+        public void Search_leaves_out_worked_examples_whose_index_was_never_generated()
+        {
+            this.fixture.Layout.ExamplesIndex(QueryFixture.Tag).Delete();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(this.fixture.Query.Search("Vehicle").Value!.Select(hit => hit.Address.Kind), Has.None.EqualTo(HyphaAddress.Examples));
+                Assert.That(this.fixture.Query.Search("Vehicle", kind: HyphaAddress.Examples).Value, Is.Empty);
+                Assert.That(
+                    () => this.fixture.Query.Resolve(new HyphaAddress(QueryFixture.Tag, HyphaAddress.Examples, "sysml-src-examples-vehicle-example-vehicle")),
+                    Throws.TypeOf<KnowledgeLookupException>()
+                        .With.Message.Contains("worked-example index")
+                        .And.Message.Contains($"hypha generate --tag {QueryFixture.Tag}"));
+            });
+        }
+
+        [Test]
         public void Search_is_grounded_on_the_release_knowledge_folder()
         {
             Assert.That(
@@ -500,6 +534,7 @@ namespace Hypha.Knowledge.Tests
                 this.fixture.Query.Search("mass", kind: HyphaAddress.ModelLibrary).Value![0],
                 this.fixture.Query.Search("7.4.2", kind: HyphaAddress.Kerml).Value![0],
                 this.fixture.Query.Search("PartUsage", kind: HyphaAddress.Sysml).Value![0],
+                this.fixture.Query.Search("Vehicle", kind: HyphaAddress.Examples).Value![0],
             };
 
             Assert.Multiple(() =>
@@ -546,6 +581,11 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(clause.Value!.Page, Is.EqualTo($"knowledge/{tag}/spec/sysml2/08.03.06.03-partusage.md"));
                 Assert.That(clause.Value.Title, Is.EqualTo("PartUsage"));
                 Assert.That(clause.Grounding.Tier, Is.EqualTo(Provenance.Normative));
+
+                var example = this.fixture.Query.Resolve(HyphaAddress.Parse($"hypha://{tag}/examples/sysml-src-examples-vehicle-example-vehicle"));
+                Assert.That(example.Value!.Page, Is.EqualTo($"knowledge/{tag}/textual-notation/examples/sysml-src-examples-vehicle-example-vehicle.md"));
+                Assert.That(example.Value.Title, Is.EqualTo("Vehicle"));
+                Assert.That(example.Grounding.Tier, Is.EqualTo(Provenance.Model));
             });
         }
 
@@ -559,6 +599,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(this.fixture.Query.Resolve(new HyphaAddress(tag, HyphaAddress.Metamodel, "NoSuchClass")).Found, Is.False);
                 Assert.That(this.fixture.Query.Resolve(new HyphaAddress(tag, HyphaAddress.ModelLibrary, "No::such")).Found, Is.False);
                 Assert.That(this.fixture.Query.Resolve(new HyphaAddress(tag, HyphaAddress.Kerml, "99")).Found, Is.False);
+                Assert.That(this.fixture.Query.Resolve(new HyphaAddress(tag, HyphaAddress.Examples, "Vehicle")).Found, Is.False, "an address names the page, not the model");
                 Assert.That(
                     this.fixture.Query.Resolve(HyphaAddress.Parse($"hypha://{tag}/metamodel/..%2F..%2Fversions.json")).Found,
                     Is.False,
@@ -596,6 +637,7 @@ namespace Hypha.Knowledge.Tests
         [TestCase("hypha://2026-05/model-library/ISQBase%3A%3Amass", "2026-05", "model-library", "ISQBase::mass")]
         [TestCase("hypha://2026-05/model-library/ISQBase::mass", "2026-05", "model-library", "ISQBase::mass")]
         [TestCase("hypha://2026-05/kerml/7.4.2", "2026-05", "kerml", "7.4.2")]
+        [TestCase("hypha://2026-05/examples/sysml-src-examples-vehicle-example-vehicle", "2026-05", "examples", "sysml-src-examples-vehicle-example-vehicle")]
         [TestCase("hypha://2026-05/sysml2/8.3.6.3", "2026-05", "sysml2", "8.3.6.3")]
         [TestCase("hypha://2026-05/kerml/a/b", "2026-05", "kerml", "a/b")]
         [TestCase("hypha://2026-05/metamodel/A%20B", "2026-05", "metamodel", "A B")]
