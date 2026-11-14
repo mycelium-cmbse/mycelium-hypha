@@ -206,7 +206,7 @@ Official `ModelContextProtocol` C# SDK, stdio transport, attribute-based with ex
 The single entry point every client starts. Plugin packages are git repositories or zip archives, so they can carry a tiny AOT launcher but not a `hypha` of tens of MB per platform.
 
 - Contains today's `CliProvisioner`, `ChecksumTable`, `CacheLayout` and `GitHubRelease`.
-- On start: ensure the `hypha` version matching the package version is in `HYPHA_HOME/bin/<version>/` (download + checksum on first run), then run `hypha serve` with stdio passed through.
+- On start: ensure the `hypha` version the package names (`bin/hypha-launch.json`) is in `HYPHA_HOME/bin/<version>/` (download + checksum on first run), then run `hypha serve` with stdio passed through.
 - No contract beyond "start this exact version": the launcher and `hypha` come from the same release.
 - **Platform dispatch from one path**: an `mcp.json` entry is a single command with no `uname` switch. Ship `bin/hypha-launch.exe` (Windows, found from the extensionless path) and a POSIX `bin/hypha-launch` script that execs `bin/<rid>/hypha-launch` for macOS and Linux. Must be tested in every client.
 - **Never depends on client path variables** (`${PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_ROOT}`, `${extensionPath}`, `${__dirname}`): it resolves its own location and `HYPHA_HOME` itself.
@@ -242,7 +242,7 @@ Schemas for `metamodel.json`, `cross-references.json`, `model-library`, `keyword
 | `hypha://{tag}/{kind}/{name}` | Resources, `search_spec` | `Hypha.Knowledge` |
 | Grounding tags | Every answer | Query API result types; rules in `instructions` and skills |
 | CLI `--json` output | `hypha` ↔ scripts and the VS Code extension's commands | `Hypha.Knowledge` result types |
-| Launcher → `hypha` version | `hypha-launch` ↔ `hypha` | Same release version |
+| Launcher → `hypha` version | `hypha-launch` ↔ `hypha` | `hyphaVersion` in `manifest.source.json`, rendered into `bin/hypha-launch.json` |
 | Client manifests | Repo ↔ each client | Generated from one source in CI (section 1.14) |
 
 ### 1.14 Packaging: one repo, three manifests, one bundle
@@ -296,7 +296,7 @@ No client contains its own tools, agents, hooks or `jq` instructions.
 
 ### 1.16 Alignment and verification
 
-- One repo; one version number for `hypha`, the launcher, skills and every manifest.
+- One repo, and one file, `manifest.source.json`, for its two version lines: the package version of the plugin and every client manifest, and the `hypha` version the launcher downloads. A skill or wording fix can then ship as a package release without a new `hypha` build.
 - Manifest drift check: the three manifests and the Agent Plugins MCP config match their single source.
 - Client smoke-test matrix: for each client in section 1.15, install the package, confirm the launcher starts on win-x64, linux-x64 and osx-arm64, and call `hypha_release_status`.
 - Golden tests: query API output equals the documented jq queries on a fixture release.
@@ -419,9 +419,9 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 
 ### Step 7: Package for every other client (#199, #158, #163, #165)
 
-- [ ] **Single source of truth** for name, version, description and server command: one version across `hypha`, the launcher, the skills and every manifest. Generate the manifests from it in CI, with a drift check. It includes the `hypha` version, which `bin/hypha-launch.json` (the launcher's) carries today; the plugin manifest's `hyphaCliVersion` went with the hook.
-- [ ] **Agent Plugins 1.0**: root `plugin.json` (with `$schema`) and `mcp.json` to `bin/hypha-launch`, sharing `skills/`. Covers Copilot (VS Code, CLI, app, cloud agent), Cursor, Codex and Kiro.
-- [ ] **Gemini CLI**: `gemini-extension.json` with `mcpServers` to `bin/hypha-launch`, sharing `skills/`.
+- [x] **Single source of truth** (`manifest.source.json`) for name, description, server command and the two versions: the package version, which the plugin and every client manifest carry, and the `hypha` version the launcher downloads (`bin/hypha-launch.json`), on the tools' own version line. The manifests are rendered from it, and `dotnet test` fails in CI when one drifts (`PackageManifestTests`).
+- [x] **Agent Plugins 1.0**: root `plugin.json` (with `$schema`) and `mcp.json` to `bin/hypha-launch`, sharing `skills/`. Covers Copilot (VS Code, CLI, app, cloud agent), Cursor, Codex and Kiro.
+- [x] **Gemini CLI**: `gemini-extension.json` with `mcpServers` to `bin/hypha-launch`, sharing `skills/`.
 - [ ] **Claude Desktop**: per-platform `.mcpb` (`server.type = "binary"`, entry point `hypha-launch`), built by the release workflow as a release asset.
 - [ ] **Manual-config clients** (Junie, Windsurf, Zed, Cline, Roo): document a config snippet per client, plus where to copy the skills.
 - [ ] **VS Code extension** (section 1.15; re-scopes #158): register the server through `vscode.lm.registerMcpServerDefinitionProvider`, delete the two `vscode.lm.registerTool` tools, and drop the `--repository-root` to global storage, so the extension reads `HYPHA_HOME`. Then add the `win32-arm64` target and publish the validated macOS and Windows on Arm packages (#163), and publish to Open VSX (#165); their validation is in Step 9.
