@@ -52,7 +52,7 @@ try {
   await mkdir(workspace);
   await writeFile(path.join(harness, "package.json"), JSON.stringify({
     name: "hypha-validation-harness", publisher: "hypha-test", version: "0.0.1",
-    engines: { vscode: "^1.100.0" }
+    engines: { vscode: "^1.101.0" }
   }));
   const executable = await downloadAndUnzipVSCode({
     version: process.env.VSCODE_TEST_VERSION ?? "stable",
@@ -76,39 +76,11 @@ try {
     throw installation.error ?? new Error(installation.stdout + installation.stderr);
   }
   console.log(installation.stdout);
-  const storage = path.join(userData, "User", "globalStorage", "mycelium-cmbse.mycelium-hypha");
-  const metamodel = path.join(storage, "knowledge/2026-09/metamodel");
-  await mkdir(path.join(metamodel, "elements"), { recursive: true });
-  await writeFile(path.join(storage, "knowledge/versions.json"),
-    JSON.stringify({
-      schemaVersion: "1.0.0",
-      default: "2026-09",
-      versions: [{
-        tag: "2026-09",
-        release: { repo: "fixture/release", commit: "fixture" },
-        pilot: { repo: "fixture/pilot", commit: "fixture" }
-      }]
-    }));
-  // Every field the metamodel generator writes: hypha reads the index through the same strict
-  // contract as its query API and refuses one the generator could not have written.
-  await writeFile(path.join(metamodel, "index.json"),
-    JSON.stringify({
-      schemaVersion: "1.0.0",
-      metamodel: "SysML",
-      modelVersionUri: "https://www.omg.org/spec/SysML/20250201",
-      entries: {
-        PartUsage: {
-          kind: "class",
-          package: "Parts",
-          qualifiedName: "SysML::Systems::Parts::PartUsage",
-          isAbstract: false,
-          summary: "",
-          extends: [],
-          file: "elements/PartUsage.md"
-        }
-      }
-    }));
-  await writeFile(path.join(metamodel, "elements/PartUsage.md"), "# Synthetic PartUsage\nHost test fixture only.");
+  // The bundled server is started on a HYPHA_HOME of its own, so the test never reads or writes the
+  // per-user folder of whoever runs it, and never copies in what other clients installed there.
+  const home = path.join(temporary, "hypha-home");
+  await mkdir(home);
+  await writeFile(path.join(home, ".migrated-from-clients"), "marked by the host test\n");
   await runTests({
     vscodeExecutablePath: executable,
     extensionDevelopmentPath: harness,
@@ -117,8 +89,7 @@ try {
       "--disable-workspace-trust", "--skip-welcome", "--skip-release-notes", "--no-sandbox"],
     extensionTestsEnv: {
       HYPHA_EXPECTED_EXTENSION_DIRECTORY: extensions,
-      HYPHA_EXPECTED_STORAGE_DIRECTORY: storage,
-      HYPHA_TEST_NODE: process.execPath
+      HYPHA_TEST_HOME: home
     }
   });
 } finally {

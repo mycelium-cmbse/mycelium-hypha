@@ -44,9 +44,7 @@ const files = listing.stdout.trim().split(/\r?\n/);
 const required = [
   "out/extension.js", "out/cli.js", "out/cli/target.json",
   `out/cli/${target.startsWith("win32-") ? "hypha.exe" : "hypha"}`,
-  "out/resources/sources/PrimitiveTypes.xmi",
-  "out/resources/spec-extract/pyproject.toml", "out/resources/spec-extract/uv.lock",
-  "out/resources/spec-extract/src/spec_extract/__main__.py", "LICENSE", "NOTICE", "icon.png", "CHANGELOG.md"
+  "LICENSE", "NOTICE", "icon.png", "CHANGELOG.md"
 ];
 for (const file of required) {
   if (!files.includes(file)) {
@@ -54,7 +52,8 @@ for (const file of required) {
   }
 }
 for (const file of files) {
-  if (/^(?:node_modules|host-tests|knowledge|sources)\//.test(file) ||
+  // hypha carries the specification extractor and the UML primitives itself, so no copy ships here.
+  if (/^(?:node_modules|host-tests|knowledge|sources|out\/resources)\//.test(file) ||
       /(?:\.pdf|\.pyc|\.test\.js)$/.test(file) || file.includes("__pycache__/")) {
     throw new Error(`Forbidden VSIX input: ${file}`);
   }

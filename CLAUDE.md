@@ -10,9 +10,10 @@ Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** st
    the `knowledge/` base the plugin reads at runtime. Nothing per-release under `knowledge/` is
    committed (see "Committed vs git-ignored" below): a plugin install fetches and generates it on the
    user's own machine, on request.
-2. The **VS Code extension** in `extensions/vscode/`: a GitHub Copilot extension that uses VS Code
-   extension-global storage for the CLI and release knowledge, shared across workspaces on the same
-   extension host. It is published on the Visual Studio Marketplace as a preview pre-release
+2. The **VS Code extension** in `extensions/vscode/`: a thin package that hands GitHub Copilot the
+   hypha MCP server, by registering the `hypha serve` of the CLI it bundles as an MCP server
+   definition provider. It has no tools, commands or storage of its own; the server reads
+   `HYPHA_HOME`, like every other client. It is published on the Visual Studio Marketplace as a preview pre-release
    (`mycelium-cmbse.mycelium-hypha`, for Windows x64 and Linux x64/arm64) by the manually started
    *Publish VS Code extension* workflow (`.github/workflows/publish-vscode.yml`), through Marketplace
    Trusted Publishing; see `extensions/vscode/DEVELOPMENT.md`.

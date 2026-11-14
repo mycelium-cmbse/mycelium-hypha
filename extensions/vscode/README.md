@@ -1,149 +1,118 @@
 # Hypha – SysML v2 and KerML
 
 Ask GitHub Copilot about SysML v2 and KerML using knowledge from a specific OMG release, rather
-than relying on general model knowledge. Hypha looks up metamodel elements and standard-library
-declarations on your machine and gives Copilot source links to cite in its answers.
+than relying on general model knowledge. This extension gives Copilot the **hypha MCP server**: the
+same server, with the same tools, that the Hypha plugins for other AI clients use.
 
 ## What you can do
 
 - **Explore the metamodel**: ask about elements such as `PartUsage`, their features, inheritance,
   operations and constraints.
 - **Find standard-library declarations**: look up names such as `ScalarValues::Real`.
-- **Know which release answers your question**: check the default release and whether its
-  generated knowledge is available.
-- **Keep working across folders**: installed knowledge is shared across workspaces on the same
-  VS Code host.
+- **Quote the specifications**: the KerML and SysML v2 clause text, once a release is installed with
+  its specifications.
+- **Check textual notation**: keywords, grammar productions and the worked example models a release
+  ships.
+- **Ask about the Systems Modeling API**: its types, operations and REST schemas.
+- **Manage releases by asking**: install a release, switch the default or remove one, from the chat.
 
 Hypha is a preview, published as a pre-release for Windows x64 and for Linux x64 and arm64
 (including WSL and SSH remotes).
 
 ## Get started
 
-You need VS Code 1.100 or later and access to GitHub Copilot Chat with tools enabled.
-Use a trusted local or remote workspace; browser-based VS Code and virtual workspaces are not
-supported.
+You need VS Code 1.101 or later and access to GitHub Copilot Chat in Agent mode. Use a trusted local
+or remote workspace; browser-based VS Code and virtual workspaces are not supported.
 
 1. Install **Hypha – SysML v2 and KerML** from the Extensions view, or a VSIX for your platform
    with **Extensions: Install from VSIX…**.
    In WSL or SSH, install it on the remote host where your workspace runs. You do not need to
    install .NET, Python, a separate CLI or an Agent Plugin.
-2. Open the Command Palette (**Ctrl+Shift+P**, or **Cmd+Shift+P** on macOS) and run
-   **Hypha: Install a SysML v2 Release**.
-3. Choose a release and confirm the download and generation. It becomes the default only after
-  generation succeeds. The first installation needs internet access and may take several minutes.
-  The first specification generation may also download `uv`, a managed Python build and the
-  extraction dependencies pinned by Hypha.
-4. Run **Hypha: Show Installed Releases** to check readiness. Installation progress and the data
-   location appear in the **Hypha** output channel.
+2. Open **Copilot Chat**, select **Agent** mode, and check under **Configure Tools** that the
+   **hypha** server's tools are enabled. VS Code may ask you to confirm before it starts the server
+   the first time.
+3. Ask Copilot to install a release:
 
-If you previously installed the checkout-based Hypha Agent Plugin, disable it in VS Code while
-using this extension to avoid competing instructions or different data locations.
+   ```text
+   Which SysML v2 releases can hypha install? Install the newest one.
+   ```
+
+   Copilot asks before it installs. The first installation needs internet access and takes a few
+   minutes: it downloads the release from the OMG repositories on GitHub and generates the knowledge
+   on your machine. Generating the specification text may also download `uv`, a managed Python build
+   and the extraction dependencies Hypha pins.
+
+If you also use the Hypha plugin in another client on this machine (Claude Code, for example), the
+releases it installed are already there: every client shares one data folder.
 
 ## Use Hypha in Copilot Chat
 
-1. Open **Copilot Chat** and select **Agent** mode.
-2. Open **Configure Tools** near the chat input.
-3. Search for **Hypha** and enable **Hypha Release Status** and **Hypha Grounded Knowledge Lookup**
-   if they are not already checked.
-4. Type `#hypha` in the chat input to select a tool, or use one of the prompts below.
-
-### Check the release and readiness
+There is nothing to type to select a tool. Ask the question, and Copilot calls the hypha tools:
 
 ```text
-Use #hyphaReleaseStatus to report the default release and artifact readiness.
-Do not fetch or generate anything.
+Explain PartUsage from the default release's metamodel, with its inherited features.
 ```
-
-### Explore a metamodel element
 
 ```text
-Use #hyphaLookup to explain PartUsage from the default release's metamodel.
-Cite the release and source; follow pagination as needed.
+Find ScalarValues::Real in the standard model library and show its declaration.
 ```
-
-### Find a standard-library declaration
 
 ```text
-Use #hyphaLookup to find ScalarValues::Real in the default release's model library.
-Cite the release and source, not general knowledge.
+What does the SysML v2 specification say about part usages? Quote the clause.
 ```
 
-Answers should identify the release and include clickable source links. Long source pages are
-returned in sections; Copilot can request the next section. If a name is ambiguous, Hypha returns
-matching names rather than choosing one arbitrarily. You can also ask for a particular installed
-release instead of the default.
+```text
+Which hypha releases are installed, and which one is the default?
+```
 
-Both tools are read-only: invoking them never downloads inputs or generates knowledge.
+Every answer from a tool says which release it came from and how it is grounded: specification
+text, the metamodel, or something Hypha derived. Ask Copilot to cite both.
 
-## Commands
+## Where your data lives
 
-Run these commands from the Command Palette:
+Hypha keeps downloaded inputs, generated knowledge and its managed toolchain in one per-user folder,
+outside your modeling workspace: the `hypha` folder in your user's application-data folder
+(`%APPDATA%\hypha` on Windows), or the folder the `HYPHA_HOME` environment variable names. Every
+Hypha client on the machine uses it, so a release is installed once.
 
-| Command | Purpose |
-| --- | --- |
-| **Hypha: Check Available Releases** | Compare installed releases with upstream releases without downloading release inputs or generating knowledge. |
-| **Hypha: Install a SysML v2 Release** | After confirmation, fetch and generate a release, then make it the default if generation succeeds. |
-| **Hypha: Change Default Release** | Choose a different installed release as the default. |
-| **Hypha: Remove a Release** | Confirm and remove one release's fetched inputs and generated knowledge from this extension host. |
-| **Hypha: Show Installed Releases** | Show installed releases, the default, artifact readiness and the data location. |
+Windows, WSL, SSH hosts and other machines each have their own folder; releases are not synchronized
+between them.
 
-## Your knowledge stays available across workspaces
+**Coming from an earlier version of this extension:** it kept its releases in VS Code's own
+extension storage. The first time the server runs, releases found there are copied over once. A
+release generated by an older version is in an older format and is left out, with a warning in the
+server's log; ask Copilot to install that release again.
 
-Hypha stores downloaded inputs, generated knowledge and managed runtime caches in VS Code's
-extension-global storage, not in your modeling workspace. Opening another folder on the same host
-uses the same installed releases.
+**Uninstalling and stored data:** uninstalling the extension leaves the data folder as it is. Ask
+Copilot to remove a release before uninstalling, or delete the folder by hand.
 
-Windows, WSL, SSH hosts and other machines have separate storage; releases are not synchronized
-between them. You can find the storage location with **Hypha: Show Installed Releases**.
+The extension contains the `hypha` executable, but no release knowledge, specification PDFs or
+extracted specification text. Text the tools return to Copilot becomes part of its chat context.
 
-**Uninstalling and stored data:** Uninstalling Hypha may leave downloaded releases, generated
-knowledge and runtime caches on disk. Reinstalling can reuse this data. Hypha can remove individual
-releases, but provides no command to clear all stored data. Use **Hypha: Show Installed Releases** to
-find the data location.
+## Troubleshooting
 
-The extension contains its runtime and extraction code, but no release knowledge, specification PDFs
-or extracted specification text. With your confirmation, installation downloads upstream inputs and
-generates knowledge locally. It may also download `uv`, a matching Python and extraction dependencies.
-Source excerpts returned to Copilot are included in its chat context.
-
-## Readiness and troubleshooting
-
-- **No installed release:** run **Hypha: Install a SysML v2 Release**.
-- **Core artifacts are incomplete:** installation may have been interrupted. Run installation again
-  for the same release; existing downloaded inputs are reused.
-- **Normative specification text is missing:** core lookups can still work. Check the Hypha output
-  channel for extraction or download problems, then retry installation for the same release.
-- **Generation cannot download its runtime:** the first specification generation needs access to
-  the download sources for `uv`, managed Python and the pinned extraction dependencies. If a
-  download fails or the machine is offline, generation reports the failure in the Hypha output
-  channel and the new release does not become the default; retry when those sources are reachable.
-- **A release-operation lock prevents changes:** wait for the other window to finish and retry.
-  If a lock or its recovery was interrupted and the error persists, close all Hypha windows and
-  ensure no Hypha processes are running before removing the named lock file from the data location.
-- **Tools are not listed:** check that Hypha is enabled on the current workspace host, reload the
-  window and open a new Agent chat. Check **Configure Tools** again.
-- **Windows: a path is too long:** Hypha's data sits under
-  `%APPDATA%\Code\User\globalStorage\mycelium-cmbse.mycelium-hypha\`, and its deepest files (a
-  generated example page and files inside the managed Python) add up to about 165 characters. With
-  a long Windows user name (about 18 characters or more), or with VS Code Insiders, whose folder name
-  is longer, some paths go past Windows' classic 260-character limit. Hypha's CLI, `uv` and VS Code
-  handle long paths, but other tools may not. If extraction, or opening a cited file, fails with a
-  path-length error, turn on Windows' long path support (the `LongPathsEnabled` setting, which needs
-  administrator rights), then retry installation for the same release.
-
-A manifest entry alone does not mean generation finished. Status checks report artifact presence,
-not a full integrity check.
+- **The hypha tools are not listed:** check that Hypha is enabled on the current workspace host,
+  reload the window and open a new Agent chat. Check **Configure Tools** again, and start the
+  **hypha** server from **MCP: List Servers** if it is stopped.
+- **No release is installed:** ask Copilot to install one, as above.
+- **The specification text is missing:** the other tools still work. Ask Copilot to install the same
+  release again; it keeps the files it has and generates what is missing.
+- **An installation cannot download:** the first one needs GitHub, and for the specification text
+  the download sources of `uv`, the managed Python and the extraction dependencies. GitHub also
+  limits anonymous requests to 60 an hour; setting a `GITHUB_TOKEN` environment variable for VS Code
+  raises that limit.
+- **Another client is changing releases:** installs, switches and removals take turns across every
+  Hypha client on the machine. The tool waits for the other one to finish.
+- **Windows: a path is too long:** some generated files have long names. If an installation fails
+  with a path-length error, turn on Windows' long path support (the `LongPathsEnabled` setting,
+  which needs administrator rights), then ask for the installation again.
 
 ## Current limits
 
 - Hypha supports **SysML v2 and KerML**, not UML.
-- Lookups provide source-backed knowledge, not compiler validation of your models.
-- The lookup tool reads metamodel and model-library sources; it does not search or quote normative
-  specification text, even when that text is installed.
-- Hypha is published for Windows x64 and Linux x64/arm64, where it has been validated end to end.
-  macOS x64/arm64 packages build but have not been validated yet, and are not published.
-- On Windows, some paths in Hypha's data can exceed 260 characters for long user names or VS Code
-  Insiders; see *Windows: a path is too long* above.
+- The tools give source-backed knowledge, not compiler validation of your models.
+- Hypha is published for Windows x64 and Linux x64/arm64. macOS x64/arm64 packages build but have
+  not been validated yet, and are not published.
 
 For feedback and source code, visit the
 [Hypha repository](https://github.com/mycelium-cmbse/mycelium-hypha).

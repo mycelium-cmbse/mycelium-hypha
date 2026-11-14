@@ -83,10 +83,10 @@ jobs:
         working-directory: extensions/vscode
         run: npm run test:host
 
-      - name: Smoke-test installed VSIX on VS Code 1.100.0
+      - name: Smoke-test installed VSIX on VS Code 1.101.0
         working-directory: extensions/vscode
         env:
-          VSCODE_TEST_VERSION: '1.100.0'
+          VSCODE_TEST_VERSION: '1.101.0'
         run: npm run test:host
 
   build:
