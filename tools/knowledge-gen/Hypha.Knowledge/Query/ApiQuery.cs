@@ -16,6 +16,7 @@ namespace Hypha.Knowledge.Query
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
@@ -139,6 +140,40 @@ namespace Hypha.Knowledge.Query
             var (document, grounding) = this.CrossReferences(version);
 
             return new(document.Operations.GetValueOrDefault(name), grounding);
+        }
+
+        /// <summary>
+        /// A schema of the REST/HTTP PSM, as the OpenAPI document states it: its kind, how the endpoints
+        /// use it, its properties and, for a union, its variants.
+        /// </summary>
+        /// <param name="name">
+        /// The schema name, such as <c>Commit</c> or <c>CommitRequest</c>; <see cref="Type"/> names the
+        /// schemas of a PIM type.
+        /// </param>
+        /// <param name="version">The API version, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The schema, grounded as <see cref="Provenance.Model"/>, since the index holds what the OpenAPI
+        /// document states; <c>null</c> when the document has no such schema. A schema that mirrors a
+        /// metamodel element rather than belonging to the API has no properties here.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="name"/> is <c>null</c>, empty or white space.</exception>
+        /// <exception cref="KnowledgeLookupException">
+        /// The version is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        public QueryResult<OpenApiIndexSchema> Schema(string name, string? version = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+            var resolved = this.Version(version);
+            var file = this.layout.OpenApiIndex(resolved);
+            var index = this.documents.Get(
+                file,
+                ReadContracts.OpenApiIndex,
+                document => document.Schemas is not null,
+                ReleaseAxis.Api.NotGenerated("REST schemas", resolved),
+                ReleaseAxis.Api.GenerateCommand(resolved));
+
+            return new(index.Schemas.GetValueOrDefault(name), this.Ground(Provenance.Model, resolved, file));
         }
 
         /// <summary>One clause of the Systems Modeling API and Services specification, with its verbatim text.</summary>

@@ -142,6 +142,7 @@ namespace Hypha.Tools.Tests
             yield return Case("query api pim-class --name N -t V", mock => mock.PimClass("N", "V"));
             yield return Case("query api type --name N --tag V", mock => mock.Type("N", "V"));
             yield return Case("query api operation --name N -t V", mock => mock.Operation("N", "V"));
+            yield return Case("query api schema --name N -t V", mock => mock.Schema("N", "V"));
             yield return Case("query api clause --clause 7.1", mock => mock.Clause("7.1", null));
         }
 

@@ -14,6 +14,7 @@ namespace Hypha.Knowledge.Query
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Keywords;
     using Hypha.Knowledge.Metamodel;
@@ -57,6 +58,10 @@ namespace Hypha.Knowledge.Query
         /// <summary>Gets the contract for an API version's <c>cross-references.json</c>.</summary>
         public static JsonTypeInfo<ApiCrossReferenceDocument> ApiCrossReferences { get; } =
             new ApiJsonContext(Strict(requireMembers: false)).ApiCrossReferenceDocument;
+
+        /// <summary>Gets the contract for an API version's <c>openapi/index.json</c>.</summary>
+        public static JsonTypeInfo<OpenApiIndexDocument> OpenApiIndex { get; } =
+            new ApiJsonContext(Strict(requireMembers: false)).OpenApiIndexDocument;
 
         /// <summary>Gets the contract for a specification's <c>index.json</c>, of a release or an API version.</summary>
         public static JsonTypeInfo<SpecificationIndex> Specification { get; } =

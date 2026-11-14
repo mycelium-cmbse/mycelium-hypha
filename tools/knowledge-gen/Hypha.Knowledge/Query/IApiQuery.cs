@@ -10,11 +10,12 @@
 namespace Hypha.Knowledge.Query
 {
     using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
     using Hypha.Knowledge.Metamodel;
 
     /// <summary>
-    /// Questions about a Systems Modeling API version, answered from its PIM <c>metamodel.json</c> and
-    /// its <c>cross-references.json</c>.
+    /// Questions about a Systems Modeling API version, answered from its PIM <c>metamodel.json</c>, its
+    /// <c>openapi/index.json</c> and its <c>cross-references.json</c>.
     /// </summary>
     /// <remarks>
     /// The API is a version axis of its own, parallel to the language releases, so its queries take an
@@ -52,6 +53,24 @@ namespace Hypha.Knowledge.Query
         /// The version is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
         QueryResult<ApiOperationEntry> Operation(string name, string? version = null);
+
+        /// <summary>
+        /// A schema of the REST/HTTP PSM, as the OpenAPI document states it: its kind, how the endpoints
+        /// use it, its properties and, for a union, its variants.
+        /// </summary>
+        /// <param name="name">
+        /// The schema name, such as <c>Commit</c> or <c>CommitRequest</c>; <see cref="Type"/> names the
+        /// schemas of a PIM type.
+        /// </param>
+        /// <param name="version">The API version, or <c>null</c> for the default.</param>
+        /// <returns>
+        /// The schema, or <c>null</c> when the OpenAPI document has no such schema. A schema that mirrors
+        /// a metamodel element rather than belonging to the API has no properties here.
+        /// </returns>
+        /// <exception cref="Lookup.KnowledgeLookupException">
+        /// The version is not installed, has no default, has not been generated, or its documents are invalid.
+        /// </exception>
+        QueryResult<OpenApiIndexSchema> Schema(string name, string? version = null);
 
         /// <summary>One clause of the Systems Modeling API and Services specification, with its verbatim text.</summary>
         /// <param name="clause">The clause number, such as <c>7.1.4</c>.</param>

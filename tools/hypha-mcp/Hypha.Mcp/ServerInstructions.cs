@@ -61,8 +61,8 @@ namespace Hypha.Mcp
             - hypha_resolve: the generated page a hypha:// address names.
             - hypha_lookup: an element page or a model-library declaration, a page at a time.
             - hypha_diff: what changed between two installed releases.
-            - hypha_api: the Systems Modeling API: a PIM class, an API type or operation, or a clause of the
-              API specification.
+            - hypha_api: the Systems Modeling API: a PIM class, an API type or operation, a REST schema's
+              properties, or a clause of the API specification.
 
             Changing releases. Only when the user asks for it, since an install downloads from GitHub and
             takes minutes:

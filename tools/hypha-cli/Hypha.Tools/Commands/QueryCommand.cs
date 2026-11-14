@@ -364,6 +364,11 @@ namespace Hypha.Tools.Commands
                 question => Node(question.Api.Operation(question.Get(operation)!, question.Tag)),
                 operation);
 
+            var schema = Required("--name", "The schema, such as Commit or CommitRequest.");
+            this.Verb(api, "schema", "A schema of the REST/HTTP API: its properties and, for a union, its variants", ApiVersion,
+                question => Node(question.Api.Schema(question.Get(schema)!, question.Tag)),
+                schema);
+
             var clause = Required("--clause", "The clause number, such as 7.1.4.");
             this.Verb(api, "clause", "One clause of the API specification, with its verbatim text", ApiVersion,
                 question => Node(question.Api.Clause(question.Get(clause)!, question.Tag)),

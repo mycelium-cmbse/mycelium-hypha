@@ -30,6 +30,10 @@ namespace Hypha.Mcp.Tools
         [JsonStringEnumMemberName("operation")]
         Operation,
 
+        /// <summary>A schema of the REST/HTTP PSM: its properties and, for a union, its variants.</summary>
+        [JsonStringEnumMemberName("schema")]
+        Schema,
+
         /// <summary>One clause of the API specification, with its verbatim text.</summary>
         [JsonStringEnumMemberName("clause")]
         Clause,

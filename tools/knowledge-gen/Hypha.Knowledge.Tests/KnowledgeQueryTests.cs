@@ -18,6 +18,7 @@ namespace Hypha.Knowledge.Tests
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
+    using Hypha.Knowledge.Api.OpenApi;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
@@ -82,6 +83,8 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(this.fixture.Api.PimClass("NoSuchClass").Found, Is.False);
                 Assert.That(this.fixture.Api.Type("NoSuchType").Found, Is.False);
                 Assert.That(this.fixture.Api.Operation("NoSuchService.op").Found, Is.False);
+                Assert.That(this.fixture.Api.Schema("NoSuchSchema").Found, Is.False);
+                Assert.That(this.fixture.Api.Schema("commit").Found, Is.False, "names match exactly");
             });
         }
 
@@ -315,6 +318,7 @@ namespace Hypha.Knowledge.Tests
             var keywords = $"knowledge/{QueryFixture.Tag}/textual-notation/keywords.json";
             var pim = $"knowledge/api/{QueryFixture.ApiVersion}/pim/metamodel.json";
             var apiCrossReferences = $"knowledge/api/{QueryFixture.ApiVersion}/cross-references.json";
+            var openApi = $"knowledge/api/{QueryFixture.ApiVersion}/openapi/index.json";
 
             var query = this.fixture.Query;
             var api = this.fixture.Api;
@@ -344,6 +348,7 @@ namespace Hypha.Knowledge.Tests
                 Assert.That(query.ElementsInClause("kerml", "7.4.2").Grounding, Is.EqualTo(Release(Provenance.Derived, crossReferences)));
                 Assert.That(api.PimClass("PartUsage").Grounding, Is.EqualTo(Api(Provenance.Model, pim)));
                 Assert.That(api.Type("Commit").Grounding, Is.EqualTo(Api(Provenance.Derived, apiCrossReferences)));
+                Assert.That(api.Schema("Commit").Grounding, Is.EqualTo(Api(Provenance.Model, openApi)));
                 Assert.That(
                     api.Operation("ProjectService.createProject").Grounding,
                     Is.EqualTo(Api(Provenance.Derived, apiCrossReferences)));
@@ -352,6 +357,49 @@ namespace Hypha.Knowledge.Tests
             static Grounding Release(string tier, string source) => new(tier, QueryFixture.Tag, source);
 
             static Grounding Api(string tier, string source) => new(tier, QueryFixture.ApiVersion, source);
+        }
+
+        [Test]
+        public void A_REST_schema_is_its_properties_as_the_OpenAPI_document_states_them()
+        {
+            var schema = this.fixture.Api.Schema("Commit").Value!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(schema.Kind, Is.EqualTo("object"));
+                Assert.That(schema.Role, Is.EqualTo("response"));
+                Assert.That(schema.Properties!.Select(property => property.Name), Is.EqualTo(new[] { "@id", "description", "previousCommit" }));
+                Assert.That(schema.Properties![1], Is.EqualTo(new OpenApiProperty("description", "string", Required: true, Nullable: true, RefersTo: null)));
+                Assert.That(schema.Properties![2].RefersTo, Is.EqualTo("Commit"));
+                Assert.That(schema.Variants, Is.Null);
+            });
+        }
+
+        [Test]
+        public void A_union_schema_is_its_variants_and_a_schema_that_mirrors_the_metamodel_has_no_properties()
+        {
+            var union = this.fixture.Api.Schema("DataVersion.payload").Value!;
+            var mirrored = this.fixture.Api.Schema("PartUsage", QueryFixture.ApiVersion).Value!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(union.Variants, Is.EqualTo(new[] { "Element", "Relationship" }));
+                Assert.That(mirrored.Namespace, Is.EqualTo("metamodel"));
+                Assert.That(mirrored.Properties, Is.Null);
+                Assert.That(mirrored.File, Is.Null);
+            });
+        }
+
+        [Test]
+        public void A_version_without_its_REST_schemas_says_how_to_generate_them()
+        {
+            this.fixture.ApiLayout.OpenApiIndex(QueryFixture.ApiVersion).Delete();
+
+            Assert.That(
+                () => this.fixture.Api.Schema("Commit"),
+                Throws.TypeOf<KnowledgeLookupException>()
+                    .With.Message.Contains("REST schemas")
+                    .And.Message.Contains($"hypha api generate --tag {QueryFixture.ApiVersion}"));
         }
 
         [Test]

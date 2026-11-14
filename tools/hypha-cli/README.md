@@ -131,6 +131,7 @@ hypha query search --text Feature --kind metamodel
 hypha query search-specification --text "is typed by" --document kerml
 hypha query resolve --address hypha://2026-05/metamodel/PartUsage
 hypha query api type --name Commit
+hypha query api schema --name CommitRequest
 ```
 
 Every answer says where it comes from: its tier (`NORMATIVE` for specification text, `MODEL` for a
@@ -304,7 +305,7 @@ values are the `hypha query` verbs that answer the same thing:
 | `hypha_resolve` | The page a `hypha://` address names. |
 | `hypha_lookup` | An element page or a model-library declaration, a page at a time. |
 | `hypha_diff` | What changed between two installed releases. |
-| `hypha_api` | `pim-class`, `type`, `operation`, `clause` of a Systems Modeling API version. |
+| `hypha_api` | `pim-class`, `type`, `operation`, `schema`, `clause` of a Systems Modeling API version. |
 
 Every answer is the JSON document `hypha query --json` prints: the value and its grounding (tier,
 release, source file). A question that cannot be answered, such as one about a release that is not

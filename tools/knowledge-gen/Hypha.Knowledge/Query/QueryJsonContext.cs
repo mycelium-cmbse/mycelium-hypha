@@ -15,6 +15,7 @@ namespace Hypha.Knowledge.Query
     using System.Text.Json.Serialization;
 
     using Hypha.Knowledge.Api.CrossReferences;
+    using Hypha.Knowledge.Api.OpenApi;
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Metamodel;
     using Hypha.Knowledge.ModelLibrary;
@@ -56,6 +57,7 @@ namespace Hypha.Knowledge.Query
     [JsonSerializable(typeof(QueryResult<ClassNode>))]
     [JsonSerializable(typeof(QueryResult<ApiTypeEntry>))]
     [JsonSerializable(typeof(QueryResult<ApiOperationEntry>))]
+    [JsonSerializable(typeof(QueryResult<OpenApiIndexSchema>))]
     public sealed partial class QueryJsonContext : JsonSerializerContext
     {
         /// <summary>
