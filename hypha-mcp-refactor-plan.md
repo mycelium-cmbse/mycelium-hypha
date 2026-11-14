@@ -492,6 +492,10 @@ From the end-to-end run (#237), seen in the run through the launcher in a clean 
 - [ ] A refusal the client gets a proper message for (removing the default, a version not installed) is logged as `[ERR] "hypha_remove_release" threw an unhandled exception`. Log it at a lower level, or not as unhandled.
 - [ ] `hypha_search_spec` takes 18 to 33 seconds on its first call in a release, against instant answers from every other read tool. Find out where the time goes and cut it, or index the text.
 
+From the review of the VS Code extension (#244):
+
+- [ ] A project folder that holds both `sources/` and `knowledge/` captures the server: `hypha` prefers such a folder above its working directory over `HYPHA_HOME`, and a client such as Claude Code starts the launcher in the project folder. Releases installed through the server then land in the project, not in the shared folder. Decide whether `serve` should look above its working directory at all, or only accept a real checkout (one that also holds `mycelium-hypha.sln`). The VS Code extension avoids it by starting the server in its own folder (#244).
+
 ### Notes
 
 - Steps 1 to 4 were the real refactor and carried most of the risk; the rest is mostly assembly, apart from the launcher's platform dispatch.
