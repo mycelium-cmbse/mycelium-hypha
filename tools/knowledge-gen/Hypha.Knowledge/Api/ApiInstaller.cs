@@ -127,12 +127,16 @@ namespace Hypha.Knowledge.Api
 
             if (!ApiCatalog.IsOfferable(tag))
             {
+                // No parameter name: the message is shown as is, by the CLI and to a model.
                 throw new ArgumentException(
-                    $"not an offerable API version: {tag} (the earliest is {ApiCatalog.EarliestVersion})",
-                    nameof(request));
+                    $"not an offerable API version: {tag} (the earliest is {ApiCatalog.EarliestVersion})");
             }
 
             StartedMessage(this.logger, tag, null);
+
+            // The PIM refers to the UML primitives, which no upstream holds; an API version can be the
+            // first thing installed in a knowledge folder, so it cannot count on a release having put them there.
+            await PrimitiveTypes.ProvideAsync(this.layout.SharedPrimitiveTypes, cancellationToken);
 
             var skip = request.SkipExisting;
             var xmi = this.layout.Xmi(tag).FullName;

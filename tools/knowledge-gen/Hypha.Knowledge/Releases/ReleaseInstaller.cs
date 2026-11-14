@@ -31,9 +31,6 @@ namespace Hypha.Knowledge.Releases
     /// </remarks>
     public sealed class ReleaseInstaller : IReleaseInstaller
     {
-        /// <summary>The manifest resource name of the OMG UML primitives this assembly carries.</summary>
-        private const string PrimitiveTypesResource = "Hypha.Knowledge.Releases.PrimitiveTypes.xmi";
-
         /// <summary>The compiled <c>Fetching the inputs for {Tag}</c> message (event 1, information).</summary>
         private static readonly Action<ILogger, string, Exception?> StartedMessage =
             LoggerMessage.Define<string>(
@@ -129,7 +126,7 @@ namespace Hypha.Knowledge.Releases
             var sources = this.layout.Sources;
             sources.Create();
 
-            await this.ProvidePrimitiveTypesAsync(cancellationToken);
+            await PrimitiveTypes.ProvideAsync(this.layout.SharedPrimitiveTypes, cancellationToken);
 
             var metamodel = await this.fetcher.FetchMetamodelAsync(
                 tag, sources, request.SkipExisting, cancellationToken, progress);
@@ -154,36 +151,6 @@ namespace Hypha.Knowledge.Releases
             RecordedMessage(this.logger, tag, manifest.FullName, null);
 
             return new ReleaseInstallation(tag, metamodel, textual, specifications, version, manifest);
-        }
-
-        /// <summary>
-        /// Writes <see cref="IKnowledgeLayout.SharedPrimitiveTypes"/> from the copy this assembly carries,
-        /// when it is not there yet.
-        /// </summary>
-        /// <remarks>
-        /// Every release's metamodel refers to the OMG UML primitives, and no upstream repository holds
-        /// them. A source checkout commits the file; a knowledge folder anywhere else (the home folder,
-        /// a plugin's) would otherwise have none, and the metamodel could not be generated. A file that
-        /// is there is kept as it is.
-        /// </remarks>
-        /// <param name="cancellationToken">Cancels the write.</param>
-        /// <returns>A task that completes once the file is there.</returns>
-        /// <exception cref="InvalidOperationException">The assembly does not carry the file, which is a build fault.</exception>
-        private async Task ProvidePrimitiveTypesAsync(CancellationToken cancellationToken)
-        {
-            var shared = this.layout.SharedPrimitiveTypes;
-            shared.Refresh();
-
-            if (shared.Exists)
-            {
-                return;
-            }
-
-            await using var resource = typeof(ReleaseInstaller).Assembly.GetManifestResourceStream(PrimitiveTypesResource)
-                ?? throw new InvalidOperationException($"this build of hypha does not carry {PrimitiveTypesResource}");
-            using var reader = new StreamReader(resource);
-
-            await ReaderSafeFile.WriteAllTextAsync(shared.FullName, await reader.ReadToEndAsync(cancellationToken), cancellationToken);
         }
 
         /// <summary>

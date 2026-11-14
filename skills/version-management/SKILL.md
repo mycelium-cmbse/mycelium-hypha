@@ -27,9 +27,12 @@ here answers in every other client too.
 | --- | --- | --- |
 | What is installed, and which release is the default | `hypha_release_status` | |
 | What is installed against what is offered upstream, and whether a newer release exists | `hypha_check_releases` | `api` (default true) for the API versions too |
-| Install a release: download it, generate its knowledge, make it the default | `hypha_install_release` | `tag`; `includeSpecifications`; `makeDefault` |
-| Switch the default release | `hypha_use_release` | `tag` |
-| Remove a release | `hypha_remove_release` | `tag`; `force` |
+| Install a release: download it, generate its knowledge, make it the default | `hypha_install_release` | `tag`; `includeSpecifications`; `makeDefault`; `axis` |
+| Switch the default release | `hypha_use_release` | `tag`; `axis` |
+| Remove a release | `hypha_remove_release` | `tag`; `force`; `axis` |
+
+The three release tools take `axis`: `release`, the default, for a language release, or `api` for a
+Systems Modeling API version (below). Every answer says which axis it was on.
 
 ## Checking what's local vs. online
 
@@ -87,14 +90,11 @@ text; see the `api-lookup` skill) is **not** part of a language release. It has 
 its own default.
 
 - `hypha_check_releases` (with `api` left on) and `hypha_release_status` report the API versions.
-- The release tools install, switch and remove **language releases only**. An API version is
-  installed with the `hypha` command-line tool: `hypha api fetch --tag <version>`, then
-  `hypha api generate --tag <version>`; `hypha api use` and `hypha api remove` switch and remove one.
-  Give the user those commands rather than running them, with two conditions: they need `hypha` 1.6.0
-  or later (an older one does not share the folder the server reads), run outside a source checkout
-  of mycelium-hypha (inside one, it writes into the checkout). Without a `hypha` on the path, the one
-  the server's launcher downloaded is under `bin/<version>/<platform>/` in the per-user `hypha` data
-  folder.
+- The same release tools install, switch and remove an API version, with `axis: "api"`:
+  `hypha_install_release` (its `tag` is the API version; without one, the newest offered;
+  `includeSpecifications` fetches the API specification PDF), `hypha_use_release` and
+  `hypha_remove_release`. The same rules apply as for a release: ask before installing, confirm
+  before removing, and the default API version cannot be removed until another one is the default.
 - An API version is a tag of the upstream API-Services repository, `2025-02` or later. That
   repository has not been tagged for every language release, so the newest API version is usually
   **older** than the newest language release. That is expected, not something to fix.
@@ -110,6 +110,6 @@ its own default.
 - **An older release for comparison**: install it by its `tag` with `makeDefault: false`, so the
   current default stays; `hypha_diff` then compares the two.
 - **The user asks about the SysML v2 API and no API version is installed**: say so, name what
-  `hypha_check_releases` offers, and give the `hypha api` commands above.
+  `hypha_check_releases` offers, ask, then `hypha_install_release` with `axis: "api"`.
 - **Cleaning up**: `hypha_release_status` for what is installed, confirm which releases to drop,
   `hypha_use_release` to move off the default if it is one of them, then `hypha_remove_release` each.

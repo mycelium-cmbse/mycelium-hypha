@@ -127,6 +127,8 @@ namespace Hypha.Knowledge
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(DocumentClientName)));
             services.AddSingleton<IApiInstaller, ApiInstaller>();
             services.AddSingleton<IApiRemover, ApiRemover>();
+            services.AddSingleton<IApiSelector, ApiSelector>();
+            services.AddSingleton<IApiOperations, ApiOperations>();
             services.AddSingleton<IOpenApiReader, OpenApiReader>();
             services.AddSingleton<IOpenApiRenderer, OpenApiRenderer>();
             services.AddSingleton<IApiKnowledgeGenerator, OpenApiGenerator>();

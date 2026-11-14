@@ -91,7 +91,7 @@ namespace Hypha.Tools.Tests
             this.remover
                 .Setup(mock => mock.RemoveAsync("2026-04", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException(
-                    "'2026-04' is the default API version - run 'hypha api use --tag <other>' before removing it"));
+                    "'2026-04' is the default API version; make another installed API version the default before removing it"));
 
             using var console = new RecordedConsole();
 

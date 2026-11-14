@@ -164,7 +164,8 @@ to the release machinery rather than folded into it:
   generator registered under the wrong interface would run against the wrong kind of tag.
 - **CLI:** `hypha api discover|fetch|generate|list|use|remove`. `generate` reuses
   `GenerateCommand.Handler` through a `GenerationScope`; `check` and `move-window` know only the
-  language releases, and the MCP release tools install, switch and remove only those too.
+  language releases. The MCP release tools take an `axis` argument (`release` or `api`) and install,
+  switch and remove an API version through `IApiOperations`, under the same release-operation lock.
 - **Cross-references:** `knowledge/api/<version>/cross-references.json` carries identifiers only,
   never clause text, and every edge names the `method` that produced it; a link the specification or
   the OpenAPI document **states** (`mapping-table`, `type-constant`) is preferred over one matched on

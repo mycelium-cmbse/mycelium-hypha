@@ -101,7 +101,7 @@ namespace Hypha.Mcp.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(tool.Description, Is.Not.Null.And.Contains("GitHub").And.Contains("hypha_install_release").And.Contains("language releases only"));
+                Assert.That(tool.Description, Is.Not.Null.And.Contains("GitHub").And.Contains("hypha_install_release").And.Contains("axis 'api'"));
                 Assert.That(tool.Annotations?.ReadOnlyHint, Is.True);
                 Assert.That(tool.Annotations?.IdempotentHint, Is.True);
                 Assert.That(tool.Annotations?.DestructiveHint, Is.False);
@@ -132,7 +132,7 @@ namespace Hypha.Mcp.Tests
             var install = this.Tools.Single(tool => tool.ProtocolTool.Name == "hypha_install_release").ProtocolTool.InputSchema;
             var properties = install.GetProperty("properties").EnumerateObject().Select(property => property.Name);
 
-            Assert.That(properties, Is.EquivalentTo(new[] { "tag", "includeSpecifications", "makeDefault" }));
+            Assert.That(properties, Is.EquivalentTo(new[] { "tag", "includeSpecifications", "makeDefault", "axis" }));
         }
 
         [Test]
@@ -219,6 +219,9 @@ namespace Hypha.Mcp.Tests
         [TestCase("hypha_spec", "question", typeof(SpecificationQuestion))]
         [TestCase("hypha_api", "question", typeof(ApiQuestion))]
         [TestCase("hypha_lookup", "kind", typeof(KnowledgeKind))]
+        [TestCase("hypha_install_release", "axis", typeof(VersionAxis))]
+        [TestCase("hypha_use_release", "axis", typeof(VersionAxis))]
+        [TestCase("hypha_remove_release", "axis", typeof(VersionAxis))]
         public void An_enumerated_argument_offers_exactly_the_names_of_its_values(string tool, string argument, Type values)
         {
             var schema = this.Tools.Single(registered => registered.ProtocolTool.Name == tool).ProtocolTool.InputSchema;

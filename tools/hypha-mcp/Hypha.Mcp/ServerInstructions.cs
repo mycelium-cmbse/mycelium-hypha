@@ -41,8 +41,8 @@ namespace Hypha.Mcp
             - hypha_release_status: the installed releases and API versions, the defaults, and what each has
               generated. Call it first when unsure what is installed.
             - hypha_check_releases: whether a newer release or API version is offered upstream; it asks
-              GitHub. When a newer release is, tell the user and offer hypha_install_release, which
-              installs language releases only; a newer API version is only reported.
+              GitHub. When a newer release or API version is, tell the user and offer hypha_install_release
+              (with axis 'api' for an API version).
             - hypha_metaclass: one metaclass: its index entry, supertypes, subclasses, whether it specializes
               another, neighbours, constraints, operations, enumeration literals, and features.
             - hypha_feature: one feature: what redefines or subsets it, its opposite end, the constraints
@@ -71,6 +71,7 @@ namespace Hypha.Mcp
               is given. It reports progress while it runs, and says which artifacts were generated.
             - hypha_use_release: make an installed release the default.
             - hypha_remove_release: delete an installed release that is not the default.
+            Each takes axis 'api' to do the same for a Systems Modeling API version, which hypha_api answers from.
             Another client may be changing releases at the same time; these tools wait their turn.
 
             Every hypha:// address is also a resource, hypha://{tag}/{kind}/{name}, whose contents are the

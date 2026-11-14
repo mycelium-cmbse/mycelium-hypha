@@ -111,7 +111,7 @@ namespace Hypha.Knowledge.Tests
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => this.remover.RemoveAsync("2026-04"));
 
-            Assert.That(exception!.Message, Does.Contain("hypha api use"));
+            Assert.That(exception!.Message, Does.Contain("make another installed API version the default"));
 
             Assert.Multiple(() =>
             {
@@ -143,7 +143,7 @@ namespace Hypha.Knowledge.Tests
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(() => this.remover.RemoveAsync("2026-05"));
 
-            Assert.That(exception!.Message, Does.Contain("'2026-05' is not installed"));
+            Assert.That(exception!.Message, Does.Contain("'2026-05' is not installed").And.Not.Contain("(Parameter"));
         }
 
         [Test]
@@ -157,7 +157,7 @@ namespace Hypha.Knowledge.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(exception!.Message, Does.Contain("--force"));
+                Assert.That(exception!.Message, Does.Contain("force the removal"));
                 Assert.That(this.layout.Sources("2026-04").Exists, Is.True);
                 Assert.That(this.layout.VersionManifest.Exists, Is.True);
             });

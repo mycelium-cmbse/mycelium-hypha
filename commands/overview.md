@@ -22,7 +22,8 @@ selected automatically. Four capabilities:
   - *"Quote the normative rule for redefinition."*
 - **API lookup**: the Systems Modeling API & Services: PIM types and service operations, the
   REST/HTTP (OpenAPI) schemas and endpoints, and how the two line up. Versioned apart from the
-  language releases: install it with `hypha api fetch` and `hypha api generate`.
+  language releases: ask to install an API version, or `hypha api fetch` and `hypha api generate`
+  from the command line.
   - *"Is `CommitReference.deleted` optional in the PIM, and is it in the response model?"*
   - *"Which endpoint does `ProjectService.createProject` map to?"*
 - **Validation**: check SysML v2 / KerML textual notation against the grammar and metamodel, and

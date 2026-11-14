@@ -18,6 +18,7 @@ namespace Hypha.Mcp.Tests
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Api;
     using Hypha.Knowledge.Generation;
     using Hypha.Knowledge.Progress;
     using Hypha.Knowledge.Releases;
@@ -34,6 +35,8 @@ namespace Hypha.Mcp.Tests
 
         private Mock<IReleaseOperations> operations = null!;
         private Mock<IReleaseDiscovery> discovery = null!;
+        private Mock<IApiOperations> api = null!;
+        private Mock<IApiDiscovery> apiDiscovery = null!;
         private ReleaseChangeTools tools = null!;
 
         [SetUp]
@@ -41,7 +44,9 @@ namespace Hypha.Mcp.Tests
         {
             this.operations = new Mock<IReleaseOperations>(MockBehavior.Strict);
             this.discovery = new Mock<IReleaseDiscovery>(MockBehavior.Strict);
-            this.tools = new ReleaseChangeTools(this.operations.Object, this.discovery.Object);
+            this.api = new Mock<IApiOperations>(MockBehavior.Strict);
+            this.apiDiscovery = new Mock<IApiDiscovery>(MockBehavior.Strict);
+            this.tools = new ReleaseChangeTools(this.operations.Object, this.discovery.Object, this.api.Object, this.apiDiscovery.Object);
         }
 
         [Test]
@@ -119,7 +124,7 @@ namespace Hypha.Mcp.Tests
                     return Task.FromResult(Setup(new KnowledgeBuild([], null)));
                 });
 
-            await this.tools.InstallAsync(Tag, true, true, value => { sent.Add(value); return Task.CompletedTask; }, CancellationToken.None);
+            await this.tools.InstallAsync(Tag, true, true, VersionAxis.Release, value => { sent.Add(value); return Task.CompletedTask; }, CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -220,6 +225,176 @@ namespace Hypha.Mcp.Tests
 
             Assert.That(() => this.tools.RemoveRelease(Tag), Throws.TypeOf<McpException>().With.Message.EqualTo("'2026-05' is the default release"));
         }
+
+        [Test]
+        public async Task Install_on_the_api_axis_installs_the_API_version_and_counts_its_documents()
+        {
+            ApiInstallRequest? asked = null;
+            this.api
+                .Setup(o => o.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .Callback<ApiInstallRequest, IProgress<KnowledgeProgress>?, CancellationToken>((request, _, _) => asked = request)
+                .ReturnsAsync(ApiSetup(new KnowledgeBuild([new ArtifactBuild("2026-04", "pim", GenerationResult.Generated([new FileInfo("pim.md")]))], null)));
+
+            using var answer = JsonDocument.Parse(await this.tools.InstallRelease(" 2026-04 ", includeSpecifications: false, makeDefault: false, axis: VersionAxis.Api));
+            var root = answer.RootElement;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(asked, Is.EqualTo(new ApiInstallRequest { Tag = "2026-04", IncludeSpecification = false, SkipExisting = true, MakeDefault = false }));
+                Assert.That(root.GetProperty("tag").GetString(), Is.EqualTo("2026-04"));
+                Assert.That(root.GetProperty("axis").GetString(), Is.EqualTo("api"));
+                Assert.That(root.GetProperty("fetched").GetProperty("documents").GetInt32(), Is.EqualTo(3));
+                Assert.That(root.GetProperty("artifacts")[0].GetProperty("artifact").GetString(), Is.EqualTo("pim"));
+            });
+        }
+
+        [Test]
+        public async Task Install_on_the_api_axis_without_a_tag_installs_the_newest_offerable_API_version()
+        {
+            this.apiDiscovery.Setup(d => d.AvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync(["2026-04", "2025-02"]);
+            this.api
+                .Setup(o => o.InstallAsync(
+                    new ApiInstallRequest { Tag = "2026-04", IncludeSpecification = true, SkipExisting = true, MakeDefault = true },
+                    It.IsAny<IProgress<KnowledgeProgress>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(ApiSetup(new KnowledgeBuild([], null), isDefault: true));
+
+            using var answer = JsonDocument.Parse(await this.tools.InstallRelease(axis: VersionAxis.Api));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(answer.RootElement.GetProperty("tag").GetString(), Is.EqualTo("2026-04"));
+                Assert.That(answer.RootElement.GetProperty("isDefault").GetBoolean(), Is.True);
+                this.discovery.VerifyNoOtherCalls();
+            });
+        }
+
+        [Test]
+        public void Install_on_the_api_axis_without_a_tag_when_nothing_is_offered_is_a_tool_error()
+        {
+            this.apiDiscovery.Setup(d => d.AvailableAsync(It.IsAny<CancellationToken>())).ReturnsAsync([]);
+
+            Assert.That(
+                () => this.tools.InstallRelease(axis: VersionAxis.Api),
+                Throws.TypeOf<McpException>().With.Message.Contains("No Systems Modeling API version is offered upstream"));
+        }
+
+        [Test]
+        public async Task Install_on_the_api_axis_says_it_installs_an_API_version()
+        {
+            var sent = new List<ProgressNotificationValue>();
+            this.api
+                .Setup(o => o.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(ApiSetup(new KnowledgeBuild([], null)));
+
+            await this.tools.InstallAsync("2026-04", true, true, VersionAxis.Api, value => { sent.Add(value); return Task.CompletedTask; }, CancellationToken.None);
+
+            Assert.That(sent[0].Message, Does.Contain("API version 2026-04"));
+        }
+
+        [Test]
+        public async Task Install_on_the_api_axis_forwards_the_installers_and_builders_progress()
+        {
+            var sent = new List<ProgressNotificationValue>();
+            this.api
+                .Setup(o => o.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .Returns<ApiInstallRequest, IProgress<KnowledgeProgress>?, CancellationToken>((_, progress, _) =>
+                {
+                    progress!.Report(new KnowledgeProgress(KnowledgeProgress.ApiFetch, "documents", 1, 3, "OpenAPI document, 1 of 3"));
+                    progress.Report(new KnowledgeProgress(KnowledgeProgress.Generate, "2026-04", 1, 4, "pim: 12 files"));
+
+                    return Task.FromResult(ApiSetup(new KnowledgeBuild([], null)));
+                });
+
+            await this.tools.InstallAsync("2026-04", true, true, VersionAxis.Api, value => { sent.Add(value); return Task.CompletedTask; }, CancellationToken.None);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(sent.Select(value => value.Progress), Is.EqualTo(new float[] { 0, 1, 2 }));
+                Assert.That(sent[2].Message, Is.EqualTo("generate 2026-04: pim: 12 files"));
+            });
+        }
+
+        [Test]
+        public void Removing_an_API_version_that_is_not_installed_is_a_tool_error_the_model_can_read()
+        {
+            this.api
+                .Setup(o => o.RemoveAsync("2026-09", false, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ArgumentException("API version '2026-09' is not installed; the installed API versions are 2026-04"));
+
+            Assert.That(
+                () => this.tools.RemoveRelease("2026-09", axis: VersionAxis.Api),
+                Throws.TypeOf<McpException>().With.Message.EqualTo("API version '2026-09' is not installed; the installed API versions are 2026-04"));
+        }
+
+        [Test]
+        public async Task Use_on_the_api_axis_switches_the_default_API_version()
+        {
+            this.api.Setup(o => o.UseAsync("2026-04", It.IsAny<CancellationToken>())).ReturnsAsync(new ReleaseSelection("2026-04", "2025-02"));
+
+            using var answer = JsonDocument.Parse(await this.tools.UseRelease("2026-04", VersionAxis.Api));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(answer.RootElement.GetProperty("default").GetString(), Is.EqualTo("2026-04"));
+                Assert.That(answer.RootElement.GetProperty("previous").GetString(), Is.EqualTo("2025-02"));
+                Assert.That(answer.RootElement.GetProperty("axis").GetString(), Is.EqualTo("api"));
+                this.operations.VerifyNoOtherCalls();
+            });
+        }
+
+        [Test]
+        public void Use_of_an_API_version_that_is_not_installed_points_at_the_install_tool_on_the_api_axis()
+        {
+            this.api
+                .Setup(o => o.UseAsync("2026-09", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ArgumentException("API version '2026-09' is not installed; the installed API versions are 2026-04"));
+
+            Assert.That(
+                () => this.tools.UseRelease("2026-09", VersionAxis.Api),
+                Throws.TypeOf<McpException>().With.Message.EqualTo(
+                    "API version '2026-09' is not installed; the installed API versions are 2026-04. Install it with hypha_install_release with axis 'api' first."));
+        }
+
+        [Test]
+        public async Task Remove_on_the_api_axis_removes_the_API_version()
+        {
+            this.api.Setup(o => o.RemoveAsync("2025-02", false, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            using var answer = JsonDocument.Parse(await this.tools.RemoveRelease("2025-02", axis: VersionAxis.Api));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(answer.RootElement.GetProperty("removed").GetString(), Is.EqualTo("2025-02"));
+                Assert.That(answer.RootElement.GetProperty("axis").GetString(), Is.EqualTo("api"));
+                this.operations.VerifyNoOtherCalls();
+            });
+        }
+
+        [Test]
+        public async Task Every_answer_on_the_release_axis_says_so()
+        {
+            this.operations.Setup(o => o.RemoveAsync("2026-02", false, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            using var answer = JsonDocument.Parse(await this.tools.RemoveRelease("2026-02"));
+
+            Assert.That(answer.RootElement.GetProperty("axis").GetString(), Is.EqualTo("release"));
+        }
+
+        private static ApiSetup ApiSetup(KnowledgeBuild build, bool isDefault = false) =>
+            new(
+                new ApiInstallation(
+                    "2026-04",
+                    [new FileInfo("openapi.json"), new FileInfo("KerML.uml"), new FileInfo("pim.xmi")],
+                    new InstalledApiVersion(
+                        "2026-04",
+                        new UpstreamReference(ApiUpstream.ServicesRepository, "abc"),
+                        new UpstreamReference(Upstream.ReleaseRepository, "def"),
+                        new UpstreamReference(Upstream.PilotRepository, "ghi"),
+                        ApiUpstream.PimDocument),
+                    new FileInfo("versions.json")),
+                build,
+                isDefault);
 
         private static ReleaseSetup Setup(KnowledgeBuild build, string tag = Tag, bool isDefault = false) =>
             new(
