@@ -24,7 +24,7 @@ namespace Hypha.Launcher.Tests
         public void SetUp()
         {
             this.workspace = Directory.CreateDirectory(
-                Path.Combine(Path.GetTempPath(), $"hypha-hook-cache-{Guid.NewGuid():N}"));
+                Path.Combine(Path.GetTempPath(), $"hypha-launch-cache-{Guid.NewGuid():N}"));
 
             this.cache = new CacheLayout(this.workspace, "abc123");
         }

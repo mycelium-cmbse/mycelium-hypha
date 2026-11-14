@@ -13,7 +13,7 @@ namespace Hypha.Launcher.Provisioning
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// The parts of the GitHub Releases API response the launcher and the hook read.
+    /// The parts of the GitHub Releases API response the launcher reads.
     /// </summary>
     /// <param name="Body">
     /// The release notes, specifically the checksum table <c>release.yml</c>'s "Record the

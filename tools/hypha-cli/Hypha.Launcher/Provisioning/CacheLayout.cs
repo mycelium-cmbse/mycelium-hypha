@@ -21,14 +21,10 @@ namespace Hypha.Launcher.Provisioning
     /// </summary>
     /// <remarks>
     /// The launcher passes the <c>HYPHA_HOME</c> folder as the root (see <c>HomeFolder</c>), the one
-    /// every client shares. <see cref="ResolveRoot"/> is the root the retired <c>SessionStart</c> hook
-    /// used, which <c>Hypha.Tools.Hook</c> still compiles against until it is removed.
+    /// every client shares.
     /// </remarks>
     public sealed class CacheLayout
     {
-        /// <summary>The folder, under the local application data folder, the hook's cache lives in.</summary>
-        private const string CacheFolderName = "mycelium-hypha";
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheLayout"/> class.
         /// </summary>
@@ -86,23 +82,6 @@ namespace Hypha.Launcher.Provisioning
 
         /// <summary>Where a failed CLI download/verification is recorded for manual diagnosis.</summary>
         public FileInfo DownloadErrorLog => new(Path.Combine(this.StateDirectory.FullName, "download-error.log"));
-
-        /// <summary>
-        /// Resolves the retired hook's cache root via <see cref="System.Environment.SpecialFolder.LocalApplicationData"/>
-        /// (<c>%LOCALAPPDATA%</c> on Windows, <c>~/.local/share</c> on Linux, <c>~/Library/Application Support</c>
-        /// on macOS). The launcher does not use it.
-        /// </summary>
-        /// <param name="getFolderPath">
-        /// Injectable for tests; defaults to <see cref="System.Environment.GetFolderPath(System.Environment.SpecialFolder)"/>.
-        /// </param>
-        /// <returns>The <c>mycelium-hypha</c> folder under the local application data folder.</returns>
-        public static DirectoryInfo ResolveRoot(Func<Environment.SpecialFolder, string>? getFolderPath = null)
-        {
-            getFolderPath ??= Environment.GetFolderPath;
-
-            return new DirectoryInfo(
-                Path.Combine(getFolderPath(Environment.SpecialFolder.LocalApplicationData), CacheFolderName));
-        }
 
         /// <summary>
         /// A short, stable, filesystem-safe key for a plugin root path, so a maintainer's dev checkout

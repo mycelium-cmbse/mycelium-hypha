@@ -3,8 +3,8 @@ name: Launcher binaries
 # Builds the NativeAOT `hypha-launch` binary (tools/hypha-cli/Hypha.Launcher), the MCP server's launcher,
 # for every platform, and commits it into the plugin's bin/: bin/hypha-launch.exe on Windows, which a
 # client finds from the extensionless bin/hypha-launch, and bin/<rid>/hypha-launch elsewhere, which the
-# POSIX bin/hypha-launch script execs. It also built the SessionStart hook's binary until the hook was
-# removed; Step 8 of hypha-mcp-refactor-plan.md replaces this file with one named for the launcher.
+# POSIX bin/hypha-launch script execs. This file was hook-binaries.yml while it also built the
+# SessionStart hook's binary; the hook and its project are gone.
 #
 # Unlike the full `hypha` CLI (see release.yml), this binary IS committed to the repository: it never
 # generates anything itself, only downloads and starts the real CLI, so NativeAOT keeps it small
@@ -15,7 +15,7 @@ name: Launcher binaries
 # True NativeAOT cross-compilation across OS families is not reliably supported, so this needs a
 # matrix of native runners, unlike release.yml's single-runner self-contained publish.
 #
-# Run by hand after any change to Hypha.Launcher or the Provisioning/ sources it shares. Not tied to a
+# Run by hand after any change to Hypha.Launcher. Not tied to a
 # version number or a release tag: the committed binaries simply track whatever is on the branch this
 # workflow runs against.
 

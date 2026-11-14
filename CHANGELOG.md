@@ -46,8 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   waits for the download nor reconnects; each download is renamed into place once verified, so two
   clients starting at once cannot clash. On Windows the extensionless path
   finds `bin/hypha-launch.exe`; on macOS and Linux it is a script that execs the platform's binary. The
-  download of the CLI moved from the SessionStart hook into the launcher, which the hook shares until it
-  is retired.
+  download of the CLI moved from the SessionStart hook into the launcher.
 - **A one-time move of existing installs into `HYPHA_HOME`** (`refs #196`): the first time `hypha`
   reads an empty `HYPHA_HOME`, it copies every release and API version the Claude plugin and the VS
   Code extension installed in their own folders, with their sources, so nothing is fetched or
@@ -282,10 +281,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `HyphaKnowledgeOptions.Home` sets the folder in code; `HyphaHome.Resolve` is the default.
     `UvProvisioner`'s constructor without a cache root, and `UvProvisioner.ResolveCacheRoot`, are
     removed.
-  - The VS Code extension and the Claude plugin's `SessionStart` hook pass their own folders, as
-    before, and the plugin's `version-management` skill now passes the plugin's folder on every
-    `hypha` command, so a release it fetches is the one the hook and the lookup skills see. Moving
-    them to `HYPHA_HOME` comes with the MCP server.
+  - The VS Code extension passes its own folder, as before. The Claude plugin reads `HYPHA_HOME`,
+    through the MCP server its launcher starts.
 - **`metamodel.json` 2.1.0: every owned attribute, operation, parameter, constraint and enumeration
   literal carries its `xmiId`** (`refs #206`), so a diff between two releases recognizes a renamed
   member. **Regenerate every installed release** (`hypha generate --tag <release>`, and
@@ -350,6 +347,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   packages and `tools/spec-extract`, grouped per ecosystem and only for versions two weeks old.
 
 ### Removed
+- **The `Hypha.Tools.Hook` project** (`refs #200`): the retired `SessionStart` hook's source and tests,
+  which only shared the launcher's download code. The workflow that builds the launcher binaries is
+  now `launcher-binaries.yml` (*Launcher binaries*), renamed from `hook-binaries.yml`.
 - **The `metamodel-navigator`, `spec-citation` and `sysml-validator` agents** (`refs #197`): their
   fan-out questions are single tool calls now. `metamodel-lookup` says which, and `spec-citation` and
   `sysml-validation` take over the other two, including a whole model to check.

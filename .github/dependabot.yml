@@ -25,7 +25,7 @@ updates:
         update-types: [minor, patch]
 
   # The central package versions in Directory.Packages.props, for every project in the solution,
-  # the NativeAOT hook included.
+  # the NativeAOT launcher included.
   - package-ecosystem: nuget
     directory: /
     target-branch: development
