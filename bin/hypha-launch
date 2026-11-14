@@ -11,6 +11,7 @@ here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64 | Linux-amd64) rid=linux-x64 ;;
+  Linux-aarch64 | Linux-arm64) rid=linux-arm64 ;;
   Darwin-arm64) rid=osx-arm64 ;;
   Darwin-x86_64) rid=osx-x64 ;;
   MINGW* | MSYS* | CYGWIN*) exec "$here/hypha-launch.exe" "$@" ;;
@@ -19,5 +20,12 @@ case "$(uname -s)-$(uname -m)" in
     exit 1
     ;;
 esac
+
+# A platform named above whose launcher was not built into this package says so, rather than failing
+# with the shell's bare "not found".
+if [ ! -x "$here/$rid/hypha-launch" ]; then
+  echo "hypha-launch: this package has no launcher for $rid; set HYPHA_BIN and start \"hypha serve\" directly" >&2
+  exit 1
+fi
 
 exec "$here/$rid/hypha-launch" "$@"

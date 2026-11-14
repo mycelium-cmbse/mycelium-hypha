@@ -117,7 +117,8 @@ or directly): `hypha fetch --tag <tag>` + `hypha generate --tag <tag>` lands it 
 no longer wanted (refusing on the current default or the last release without `--force`).
 
 One gap is permanent, by design, rather than a bug to fix: the plugin's launcher only runs on the
-four RIDs `.github/workflows/release.yml` publishes (`win-x64`, `linux-x64`, `osx-x64`, `osx-arm64`).
+five RIDs `.github/workflows/release.yml` publishes (`win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`,
+`osx-arm64`).
 
 ## Licensing
 
