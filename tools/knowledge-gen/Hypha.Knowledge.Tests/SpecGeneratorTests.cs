@@ -192,6 +192,48 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task Runs_spec_extract_from_the_project_the_provider_names()
+        {
+            this.SeedPdfs("2026-05");
+            var uvExe = this.FakeUvExecutable();
+            this.uv.Setup(u => u.EnsureAsync(It.IsAny<CancellationToken>())).ReturnsAsync(uvExe);
+
+            string? fileName = null;
+            string? arguments = null;
+            DirectoryInfo? workingDirectory = null;
+            this.processes
+                .Setup(p => p.RunAsync(
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DirectoryInfo>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+                .Callback((string file, string args, DirectoryInfo directory, IReadOnlyDictionary<string, string>? _, CancellationToken _) =>
+                {
+                    fileName = file;
+                    arguments = args;
+                    workingDirectory = directory;
+                })
+                .ReturnsAsync(0);
+
+            await this.generator.GenerateAsync("2026-05");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(fileName, Is.EqualTo(uvExe.FullName));
+                Assert.That(arguments, Does.Contain("python -m spec_extract"));
+
+                // The provider's folder, which is not under the root: a knowledge folder such as HYPHA_HOME
+                // has no tools/spec-extract of its own, so the root must not be assumed to hold the project.
+                Assert.That(
+                    arguments,
+                    Does.Contain($"--project \"{Path.Combine(this.outputRoot.FullName, "toolchain", "spec-extract")}\""));
+                Assert.That(arguments, Does.Not.Contain(Path.Combine(this.root.FullName, "tools", "spec-extract")));
+                Assert.That(arguments, Does.Contain($"--repo-root \"{this.root.FullName}\""));
+                Assert.That(arguments, Does.Contain("--tag 2026-05"));
+                Assert.That(arguments, Does.Contain($"--out-root \"{this.outputRoot.FullName}\""));
+                Assert.That(workingDirectory!.FullName, Is.EqualTo(this.root.FullName));
+            });
+        }
+
+        [Test]
         public async Task Runs_uv_with_the_environment_the_provisioner_gives_it()
         {
             this.SeedPdfs("2026-05");
