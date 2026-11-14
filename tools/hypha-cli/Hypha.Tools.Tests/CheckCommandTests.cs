@@ -73,7 +73,7 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
-        public async Task Json_output_keeps_the_property_names_the_hook_reads()
+        public async Task Json_output_keeps_its_property_names()
         {
             using var console = new RecordedConsole();
 

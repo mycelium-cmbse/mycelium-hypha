@@ -15,7 +15,7 @@ name: Launcher binaries
 # True NativeAOT cross-compilation across OS families is not reliably supported, so this needs a
 # matrix of native runners, unlike release.yml's single-runner self-contained publish.
 #
-# Run by hand after any change to Hypha.Launcher or the Provisioning/ sources it shares. Not tied to a
+# Run by hand after any change to Hypha.Launcher. Not tied to a
 # version number or a release tag: the committed binaries simply track whatever is on the branch this
 # workflow runs against.
 

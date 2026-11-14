@@ -33,7 +33,7 @@ namespace Hypha.Tools.Commands
     {
         /// <summary>Prints machine-readable JSON instead of a table.</summary>
         public static readonly Option<bool> Json =
-            JsonOutput.CreateOption("Print one line of JSON instead of a table - for scripts and the hook.");
+            JsonOutput.CreateOption("Print one line of JSON instead of a table, for scripts.");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CheckCommand"/> class.
@@ -71,7 +71,7 @@ namespace Hypha.Tools.Commands
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
 
-                // The language releases only: the hook runs this every session, and an API check would cost it
+                // The language releases only: a script may run this often, and an API check would cost it
                 // GitHub requests the anonymous rate limit can ill afford.
                 var comparison = await this.check.CheckReleasesAsync(cancellationToken);
 
@@ -79,7 +79,7 @@ namespace Hypha.Tools.Commands
 
                 if (parseResult.GetValue(Json))
                 {
-                    // One unwrapped line: the hook parses standard output as a single JSON document.
+                    // One unwrapped line: a script parses standard output as a single JSON document.
                     await JsonOutput.WriteAsync(result);
 
                     return 0;
