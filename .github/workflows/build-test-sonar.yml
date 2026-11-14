@@ -156,7 +156,7 @@ jobs:
         run: dotnet build mycelium-hypha.sln --no-restore --no-incremental /p:ContinuousIntegrationBuild=true
 
       - name: Run tests and compute coverage
-        # The query API is checked against the jq queries the skills document. Locally those tests
+        # The query API is checked against the jq queries the skills used to run. Locally those tests
         # are skipped without jq; here jq is on the runner, so a missing jq fails instead.
         env:
           HYPHA_REQUIRE_JQ: "1"

@@ -94,7 +94,7 @@ namespace Hypha.Tools.Hosting
 
                 var configuration = new LoggerConfiguration().MinimumLevel.Is(level);
 
-                // A caller reading the JSON may never read standard error (the SessionStart hook does
+                // A caller reading the JSON may never read standard error (a script or another tool may
                 // not), and once that pipe's buffer fills, the next log line blocks and the verb never
                 // exits. On a terminal, the progress bars already count every request, and hundreds of
                 // lines would push them off the screen. So in both the chattiest categories (a line per

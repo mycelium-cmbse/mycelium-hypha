@@ -14,9 +14,10 @@ namespace Hypha.Knowledge.Tests
     using System.Text.Json.Nodes;
     using System.Text.Json.Serialization;
 
-    // Each test runs a jq query as the skills, the metamodel-navigator agent and the metamodel-gen README
-    // document it, against the same file, and checks the query API gives the same answer. The query API
-    // replaces those jq calls, so an answer that differs is a regression, not a style choice.
+    // Each test runs a jq query as the skills and the metamodel-navigator agent ran it before the MCP
+    // server, and as the metamodel-gen README still shows it, against the same file, and checks the query
+    // API gives the same answer. The query API replaced those jq calls, so an answer that differs is a
+    // regression, not a style choice.
     [TestFixture]
     public class KnowledgeQueryJqTests
     {

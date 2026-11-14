@@ -1,25 +1,23 @@
-name: Hook and launcher binaries
+name: Launcher binaries
 
-# Builds the small NativeAOT `hypha-hook` binary (tools/hypha-cli/Hypha.Tools.Hook) for every platform
-# the plugin's SessionStart hook needs to dispatch to, and commits them into hooks/native/<rid>/.
-#
 # Builds the NativeAOT `hypha-launch` binary (tools/hypha-cli/Hypha.Launcher), the MCP server's launcher,
-# the same way, and commits it into the plugin's bin/: bin/hypha-launch.exe on Windows, which a client
-# finds from the extensionless bin/hypha-launch, and bin/<rid>/hypha-launch elsewhere, which the POSIX
-# bin/hypha-launch script execs. Step 8 of hypha-mcp-refactor-plan.md replaces this workflow once the
-# hook is retired.
+# for every platform, and commits it into the plugin's bin/: bin/hypha-launch.exe on Windows, which a
+# client finds from the extensionless bin/hypha-launch, and bin/<rid>/hypha-launch elsewhere, which the
+# POSIX bin/hypha-launch script execs. It also built the SessionStart hook's binary until the hook was
+# removed; Step 8 of hypha-mcp-refactor-plan.md replaces this file with one named for the launcher.
 #
 # Unlike the full `hypha` CLI (see release.yml), this binary IS committed to the repository: it never
-# generates anything itself, only downloads and launches the real CLI, so NativeAOT keeps it small
-# (single-digit MB per platform) rather than the ~80MB a self-contained non-AOT publish would need.
-# The plugin's SessionStart hook has no other way to reach a platform-specific compiled binary; see
+# generates anything itself, only downloads and starts the real CLI, so NativeAOT keeps it small
+# (single-digit MB per platform) rather than the ~80MB a self-contained non-AOT publish would need. A
+# client starts the server from the plugin's own folder, so the launcher has to be there; see
 # tools/hypha-cli/README.md.
 #
 # True NativeAOT cross-compilation across OS families is not reliably supported, so this needs a
 # matrix of native runners, unlike release.yml's single-runner self-contained publish.
 #
-# Run by hand after any change to Hypha.Tools.Hook. Not tied to a version number or a release tag: the
-# committed binaries simply track whatever is on the branch this workflow runs against.
+# Run by hand after any change to Hypha.Launcher or the Provisioning/ sources it shares. Not tied to a
+# version number or a release tag: the committed binaries simply track whatever is on the branch this
+# workflow runs against.
 
 on:
   workflow_dispatch: {}
@@ -57,9 +55,6 @@ jobs:
 
       - name: Publish ${{ matrix.rid }}
         run: |
-          dotnet publish tools/hypha-cli/Hypha.Tools.Hook/Hypha.Tools.Hook.csproj \
-            -c Release -r ${{ matrix.rid }} -p:PublishAot=true \
-            -o publish/${{ matrix.rid }}/hook
           dotnet publish tools/hypha-cli/Hypha.Launcher/Hypha.Launcher.csproj \
             -c Release -r ${{ matrix.rid }} -p:PublishAot=true \
             -o publish/${{ matrix.rid }}/launch
@@ -69,9 +64,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.2
         with:
           name: binaries-${{ matrix.rid }}
-          path: |
-            publish/${{ matrix.rid }}/hook/hypha-hook${{ matrix.suffix }}
-            publish/${{ matrix.rid }}/launch/hypha-launch${{ matrix.suffix }}
+          path: publish/${{ matrix.rid }}/launch/hypha-launch${{ matrix.suffix }}
           if-no-files-found: error
 
   commit:
@@ -88,14 +81,9 @@ jobs:
           pattern: binaries-*
           path: downloaded
 
-      - name: Place binaries under hooks/native/ and bin/
+      - name: Place binaries under bin/
         run: |
           set -euo pipefail
-          for rid in win-x64 linux-x64 osx-x64 osx-arm64; do
-            mkdir -p "hooks/native/${rid}"
-            src="downloaded/binaries-${rid}"
-            cp "${src}"/hook/hypha-hook* "hooks/native/${rid}/"
-          done
 
           # Windows finds bin/hypha-launch.exe from the extensionless path a manifest names; macOS and
           # Linux run the bin/hypha-launch script, which execs its platform's binary.
@@ -106,22 +94,18 @@ jobs:
             chmod +x "bin/${rid}/hypha-launch"
           done
 
-          # The self-contained apphost is a native executable; the AOT publish output has no other
-          # files worth keeping (no .pdb, since StripSymbols is set in the csproj, and no .dll dependencies).
-          chmod +x hooks/native/linux-x64/hypha-hook hooks/native/osx-x64/hypha-hook hooks/native/osx-arm64/hypha-hook
-
       - name: Commit if anything changed
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add hooks/native bin
+          git add bin
 
-          if git diff --cached --quiet -- hooks/native bin; then
-            echo "::notice::hooks/native and bin are already up to date; nothing to commit."
+          if git diff --cached --quiet -- bin; then
+            echo "::notice::bin is already up to date; nothing to commit."
             exit 0
           fi
 
-          git commit -m "[Add] rebuild the hook and launcher binaries for hooks/native/ and bin/"
+          git commit -m "[Add] rebuild the launcher binaries for bin/"
           git push

@@ -41,4 +41,4 @@ pre-installed Python or maintainer source checkout is needed. The source documen
 - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/2a-OMG_Systems_Modeling_Language.pdf
 - https://github.com/Systems-Modeling/SysML-v2-Release/blob/master/doc/3-Systems_Modeling_API_and_Services.pdf
 
-A SessionStart hook reminds you when they are missing. Metamodel lookup and validation work without them.
+Metamodel lookup and validation work without them.

@@ -236,6 +236,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `hypha_remove_release` replace the `hypha` commands it ran with `--repository-root` in the plugin's
   folder, so a release installed in one client answers in every other. API versions are still
   installed with the `hypha api` commands.
+- **The API skill answers through the MCP server** (`refs #197`): `api-lookup` reads PIM classes,
+  how a PIM type lines up with its PSM schemas and the specification, service operations with their
+  endpoints, and API specification clauses through `hypha_api`, with no jq and no file paths. Each
+  PSM schema property's type, required and nullable flags are not answered yet, and the skill says so.
+- **Installing the Claude plugin needs nothing else** (`refs #197`): no Git for Windows, no new
+  session for a hook to run, and no `jq`. The plugin starts the MCP server through its launcher, which
+  downloads `hypha` the first time.
 
 - **A relative `HYPHA_HOME` is refused** (`refs #196`): it would be resolved against each process's
   working directory, so two clients started from different folders would not share one home or one
@@ -325,6 +332,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The `metamodel-navigator`, `spec-citation` and `sysml-validator` agents** (`refs #197`): their
   fan-out questions are single tool calls now. `metamodel-lookup` says which, and `spec-citation` and
   `sysml-validation` take over the other two, including a whole model to check.
+- **The plugin's `SessionStart` hook** (`refs #197`): `hooks/native/`, the hook entry and
+  `hyphaCliVersion` in `.claude-plugin/plugin.json`, and the hook's build in the binaries workflow,
+  which now builds only the launcher. Asking about releases runs `hypha_check_releases` instead, and
+  installing one reports when the specification text was skipped.
+- **`jq`** (`refs #197`): no skill runs it any more, and the README no longer recommends it.
 
 ### Fixed
 - **Installing into a folder that is not a source checkout generates the metamodel**
