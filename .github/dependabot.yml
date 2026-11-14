@@ -53,9 +53,10 @@ updates:
       npm:
         update-types: [minor, patch]
     ignore:
-      # The Node types follow the Node the extension is built and tested with (node-version in the
-      # workflows), not the newest Node: newer types would let code compile that the older Node
-      # cannot run. Move this major by hand, together with node-version.
+      # The Node types follow the oldest Node the extension runs on, which is the extension host of
+      # the lowest VS Code it supports (engines.vscode in package.json), not the newest Node: newer
+      # types would let code compile that the host cannot run. Move this major by hand, together with
+      # engines.vscode and the workflows' node-version.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
 
