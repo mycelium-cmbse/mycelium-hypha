@@ -231,6 +231,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was never generated. `sysml-validation` checks keywords, productions and feature assignments with
   `hypha_syntax` and reachability and multiplicities with `hypha_metaclass`, and names the release's
   worked examples of an element without reading them.
+- **The version-management skill installs, switches and removes releases through the MCP server**
+  (`refs #197`): `hypha_check_releases`, `hypha_install_release`, `hypha_use_release` and
+  `hypha_remove_release` replace the `hypha` commands it ran with `--repository-root` in the plugin's
+  folder, so a release installed in one client answers in every other. API versions are still
+  installed with the `hypha api` commands.
 
 - **A relative `HYPHA_HOME` is refused** (`refs #196`): it would be resolved against each process's
   working directory, so two clients started from different folders would not share one home or one

@@ -150,8 +150,8 @@ An API version is installed, switched and removed independently of the language 
 two do not have to match: the upstream API repository is not tagged for every language release.
 
 **Spec citation needs the specification text generated locally.** Quoting the normative
-specification text verbatim needs the OMG PDFs, which `hypha fetch` downloads by default, and the
-`spec` artifact, which `hypha generate` builds from them. The first time, it downloads
+specification text verbatim needs the OMG PDFs, which installing a release downloads by default,
+and the clause text extracted from them, which the install generates. The first time, it downloads
 [`uv`](https://github.com/astral-sh/uv), which provides the Python the extraction needs, so this
 needs network access once but no Python or source checkout of your own. Without the specification
 text, metamodel lookup and validation still work fully, and spec citation can still name the
