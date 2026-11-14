@@ -15,5 +15,6 @@ namespace Hypha.Mcp.Tools
     /// <param name="Default">The release that now answers by default.</param>
     /// <param name="Previous">The release that answered by default before.</param>
     /// <param name="Changed">Whether the default changed, rather than already being <paramref name="Default"/>.</param>
-    internal sealed record UseAnswer(string Default, string Previous, bool Changed);
+    /// <param name="Axis"><c>release</c> or <c>api</c>: what <see cref="Default"/> and <see cref="Previous"/> name.</param>
+    internal sealed record UseAnswer(string Default, string Previous, bool Changed, string Axis = Axes.Release);
 }

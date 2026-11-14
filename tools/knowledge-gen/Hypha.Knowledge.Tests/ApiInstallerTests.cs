@@ -122,6 +122,33 @@ namespace Hypha.Knowledge.Tests
             });
         }
 
+        [Test]
+        public async Task An_api_version_installed_first_brings_the_UML_primitives_its_PIM_refers_to()
+        {
+            var shared = this.layout.SharedPrimitiveTypes;
+
+            await this.installer.InstallAsync(new ApiInstallRequest { Tag = "2026-04" });
+
+            shared.Refresh();
+            Assert.Multiple(() =>
+            {
+                Assert.That(shared.Exists, Is.True);
+                Assert.That(File.ReadAllText(shared.FullName), Does.Contain("PrimitiveTypes"));
+            });
+        }
+
+        [Test]
+        public async Task Primitives_already_there_are_kept_as_they_are()
+        {
+            var shared = this.layout.SharedPrimitiveTypes;
+            shared.Directory!.Create();
+            File.WriteAllText(shared.FullName, "<kept/>");
+
+            await this.installer.InstallAsync(new ApiInstallRequest { Tag = "2026-04" });
+
+            Assert.That(File.ReadAllText(shared.FullName), Is.EqualTo("<kept/>"));
+        }
+
         [TestCase(false, new[] { "OpenAPI document, 1 of 3", "KerML model, 2 of 3", "PIM, 3 of 3" })]
         [TestCase(true, new[] { "OpenAPI document, 1 of 4", "KerML model, 2 of 4", "PIM, 3 of 4", "specification, 4 of 4" })]
         public async Task Each_document_is_reported_as_it_is_fetched(bool includeSpecification, string[] messages)

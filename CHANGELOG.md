@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **API versions through the MCP release tools** (`refs #228`): `hypha_install_release`,
+  `hypha_use_release` and `hypha_remove_release` take `axis: "api"` to install, switch or remove a
+  Systems Modeling API version, under the same release-operation lock as a release; an install
+  without a tag installs the newest API version offered, and a version asked to be the default becomes
+  it only once its knowledge is generated (the first one installed is the default from the start, as
+  for a release). An API version installed before any release brings the UML primitives its PIM
+  needs, which only a release install provided before. The server still has 17 tools. The `version-management` skill installs
+  API versions through them, where it gave plugin users `hypha api` commands to run before.
 - **The worked examples through the MCP server and the CLI** (`refs #228`): `hypha_lookup` and
   `hypha lookup` take `examples` as a kind, by an example's page name or its model's name (a name
   several examples share lists their pages), `hypha_search` finds examples by name or upstream path,
@@ -249,8 +257,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The version-management skill installs, switches and removes releases through the MCP server**
   (`refs #197`): `hypha_check_releases`, `hypha_install_release`, `hypha_use_release` and
   `hypha_remove_release` replace the `hypha` commands it ran with `--repository-root` in the plugin's
-  folder, so a release installed in one client answers in every other. API versions are still
-  installed with the `hypha api` commands.
+  folder, so a release installed in one client answers in every other.
 - **The API skill answers through the MCP server** (`refs #197`): `api-lookup` reads PIM classes,
   how a PIM type lines up with its PSM schemas and the specification, service operations with their
   endpoints, and API specification clauses through `hypha_api`, with no jq and no file paths.

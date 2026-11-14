@@ -118,8 +118,9 @@ Once a release is fetched and generated, hypha answers from:
 ### The Systems Modeling API
 
 The **Systems Modeling API & Services**, the API layer of SysML v2, is a separate body of knowledge
-with a version of its own, installed with `hypha api fetch --tag <version>` and
-`hypha api generate --tag <version>` (`hypha api discover` lists the versions on offer):
+with a version of its own. Ask for it to be installed, as for a release (the release tools install
+an API version too), or run `hypha api fetch --tag <version>` and `hypha api generate --tag <version>`
+(`hypha api discover` lists the versions on offer):
 
 - **the PIM**: every type of the Platform Independent Model with its attributes, multiplicities,
   derivation, subsetting and redefinition, and the six services with their operations

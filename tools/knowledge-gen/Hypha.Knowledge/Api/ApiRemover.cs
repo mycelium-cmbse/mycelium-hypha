@@ -81,7 +81,7 @@ namespace Hypha.Knowledge.Api
             // may get that far, whatever a hand-edited manifest says is installed.
             if (!ReleaseTag.IsRelease(tag))
             {
-                throw new ArgumentException($"not an API version: {tag}", nameof(tag));
+                throw new ArgumentException($"not an API version: {tag}");
             }
 
             var path = this.layout.VersionManifest.FullName;
@@ -91,7 +91,8 @@ namespace Hypha.Knowledge.Api
 
             if (!manifest.Versions.Any(version => string.Equals(version.Tag, tag, StringComparison.Ordinal)))
             {
-                throw new ArgumentException($"API version '{tag}' is not installed", nameof(tag));
+                throw new ArgumentException(
+                    $"API version '{tag}' is not installed; the installed API versions are {string.Join(", ", manifest.GetTags())}");
             }
 
             if (manifest.Versions.Count == 1)
@@ -99,13 +100,13 @@ namespace Hypha.Knowledge.Api
                 if (!force)
                 {
                     throw new InvalidOperationException(
-                        $"'{tag}' is the only installed API version - pass --force to remove it anyway");
+                        $"'{tag}' is the only installed API version, and removing it leaves no API version to answer from; force the removal to remove it anyway");
                 }
             }
             else if (string.Equals(manifest.Default, tag, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
-                    $"'{tag}' is the default API version - run 'hypha api use --tag <other>' before removing it");
+                    $"'{tag}' is the default API version; make another installed API version the default before removing it");
             }
 
             cancellationToken.ThrowIfCancellationRequested();

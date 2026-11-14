@@ -54,8 +54,7 @@ namespace Hypha.Mcp.Tools
             + "with the ones offered upstream on GitHub. For each, 'newer' names the newest offered one that is newer than "
             + "everything installed, or is null (for the API, also when no API version is installed). Asks GitHub, so call "
             + "it when the user asks about updates or once at the start of a session. When releases.newer is set, tell the "
-            + "user and offer hypha_install_release; it installs language releases only, so for api.newer only tell the "
-            + "user, who installs an API version with 'hypha api fetch' and 'hypha api generate'.")]
+            + "user and offer hypha_install_release; when api.newer is, offer hypha_install_release with axis 'api'.")]
         public Task<string> CheckReleases(
             [Description("Also compare the Systems Modeling API versions.")] bool api = true,
             CancellationToken cancellationToken = default) =>

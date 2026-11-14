@@ -88,7 +88,14 @@ namespace Hypha.Tools.Commands.Api
                 }
                 catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
                 {
-                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}[/]");
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}.[/]");
+
+                    if (exception is InvalidOperationException)
+                    {
+                        AnsiConsole.MarkupLine(
+                            "[grey]Switch the default with 'hypha api use --tag <other>'; pass --force to remove the only installed API version.[/]");
+                    }
+
                     return 2;
                 }
 
