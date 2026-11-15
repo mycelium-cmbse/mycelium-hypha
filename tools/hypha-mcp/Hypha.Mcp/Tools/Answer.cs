@@ -18,6 +18,7 @@ namespace Hypha.Mcp.Tools
 
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Query;
+    using Hypha.Knowledge.Releases;
 
     using ModelContextProtocol;
 
@@ -153,6 +154,9 @@ namespace Hypha.Mcp.Tools
             // rewritten by another hypha at this moment.
             JsonException or IOException or UnauthorizedAccessException =>
                 new McpException($"A knowledge file could not be read: {exception.Message} {UnreadableHint}", exception),
+
+            // Its message already says until when and how to raise the limit.
+            GitHubRateLimitExceededException => new McpException(exception.Message, exception),
 
             HttpRequestException =>
                 new McpException($"The upstream could not be reached: {exception.Message} {UpstreamHint}", exception),

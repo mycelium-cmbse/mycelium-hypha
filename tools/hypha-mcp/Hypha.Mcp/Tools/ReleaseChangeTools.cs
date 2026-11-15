@@ -48,14 +48,24 @@ namespace Hypha.Mcp.Tools
         /// <summary>Finds the newest offerable API version, for an install without a tag.</summary>
         private readonly IApiDiscovery apiDiscovery;
 
+        /// <summary>What GitHub last said about the rate limit; <c>null</c> when nothing tracks it.</summary>
+        private readonly GitHubRateLimit? rateLimit;
+
         /// <summary>Initializes a new instance of the <see cref="ReleaseChangeTools"/> class.</summary>
         /// <param name="operations">Installs, switches and removes releases under the lock.</param>
         /// <param name="discovery">Finds the newest offerable release, for an install without a tag.</param>
         /// <param name="apiOperations">Installs, switches and removes API versions under the lock.</param>
         /// <param name="apiDiscovery">Finds the newest offerable API version, for an install without a tag.</param>
-        /// <exception cref="ArgumentNullException">Any argument is <c>null</c>.</exception>
+        /// <param name="rateLimit">
+        /// What GitHub last said about the rate limit, for the install answer's warning; <c>null</c> gives none.
+        /// </param>
+        /// <exception cref="ArgumentNullException">Any argument but <paramref name="rateLimit"/> is <c>null</c>.</exception>
         public ReleaseChangeTools(
-            IReleaseOperations operations, IReleaseDiscovery discovery, IApiOperations apiOperations, IApiDiscovery apiDiscovery)
+            IReleaseOperations operations,
+            IReleaseDiscovery discovery,
+            IApiOperations apiOperations,
+            IApiDiscovery apiDiscovery,
+            GitHubRateLimit? rateLimit = null)
         {
             ArgumentNullException.ThrowIfNull(operations);
             ArgumentNullException.ThrowIfNull(discovery);
@@ -66,6 +76,7 @@ namespace Hypha.Mcp.Tools
             this.discovery = discovery;
             this.apiOperations = apiOperations;
             this.apiDiscovery = apiDiscovery;
+            this.rateLimit = rateLimit;
         }
 
         /// <summary>Fetches a release or an API version and generates its knowledge.</summary>
@@ -149,7 +160,7 @@ namespace Hypha.Mcp.Tools
                             forwarder,
                             cancellationToken);
 
-                        return InstallAnswer.From(api);
+                        return InstallAnswer.From(api) with { Notice = this.rateLimit?.Notice() };
                     }
 
                     var release = string.IsNullOrWhiteSpace(tag) ? await this.NewestAsync(cancellationToken) : tag.Trim();
@@ -165,7 +176,7 @@ namespace Hypha.Mcp.Tools
                         forwarder,
                         cancellationToken);
 
-                    return InstallAnswer.From(setup);
+                    return InstallAnswer.From(setup) with { Notice = this.rateLimit?.Notice() };
                 },
                 McpJsonContext.Readable.InstallAnswer);
 

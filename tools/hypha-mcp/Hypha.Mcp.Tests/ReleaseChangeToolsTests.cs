@@ -13,6 +13,7 @@ namespace Hypha.Mcp.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Text.Json;
     using System.Threading;
@@ -47,6 +48,21 @@ namespace Hypha.Mcp.Tests
             this.api = new Mock<IApiOperations>(MockBehavior.Strict);
             this.apiDiscovery = new Mock<IApiDiscovery>(MockBehavior.Strict);
             this.tools = new ReleaseChangeTools(this.operations.Object, this.discovery.Object, this.api.Object, this.apiDiscovery.Object);
+        }
+
+        [Test]
+        public async Task Install_with_few_GitHub_requests_left_and_no_token_carries_a_notice()
+        {
+            var limit = new GitHubRateLimit(authenticated: false);
+            limit.Record("60", "4", "1794751500");
+            var tools = new ReleaseChangeTools(this.operations.Object, this.discovery.Object, this.api.Object, this.apiDiscovery.Object, limit);
+            this.operations
+                .Setup(o => o.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Setup(new KnowledgeBuild([new ArtifactBuild(Tag, "metamodel", GenerationResult.Generated([]))], null)));
+
+            using var answer = JsonDocument.Parse(await tools.InstallRelease(Tag));
+
+            Assert.That(answer.RootElement.GetProperty("notice").GetString(), Does.Contain("Only 4 of GitHub's 60"));
         }
 
         [Test]
@@ -167,6 +183,22 @@ namespace Hypha.Mcp.Tests
                 Assert.That(() => this.tools.InstallRelease(Tag), Throws.TypeOf<McpException>().With.Message.Contains("Another hypha is changing releases"));
                 Assert.That(() => this.tools.InstallRelease(Tag), Throws.TypeOf<McpException>().With.Message.Contains("403").And.Message.Contains("GITHUB_TOKEN"));
             });
+        }
+
+        [Test]
+        public void An_install_refused_for_the_rate_limit_says_it_is_used_up_not_that_GitHub_is_out_of_reach()
+        {
+            var limit = new GitHubRateLimit(authenticated: false);
+            limit.Record("60", "0", "1794751500");
+            this.operations
+                .Setup(o => o.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new GitHubRateLimitExceededException(limit.Exhausted(), HttpStatusCode.Forbidden));
+
+            Assert.That(
+                () => this.tools.InstallRelease(Tag),
+                Throws.TypeOf<McpException>()
+                    .With.Message.Contains("is used up until 14:05 UTC")
+                    .And.Message.Not.Contains("could not be reached"));
         }
 
         [Test]

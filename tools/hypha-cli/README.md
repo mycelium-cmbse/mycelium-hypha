@@ -409,7 +409,19 @@ only by the verbs that read from it.
 ## Rate limits
 
 Every upstream read is public, so a token is optional, but the anonymous GitHub API allows 60
-requests an hour, which `discover` alone can exhaust. Set `--token`, `GITHUB_TOKEN` or `GH_TOKEN`.
+requests an hour from one address; with a token, 5,000. Set `--token`, `GITHUB_TOKEN` or `GH_TOKEN`
+(a token needs no scopes).
+
+The files themselves come from `raw.githubusercontent.com`, which does not count. What does is
+listing a repository's tags (one request per 100 tags), resolving a tag to its commit and listing a
+release's files: about three requests for a check, five for installing the newest release, three for
+a named one and six for an API version. `hypha serve` keeps the tags it read for ten minutes and each
+tag's commit for as long as it runs, so a check followed by an install asks once.
+
+When 20 or fewer requests without a token are left, the MCP server's `hypha_check_releases` and
+`hypha_install_release` answers carry a `notice` saying how many, until when, and how to raise the
+limit. A request GitHub refuses because the limit is used up fails with that message too, rather than
+as an unreachable upstream.
 
 ## Why the tests no longer generate
 

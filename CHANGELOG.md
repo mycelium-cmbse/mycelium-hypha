@@ -264,6 +264,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   expression bodies lead on to, do not count: `true` comes from `BooleanValue`, not `Invariant`.
 
 ### Changed
+- **Fewer GitHub API requests, and a warning before the anonymous limit runs out** (`refs #224`):
+  - Listing a repository's tags stops at a page with fewer than 100, instead of asking for an
+    empty page after it, which halves what a check or an install of the newest release asks.
+  - `hypha serve` keeps the tags it read for ten minutes and each tag's commit for as long as it
+    runs, so a check followed by an install, or installing a release again, asks no more.
+  - A check now makes about three requests, installing the newest release about five (it was six and
+    seven).
+  - When 20 or fewer of GitHub's 60 requests an hour without a token are left,
+    `hypha_check_releases` and `hypha_install_release` carry a `notice` saying how many, until when,
+    and to set `GITHUB_TOKEN`.
+  - A request refused because the limit is used up says so, with when it resets, rather than as an
+    upstream that cannot be reached.
 - **The server's instructions stand on their own** (`refs #199`): for a client without the skills,
   they now say what to do when nothing is installed, that a closure or a comparison is one call, what
   the model library does not resolve, how to check textual notation, what to give when the

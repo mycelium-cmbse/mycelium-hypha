@@ -40,6 +40,12 @@ namespace Hypha.Mcp.Tools
         ArtifactAnswer? Refusal,
         string Axis = Axes.Release)
     {
+        /// <summary>
+        /// Gets a warning that few of GitHub's API requests without a token are left, and how to raise the
+        /// limit; <c>null</c> when there are enough, or a token is set.
+        /// </summary>
+        public string? Notice { get; init; }
+
         /// <summary>The answer for a finished install.</summary>
         /// <param name="setup">What the install did.</param>
         /// <returns>The answer.</returns>
