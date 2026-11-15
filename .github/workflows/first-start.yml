@@ -1,0 +1,74 @@
+# The launcher's first start against a published tools release, on every platform the plugin ships a
+# launcher for, as an MCP client makes it: nothing cached, so the launcher downloads the `hypha` the
+# release publishes, checks it against the checksum table in the release notes and hands over to
+# `hypha serve`; then `hypha_release_status`, an install and a query. It starts the extensionless
+# `bin/hypha-launch` every client package names, so it also checks the platform dispatch: the POSIX
+# script on macOS and Linux, `hypha-launch.exe` found from that path on Windows.
+#
+# Run it by hand after publishing a tools release, the pre-release that Step 9 verifies first among
+# them (see RELEASING.md). It sets `bin/hypha-launch.json` to the version given, in the runner's
+# checkout only, so it tests that release with the launchers committed on the branch it runs on.
+name: First start
+
+on:
+  workflow_dispatch:
+    inputs:
+      hypha-version:
+        description: 'The tools release the launcher downloads, e.g. 2.0.0-beta.1 (its tools-v release must be published)'
+        required: true
+        type: string
+      release:
+        description: 'The SysML v2 release to install and query'
+        required: false
+        default: '2026-05'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  first-start:
+    name: First start (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+          - os: macos-latest
+            rid: osx-arm64
+          - os: macos-15-intel
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Point the launcher at the release
+        shell: bash
+        env:
+          HYPHA_VERSION: ${{ inputs.hypha-version }}
+          RELEASE: ${{ inputs.release }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$HYPHA_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$HYPHA_VERSION' is not SemVer"; exit 1
+          fi
+          if [[ ! "$RELEASE" =~ ^[0-9]{4}-[0-9]{2}(\.[0-9]+)?$ ]]; then
+            echo "::error::'$RELEASE' is not a release tag"; exit 1
+          fi
+          printf '{\n  "hyphaVersion": "%s"\n}\n' "$HYPHA_VERSION" > bin/hypha-launch.json
+
+      - name: First start, an install and a query
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # The launcher's download and the install's API requests
+          RELEASE: ${{ inputs.release }}
+        run: |
+          set -euo pipefail
+          python=$(command -v python3 || command -v python)
+          "$python" .github/scripts/first_start.py bin/hypha-launch "${RUNNER_TEMP}/first-start" "$RELEASE"

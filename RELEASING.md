@@ -25,7 +25,9 @@ and hands the client over to `hypha serve`. The VS Code extension bundles that s
 1. **The tools**, as a full release (`tools-vX.Y.Z`): run the Release workflow, review the draft and
    publish it. Check that the five archives are attached and that the release body still holds the
    `| asset | SHA256 |` table: the launcher reads each archive's checksum from it, and refuses an archive
-   whose checksum is missing or differs.
+   whose checksum is missing or differs. Then start the **First start** workflow with that version: on
+   every platform the plugin ships a launcher for, it makes the launcher's first start against the
+   published release, as a client does, then an install and a query.
 2. **The plugin** (`vX.Y.Z`), naming that tools version: set `hyphaVersion` in `manifest.source.json` to
    it, with the plugin's own `version`, and follow [the steps](#steps). Run **Launcher binaries** first if
    `Hypha.Launcher` changed, so the committed launchers are current.
@@ -51,7 +53,9 @@ client (Step 9, #201, holds the list of checks):
    and bless the manifests (step 2 below), on a branch. Load the plugin, and the client configurations,
    from that checkout, so each client's first start downloads the pre-release. Do not tag a plugin
    release for it.
-4. Once verified, release the same code as the full version (`2.0.0`) in [the order above](#the-order-of-a-release).
+4. Start the **First start** workflow with `2.0.0-beta.1`. It covers the platforms and the POSIX
+   dispatch without a client; the clients themselves are checked by hand, each from that checkout.
+5. Once verified, release the same code as the full version (`2.0.0`) in [the order above](#the-order-of-a-release).
 
 ## Releasing the plugin
 

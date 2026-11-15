@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **A First start workflow checks a published tools release on every platform** (`refs #201`):
+  started by hand with a tools version, it makes the launcher's first start against that release on
+  Windows x64, Linux x64 and arm64 and macOS on Apple silicon and Intel, as a client does: the
+  download, the checksum, the handover to `hypha serve`, then `hypha_release_status`, an install and a
+  query. On macOS and Linux it starts the extensionless `bin/hypha-launch`, so the POSIX script is
+  checked too.
 - **The VS Code extension builds for Windows on Arm, and is tested on every platform it builds
   for** (`refs #163`, `refs #165`): `win32-arm64` is a package target; CI packages and smoke-tests
   the extension on Windows on Arm and on macOS (Apple silicon and Intel), each against VS Code stable

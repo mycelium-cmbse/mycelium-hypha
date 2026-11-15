@@ -329,10 +329,11 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | 6, what the tools cannot answer yet | #228 | Done (#234, #235, #236) |
 | The specification extractor in `HYPHA_HOME` | #237 | Done (#238, #241, and the VS Code extension's copy with #158) |
 | 7: every other client | #199, with #158, #163 and #165 | Open; before the release |
-| 8: CI and release | #200 | Hook project removed, workflow renamed (#239); Linux arm64, ReadyToRun and `RELEASING.md` open |
-| Follow-ups from the reviews | #224 | Fixes done (#232); the test gaps and four findings of the end-to-end run open |
-| 9: a pre-release, verified across clients | #201 | Open; every manual check is here |
+| 8: CI and release | #200 | Done (#239, #255); ReadyToRun measured and left off |
+| Follow-ups from the reviews | #224 | Done (#232, #249 to #251, #254) |
+| 9: a pre-release, verified across clients | #201 | `2.0.0-beta.1` published; Claude Code and VS Code checked on Windows, the first start in CI on Linux and macOS |
 | 10: release tools 2.0.0 and plugin 3.0.0 | #197 | Open; after Step 9 |
+| After 2.0.0: the clients not verified before it | #259 | Open; the checks that need a client or machine that was not available |
 
 Nothing is released before Step 9's pre-release: plugin users stay on the release the marketplace pins, and a tools release also publishes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its migration.
 
@@ -441,35 +442,46 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 
 ### Step 9: A pre-release, verified across clients (#201)
 
-Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 and #165 held moved in.
+Every manual check was here: the ones Step 5 (#198), #163 and #165 held moved in. Those that need a client, an operating system or a machine that was not available moved on to [After 2.0.0](#after-200-the-clients-not-verified-before-it-259) (#259).
 
-- [ ] First, a pre-release such as `2.0.0-beta.1`, with `bin/hypha-launch.json` naming it, so every client downloads a real `hypha` on its first start. GitHub and NuGet mark it as a pre-release, so `dotnet tool update` passes it by; it stays on nuget.org, where a version can be unlisted but not deleted.
-- [ ] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed). Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
+- [x] First, a pre-release such as `2.0.0-beta.1`, with `bin/hypha-launch.json` naming it, so every client downloads a real `hypha` on its first start. GitHub and NuGet mark it as a pre-release, so `dotnet tool update` passes it by; it stays on nuget.org, where a version can be unlisted but not deleted. Done: `tools-v2.0.0-beta.1`, published 15 November 2026, on nuget.org as a pre-release.
+- [x] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed). Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
   - [x] Claude Code on Windows: the server connects through `bin/hypha-launch` and answers (November 2026). With `2.0.0-beta.1`, its first start downloaded `hypha` and the handover refreshed the tools without reconnecting (15 November 2026).
-  - [ ] Claude Code on macOS or Linux.
   - [x] VS Code with Copilot, on Windows with `2.0.0-beta.1` (15 November 2026): through a user MCP configuration naming `bin/hypha-launch.exe`, the first start downloaded `hypha`, the tools appeared without restarting the server, and `hypha_release_status`, `hypha_install_release` and a query answered. Not yet checked: the Agent Plugin install, with its skills.
-  - [ ] One of Cursor or Codex.
+  - The other clients moved to #259.
 - [ ] Run the smoke-test matrix (section 1.16): install, launcher start on win-x64 / linux-x64 / osx-arm64, `hypha_release_status`, one query, one `hypha_install_release`.
   - [x] win-x64, in Claude Code with `2.0.0-beta.1` and a clean `HYPHA_HOME` (15 November 2026): the launcher's first start, `hypha_release_status`, `hypha_install_release` of the newest release, and a query.
-  - [ ] linux-x64.
-  - [ ] osx-arm64.
+  - [ ] linux-x64, by the First start workflow.
+  - [ ] osx-arm64, by the First start workflow.
 - [ ] Confirm the platform dispatch works in each client (extensionless path on Windows, script on POSIX).
   - [x] Claude Code on Windows: the extensionless `bin/hypha-launch` (15 November 2026).
+  - [ ] The POSIX script on macOS and Linux, by the First start workflow.
+  - The other clients moved to #259.
+- [x] A **First start** workflow (`first-start.yml`), started by hand after publishing a tools release: on win-x64, linux-x64, linux-arm64, osx-arm64 and osx-x64 it starts the extensionless `bin/hypha-launch` with nothing cached, as a client does, and checks the download and handover, `hypha_release_status`, an install and a query.
+
+### Step 10: Release tools 2.0.0 and plugin 3.0.0 (#197)
+
+- [ ] Release once Step 9 has verified the pre-release, and nothing before but that pre-release: `tools-v2.0.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking).
+
+### After 2.0.0: the clients not verified before it (#259)
+
+The client checks of Step 9 that could not be run before the release: they need a client, an operating system or a machine that was not available. 2.0.0 is released without them, and says which clients were checked.
+
+- [ ] Claude Code on macOS or Linux: the server connects, the tools, resources and prompts appear, and a first start's handover refreshes the client's tool list.
+- [ ] One of Cursor or Codex: the same.
+- [ ] Confirm the platform dispatch in the other clients (extensionless path on Windows, script on POSIX).
 - [ ] Check Codex's sandbox with and without `network_access`; confirm the fallback message reaches the user.
 - [ ] Check Devin Desktop's (formerly Windsurf) tool count with Hypha alongside other servers.
 - [ ] Check Copilot cloud agent install time in a fresh environment; document it.
-- [ ] The VS Code extension on macOS (`darwin-arm64`, `darwin-x64`; from #163):
-  - [ ] `npm run test:host` on macOS against VS Code stable and 1.101.0.
+- [ ] The Agent Plugin install in VS Code with Copilot, with its skills.
+- [ ] The VS Code extension on macOS (`darwin-arm64`, `darwin-x64`; from #163). CI already runs `npm run test:host` there against VS Code stable.
+  - [ ] `npm run test:host` on macOS against VS Code 1.101.0.
   - [ ] The server end to end from the extension, over `HYPHA_HOME`: install a release including specification text through `uv` (with an installed Python and with a managed one), `hypha_release_status`, a query and a lookup.
   - [ ] Gatekeeper and quarantine: the bundled `hypha` and the `uv` it downloads must run without a "cannot be opened" prompt.
   - [ ] Cancellation during extraction (no `hypha`, `uv` or `python` left; the POSIX path kills the process group) and the release-operation lock between two processes.
   - [ ] Install the VSIX in VS Code and install a release.
 - [ ] The VS Code extension on Windows on Arm (`win32-arm64`; from #163): validate as for Windows x64 (#157): host test, the server end to end, cancellation, the lock.
 - [ ] The editors that install from Open VSX (VSCodium, Cursor, Windsurf; from #165): check that each offers `vscode.lm.registerMcpServerDefinitionProvider`, which the extension registers the server through; where one does not, point its users at the manual configuration instead.
-
-### Step 10: Release tools 2.0.0 and plugin 3.0.0 (#197)
-
-- [ ] Release once Step 9 has verified the pre-release, and nothing before but that pre-release: `tools-v2.0.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking).
 
 ### Follow-ups from the reviews (#224)
 
