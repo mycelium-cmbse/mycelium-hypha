@@ -58,7 +58,7 @@ And remember; **A pull-request with tests is a pull-request that's likely to be 
 
 ### Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) for `tools/metamodel-gen`, `tools/knowledge-gen` and `tools/hypha-cli`
+- [.NET 10 SDK](https://dotnet.microsoft.com/download) for `tools/metamodel-gen`, `tools/knowledge-gen`, `tools/hypha-mcp`, `tools/hypha-cli` and `tools/hypha-launcher`
 - Python 3.12 or later for `tools/spec-extract`
 
 ### .NET
