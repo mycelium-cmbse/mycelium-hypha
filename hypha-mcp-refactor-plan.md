@@ -445,12 +445,16 @@ Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 
 
 - [ ] First, a pre-release such as `2.0.0-beta.1`, with `bin/hypha-launch.json` naming it, so every client downloads a real `hypha` on its first start. GitHub and NuGet mark it as a pre-release, so `dotnet tool update` passes it by; it stays on nuget.org, where a version can be unlisted but not deleted.
 - [ ] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed). Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
-  - [x] Claude Code on Windows: the server connects through `bin/hypha-launch` and answers (November 2026).
+  - [x] Claude Code on Windows: the server connects through `bin/hypha-launch` and answers (November 2026). With `2.0.0-beta.1`, its first start downloaded `hypha` and the handover refreshed the tools without reconnecting (15 November 2026).
   - [ ] Claude Code on macOS or Linux.
   - [ ] VS Code with Copilot.
   - [ ] One of Cursor or Codex.
 - [ ] Run the smoke-test matrix (section 1.16): install, launcher start on win-x64 / linux-x64 / osx-arm64, `hypha_release_status`, one query, one `hypha_install_release`.
+  - [x] win-x64, in Claude Code with `2.0.0-beta.1` and a clean `HYPHA_HOME` (15 November 2026): the launcher's first start, `hypha_release_status`, `hypha_install_release` of the newest release, and a query.
+  - [ ] linux-x64.
+  - [ ] osx-arm64.
 - [ ] Confirm the platform dispatch works in each client (extensionless path on Windows, script on POSIX).
+  - [x] Claude Code on Windows: the extensionless `bin/hypha-launch` (15 November 2026).
 - [ ] Check Codex's sandbox with and without `network_access`; confirm the fallback message reaches the user.
 - [ ] Check Devin Desktop's (formerly Windsurf) tool count with Hypha alongside other servers.
 - [ ] Check Copilot cloud agent install time in a fresh environment; document it.
