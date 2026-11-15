@@ -393,7 +393,10 @@ folder's own lock while it copies from it, without waiting: a client installing 
 moment has listed it before generating it, so the migration stops, records nothing and is done on a
 later run, rather than copy a half-built release. Each folder is copied under a
 temporary name and renamed into place, and the manifests are written last, so an interrupted copy is
-simply done again on the next run. A marker, `.migrated-from-clients`, then records that it ran and
+simply done again on the next run. A release or API version generated in an older format is left
+out, since it would answer wrongly; `.migration-left-out.json` records each one with the reason, and
+`hypha list` and the MCP server's `hypha_release_status` (its `leftOut`) name it until it is installed
+again. A marker, `.migrated-from-clients`, then records that it ran and
 from where, so it never runs again on its own, even after every release is removed. `hypha serve`
 copies beside answering, so a client's handshake does not wait for it; every other verb copies first.
 Nothing is copied when the knowledge is read from anywhere else (a checkout or `--repository-root`).

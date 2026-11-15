@@ -218,6 +218,58 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
+        public async Task A_refusal_is_a_tool_error_and_not_a_logged_failure()
+        {
+            var result = await this.client.CallToolAsync(
+                "hypha_metaclass", new Dictionary<string, object?> { ["question"] = "ancestors", ["name"] = "PartUsage", ["tag"] = "2098-01" });
+
+            // A request after it, so that whatever the server logged for the refusal is on standard error by now.
+            await this.client.CallToolAsync("hypha_release_status");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.IsError, Is.True);
+                Assert.That(Text(result), Does.Contain("2098-01"));
+                Assert.That(
+                    this.standardError.Where(line => line.Contains("hypha_metaclass", StringComparison.Ordinal)),
+                    Has.None.Contains("[ERR]").And.None.Contains("unhandled exception"));
+            });
+        }
+
+        [Test]
+        public async Task A_failure_is_a_tool_error_and_still_a_logged_warning_with_its_exception()
+        {
+            // A knowledge folder of its own, whose version manifest is not JSON: a failure, not a refusal.
+            using var broken = new TemporaryKnowledge();
+            Directory.CreateDirectory(broken.Layout.VersionManifest.DirectoryName!);
+            File.WriteAllText(broken.Layout.VersionManifest.FullName, "{ not json");
+            var lines = new ConcurrentQueue<string>();
+
+            var transport = new StdioClientTransport(new StdioClientTransportOptions
+            {
+                Name = "hypha",
+                Command = "dotnet",
+                Arguments = [Path.Combine(AppContext.BaseDirectory, "hypha.dll"), "serve", "--repository-root", broken.Root.FullName],
+                StandardErrorLines = line => lines.Enqueue(line),
+            });
+
+            CallToolResult result;
+            await using (var server = await McpClient.CreateAsync(transport).WaitAsync(TimeSpan.FromMinutes(1)))
+            {
+                result = await server.CallToolAsync("hypha_release_status");
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.IsError, Is.True);
+                Assert.That(Text(result), Does.Contain("could not be read"));
+                Assert.That(lines, Has.Some.Contains("[WRN]").And.Contains("hypha_release_status failed"));
+                Assert.That(lines, Has.Some.Contains("JsonException"), "the exception is logged with the warning");
+                Assert.That(lines, Has.None.Contains("unhandled exception"));
+            });
+        }
+
+        [Test]
         public async Task A_question_it_cannot_answer_is_a_tool_error_the_model_can_read()
         {
             var result = await this.client.CallToolAsync(

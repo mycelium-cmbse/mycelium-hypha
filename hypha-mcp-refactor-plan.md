@@ -491,8 +491,8 @@ From Step 5's first part (#225):
 From the end-to-end run (#237), seen in the run through the launcher in a clean `HYPHA_HOME`; none stopped it:
 
 - [ ] The anonymous GitHub rate limit (60 requests an hour) runs out quickly: two install attempts and a few checks used it up. Count the requests an install makes and bring them down, or tell the user about `GITHUB_TOKEN` before the limit is met, not only once it is.
-- [ ] A skipped migration is silent: installs left out for being in an older format are a warning on standard error only, so `hypha_release_status` says nothing is installed without saying why. Say it in the answer.
-- [ ] A refusal the client gets a proper message for (removing the default, a version not installed) is logged as `[ERR] "hypha_remove_release" threw an unhandled exception`. Log it at a lower level, or not as unhandled.
+- [x] A skipped migration is silent: installs left out for being in an older format are a warning on standard error only, so `hypha_release_status` says nothing is installed without saying why. Say it in the answer. Done: the migration records each in `.migration-left-out.json`, and `hypha_release_status` (`leftOut`), `hypha list` and `hypha migrate` name it until it is installed.
+- [x] A refusal the client gets a proper message for (removing the default, a version not installed) is logged as `[ERR] "hypha_remove_release" threw an unhandled exception`. Log it at a lower level, or not as unhandled. Done: a call-tool filter answers an `McpException` as the tool error itself, and logs a refusal at information level and a failure (a file that cannot be read, an upstream that cannot be reached) as a warning with its exception.
 - [ ] `hypha_search_spec` takes 18 to 33 seconds on its first call in a release, against instant answers from every other read tool. Find out where the time goes and cut it, or index the text.
 
 From the review of the VS Code extension (#244):

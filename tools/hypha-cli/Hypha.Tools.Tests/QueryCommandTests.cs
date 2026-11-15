@@ -259,7 +259,7 @@ namespace Hypha.Tools.Tests
             {
                 if (type == typeof(ReleaseInventory))
                 {
-                    return new ReleaseInventory(null, [], null, []);
+                    return new ReleaseInventory(null, [], null, [], []);
                 }
 
                 return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(QueryResult<>)

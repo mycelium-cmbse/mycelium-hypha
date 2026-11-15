@@ -21,5 +21,12 @@ namespace Hypha.Knowledge.Migration
     /// were looked through.
     /// </param>
     public sealed record MigrationResult(
-        DirectoryInfo Home, IReadOnlyList<LegacyInstall> Searched, IReadOnlyList<MigratedVersion> Copied, string? Skipped = null);
+        DirectoryInfo Home, IReadOnlyList<LegacyInstall> Searched, IReadOnlyList<MigratedVersion> Copied, string? Skipped = null)
+    {
+        /// <summary>
+        /// Gets the releases and API versions found but not copied, because they would answer wrongly;
+        /// empty when none were. They are also kept in <see cref="LeftOutFile.FileName"/>.
+        /// </summary>
+        public IReadOnlyList<LeftOutVersion> LeftOut { get; init; } = [];
+    }
 }

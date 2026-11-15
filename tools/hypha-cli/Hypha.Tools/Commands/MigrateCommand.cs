@@ -91,6 +91,20 @@ namespace Hypha.Tools.Commands
                     return 0;
                 }
 
+                foreach (var left in result.LeftOut)
+                {
+                    AnsiConsole.MarkupLine(
+                        $"[yellow]Left out {(left.Kind == MigratedVersion.Api ? "API version" : "release")} {Markup.Escape(left.Tag)} "
+                        + $"from {Markup.Escape(left.From)}: {Markup.Escape(left.Reason)}. Install it again instead.[/]");
+                }
+
+                if (result.Copied.Count == 0 && result.LeftOut.Count > 0)
+                {
+                    AnsiConsole.MarkupLine($"[grey]Nothing was copied into {Markup.Escape(result.Home.FullName)}.[/]");
+
+                    return 0;
+                }
+
                 if (result.Copied.Count == 0)
                 {
                     AnsiConsole.MarkupLine(

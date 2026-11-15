@@ -348,6 +348,73 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task A_release_left_out_for_its_format_is_recorded_with_the_reason()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-02", "2026-05");
+            var layout = new KnowledgeLayout(plugin);
+            Seed(layout.Keywords("2026-02").FullName, """{"schemaVersion": "1.0.0"}""");
+            SeedCurrent(layout, "2026-05");
+
+            var result = await this.Migration().MigrateOnceAsync();
+            var recorded = LeftOutFile.Read(this.home);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.LeftOut.Select(left => (left.Kind, left.Tag, left.From)), Is.EqualTo(new[] { (MigratedVersion.Release, "2026-02", "Claude plugin") }));
+                Assert.That(result.LeftOut[0].Reason, Does.Contain("keywords.json").And.Contain("1.0.0"));
+                Assert.That(recorded, Is.EqualTo(result.LeftOut));
+            });
+        }
+
+        [Test]
+        public async Task A_release_outdated_in_two_clients_is_recorded_once_from_the_one_changed_last()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-02", "2026-02");
+            var code = this.Install("vscode", "VS Code", "2026-02", "2026-02");
+            Seed(new KnowledgeLayout(plugin).Keywords("2026-02").FullName, """{"schemaVersion": "1.0.0"}""");
+            Seed(new KnowledgeLayout(code).Keywords("2026-02").FullName, """{"schemaVersion": "1.0.0"}""");
+            this.Older(plugin);
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.LeftOut.Select(left => (left.Tag, left.From)), Is.EqualTo(new[] { ("2026-02", "VS Code") }));
+                Assert.That(LeftOutFile.Read(this.home).Select(left => (left.Tag, left.From)), Is.EqualTo(new[] { ("2026-02", "VS Code") }));
+            });
+        }
+
+        [Test]
+        public async Task An_API_version_left_out_for_its_format_is_recorded_as_an_API_version()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            this.InstallApi(plugin, "2026-04");
+            Seed(new ApiLayout(new KnowledgeLayout(plugin)).CrossReferences("2026-04").FullName, """{"schemaVersion": "0.9.0"}""");
+
+            await this.Migration().MigrateOnceAsync();
+
+            Assert.That(LeftOutFile.Read(this.home).Select(left => (left.Kind, left.Tag)), Is.EqualTo(new[] { (MigratedVersion.Api, "2026-04") }));
+        }
+
+        [Test]
+        public async Task A_release_one_client_had_outdated_but_another_supplied_is_not_recorded_as_left_out()
+        {
+            var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");
+            var code = this.Install("vscode", "VS Code", "2026-05", "2026-05");
+            Seed(new KnowledgeLayout(code).Keywords("2026-05").FullName, """{"schemaVersion": "1.0.0"}""");
+            SeedCurrent(new KnowledgeLayout(plugin), "2026-05");
+            this.Older(plugin);
+
+            var result = await this.Migration().MigrateOnceAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.LeftOut, Is.Empty);
+                Assert.That(LeftOutFile.In(this.home).Exists, Is.False);
+            });
+        }
+
+        [Test]
         public async Task A_release_outdated_in_the_client_changed_last_is_copied_from_another_client()
         {
             var plugin = this.Install("plugin", "Claude plugin", "2026-05", "2026-05");

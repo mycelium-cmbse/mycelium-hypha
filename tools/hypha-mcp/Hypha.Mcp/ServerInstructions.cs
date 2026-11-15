@@ -39,7 +39,9 @@ namespace Hypha.Mcp
 
             First use. When nothing is installed, say so, name what hypha_check_releases offers, ask the
             user which release to install, and install it with hypha_install_release. Do not answer from
-            memory in the meantime.
+            memory in the meantime. When hypha_release_status lists a release under leftOut, an earlier
+            client had it but it was in an older format, so it was not copied: say so, and offer to install
+            it again.
 
             Which tool:
             - hypha_release_status: the installed releases and API versions, the defaults, and what each has
