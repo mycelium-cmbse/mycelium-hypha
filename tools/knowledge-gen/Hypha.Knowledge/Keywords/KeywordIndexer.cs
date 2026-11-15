@@ -177,13 +177,13 @@ namespace Hypha.Knowledge.Keywords
             IReadOnlyList<Production> productions,
             IReadOnlyDictionary<string, IReadOnlySet<string>> ancestors)
         {
-            var syntax = Syntax(productions);
+            var syntax = SyntaxByProduction(productions);
 
             return new Analysis(
                 syntax,
                 syntax.ToDictionary(
                     entry => entry.Key,
-                    entry => Literals(entry.Value).Where(literal => !Punctuation.Contains(literal)).ToHashSet(StringComparer.Ordinal),
+                    entry => LiteralsIn(entry.Value).Where(literal => !Punctuation.Contains(literal)).ToHashSet(StringComparer.Ordinal),
                     StringComparer.Ordinal),
                 syntax.ToDictionary(
                     entry => entry.Key,
@@ -364,7 +364,7 @@ namespace Hypha.Knowledge.Keywords
         /// </summary>
         /// <param name="productions">The productions, in document order.</param>
         /// <returns>The syntax, by production name.</returns>
-        private static Dictionary<string, string> Syntax(IReadOnlyList<Production> productions)
+        private static Dictionary<string, string> SyntaxByProduction(IReadOnlyList<Production> productions)
         {
             var reservedAt = -1;
 
@@ -399,7 +399,7 @@ namespace Hypha.Knowledge.Keywords
         /// <summary>The literals a production's syntax writes.</summary>
         /// <param name="syntax">The production's syntax.</param>
         /// <returns>The literals, repeats included.</returns>
-        private static IEnumerable<string> Literals(string syntax) =>
+        private static IEnumerable<string> LiteralsIn(string syntax) =>
             Literal().Matches(syntax).Select(match => match.Groups[1].Value);
 
         /// <summary>
