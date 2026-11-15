@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-15
+
+This release starts `hypha` tools 2.0.0 (`tools-v2.0.0`), the first with `serve`. Checked before it: Claude
+Code and VS Code with Copilot on Windows, and the launcher's first start, an install and a query on Windows,
+Linux and macOS. The clients that could not be checked yet are listed in #259.
+
 ### Added
 - **A First start workflow checks a published tools release on every platform** (`refs #201`):
   started by hand with a tools version, it makes the launcher's first start against that release on
