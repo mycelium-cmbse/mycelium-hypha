@@ -305,24 +305,24 @@ namespace Hypha.Knowledge.Keywords
             var seen = new HashSet<string>(StringComparer.Ordinal);
             var pending = new Stack<string>();
 
-            foreach (var root in roots.Where(analysis.Syntax.ContainsKey))
+            foreach (var root in roots.Where(analysis.Syntax.ContainsKey).Distinct(StringComparer.Ordinal))
             {
-                if (seen.Add(root))
-                {
-                    pending.Push(root);
-                }
+                seen.Add(root);
+                pending.Push(root);
             }
 
             var allowed = seen.Select(root => clauses[root]).ToHashSet();
 
             while (pending.Count > 0)
             {
-                foreach (var callee in References(analysis.Syntax[pending.Pop()]).Where(analysis.Syntax.ContainsKey))
+                // Lazy, so a callee named twice is seen by the time its second mention is tested.
+                var callees = References(analysis.Syntax[pending.Pop()])
+                    .Where(callee => analysis.Syntax.ContainsKey(callee) && Within(clauses[callee], allowed) && !seen.Contains(callee));
+
+                foreach (var callee in callees)
                 {
-                    if (Within(clauses[callee], allowed) && seen.Add(callee))
-                    {
-                        pending.Push(callee);
-                    }
+                    seen.Add(callee);
+                    pending.Push(callee);
                 }
             }
 
@@ -408,7 +408,7 @@ namespace Hypha.Knowledge.Keywords
         /// </summary>
         /// <param name="syntax">The production's syntax.</param>
         /// <returns>The called production names, repeats included.</returns>
-        private static IEnumerable<string> BareCalls(string syntax)
+        private static List<string> BareCalls(string syntax)
         {
             var text = Masked(syntax);
             var calls = new List<string>();
@@ -417,8 +417,11 @@ namespace Hypha.Knowledge.Keywords
 
             // An assigned group, "ownedRelatedElement += ( LiteralExpression | FeatureReferenceExpression )",
             // is assigned as a whole, so nothing inside it is a bare call.
-            for (var index = 0; index < text.Length; index++)
+            // A reference is skipped whole, so the loop moves on by its length rather than by one.
+            var step = 1;
+            for (var index = 0; index < text.Length; index += step)
             {
+                step = 1;
                 var character = text[index];
 
                 if (character == '(')
@@ -448,7 +451,7 @@ namespace Hypha.Knowledge.Keywords
                         calls.Add(match.Groups[1].Value);
                     }
 
-                    index += match.Length - 1;
+                    step = match.Length;
                 }
             }
 

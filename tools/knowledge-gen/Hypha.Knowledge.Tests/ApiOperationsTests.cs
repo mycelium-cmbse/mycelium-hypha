@@ -82,7 +82,7 @@ namespace Hypha.Knowledge.Tests
             this.WriteManifest("2025-02", "2025-02");
 
             this.installer
-                .Setup(i => i.InstallAsync(fetched, It.IsAny<CancellationToken>(), progress))
+                .Setup(i => i.InstallAsync(fetched, progress, It.IsAny<CancellationToken>()))
                 .Callback(() =>
                 {
                     held.Add($"fetch:{this.LockHeld}:{this.Default}");
@@ -109,7 +109,7 @@ namespace Hypha.Knowledge.Tests
         public async Task A_refused_generation_leaves_the_previous_default_answering()
         {
             this.installer
-                .Setup(i => i.InstallAsync(It.Is<ApiInstallRequest>(r => !r.MakeDefault), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.Is<ApiInstallRequest>(r => !r.MakeDefault), null, It.IsAny<CancellationToken>()))
                 .Callback(() => this.WriteManifest("2025-02", "2025-02", Version))
                 .ReturnsAsync(this.Installation());
             this.builder
@@ -129,7 +129,7 @@ namespace Hypha.Knowledge.Tests
         public async Task An_install_not_asked_to_be_the_default_does_not_switch_it()
         {
             this.installer
-                .Setup(i => i.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.IsAny<ApiInstallRequest>(), null, It.IsAny<CancellationToken>()))
                 .Callback(() => this.WriteManifest("2025-02", "2025-02", Version))
                 .ReturnsAsync(this.Installation());
             this.builder
@@ -149,7 +149,7 @@ namespace Hypha.Knowledge.Tests
         public void A_failed_fetch_releases_the_lock_and_generates_nothing()
         {
             this.installer
-                .Setup(i => i.InstallAsync(It.IsAny<ApiInstallRequest>(), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.IsAny<ApiInstallRequest>(), null, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ArgumentException("2024-12 is older than 2025-02"));
 
             Assert.Multiple(() =>

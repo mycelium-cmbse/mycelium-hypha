@@ -92,7 +92,7 @@ namespace Hypha.Knowledge.Api
 
             // Recorded without becoming the default, so no client answers from a version with no
             // knowledge yet while it generates, or after its generation failed.
-            var installation = await this.installer.InstallAsync(request with { MakeDefault = false }, cancellationToken, progress);
+            var installation = await this.installer.InstallAsync(request with { MakeDefault = false }, progress, cancellationToken);
             var build = await this.builder.BuildAsync([installation.Tag], progress: progress, cancellationToken: cancellationToken);
 
             if (request.MakeDefault && build.Refusal is null)

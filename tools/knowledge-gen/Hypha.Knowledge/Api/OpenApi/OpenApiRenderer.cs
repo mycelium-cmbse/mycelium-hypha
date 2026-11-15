@@ -380,7 +380,7 @@ namespace Hypha.Knowledge.Api.OpenApi
         /// </summary>
         /// <param name="type">The type notation.</param>
         /// <returns>The words of the notation, in order.</returns>
-        private static IEnumerable<string> Words(string type) =>
+        private static string[] Words(string type) =>
             type.Split([' ', '[', ']', '(', ')', '|', ','], StringSplitOptions.RemoveEmptyEntries);
 
         /// <summary>Keeps a value from breaking the table it is placed in.</summary>

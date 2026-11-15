@@ -130,12 +130,12 @@ namespace Hypha.Knowledge.Toolchain
 
             var keep = carried.ToHashSet(StringComparer.Ordinal);
 
-            foreach (var file in sources.EnumerateFiles("*.py", SearchOption.AllDirectories))
+            var stale = sources.EnumerateFiles("*.py", SearchOption.AllDirectories)
+                .Where(file => !keep.Contains(Path.GetRelativePath(target.FullName, file.FullName).Replace('\\', '/')));
+
+            foreach (var file in stale)
             {
-                if (!keep.Contains(Path.GetRelativePath(target.FullName, file.FullName).Replace('\\', '/')))
-                {
-                    file.Delete();
-                }
+                file.Delete();
             }
         }
     }

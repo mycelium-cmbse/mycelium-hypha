@@ -104,12 +104,12 @@ namespace Hypha.Knowledge.Api
         /// <c>knowledge/api/versions.json</c>.
         /// </summary>
         /// <param name="request">The API version to install and how.</param>
-        /// <param name="cancellationToken">Cancels the downloads and the commit resolution.</param>
         /// <param name="progress">
         /// Reported once per fetched document, as one <see cref="KnowledgeProgress.ApiFetch"/> step,
         /// <c>documents</c>: the OpenAPI document, the KerML model, the PIM and, when requested, the
         /// specification PDF. <c>null</c> when nobody needs to show progress.
         /// </param>
+        /// <param name="cancellationToken">Cancels the downloads and the commit resolution.</param>
         /// <returns>The files fetched, what the tag resolved to and the manifest it was recorded in.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">
@@ -118,8 +118,8 @@ namespace Hypha.Knowledge.Api
         /// </exception>
         public async Task<ApiInstallation> InstallAsync(
             ApiInstallRequest request,
-            CancellationToken cancellationToken = default,
-            IProgress<KnowledgeProgress>? progress = null)
+            IProgress<KnowledgeProgress>? progress = null,
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request);
 

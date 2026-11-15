@@ -33,7 +33,9 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 /** No additional shutdown work is needed; VS Code disposes the registered subscription. */
-export function deactivate(): void {}
+export function deactivate(): void {
+  // Nothing to release: the server definition provider is a subscription VS Code disposes itself.
+}
 
 /**
  * The server as the editor starts it.

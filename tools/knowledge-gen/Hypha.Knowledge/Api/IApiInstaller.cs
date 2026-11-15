@@ -22,19 +22,19 @@ namespace Hypha.Knowledge.Api
     {
         /// <summary>Installs the requested API version.</summary>
         /// <param name="request">The API version to install and how.</param>
-        /// <param name="cancellationToken">Cancels the installation.</param>
         /// <param name="progress">
         /// Reported once per fetched document, as one <see cref="KnowledgeProgress.ApiFetch"/> step,
         /// <c>documents</c>: the OpenAPI document, the KerML model, the PIM and, when requested, the
         /// specification PDF. <c>null</c> when nobody needs to show progress.
         /// </param>
+        /// <param name="cancellationToken">Cancels the installation.</param>
         /// <returns>The files fetched, what the tag resolved to and the manifest it was recorded in.</returns>
         /// <exception cref="System.ArgumentException">
         /// The tag is not release-shaped, or is older than <see cref="ApiCatalog.EarliestVersion"/>.
         /// </exception>
         Task<ApiInstallation> InstallAsync(
             ApiInstallRequest request,
-            CancellationToken cancellationToken = default,
-            IProgress<KnowledgeProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null,
+            CancellationToken cancellationToken = default);
     }
 }

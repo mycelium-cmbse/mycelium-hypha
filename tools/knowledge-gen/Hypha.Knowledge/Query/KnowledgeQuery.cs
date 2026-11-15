@@ -698,7 +698,7 @@ namespace Hypha.Knowledge.Query
             ArgumentException.ThrowIfNullOrWhiteSpace(feature);
 
             var features = this.Features(className, feature, tag);
-            var found = features.Value?.FirstOrDefault();
+            var found = features.Value is { Count: > 0 } list ? list[0] : null;
 
             return new(
                 found is null
@@ -1315,11 +1315,11 @@ namespace Hypha.Knowledge.Query
 
             var release = this.Release(tag);
             var wanted = CollapseWhiteSpace(text);
-            var documents = ReleaseStatus.SpecificationDocuments.Where(candidate => document is null || candidate == document).ToList();
+            var wantedDocuments = ReleaseStatus.SpecificationDocuments.Where(candidate => document is null || candidate == document).ToList();
             var matches = new List<SpecificationMatch>();
             var searched = 0;
 
-            foreach (var name in documents)
+            foreach (var name in wantedDocuments)
             {
                 var catalog = this.layout.SpecificationCatalog(release, name);
                 var specification = this.specifications.ReadIndex(catalog, SpecificationCommand(release));
@@ -1364,7 +1364,7 @@ namespace Hypha.Knowledge.Query
 
             IReadOnlyList<SpecificationMatch> ranked = matches
                 .OrderByDescending(match => match.Occurrences)
-                .ThenBy(match => documents.IndexOf(match.Address.Kind))
+                .ThenBy(match => wantedDocuments.IndexOf(match.Address.Kind))
                 .ThenBy(match => match.Address.Name, ClauseNumberComparer.Instance)
                 .Take(limit)
                 .ToList();
@@ -1648,7 +1648,7 @@ namespace Hypha.Knowledge.Query
         /// The release is not installed, has no default, has not been generated, or its documents are invalid.
         /// </exception>
         private string? DeclaringClass(string className, string feature, string? tag) =>
-            this.Features(className, feature, tag).Value?.FirstOrDefault() is { } found ? found.InheritedFrom ?? className : null;
+            this.Features(className, feature, tag).Value is { Count: > 0 } list ? list[0].InheritedFrom ?? className : null;
 
         /// <summary>The member an inherited reference names, read from the metaclass that declares it.</summary>
         /// <typeparam name="T">The member's type.</typeparam>
@@ -1721,7 +1721,7 @@ namespace Hypha.Knowledge.Query
         /// <param name="specific">Where the chain starts.</param>
         /// <param name="general">Where the chain ends.</param>
         /// <returns>The chain, both ends included; empty when there is none.</returns>
-        private static IReadOnlyList<string> ShortestPath(IReadOnlyDictionary<string, ClassNode> classes, string specific, string general)
+        private static List<string> ShortestPath(Dictionary<string, ClassNode> classes, string specific, string general)
         {
             // Breadth first over the direct supertypes, each visited in name order, so the chain found
             // is a shortest one and the same one on every run.
@@ -1748,12 +1748,10 @@ namespace Hypha.Knowledge.Query
 
                 var supertypes = classes.TryGetValue(current, out var node) ? node.Extends : [];
 
-                foreach (var supertype in supertypes.Order(StringComparer.Ordinal))
+                foreach (var supertype in supertypes.Order(StringComparer.Ordinal).Where(candidate => !previous.ContainsKey(candidate)))
                 {
-                    if (previous.TryAdd(supertype, current))
-                    {
-                        queue.Enqueue(supertype);
-                    }
+                    previous[supertype] = current;
+                    queue.Enqueue(supertype);
                 }
             }
 

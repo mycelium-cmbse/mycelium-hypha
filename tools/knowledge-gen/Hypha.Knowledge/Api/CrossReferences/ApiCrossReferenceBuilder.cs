@@ -104,9 +104,9 @@ namespace Hypha.Knowledge.Api.CrossReferences
                          ("interface", pim.Interfaces), ("enumeration", pim.Enumerations), ("dataType", pim.DataTypes),
                      })
             {
-                foreach (var type in named ?? [])
+                foreach (var name in (named ?? []).Select(type => type.Name))
                 {
-                    types[type.Name] = Type(kind, type.Name, null, ordered, mapped, openApi);
+                    types[name] = Type(kind, name, null, ordered, mapped, openApi);
                 }
             }
 
@@ -291,13 +291,11 @@ namespace Hypha.Knowledge.Api.CrossReferences
                 .OrderBy(key => key, StringComparer.Ordinal)
                 .FirstOrDefault();
 
+            var requestMethod = request is null ? null : ApiCrossReferenceDocument.TypeConstantMethod;
+
             return response is null && request is null
                 ? null
-                : new ApiSchemaEdge(
-                    response,
-                    responseMethod,
-                    request,
-                    request is null ? null : ApiCrossReferenceDocument.TypeConstantMethod);
+                : new ApiSchemaEdge(response, responseMethod, request, requestMethod);
         }
 
         /// <summary>The rows of the model mapping table a clause holds; none when it holds no such table.</summary>

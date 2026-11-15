@@ -90,12 +90,12 @@ namespace Hypha.Knowledge.Releases
         /// tag.
         /// </summary>
         /// <param name="request">Which release to install, and how.</param>
-        /// <param name="cancellationToken">Cancels the fetch and the commit resolution.</param>
         /// <param name="progress">
         /// Reported once per fetched file, as a <see cref="KnowledgeProgress.Fetch"/> step per kind of
         /// input: <c>metamodel</c>, <c>textual</c> and, when requested, <c>specifications</c>. <c>null</c>
         /// when nobody needs to show progress.
         /// </param>
+        /// <param name="cancellationToken">Cancels the fetch and the commit resolution.</param>
         /// <returns>What was fetched, the version recorded, and the manifest it was recorded in.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">
@@ -108,8 +108,8 @@ namespace Hypha.Knowledge.Releases
         /// </remarks>
         public async Task<ReleaseInstallation> InstallAsync(
             ReleaseInstallRequest request,
-            CancellationToken cancellationToken = default,
-            IProgress<KnowledgeProgress>? progress = null)
+            IProgress<KnowledgeProgress>? progress = null,
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request);
 
@@ -129,11 +129,11 @@ namespace Hypha.Knowledge.Releases
             await PrimitiveTypes.ProvideAsync(this.layout.SharedPrimitiveTypes, cancellationToken);
 
             var metamodel = await this.fetcher.FetchMetamodelAsync(
-                tag, sources, request.SkipExisting, cancellationToken, progress);
+                tag, sources, request.SkipExisting, progress, cancellationToken);
             FetchedMessage(this.logger, "metamodel", metamodel.Count, null);
 
             var textual = await this.fetcher.FetchTextualAsync(
-                tag, sources, request.SkipExisting, cancellationToken, progress);
+                tag, sources, request.SkipExisting, progress, cancellationToken);
             FetchedMessage(this.logger, "textual", textual.Count, null);
 
             IReadOnlyList<FileInfo> specifications = [];
@@ -141,7 +141,7 @@ namespace Hypha.Knowledge.Releases
             if (request.IncludeSpecifications)
             {
                 specifications = await this.fetcher.FetchSpecificationsAsync(
-                    tag, sources, request.SkipExisting, cancellationToken, progress);
+                    tag, sources, request.SkipExisting, progress, cancellationToken);
                 FetchedMessage(this.logger, "specifications", specifications.Count, null);
             }
 

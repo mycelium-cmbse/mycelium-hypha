@@ -67,8 +67,8 @@ namespace Hypha.Tools.Tests
 
             this.installer = new Mock<IReleaseInstaller>();
             this.installer
-                .Setup(mock => mock.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<KnowledgeProgress>? _) =>
+                .Setup(mock => mock.InstallAsync(It.IsAny<ReleaseInstallRequest>(), null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ReleaseInstallRequest request, IProgress<KnowledgeProgress>? _, CancellationToken _) =>
                 {
                     this.order.Add($"fetch:{request.Tag}");
 
@@ -331,7 +331,7 @@ namespace Hypha.Tools.Tests
                 NullLogger<MoveWindowCommand.Handler>.Instance);
 
             this.installer
-                .Setup(mock => mock.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
+                .Setup(mock => mock.InstallAsync(It.IsAny<ReleaseInstallRequest>(), null, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());
 
             Assert.That(

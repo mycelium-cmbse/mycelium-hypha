@@ -21,7 +21,7 @@ if (!rid) {
 // hypha tools release it is built from; any other build is marked as a development build rather
 // than taking the project's placeholder version.
 const version = process.env.HYPHA_CLI_VERSION || "0.0.0-dev";
-if (!/^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$/.test(version)) {
+if (!/^\d+\.\d+\.\d+(-[\dA-Za-z.-]+)?$/.test(version)) {
   throw new Error(`HYPHA_CLI_VERSION '${version}' is not SemVer.`);
 }
 const destination = path.join(root, "out", "cli");
