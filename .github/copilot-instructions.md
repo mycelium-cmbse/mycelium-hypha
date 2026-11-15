@@ -4,7 +4,7 @@ Scope is the **OMG SysML v2 / KerML** standards (not UML). The repo has three pa
 
 ## Build, test, lint
 
-.NET 10 (`tools/metamodel-gen`, `tools/knowledge-gen`, `tools/hypha-cli`; NUnit), from the repo root:
+.NET 10 (`tools/metamodel-gen`, `tools/knowledge-gen`, `tools/hypha-mcp`, `tools/hypha-cli`, `tools/hypha-launcher`; NUnit), from the repo root:
 
 ```sh
 dotnet build mycelium-hypha.sln

@@ -6,6 +6,9 @@ shipped Claude plugin; they are developer tooling, run when the upstream OMG sou
 ```
 tools/
 ├── hypha-cli/       C#:     the `hypha` command, the entry point that drives everything below
+├── hypha-launcher/  C#:     `hypha-launch`, the MCP server launcher the client packages start (NativeAOT,
+│                            committed in `bin/`)
+├── hypha-mcp/       C#:     `Hypha.Mcp`, the MCP server `hypha serve` hosts
 ├── knowledge-gen/   C#:     `Hypha.Knowledge`: layout, manifests and contracts, lookup, query API, release
 │                            discovery/fetching, grammar, textual notation, cross-references
 ├── metamodel-gen/   C# (uml4net): `Hypha.Knowledge.Metamodel`, reads XMI → writes knowledge/<tag>/metamodel/

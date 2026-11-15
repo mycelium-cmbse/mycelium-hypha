@@ -32,7 +32,7 @@
     <!-- Only for the test that resolves HYPHA_HOME both ways; the launcher itself never references it. -->
     <ProjectReference Include="..\..\knowledge-gen\Hypha.Knowledge\Hypha.Knowledge.csproj" />
     <!-- Built first, not referenced: the launch tests start its executable through HYPHA_BIN. -->
-    <ProjectReference Include="..\Hypha.Tools\Hypha.Tools.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\hypha-cli\Hypha.Tools\Hypha.Tools.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

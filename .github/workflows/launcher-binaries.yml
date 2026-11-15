@@ -1,6 +1,6 @@
 name: Launcher binaries
 
-# Builds the NativeAOT `hypha-launch` binary (tools/hypha-cli/Hypha.Launcher), the MCP server's launcher,
+# Builds the NativeAOT `hypha-launch` binary (tools/hypha-launcher/Hypha.Launcher), the MCP server's launcher,
 # for every platform, and commits it into the plugin's bin/: bin/hypha-launch.exe on Windows, which a
 # client finds from the extensionless bin/hypha-launch, and bin/<rid>/hypha-launch elsewhere, which the
 # POSIX bin/hypha-launch script execs. This file was hook-binaries.yml while it also built the
@@ -10,7 +10,7 @@ name: Launcher binaries
 # generates anything itself, only downloads and starts the real CLI, so NativeAOT keeps it small
 # (single-digit MB per platform) rather than the ~80MB a self-contained non-AOT publish would need. A
 # client starts the server from the plugin's own folder, so the launcher has to be there; see
-# tools/hypha-cli/README.md.
+# tools/hypha-launcher/README.md.
 #
 # True NativeAOT cross-compilation across OS families is not reliably supported, so this needs a
 # matrix of native runners, unlike release.yml's single-runner self-contained publish.
@@ -67,7 +67,7 @@ jobs:
 
       - name: Publish ${{ matrix.rid }}
         run: |
-          dotnet publish tools/hypha-cli/Hypha.Launcher/Hypha.Launcher.csproj \
+          dotnet publish tools/hypha-launcher/Hypha.Launcher/Hypha.Launcher.csproj \
             -c Release -r ${{ matrix.rid }} -p:PublishAot=true \
             -o publish/${{ matrix.rid }}/launch
         shell: bash

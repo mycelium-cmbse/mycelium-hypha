@@ -29,11 +29,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypha.Mcp", "tools\hypha-mc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypha.Mcp.Tests", "tools\hypha-mcp\Hypha.Mcp.Tests\Hypha.Mcp.Tests.csproj", "{507AFBF1-7115-482E-BF21-B3E1F86DD0AA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hypha-cli", "hypha-cli", "{BB002377-3091-DA89-3423-4FB974ECD5DC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hypha-launcher", "hypha-launcher", "{BB002377-3091-DA89-3423-4FB974ECD5DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypha.Launcher", "tools\hypha-cli\Hypha.Launcher\Hypha.Launcher.csproj", "{6C19FE30-E3F4-4907-8E8B-9BAD504CBA41}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypha.Launcher", "tools\hypha-launcher\Hypha.Launcher\Hypha.Launcher.csproj", "{6C19FE30-E3F4-4907-8E8B-9BAD504CBA41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypha.Launcher.Tests", "tools\hypha-cli\Hypha.Launcher.Tests\Hypha.Launcher.Tests.csproj", "{C9F30F66-DD60-411F-B4D7-060472666A34}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypha.Launcher.Tests", "tools\hypha-launcher\Hypha.Launcher.Tests\Hypha.Launcher.Tests.csproj", "{C9F30F66-DD60-411F-B4D7-060472666A34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -184,5 +184,6 @@ Global
 		{507AFBF1-7115-482E-BF21-B3E1F86DD0AA} = {41ED462B-BE8E-E11B-383D-6D821A1AEE7B}
 		{6C19FE30-E3F4-4907-8E8B-9BAD504CBA41} = {BB002377-3091-DA89-3423-4FB974ECD5DC}
 		{C9F30F66-DD60-411F-B4D7-060472666A34} = {BB002377-3091-DA89-3423-4FB974ECD5DC}
+		{BB002377-3091-DA89-3423-4FB974ECD5DC} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 	EndGlobalSection
 EndGlobal

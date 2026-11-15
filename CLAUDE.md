@@ -47,7 +47,7 @@ that needs a fact the JSON does not hold is a generator change first.
 
 ## Build & test
 
-**.NET** (`tools/metamodel-gen`, `tools/knowledge-gen`, `tools/hypha-mcp` and `tools/hypha-cli`, `net10.0`, NUnit), from
+**.NET** (`tools/metamodel-gen`, `tools/knowledge-gen`, `tools/hypha-mcp`, `tools/hypha-cli` and `tools/hypha-launcher`, `net10.0`, NUnit), from
 repo root:
 
 ```sh
@@ -194,8 +194,8 @@ drives it.
   `knowledge/model-library.schema.json`, `knowledge/keywords.schema.json`, `knowledge/examples.schema.json`, `knowledge/metamodel.schema.json`, `knowledge/api-cross-references.schema.json` (hand-authored, describe the shape rather than one release's
   content); `sources/PrimitiveTypes.xmi` (the OMG UML primitives library, shared and tag-independent);
   and the plugin's top-level `bin/`: `hypha-launch.exe` and `<rid>/hypha-launch`, the NativeAOT launcher of the MCP
-  server (`tools/hypha-cli/Hypha.Launcher`), its POSIX dispatch script `hypha-launch` and
-  `hypha-launch.json`, the `hypha` version it starts (see the README's "MCP server launcher" section).
+  server (`tools/hypha-launcher/Hypha.Launcher`), its POSIX dispatch script `hypha-launch` and
+  `hypha-launch.json`, the `hypha` version it starts (see `tools/hypha-launcher/README.md`).
   These are the only compiled binaries this repository commits; `.gitignore` excludes `bin/` at every
   other depth. Also committed, and rendered from `manifest.source.json` like the plugin's own manifest
   (`PackageManifestTests` fails when one drifts): the Agent Plugins `plugin.json` and `mcp.json`,
