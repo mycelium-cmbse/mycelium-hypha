@@ -80,15 +80,15 @@ namespace Hypha.Tools.Commands
         /// <param name="Location">Where they are installed, for the message shown when there are none.</param>
         /// <param name="Noun">What one version is called, e.g. <c>release</c>.</param>
         /// <param name="FetchHint">The command that installs one.</param>
-        /// <param name="Artifact">The argument naming a single artifact.</param>
-        /// <param name="Tag">The option naming the versions to generate for.</param>
+        /// <param name="ArtifactArgument">The argument naming a single artifact.</param>
+        /// <param name="TagOption">The option naming the versions to generate for.</param>
         public sealed record GenerationScope(
             Func<IReadOnlyList<string>> InstalledTags,
             string Location,
             string Noun,
             string FetchHint,
-            Argument<string?> Artifact,
-            Option<string[]> Tag);
+            Argument<string?> ArtifactArgument,
+            Option<string[]> TagOption);
 
         /// <summary>Runs the <see cref="GenerateCommand"/>.</summary>
         public sealed class Handler
@@ -154,14 +154,14 @@ namespace Hypha.Tools.Commands
             {
                 ArgumentNullException.ThrowIfNull(parseResult);
 
-                var artifact = parseResult.GetValue(this.scope.Artifact);
+                var artifact = parseResult.GetValue(this.scope.ArtifactArgument);
 
                 if (!this.IsKnown(artifact))
                 {
                     return 2;
                 }
 
-                var tags = parseResult.GetValue(this.scope.Tag) is { Length: > 0 } requested
+                var tags = parseResult.GetValue(this.scope.TagOption) is { Length: > 0 } requested
                     ? requested
                     : [.. this.scope.InstalledTags()];
 

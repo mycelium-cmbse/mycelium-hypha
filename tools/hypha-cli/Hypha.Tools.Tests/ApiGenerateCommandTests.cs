@@ -270,8 +270,8 @@ namespace Hypha.Tools.Tests
                     "the folder the API manifest lives in, which is where an install would show up");
                 Assert.That(scope.Noun, Is.EqualTo("API version"));
                 Assert.That(scope.FetchHint, Is.EqualTo("hypha api fetch --tag <version>"));
-                Assert.That(scope.Artifact, Is.SameAs(ApiGenerateCommand.Artifact));
-                Assert.That(scope.Tag, Is.SameAs(ApiGenerateCommand.Tag));
+                Assert.That(scope.ArtifactArgument, Is.SameAs(ApiGenerateCommand.Artifact));
+                Assert.That(scope.TagOption, Is.SameAs(ApiGenerateCommand.Tag));
             });
         }
 
