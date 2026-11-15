@@ -449,13 +449,12 @@ Every manual check was here: the ones Step 5 (#198), #163 and #165 held moved in
   - [x] Claude Code on Windows: the server connects through `bin/hypha-launch` and answers (November 2026). With `2.0.0-beta.1`, its first start downloaded `hypha` and the handover refreshed the tools without reconnecting (15 November 2026).
   - [x] VS Code with Copilot, on Windows with `2.0.0-beta.1` (15 November 2026): through a user MCP configuration naming `bin/hypha-launch.exe`, the first start downloaded `hypha`, the tools appeared without restarting the server, and `hypha_release_status`, `hypha_install_release` and a query answered. Not yet checked: the Agent Plugin install, with its skills.
   - The other clients moved to #259.
-- [ ] Run the smoke-test matrix (section 1.16): install, launcher start on win-x64 / linux-x64 / osx-arm64, `hypha_release_status`, one query, one `hypha_install_release`.
+- [x] Run the smoke-test matrix (section 1.16): install, launcher start on win-x64 / linux-x64 / osx-arm64, `hypha_release_status`, one query, one `hypha_install_release`.
   - [x] win-x64, in Claude Code with `2.0.0-beta.1` and a clean `HYPHA_HOME` (15 November 2026): the launcher's first start, `hypha_release_status`, `hypha_install_release` of the newest release, and a query.
-  - [ ] linux-x64, by the First start workflow.
-  - [ ] osx-arm64, by the First start workflow.
-- [ ] Confirm the platform dispatch works in each client (extensionless path on Windows, script on POSIX).
+  - [x] linux-x64, linux-arm64, osx-arm64 and osx-x64, by the First start workflow with `2.0.0-beta.1` (15 November 2026): the first start, `hypha_release_status`, `hypha_install_release` of 2026-05 and a query, 18 to 26 seconds each.
+- [x] Confirm the platform dispatch works in each client (extensionless path on Windows, script on POSIX).
   - [x] Claude Code on Windows: the extensionless `bin/hypha-launch` (15 November 2026).
-  - [ ] The POSIX script on macOS and Linux, by the First start workflow.
+  - [x] The POSIX script on macOS and Linux, by the First start workflow (15 November 2026).
   - The other clients moved to #259.
 - [x] A **First start** workflow (`first-start.yml`), started by hand after publishing a tools release: on win-x64, linux-x64, linux-arm64, osx-arm64 and osx-x64 it starts the extensionless `bin/hypha-launch` with nothing cached, as a client does, and checks the download and handover, `hypha_release_status`, an install and a query.
 
