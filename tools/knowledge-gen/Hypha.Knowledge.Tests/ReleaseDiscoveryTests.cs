@@ -23,7 +23,7 @@ namespace Hypha.Knowledge.Tests
     public class ReleaseDiscoveryTests
     {
         [Test]
-        public async Task Follows_pagination_until_a_page_is_empty()
+        public async Task A_page_that_is_not_full_is_the_last_one_asked_for()
         {
             var handler = new StubHandler(page => page == 1
                 ? """[{"name":"2026-05"},{"name":"2026-04"}]"""
@@ -32,11 +32,85 @@ namespace Hypha.Knowledge.Tests
             using var client = new HttpClient(handler);
             var tags = await new ReleaseDiscovery(client, "token").FetchTagsAsync("owner/repo");
 
+            // Every request counts against GitHub's 60 an hour without a token, so none is spent on an empty page.
             Assert.Multiple(() =>
             {
                 Assert.That(tags, Is.EqualTo(new[] { "2026-05", "2026-04" }));
-                Assert.That(handler.Requests, Has.Count.EqualTo(2), "should stop at the first empty page");
+                Assert.That(handler.Requests, Has.Count.EqualTo(1));
             });
+        }
+
+        [Test]
+        public async Task A_full_page_is_followed_by_the_next_until_one_is_not_full()
+        {
+            var handler = new StubHandler(page => page switch
+            {
+                1 => Page(100, "a"),
+                2 => Page(100, "b"),
+                _ => Page(3, "c"),
+            });
+
+            using var client = new HttpClient(handler);
+            var tags = await new ReleaseDiscovery(client, "token").FetchTagsAsync("owner/repo");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(tags, Has.Count.EqualTo(203));
+                Assert.That(handler.Requests, Has.Count.EqualTo(3));
+                Assert.That(handler.Requests[2], Does.EndWith("per_page=100&page=3"));
+            });
+        }
+
+        [Test]
+        public async Task A_full_page_followed_by_an_empty_one_ends_there()
+        {
+            var handler = new StubHandler(page => page == 1 ? Page(100, "a") : "[]");
+
+            using var client = new HttpClient(handler);
+            var tags = await new ReleaseDiscovery(client, "token").FetchTagsAsync("owner/repo");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(tags, Has.Count.EqualTo(100));
+                Assert.That(handler.Requests, Has.Count.EqualTo(2));
+            });
+        }
+
+        [Test]
+        public async Task Tags_read_less_than_their_lifetime_ago_are_not_asked_for_again()
+        {
+            var handler = new StubHandler(_ => """[{"name":"2026-05"}]""");
+            var time = new SettableTime();
+
+            using var client = new HttpClient(handler);
+            var discovery = new ReleaseDiscovery(client, "token", null, null, time);
+
+            await discovery.FetchTagsAsync("owner/repo");
+            time.Advance(ReleaseDiscovery.TagLifetime - TimeSpan.FromSeconds(1));
+            var again = await discovery.FetchTagsAsync("owner/repo");
+            await discovery.FetchTagsAsync("owner/other");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(again, Is.EqualTo(new[] { "2026-05" }));
+                Assert.That(handler.Requests, Has.Count.EqualTo(2), "once per repository");
+            });
+        }
+
+        [Test]
+        public async Task Tags_older_than_their_lifetime_are_read_again()
+        {
+            var handler = new StubHandler(_ => """[{"name":"2026-05"}]""");
+            var time = new SettableTime();
+
+            using var client = new HttpClient(handler);
+            var discovery = new ReleaseDiscovery(client, "token", null, null, time);
+
+            await discovery.FetchTagsAsync("owner/repo");
+            time.Advance(ReleaseDiscovery.TagLifetime);
+            await discovery.FetchTagsAsync("owner/repo");
+
+            Assert.That(handler.Requests, Has.Count.EqualTo(2));
         }
 
         [Test]
@@ -128,6 +202,18 @@ namespace Hypha.Knowledge.Tests
             var discovery = new ReleaseDiscovery(client, "token");
 
             await Assert.ThrowsAsync<ArgumentException>(() => discovery.FetchTagsAsync("  "));
+        }
+
+        private static string Page(int count, string prefix) =>
+            "[" + string.Join(",", Enumerable.Range(1, count).Select(index => $"{{\"name\":\"{prefix}{index}\"}}")) + "]";
+
+        private sealed class SettableTime : TimeProvider
+        {
+            private DateTimeOffset now = new(2026, 11, 15, 12, 0, 0, TimeSpan.Zero);
+
+            public override DateTimeOffset GetUtcNow() => this.now;
+
+            public void Advance(TimeSpan by) => this.now += by;
         }
 
         private sealed class StubHandler : HttpMessageHandler

@@ -10,6 +10,7 @@
 namespace Hypha.Knowledge.Releases
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Globalization;
     using System.Net.Http;
     using System.Text.Json;
@@ -29,6 +30,12 @@ namespace Hypha.Knowledge.Releases
 
         /// <summary>The API host commits are requested from.</summary>
         private readonly Uri apiBaseAddress;
+
+        /// <summary>
+        /// The commits resolved so far, by repository and tag. A release tag is not moved once published,
+        /// so installing the same release again, to add its specification text, asks GitHub no more.
+        /// </summary>
+        private readonly ConcurrentDictionary<(string Repository, string Tag), string> resolved = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitResolver"/> class.
@@ -53,13 +60,22 @@ namespace Hypha.Knowledge.Releases
             ArgumentException.ThrowIfNullOrWhiteSpace(repository);
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
+            if (this.resolved.TryGetValue((repository, tag), out var known))
+            {
+                return known;
+            }
+
             var path = string.Format(CultureInfo.InvariantCulture, CommitPath, repository, tag);
             var payload = await this.client.GetStringAsync(new Uri(this.apiBaseAddress, path), cancellationToken);
 
             using var document = JsonDocument.Parse(payload);
 
-            return document.RootElement.GetProperty("sha").GetString()
-                   ?? throw new InvalidOperationException($"no commit sha for {repository}@{tag}");
+            var sha = document.RootElement.GetProperty("sha").GetString()
+                      ?? throw new InvalidOperationException($"no commit sha for {repository}@{tag}");
+
+            this.resolved[(repository, tag)] = sha;
+
+            return sha;
         }
 
         /// <summary>Resolves both upstreams for one tag into an <see cref="InstalledVersion"/>.</summary>

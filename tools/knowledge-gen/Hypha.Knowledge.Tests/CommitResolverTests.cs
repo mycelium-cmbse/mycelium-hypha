@@ -62,6 +62,25 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public async Task A_tag_resolved_once_is_not_asked_for_again()
+        {
+            var handler = new StubHandler();
+            using var client = new HttpClient(handler);
+            var resolver = new CommitResolver(client);
+
+            await resolver.ResolveAsync("owner/repo", "2026-05");
+            var again = await resolver.ResolveAsync("owner/repo", "2026-05");
+            await resolver.ResolveAsync("owner/repo", "2026-02");
+            await resolver.ResolveAsync("owner/other", "2026-05");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(again, Is.EqualTo("de1070ae8e79c21532b8004fc663d47b35d0e9fa"));
+                Assert.That(handler.Requests, Has.Count.EqualTo(3), "once per repository and tag");
+            });
+        }
+
+        [Test]
         public async Task Rejects_a_missing_repository_or_tag()
         {
             using var client = new HttpClient(new StubHandler());

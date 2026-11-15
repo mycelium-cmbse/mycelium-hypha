@@ -319,6 +319,11 @@ namespace Hypha.Tools
                 // would bury the one sentence that tells the user what to do about it.
                 return await Fail(parseResult, 1, exception.Message);
             }
+            catch (GitHubRateLimitExceededException exception)
+            {
+                // The message already says until when and how to raise the limit.
+                return await Fail(parseResult, 1, exception.Message);
+            }
             catch (HttpRequestException exception)
             {
                 return await Fail(parseResult, 1, $"The upstream could not be reached: {exception.Message}",

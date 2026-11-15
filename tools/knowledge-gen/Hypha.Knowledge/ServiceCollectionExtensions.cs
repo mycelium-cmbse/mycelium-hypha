@@ -95,11 +95,17 @@ namespace Hypha.Knowledge
                     }
                 })
 
+                // Outside the resilience handler, so it records the response finally returned and says
+                // plainly when GitHub's rate limit, not the network, is what failed.
+                .AddHttpMessageHandler(provider => new GitHubRateLimitHandler(provider.GetRequiredService<GitHubRateLimit>()))
+
                 // Retries use jittered backoff. That matters more than it did when downloads were
                 // sequential: a throttled batch of concurrent downloads would otherwise all retry at
                 // the same instant, which is how the host came to reset the connection in the first
                 // place. The circuit breaker stops us grinding through 300 files once it is refusing.
                 .AddStandardResilienceHandler();
+
+            services.AddSingleton(new GitHubRateLimit(authenticated: !string.IsNullOrWhiteSpace(credential)));
 
             services.AddSingleton<IReleaseDiscovery>(provider => new ReleaseDiscovery(
                 provider.GetRequiredService<IHttpClientFactory>().CreateClient(UpstreamClientName), options.Token, null, baseAddress));
