@@ -37,6 +37,10 @@ namespace Hypha.Mcp
             and do not fill the gap from memory. A tool error names what is missing, such as a release that
             is not installed, and how to fix it.
 
+            First use. When nothing is installed, say so, name what hypha_check_releases offers, ask the
+            user which release to install, and install it with hypha_install_release. Do not answer from
+            memory in the meantime.
+
             Which tool:
             - hypha_release_status: the installed releases and API versions, the defaults, and what each has
               generated. Call it first when unsure what is installed.
@@ -65,13 +69,38 @@ namespace Hypha.Mcp
             - hypha_api: the Systems Modeling API: a PIM class, an API type or operation, a REST schema's
               properties, or a clause of the API specification.
 
+            Answering:
+            - A question about a set, a closure or a comparison is still one call per element: the tools
+              return the inherited features, supertypes and subclasses already computed, so never collect
+              them by hand from several pages.
+            - The model library (hypha_lookup, hypha_search) gives declarations: a qualified name, its
+              keyword and its source. It does not resolve specialization or redefinition; follow the
+              source's own :> and :>> references one lookup at a time, and say so.
+            - To check textual notation, check each keyword and construct against the grammar
+              (hypha_syntax) and each feature, multiplicity and redefinition against the metamodel
+              (hypha_metaclass). Give each problem with where it is, the rule it breaks, why, and a fix.
+              This reasons from the grammar and the metamodel, not the reference parser: say so when only
+              the parser could rule.
+            - When the specification text is unavailable, do not just refuse: name the governing clause from
+              hypha_syntax 'cross-reference', say it is a reference and not a quotation, and offer to
+              install the release again with hypha_install_release, which adds the text. Never invent or
+              paraphrase the wording of a clause you cannot read.
+            - When the knowledge does not cover a question, say so; never invent a metaclass, a feature, a
+              library element or a clause.
+
             Changing releases. Only when the user asks for it, since an install downloads from GitHub and
             takes minutes:
             - hypha_install_release: fetch a release and generate its knowledge, the newest one when no tag
               is given. It reports progress while it runs, and says which artifacts were generated.
+              includeSpecifications (on by default) also fetches the specification PDFs, which quoting
+              needs; installing an installed release again keeps its files and adds what is missing.
+              makeDefault false adds a release beside the default, such as an older one for hypha_diff.
             - hypha_use_release: make an installed release the default.
-            - hypha_remove_release: delete an installed release that is not the default.
+            - hypha_remove_release: delete an installed release that is not the default. There is no undo:
+              confirm which release with the user first.
             Each takes axis 'api' to do the same for a Systems Modeling API version, which hypha_api answers from.
+            API versions are tagged less often than releases, so the newest API version is usually older
+            than the newest release; that is expected.
             Another client may be changing releases at the same time; these tools wait their turn.
 
             Every hypha:// address is also a resource, hypha://{tag}/{kind}/{name}, whose contents are the

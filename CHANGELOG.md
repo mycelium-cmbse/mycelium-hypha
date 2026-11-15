@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Configuration for other MCP clients** (`refs #199`): `docs/other-clients.md` gives the server
+  configuration and the skills folder for JetBrains Junie, Devin Desktop (formerly Windsurf), Zed
+  and Cline, all starting the plugin's launcher from a clone of its release tag. Roo Code, which was
+  discontinued, is left out.
 - **A bundle for Claude Desktop** (`refs #199`): a plugin release now carries `hypha-<version>.mcpb`,
   an MCP Bundle that Claude Desktop installs. One bundle serves Windows, macOS and Linux: it holds the
   plugin's launchers and dispatch script, so it downloads `hypha` on its first start, as the plugin
@@ -255,6 +259,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   expression bodies lead on to, do not count: `true` comes from `BooleanValue`, not `Invariant`.
 
 ### Changed
+- **The server's instructions stand on their own** (`refs #199`): for a client without the skills,
+  they now say what to do when nothing is installed, that a closure or a comparison is one call, what
+  the model library does not resolve, how to check textual notation, what to give when the
+  specification text is missing, and to confirm a removal, which cannot be undone.
 - **The metamodel and model-library skills answer through the MCP server** (`refs #197`):
   `metamodel-lookup` and `model-library-lookup` call the server's tools by their bare names
   (`hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`,

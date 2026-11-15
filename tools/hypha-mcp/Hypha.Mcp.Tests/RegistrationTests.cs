@@ -146,6 +146,22 @@ namespace Hypha.Mcp.Tests
         }
 
         [Test]
+        public void The_install_arguments_the_instructions_name_are_the_ones_the_tool_takes()
+        {
+            var install = this.Tools.Single(tool => tool.ProtocolTool.Name == "hypha_install_release").ProtocolTool.InputSchema;
+            var properties = install.GetProperty("properties").EnumerateObject().Select(property => property.Name).ToList();
+
+            Assert.Multiple(() =>
+            {
+                foreach (var argument in new[] { "includeSpecifications", "makeDefault", "axis" })
+                {
+                    Assert.That(ServerInstructions.Text, Does.Contain(argument));
+                    Assert.That(properties, Does.Contain(argument));
+                }
+            });
+        }
+
+        [Test]
         public void The_instructions_explain_every_grounding_tier()
         {
             Assert.That(

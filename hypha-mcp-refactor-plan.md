@@ -56,7 +56,7 @@ flowchart TB
         AP["Copilot · Cursor · Codex · Kiro<br/>(Agent Plugin)"]
         GE["Gemini CLI<br/>(extension)"]
         CD["Claude Desktop<br/>(.mcpb)"]
-        MC["Junie · Windsurf · Zed · Cline<br/>(manual config)"]
+        MC["Junie · Devin Desktop · Zed · Cline<br/>(manual config)"]
     end
 
     SK["Agent Skills<br/>SKILL.md"]
@@ -186,14 +186,14 @@ As today, plus:
 
 Official `ModelContextProtocol` C# SDK, stdio transport, attribute-based with explicit `WithTools<T>()` / `WithResources<T>()` / `WithPrompts<T>()` registration. Logs to stderr only.
 
-- **Tools** (primary surface; every client supports them). All prefixed `hypha_`; 17 today, to stay under 20 (Windsurf caps all servers combined at 100 tools):
+- **Tools** (primary surface; every client supports them). All prefixed `hypha_`; 17 today, to stay under 20 (Windsurf, now Devin Desktop, capped all servers combined at 100 tools):
   - query tools, grouping related questions behind a `question` argument whose values are the `hypha query` verb names: `hypha_metaclass`, `hypha_feature`, `hypha_typed_by`, `hypha_package`, `hypha_syntax`, `hypha_spec`, `hypha_api` (with the REST schemas' properties), `hypha_diff`
   - `hypha_search` (by name, number or title), `hypha_search_spec` (the clause text), `hypha_resolve` (a `hypha://` address), `hypha_lookup` (paged: a metaclass, a library declaration or a worked example)
   - `hypha_release_status`, and `hypha_check_releases` (what is offered upstream; the one read tool that reaches the network)
   - `hypha_install_release`, `hypha_use_release`, `hypha_remove_release` (in-process, under the release lock, with progress; the default switches only once a release is generated). Each takes an `axis` argument, `release` or `api`, so the same three tools manage the Systems Modeling API versions without adding to the count
 - **Resources**: the template `hypha://{tag}/{kind}/{name}` over the generated pages: a metaclass, clause or worked-example page whole, a model-library declaration from where it is declared on. An address names its page exactly, and every address in a JSON answer carries its `uri`. Everything is also reachable through a tool, since client support for resources is uneven.
 - **Prompts**: guided flows from `commands/overview.md`: `overview`, `explain_metaclass`, `cite_specification`, `validate_notation`, `api_lookup`.
-- **`instructions`**: the NORMATIVE / MODEL / DERIVED grounding rules and a short "which tool when" guide. This is the only guidance clients without skills (Claude Desktop, Zed, Windsurf) get, so it must be enough on its own.
+- **`instructions`**: the NORMATIVE / MODEL / DERIVED grounding rules and a short "which tool when" guide. This is the only guidance clients without skills (Claude Desktop, and a manual-config client whose skills were not copied) get, so it must be enough on its own.
 
 ### 1.10 `hypha` executable
 
@@ -284,11 +284,13 @@ The three manifests and the Agent Plugins MCP config are generated from one sour
 | Gemini CLI | Gemini extension | `gemini extensions install <repo url>` | Yes | |
 | Claude Desktop | `.mcpb` bundle | Double-click | No | Relies on `instructions` |
 | JetBrains Junie / AI Assistant | Manual config | `~/.junie/mcp/mcp.json`, skills in `~/.junie/skills/` | Yes (copied) | Optional later: small JetBrains plugin that writes both |
-| Windsurf | Manual config | `mcp_config.json` | Unconfirmed | 100-tool cap across all servers |
-| Zed, Cline, Roo | Manual config | Client settings | Weak / none | Tools only; relies on `instructions` |
+| Devin Desktop (formerly Windsurf) | Manual config | `~/.config/devin/mcp_config.json`, skills in `~/.config/devin/skills/` or `~/.agents/skills/` | Yes (copied) | Windsurf capped all servers at 100 tools; unchecked since the rename |
+| Zed | Manual config | `context_servers` in `settings.json`, skills in `~/.agents/skills/` | Yes (copied) | Skills for the Zed Agent only |
+| Cline | Manual config | `cline_mcp_settings.json`, skills in `~/.cline/skills/` | Yes (copied) | |
+| Roo Code | n/a | n/a | n/a | **Left out**: discontinued in May 2026 |
 | claude.ai web, ChatGPT web | n/a | n/a | n/a | **Out of scope**: remote servers only |
 
-Manual-config clients get a documented snippet pointing at the launcher from the release archive.
+Manual-config clients get a documented snippet (`docs/other-clients.md`) pointing at the launcher in a clone of the plugin's release tag, which also holds the skills to copy.
 
 **VS Code extension**: VS Code installs Agent Plugins natively, so the plugin covers Copilot. Decision (November 2026, after Step 4): keep the extension, but only as a thin installer for its Marketplace listing and install UI, with no commands and no storage of its own. It hands the same MCP server to Copilot through `vscode.lm.registerMcpServerDefinitionProvider`, contains no tools of its own, and passes no `--repository-root`, so it reads `HYPHA_HOME` like every other client. Retiring it instead stays possible; it would close #158, #163 and #165.
 
@@ -423,10 +425,10 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 - [x] **Agent Plugins 1.0**: root `plugin.json` (with `$schema`) and `mcp.json` to `bin/hypha-launch`, sharing `skills/`. Covers Copilot (VS Code, CLI, app, cloud agent), Cursor, Codex and Kiro.
 - [x] **Gemini CLI**: `gemini-extension.json` with `mcpServers` to `bin/hypha-launch`, sharing `skills/`.
 - [x] **Claude Desktop**: one `.mcpb` for every platform (`server.type = "binary"`, entry point `server/hypha-launch`, with the plugin's `bin/` folder as its `server/`), built from the committed launchers by the *Claude Desktop bundle* workflow, which packs it when a plugin tag is pushed and attaches it when that release is published.
-- [ ] **Manual-config clients** (Junie, Windsurf, Zed, Cline, Roo): document a config snippet per client, plus where to copy the skills.
+- [x] **Manual-config clients** (Junie, Devin Desktop, formerly Windsurf, Zed, Cline): document a config snippet per client, plus where to copy the skills (`docs/other-clients.md`). Roo Code was discontinued in May 2026 and is left out.
 - [x] **VS Code extension** (section 1.15; re-scopes #158): register the server through `vscode.lm.registerMcpServerDefinitionProvider`, delete the two `vscode.lm.registerTool` tools, and drop the `--repository-root` to global storage, so the extension reads `HYPHA_HOME`. Its five release commands went too, since Copilot does the same through the server's tools; VS Code 1.101 is the minimum.
 - [ ] **VS Code extension, more platforms**: add the `win32-arm64` target and publish the validated macOS and Windows on Arm packages (#163), and publish to Open VSX (#165); their validation is in Step 9.
-- [ ] Keep the tools under 20, all prefixed `hypha_`; make `instructions` sufficient on their own for clients without skills.
+- [x] Keep the tools under 20, all prefixed `hypha_`; make `instructions` sufficient on their own for clients without skills (first use, how to answer a closure, the model library's limits, checking notation, missing specification text, and confirming an install or a removal).
 
 ### Step 8: CI and release (#200)
 
@@ -449,7 +451,7 @@ Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 
 - [ ] Run the smoke-test matrix (section 1.16): install, launcher start on win-x64 / linux-x64 / osx-arm64, `hypha_release_status`, one query, one `hypha_install_release`.
 - [ ] Confirm the platform dispatch works in each client (extensionless path on Windows, script on POSIX).
 - [ ] Check Codex's sandbox with and without `network_access`; confirm the fallback message reaches the user.
-- [ ] Check Windsurf's tool count with Hypha alongside other servers.
+- [ ] Check Devin Desktop's (formerly Windsurf) tool count with Hypha alongside other servers.
 - [ ] Check Copilot cloud agent install time in a fresh environment; document it.
 - [ ] The VS Code extension on macOS (`darwin-arm64`, `darwin-x64`; from #163):
   - [ ] `npm run test:host` on macOS against VS Code stable and 1.101.0.
