@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **The VS Code extension builds for Windows on Arm, and is tested on every platform it builds
+  for** (`refs #163`, `refs #165`): `win32-arm64` is a package target; CI packages and smoke-tests
+  the extension on Windows on Arm and on macOS (Apple silicon and Intel), each against VS Code stable
+  and 1.101.0; and the *Publish VS Code extension* workflow can publish to Open VSX, through its
+  Trusted Publishing, as well as to the Marketplace. None of these targets is published yet.
 - **Configuration for other MCP clients** (`refs #199`): `docs/other-clients.md` gives the server
   configuration and the skills folder for JetBrains Junie, Devin Desktop (formerly Windsurf), Zed
   and Cline, all starting the plugin's launcher from a clone of its release tag. Roo Code, which was
