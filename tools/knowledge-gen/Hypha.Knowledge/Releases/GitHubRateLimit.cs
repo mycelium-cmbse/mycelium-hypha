@@ -11,6 +11,7 @@ namespace Hypha.Knowledge.Releases
 {
     using System;
     using System.Globalization;
+    using System.Threading;
 
     /// <summary>
     /// What GitHub last said about the API rate limit, as its <c>x-ratelimit-*</c> response headers give it,
@@ -41,7 +42,7 @@ namespace Hypha.Knowledge.Releases
             "Set GITHUB_TOKEN (or GH_TOKEN) to a GitHub token, which needs no scopes, where hypha is started to raise the limit to 5,000.";
 
         /// <summary>Guards the three values, which a response sets together.</summary>
-        private readonly object gate = new();
+        private readonly Lock gate = new();
 
         /// <summary>The last limit GitHub stated, or <c>null</c> before any API response.</summary>
         private int? limit;
