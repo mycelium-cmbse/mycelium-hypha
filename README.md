@@ -13,11 +13,10 @@ mycelium-hypha contains three related parts:
 1. **The `hypha` Claude plugin**: skills and an MCP server that give grounded answers about KerML and
    SysML v2, backed by a knowledge base fetched and generated on your own machine, on request.
    Nothing per-release is committed to this repository.
-2. **The VS Code extension** (`extensions/vscode/`): an extension for GitHub Copilot that
-   contributes release-status and grounded-lookup tools and manages a shared, extension-global Hypha
-   data directory. It can check, fetch and generate releases locally. It is a preview, published on
-   the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha)
-   as a pre-release for Windows x64 and Linux x64/arm64. See its [user guide](extensions/vscode/README.md) or
+2. **The VS Code extension** (`extensions/vscode/`): an extension for GitHub Copilot that gives it
+   the hypha MCP server, from the `hypha` it bundles, over the shared `HYPHA_HOME` folder. It is a
+   preview, published on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha)
+   for Windows x64 and Linux x64/arm64. See its [user guide](extensions/vscode/README.md) or
    [development guide](extensions/vscode/DEVELOPMENT.md).
 3. **The generation pipelines** (`tools/`) that build the knowledge base from the upstream OMG
    sources, driven by the `hypha` command-line tool, which is published on

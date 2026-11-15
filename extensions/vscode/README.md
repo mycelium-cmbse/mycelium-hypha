@@ -16,7 +16,7 @@ same server, with the same tools, that the Hypha plugins for other AI clients us
 - **Ask about the Systems Modeling API**: its types, operations and REST schemas.
 - **Manage releases by asking**: install a release, switch the default or remove one, from the chat.
 
-Hypha is a preview, published as a pre-release for Windows x64 and for Linux x64 and arm64
+Hypha is a preview, published for Windows x64 and for Linux x64 and arm64
 (including WSL and SSH remotes).
 
 ## Get started
