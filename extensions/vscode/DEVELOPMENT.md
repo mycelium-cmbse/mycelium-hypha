@@ -13,7 +13,8 @@ through the server's tools, as in every other client (`tools/hypha-cli/README.md
 
 Each platform-specific VSIX includes a self-contained Hypha CLI built from this checkout. End users
 do not need .NET, Python, a source checkout, a separate Agent Plugin, or a CLI on `PATH`.
-Supported targets are Windows x64, Linux x64/arm64 and macOS x64/arm64; web hosts are unsupported.
+Supported targets are Windows x64/arm64, Linux x64/arm64 and macOS x64/arm64; web hosts are
+unsupported.
 The extension runs on the workspace extension host, including WSL/SSH, in trusted, non-virtual
 workspaces.
 
@@ -50,9 +51,9 @@ npm run package -- linux-x64 --pre-release   # the same, marked as a Marketplace
 
 Other package targets are `linux-arm64`, `win32-x64`, `win32-arm64`, `darwin-x64` and `darwin-arm64`.
 Set `DOTNET` to an absolute SDK executable if `dotnet` is not on `PATH`.
-Set `HYPHA_CLI_VERSION` to the hypha tools release a VSIX is built from (for example `1.5.0`) when
+Set `HYPHA_CLI_VERSION` to the hypha tools release a VSIX is built from (for example `2.0.0`) when
 it is meant for publication; the bundled CLI then reports that version (`hypha --version` prints
-it with the source commit, e.g. `1.5.0+f4c0548…`). Without it the CLI is marked as a development
+it with the source commit, e.g. `2.0.0+f4c0548…`). Without it the CLI is marked as a development
 build, `0.0.0-dev`.
 The package command builds the CLI and the extension.
 The repository CI runs `npm test`, packages the extension and smoke-tests the installed VSIX on
@@ -84,8 +85,8 @@ It uses Marketplace **Trusted Publishing**: GitHub Actions proves its identity t
   VSIXs. Publish a new version for every supported target: users of a target left out stay on the
   previous version. A target can be added to an already published version by a later run with only
   that target. It
-  refuses to publish when `tools/` differs from the `tools-v<cli-version>` tag, so the bundled CLI is
-  always exactly that release.
+  refuses to publish when `tools/` or `sources/PrimitiveTypes.xmi` differs from the
+  `tools-v<cli-version>` tag, so the bundled CLI is always exactly that release.
 - **Open VSX** (open-vsx.org) is where VSCodium, Cursor and other VS Code-compatible editors install
   from. The run publishes there with `ovsx publish --trusted-publishing`, Open VSX's Trusted
   Publishing, so no Open VSX token is stored either. Before the first run, a maintainer:

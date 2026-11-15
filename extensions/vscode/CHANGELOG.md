@@ -9,6 +9,11 @@ odd minor number are Marketplace pre-releases; an even minor number marks a rele
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-15
+
+The first release that is not a pre-release. It bundles `hypha` tools 2.0.0, for Windows x64 and for
+Linux x64 and arm64.
+
 ### Changed
 
 - **The extension gives Copilot the hypha MCP server.** It registers the bundled `hypha serve` as an

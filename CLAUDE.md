@@ -13,7 +13,7 @@ Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** st
 2. The **VS Code extension** in `extensions/vscode/`: a thin package that hands GitHub Copilot the
    hypha MCP server, by registering the `hypha serve` of the CLI it bundles as an MCP server
    definition provider. It has no tools, commands or storage of its own; the server reads
-   `HYPHA_HOME`, like every other client. It is published on the Visual Studio Marketplace as a preview pre-release
+   `HYPHA_HOME`, like every other client. It is published on the Visual Studio Marketplace, marked as a preview
    (`mycelium-cmbse.mycelium-hypha`, for Windows x64 and Linux x64/arm64) by the manually started
    *Publish VS Code extension* workflow (`.github/workflows/publish-vscode.yml`), through Marketplace
    Trusted Publishing; see `extensions/vscode/DEVELOPMENT.md`.
