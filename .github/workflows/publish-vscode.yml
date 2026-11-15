@@ -1,7 +1,7 @@
 name: Publish VS Code extension
 
-# Publishes extensions/vscode to the Visual Studio Marketplace through Trusted Publishing (OIDC):
-# no Marketplace token is stored. The `mycelium-cmbse` publisher's Trusted Publishing policy names
+# Publishes extensions/vscode to the Visual Studio Marketplace, Open VSX or both, through Trusted
+# Publishing (OIDC): no Marketplace or Open VSX token is stored. The `mycelium-cmbse` publisher's Trusted Publishing policy names
 # this repository, this file (`publish-vscode.yml`) and the `vscode-marketplace` environment, so
 # renaming any of them requires updating the policy too.
 #
@@ -24,6 +24,16 @@ on:
         description: 'Publish as a pre-release'
         required: true
         default: true
+        type: boolean
+      marketplace:
+        description: 'Publish to the Visual Studio Marketplace'
+        required: true
+        default: true
+        type: boolean
+      open-vsx:
+        description: 'Publish to Open VSX (open-vsx.org), for VSCodium, Cursor and the other editors that install from it'
+        required: true
+        default: false
         type: boolean
 
 permissions:
@@ -54,6 +64,8 @@ jobs:
           CLI_VERSION_INPUT: ${{ github.event.inputs.cli-version }}
           TARGETS_INPUT: ${{ github.event.inputs.targets }}
           PRE_RELEASE_INPUT: ${{ github.event.inputs.pre-release }}
+          MARKETPLACE_INPUT: ${{ github.event.inputs.marketplace }}
+          OPEN_VSX_INPUT: ${{ github.event.inputs.open-vsx }}
         run: |
           set -euo pipefail
           if [[ ! "$CLI_VERSION_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
@@ -67,10 +79,14 @@ jobs:
           fi
           for target in "${targets[@]}"; do
             case "$target" in
-              linux-x64|linux-arm64|win32-x64|darwin-x64|darwin-arm64) ;;
+              linux-x64|linux-arm64|win32-x64|win32-arm64|darwin-x64|darwin-arm64) ;;
               *) echo "Unsupported target '$target'." >&2; exit 1 ;;
             esac
           done
+          if [ "$MARKETPLACE_INPUT" != "true" ] && [ "$OPEN_VSX_INPUT" != "true" ]; then
+            echo "Neither the Marketplace nor Open VSX is chosen: nothing would be published." >&2
+            exit 1
+          fi
           echo "HYPHA_CLI_VERSION=$CLI_VERSION_INPUT" >> "$GITHUB_ENV"
           echo "TARGETS=${targets[*]}" >> "$GITHUB_ENV"
           if [ "$PRE_RELEASE_INPUT" = "true" ]; then
@@ -121,6 +137,7 @@ jobs:
           done
 
       - name: Publish to the Visual Studio Marketplace
+        if: github.event.inputs.marketplace == 'true'
         working-directory: extensions/vscode
         run: |
           set -euo pipefail
@@ -129,3 +146,18 @@ jobs:
             packages+=("hypha-${target}.vsix")
           done
           npx --no-install vsce publish --oidc $PRE_RELEASE_FLAG --packagePath "${packages[@]}"
+
+      # Open VSX Trusted Publishing: the mycelium-cmbse namespace's trusted publisher names this
+      # repository, this file and the vscode-marketplace environment, as the Marketplace policy does,
+      # so no Open VSX token is stored. --trusted-publishing fails rather than fall back to a token.
+      # The VSIXs are the ones published above, so both registries carry the same packages.
+      - name: Publish to Open VSX
+        if: github.event.inputs.open-vsx == 'true'
+        working-directory: extensions/vscode
+        run: |
+          set -euo pipefail
+          packages=()
+          for target in $TARGETS; do
+            packages+=("hypha-${target}.vsix")
+          done
+          npx --no-install ovsx publish --trusted-publishing $PRE_RELEASE_FLAG --packagePath "${packages[@]}"

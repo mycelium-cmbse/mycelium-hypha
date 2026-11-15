@@ -48,7 +48,7 @@ npm run package -- linux-x64       # produces hypha-linux-x64.vsix
 npm run package -- linux-x64 --pre-release   # the same, marked as a Marketplace pre-release
 ```
 
-Other package targets are `linux-arm64`, `win32-x64`, `darwin-x64` and `darwin-arm64`.
+Other package targets are `linux-arm64`, `win32-x64`, `win32-arm64`, `darwin-x64` and `darwin-arm64`.
 Set `DOTNET` to an absolute SDK executable if `dotnet` is not on `PATH`.
 Set `HYPHA_CLI_VERSION` to the hypha tools release a VSIX is built from (for example `1.5.0`) when
 it is meant for publication; the bundled CLI then reports that version (`hypha --version` prints
@@ -56,14 +56,16 @@ it with the source commit, e.g. `1.5.0+f4c0548…`). Without it the CLI is marke
 build, `0.0.0-dev`.
 The package command builds the CLI and the extension.
 The repository CI runs `npm test`, packages the extension and smoke-tests the installed VSIX on
-Linux x64 and on Windows x64; on Windows against VS Code stable and against 1.101.0, the oldest
-supported release, which are also the two archive
-layouts `scripts/test-host.mjs` has to find VS Code's `cli.js` in.
-Development-only packaging dependencies currently have five moderate npm audit advisories, all in
-`@vscode/vsce`'s own dependency tree; `npm audit --omit=dev` is clean and no Node dependencies ship
+every target, each on a runner of its own platform: Linux x64, Windows x64, Windows on Arm
+(`windows-11-arm`), and macOS on Apple silicon (`macos-latest`) and on Intel (`macos-15-intel`).
+Every target but Linux is tested against VS Code stable and against 1.101.0, the oldest supported
+release; on Windows those are also the two archive layouts `scripts/test-host.mjs` has to find VS
+Code's `cli.js` in. Linux arm64 is packaged by the publish workflow only.
+Development-only packaging dependencies currently have six moderate npm audit advisories, all in
+the dependency tree of `@vscode/vsce` (also through `ovsx`); `npm audit --omit=dev` is clean and no Node dependencies ship
 in the VSIX.
 
-## Publish to the Marketplace
+## Publish to the Marketplace and Open VSX
 
 The extension is published under the `mycelium-cmbse` publisher by the **Publish VS Code
 extension** workflow (`.github/workflows/publish-vscode.yml`), started by hand from the Actions tab.
@@ -77,12 +79,25 @@ It uses Marketplace **Trusted Publishing**: GitHub Actions proves its identity t
 - The `vscode-marketplace` GitHub environment is where approval is enforced: give it required
   reviewers, so a run waits for a maintainer before anything is published.
 - The run takes the hypha tools version the bundled CLI is labelled with (`cli-version`), the
-  targets (default `win32-x64 linux-x64 linux-arm64`) and whether to publish a pre-release (default
-  yes). Publish a new version for every supported target: users of a target left out stay on the
+  targets (default `win32-x64 linux-x64 linux-arm64`), whether to publish a pre-release (default
+  yes), and where to: the Marketplace (default yes), Open VSX (default no), or both, from the same
+  VSIXs. Publish a new version for every supported target: users of a target left out stay on the
   previous version. A target can be added to an already published version by a later run with only
   that target. It
   refuses to publish when `tools/` differs from the `tools-v<cli-version>` tag, so the bundled CLI is
   always exactly that release.
+- **Open VSX** (open-vsx.org) is where VSCodium, Cursor and other VS Code-compatible editors install
+  from. The run publishes there with `ovsx publish --trusted-publishing`, Open VSX's Trusted
+  Publishing, so no Open VSX token is stored either. Before the first run, a maintainer:
+  1. signs in to open-vsx.org with GitHub and signs the Eclipse Foundation Open VSX Publisher
+     Agreement;
+  2. creates the `mycelium-cmbse` namespace and claims its ownership (an issue on
+     `EclipseFdn/open-vsx.org`), so the namespace is verified;
+  3. adds a trusted publisher to the namespace naming the repository owner `mycelium-cmbse`, the
+     repository `mycelium-hypha`, the workflow `publish-vscode.yml` and the environment
+     `vscode-marketplace`, the same names the Marketplace policy has.
+  A version Open VSX already has is refused, as on the Marketplace: to add Open VSX to a version
+  already on the Marketplace, run with only Open VSX chosen.
 - The extension version comes from `package.json`. The Marketplace accepts only
   `major.minor.patch`, never the same version twice, and by convention an odd minor for
   pre-releases and an even minor for releases.

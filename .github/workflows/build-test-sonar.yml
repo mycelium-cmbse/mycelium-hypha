@@ -89,6 +89,63 @@ jobs:
           VSCODE_TEST_VERSION: '1.101.0'
         run: npm run test:host
 
+  # The targets the extension builds for but is not yet published for: each runner packages its own
+  # platform's VSIX, with a hypha CLI built for it, and smoke-tests it in VS Code on that platform.
+  vscode-extension-other-platforms:
+    name: VS Code Extension (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: darwin-arm64
+            runner: macos-latest
+          - target: darwin-x64
+            runner: macos-15-intel
+          - target: win32-arm64
+            runner: windows-11-arm
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: extensions/vscode/package-lock.json
+
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install extension dependencies
+        working-directory: extensions/vscode
+        run: npm ci --ignore-scripts
+
+      - name: Check the runner is the target's platform
+        working-directory: extensions/vscode
+        env:
+          TARGET: ${{ matrix.target }}
+        run: node -e "const host = process.platform + '-' + process.arch; if (host !== process.env.TARGET) { console.error('The runner is ' + host + ', not ' + process.env.TARGET + '.'); process.exit(1); }"
+
+      - name: Test extension
+        working-directory: extensions/vscode
+        run: npm test
+
+      - name: Package the extension
+        working-directory: extensions/vscode
+        run: npm run package -- ${{ matrix.target }}
+
+      - name: Smoke-test installed VSIX on VS Code stable
+        working-directory: extensions/vscode
+        run: npm run test:host
+
+      - name: Smoke-test installed VSIX on VS Code 1.101.0
+        working-directory: extensions/vscode
+        env:
+          VSCODE_TEST_VERSION: '1.101.0'
+        run: npm run test:host
+
   build:
     name: Build & Test & SonarQube
     runs-on: ubuntu-latest
