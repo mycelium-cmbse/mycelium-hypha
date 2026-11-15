@@ -447,7 +447,7 @@ Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 
 - [ ] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed). Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
   - [x] Claude Code on Windows: the server connects through `bin/hypha-launch` and answers (November 2026). With `2.0.0-beta.1`, its first start downloaded `hypha` and the handover refreshed the tools without reconnecting (15 November 2026).
   - [ ] Claude Code on macOS or Linux.
-  - [ ] VS Code with Copilot.
+  - [x] VS Code with Copilot, on Windows with `2.0.0-beta.1` (15 November 2026): through a user MCP configuration naming `bin/hypha-launch.exe`, the first start downloaded `hypha`, the tools appeared without restarting the server, and `hypha_release_status`, `hypha_install_release` and a query answered. Not yet checked: the Agent Plugin install, with its skills.
   - [ ] One of Cursor or Codex.
 - [ ] Run the smoke-test matrix (section 1.16): install, launcher start on win-x64 / linux-x64 / osx-arm64, `hypha_release_status`, one query, one `hypha_install_release`.
   - [x] win-x64, in Claude Code with `2.0.0-beta.1` and a clean `HYPHA_HOME` (15 November 2026): the launcher's first start, `hypha_release_status`, `hypha_install_release` of the newest release, and a query.
