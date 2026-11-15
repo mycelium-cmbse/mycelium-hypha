@@ -400,6 +400,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`jq`** (`refs #197`): no skill runs it any more, and the README no longer recommends it.
 
 ### Fixed
+- **The first specification search in a fresh release is fast** (`refs #224`): `hypha_search_spec`
+  took 18 to 33 seconds on its first call after an install, because it opened the release's 1,500 or so
+  clause pages one after the other, and the virus scanner checks each newly written file the first time
+  it is opened. The search now reads eight pages at a time: on Windows the first search takes under
+  two seconds and the next ones under one.
 - **A release the migration left out is named, and why** (`refs #224`): a release or API version an
   earlier client had installed in an older format is not copied into `HYPHA_HOME`, and was reported
   only as a warning on standard error, which a client may never show, so `hypha_release_status` said

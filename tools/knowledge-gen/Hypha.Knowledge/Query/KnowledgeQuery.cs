@@ -13,6 +13,8 @@ namespace Hypha.Knowledge.Query
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.ExceptionServices;
+    using System.Threading.Tasks;
 
     using Hypha.Knowledge.Api;
     using Hypha.Knowledge.CrossReferences;
@@ -40,6 +42,12 @@ namespace Hypha.Knowledge.Query
 
         /// <summary>How many characters of a specification search excerpt stand on either side of the match.</summary>
         private const int ExcerptReach = 120;
+
+        /// <summary>
+        /// How many clauses a search reads at once: enough to overlap the first-open scans of a fresh
+        /// install, few enough not to swamp a small machine.
+        /// </summary>
+        private const int SearchReaders = 8;
 
         /// <summary>Where each release's generated knowledge lives, and which releases are installed.</summary>
         private readonly IKnowledgeLayout layout;
@@ -1323,24 +1331,28 @@ namespace Hypha.Knowledge.Query
 
                 searched++;
 
-                foreach (var clause in specification.Entries.Keys)
-                {
-                    var read = this.specifications.Read(
-                        catalog,
-                        name,
-                        clause,
-                        release,
-                        $"release {release}",
-                        SpecificationCommand(release),
-                        SpecificationUnavailable(release),
-                        file => this.Ground(Provenance.Normative, release, file));
+                // Read in parallel: the first time a page is opened, the virus scanner of the machine may
+                // check it, and the scans of some 1,500 freshly installed pages take tens of seconds one
+                // after the other but under a second side by side. Each clause has its own slot, and the
+                // first failure in clause order is the one thrown, so the answer does not depend on timing.
+                var clauses = specification.Entries.Keys.ToList();
+                var found = new SpecificationMatch?[clauses.Count];
+                var failed = new ExceptionDispatchInfo?[clauses.Count];
 
-                    if (read.Value is { } found && Occurrences(CollapseWhiteSpace(found.Text), wanted) is { Count: > 0 } occurrences)
+                Parallel.For(0, clauses.Count, new ParallelOptions { MaxDegreeOfParallelism = SearchReaders }, at =>
+                {
+                    try
                     {
-                        matches.Add(new SpecificationMatch(
-                            new HyphaAddress(release, name, clause), found.Title, occurrences.Count, occurrences.Excerpt));
+                        found[at] = this.Match(catalog, name, clauses[at], release, wanted);
                     }
-                }
+                    catch (Exception exception)
+                    {
+                        failed[at] = ExceptionDispatchInfo.Capture(exception);
+                    }
+                });
+
+                Array.Find(failed, failure => failure is not null)?.Throw();
+                matches.AddRange(found.OfType<SpecificationMatch>());
             }
 
             var grounding = new Grounding(Provenance.Derived, release, this.Relative(this.layout.Knowledge(release).FullName));
@@ -1358,6 +1370,31 @@ namespace Hypha.Knowledge.Query
                 .ToList();
 
             return new(ranked, grounding);
+        }
+
+        /// <summary>Reads one clause and matches the phrase in its text.</summary>
+        /// <param name="catalog">The specification's <c>index.json</c>.</param>
+        /// <param name="document">The specification, such as <c>kerml</c>.</param>
+        /// <param name="clause">The clause number.</param>
+        /// <param name="release">The release.</param>
+        /// <param name="wanted">The collapsed phrase.</param>
+        /// <returns>The match, or <c>null</c> when the clause does not contain the phrase.</returns>
+        /// <exception cref="KnowledgeLookupException">The index or the page is invalid or missing.</exception>
+        private SpecificationMatch? Match(FileInfo catalog, string document, string clause, string release, string wanted)
+        {
+            var read = this.specifications.Read(
+                catalog,
+                document,
+                clause,
+                release,
+                $"release {release}",
+                SpecificationCommand(release),
+                SpecificationUnavailable(release),
+                file => this.Ground(Provenance.Normative, release, file));
+
+            return read.Value is { } text && Occurrences(CollapseWhiteSpace(text.Text), wanted) is { Count: > 0 } occurrences
+                ? new SpecificationMatch(new HyphaAddress(release, document, clause), text.Title, occurrences.Count, occurrences.Excerpt)
+                : null;
         }
 
         /// <summary>The text with every run of white space, line breaks included, made one space.</summary>
