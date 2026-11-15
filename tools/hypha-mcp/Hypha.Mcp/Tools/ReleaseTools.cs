@@ -43,7 +43,9 @@ namespace Hypha.Mcp.Tools
         [Description(
             "Lists the SysML v2 / KerML releases and Systems Modeling API versions installed on this machine, which "
             + "one answers by default, and which artifacts each has generated (metamodel, textual notation, model "
-            + "library, specification text, cross-references). Call it first when unsure what is installed.")]
+            + "library, specification text, cross-references). Call it first when unsure what is installed. 'leftOut' "
+            + "names releases an earlier client had that were not copied here, being in an older format, and why: "
+            + "offer to install each again.")]
         public string ReleaseStatus() =>
             Answer.Of(() => this.query.Releases(), QueryJsonContext.Readable.ReleaseInventory);
 

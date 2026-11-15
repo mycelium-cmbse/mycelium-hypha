@@ -18,6 +18,7 @@ namespace Hypha.Knowledge.Query
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Grammar;
     using Hypha.Knowledge.Keywords;
+    using Hypha.Knowledge.Migration;
     using Hypha.Knowledge.Layout;
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Metamodel;
@@ -98,8 +99,19 @@ namespace Hypha.Knowledge.Query
         /// The inventory, read from the manifests and the knowledge folders on each call; empty lists when
         /// nothing is installed.
         /// </returns>
-        public ReleaseInventory Releases() => new(this.layout.DefaultTag, ReleaseStatus.ReadAll(this.layout), this.apiLayout.DefaultTag,
-            ApiVersionStatus.ReadAll(this.apiLayout));
+        public ReleaseInventory Releases()
+        {
+            var releases = this.layout.InstalledTags;
+            var apis = this.apiLayout.InstalledTags;
+
+            return new(
+                this.layout.DefaultTag,
+                ReleaseStatus.ReadAll(this.layout),
+                this.apiLayout.DefaultTag,
+                ApiVersionStatus.ReadAll(this.apiLayout),
+                [.. LeftOutFile.Read(this.layout.Root)
+                    .Where(version => !(version.Kind == MigratedVersion.Api ? apis : releases).Contains(version.Tag))]);
+        }
 
         /// <summary>The metaclasses that specialize a metaclass, directly or not.</summary>
         /// <param name="of">The general metaclass.</param>

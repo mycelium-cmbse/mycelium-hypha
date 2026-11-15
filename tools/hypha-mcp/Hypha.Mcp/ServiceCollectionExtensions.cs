@@ -70,7 +70,9 @@ namespace Hypha.Mcp
                 .WithTools<UpstreamTools>()
                 .WithResources<KnowledgeResources>()
                 .WithPrompts<KnowledgePrompts>()
-                .WithRequestFilters(filters => filters.AddGetPromptFilter(PromptArguments.RequireArguments));
+                .WithRequestFilters(filters => filters
+                    .AddGetPromptFilter(PromptArguments.RequireArguments)
+                    .AddCallToolFilter(ToolRefusals.AsToolErrors));
         }
     }
 }

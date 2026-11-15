@@ -186,7 +186,9 @@ namespace Hypha.Knowledge.Migration
 
                 try
                 {
-                    return new MigrationResult(home, installs, await this.CopyAsync(home, installs, target, cancellationToken));
+                    var (copied, leftOut) = await this.CopyAsync(home, installs, target, cancellationToken);
+
+                    return new MigrationResult(home, installs, copied) { LeftOut = leftOut };
                 }
                 catch (ReleaseOperationLockException exception)
                 {
@@ -222,7 +224,9 @@ namespace Hypha.Knowledge.Migration
 
             await using var lease = await this.Lock(home, this.lockWait).AcquireAsync(cancellationToken);
 
-            return new MigrationResult(home, installs, await this.CopyAsync(home, installs, new KnowledgeLayout(home), cancellationToken));
+            var (copied, leftOut) = await this.CopyAsync(home, installs, new KnowledgeLayout(home), cancellationToken);
+
+            return new MigrationResult(home, installs, copied) { LeftOut = leftOut };
         }
 
         /// <summary>Whether two paths name the same folder.</summary>
@@ -417,6 +421,20 @@ namespace Hypha.Knowledge.Migration
                 .Where(install => !SameFolder(install.Root, home))
                 .ToList();
 
+        /// <summary>
+        /// Adds a version to what is left out, unless a client folder copied from earlier already left out the
+        /// same kind and tag: the folders are taken most recently changed first, and one entry says enough.
+        /// </summary>
+        /// <param name="leftOut">What this migration left out so far.</param>
+        /// <param name="version">The version to leave out.</param>
+        private static void LeaveOut(List<LeftOutVersion> leftOut, LeftOutVersion version)
+        {
+            if (!leftOut.Any(earlier => earlier.Kind == version.Kind && earlier.Tag == version.Tag))
+            {
+                leftOut.Add(version);
+            }
+        }
+
         /// <summary>The release-operation lock of a knowledge folder.</summary>
         /// <param name="root">The folder.</param>
         /// <param name="wait">How long to wait for it.</param>
@@ -426,17 +444,18 @@ namespace Hypha.Knowledge.Migration
 
         /// <summary>
         /// Copies every release and API version <paramref name="target"/> lacks, the most recently changed
-        /// client folder first, each under that folder's own lock, then writes the manifests and the marker.
+        /// client folder first, each under that folder's own lock, then writes the manifests, the record of what
+        /// it left out (<see cref="LeftOutFile"/>) and the marker.
         /// </summary>
         /// <param name="home">The <c>HYPHA_HOME</c> folder.</param>
         /// <param name="installs">The client folders.</param>
         /// <param name="target">The <c>HYPHA_HOME</c> layout.</param>
         /// <param name="cancellationToken">Cancels the copy between files.</param>
-        /// <returns>What was copied.</returns>
+        /// <returns>What was copied, and what was found but left out because it would answer wrongly.</returns>
         /// <exception cref="ReleaseOperationLockException">
         /// A client is changing its releases; nothing is recorded, and what was copied so far is not installed.
         /// </exception>
-        private async Task<List<MigratedVersion>> CopyAsync(
+        private async Task<(List<MigratedVersion> Copied, List<LeftOutVersion> LeftOut)> CopyAsync(
             DirectoryInfo home, IReadOnlyList<LegacyInstall> installs, KnowledgeLayout target, CancellationToken cancellationToken)
         {
             var apiTarget = new ApiLayout(target);
@@ -450,6 +469,7 @@ namespace Hypha.Knowledge.Migration
             var releaseDefault = existing?.Default;
             var apiDefault = existingApi?.Default;
             var copied = new List<MigratedVersion>();
+            var leftOut = new List<LeftOutVersion>();
 
             var ordered = installs
                 .Select(install => (install, changed: File.GetLastWriteTimeUtc(new KnowledgeLayout(install.Root).VersionManifest.FullName)))
@@ -490,6 +510,7 @@ namespace Hypha.Knowledge.Migration
                     if (Outdated(Generated(source, version.Tag)) is { } releaseFormat)
                     {
                         OutdatedMessage(this.logger, MigratedVersion.Release, version.Tag, install.Origin, releaseFormat, null);
+                        LeaveOut(leftOut, new LeftOutVersion(MigratedVersion.Release, version.Tag, install.Origin, releaseFormat));
                         continue;
                     }
 
@@ -514,6 +535,7 @@ namespace Hypha.Knowledge.Migration
                     if (Outdated(Generated(apiSource, version.Tag)) is { } apiFormat)
                     {
                         OutdatedMessage(this.logger, MigratedVersion.Api, version.Tag, install.Origin, apiFormat, null);
+                        LeaveOut(leftOut, new LeftOutVersion(MigratedVersion.Api, version.Tag, install.Origin, apiFormat));
                         continue;
                     }
 
@@ -550,9 +572,16 @@ namespace Hypha.Knowledge.Migration
                     apiTarget.VersionManifest.FullName);
             }
 
+            // A version one client had in an older format may have come from another client after all.
+            leftOut.RemoveAll(version => version.Kind == MigratedVersion.Release
+                ? releases.Any(installed => installed.Tag == version.Tag)
+                : apis.Any(installed => installed.Tag == version.Tag));
+
+            // Before the marker: once it is written, no later run looks again, and this record is what says why.
+            LeftOutFile.Add(home, leftOut);
             Record(home, installs);
 
-            return copied;
+            return (copied, leftOut);
         }
     }
 }

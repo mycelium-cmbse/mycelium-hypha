@@ -388,6 +388,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`jq`** (`refs #197`): no skill runs it any more, and the README no longer recommends it.
 
 ### Fixed
+- **A release the migration left out is named, and why** (`refs #224`): a release or API version an
+  earlier client had installed in an older format is not copied into `HYPHA_HOME`, and was reported
+  only as a warning on standard error, which a client may never show, so `hypha_release_status` said
+  nothing was installed without saying why. The migration now records each one with its reason in
+  `.migration-left-out.json`, and `hypha_release_status` (`leftOut`), `hypha list` and `hypha migrate`
+  name it until it is installed again.
+- **A refusal is no longer logged as a failure** (`refs #224`): a tool that refuses, such as removing
+  the default release or asking about a release that is not installed, sent the client a proper message
+  but was logged as `[ERR] "<tool>" threw an unhandled exception`. The server now answers it as a tool
+  error itself and logs it at information level. A failure, a knowledge file that cannot be read or an
+  upstream that cannot be reached, is answered the same way but logged as a warning with its exception;
+  a protocol error and any other exception are reported by the SDK as before.
 - **A project folder no longer captures the hypha server** (`refs #224`): `hypha serve` used to
   answer from, and install releases into, any folder above its working directory that held both
   `sources/` and `knowledge/`, and an AI client usually starts it in the user's project. It now

@@ -11,10 +11,12 @@ namespace Hypha.Tools.Commands
 {
     using System;
     using System.CommandLine;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Layout;
+    using Hypha.Knowledge.Migration;
     using Hypha.Knowledge.Query;
 
     using Spectre.Console;
@@ -89,6 +91,7 @@ namespace Hypha.Tools.Commands
                 if (releases.Count == 0)
                 {
                     AnsiConsole.MarkupLine($"[yellow]No release is installed under {Markup.Escape(this.layout.Root.FullName)}.[/]");
+                    WriteLeftOut(inventory);
                     AnsiConsole.MarkupLine("[grey]Run 'hypha fetch --tag <release>' to install one.[/]");
 
                     return 1;
@@ -112,8 +115,24 @@ namespace Hypha.Tools.Commands
                 }
 
                 AnsiConsole.Write(table);
+                WriteLeftOut(inventory);
 
                 return 0;
+            }
+
+            /// <summary>
+            /// Names each release a client had that the migration into this folder left out, and why, so that
+            /// a missing release is explained rather than only missing.
+            /// </summary>
+            /// <param name="inventory">The inventory, with what is still left out.</param>
+            private static void WriteLeftOut(ReleaseInventory inventory)
+            {
+                foreach (var version in inventory.LeftOut.Where(version => version.Kind == MigratedVersion.Release))
+                {
+                    AnsiConsole.MarkupLine(
+                        $"[yellow]Release {Markup.Escape(version.Tag)} from {Markup.Escape(version.From)} was not copied: "
+                        + $"{Markup.Escape(version.Reason)}. Install it again to use it.[/]");
+                }
             }
         }
     }
