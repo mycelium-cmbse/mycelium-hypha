@@ -14,6 +14,7 @@ namespace Hypha.Knowledge.Tests
     using System.Linq;
 
     using Hypha.Knowledge.CrossReferences;
+    using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Query;
 
     [TestFixture]
@@ -136,6 +137,50 @@ namespace Hypha.Knowledge.Tests
             {
                 Assert.That(result.Available, Is.True);
                 Assert.That(result.Value!.Select(match => match.Address.Name), Is.EqualTo(new[] { "8.3.6.3" }));
+            });
+        }
+
+        [Test]
+        public void Pages_missing_from_the_index_fail_the_search_naming_the_first_in_clause_order()
+        {
+            File.Delete(Path.Combine(this.Catalog("kerml").DirectoryName!, "07.04.02-feature.md"));
+            File.Delete(Path.Combine(this.Catalog("kerml").DirectoryName!, "08.03.03.01.08-feature.md"));
+
+            Assert.That(
+                () => this.fixture.Query.SearchSpecification("feature"),
+                Throws.TypeOf<KnowledgeLookupException>()
+                    .With.Message.Contains("07.04.02-feature.md")
+                    .And.Message.Not.Contains("08.03.03.01.08-feature.md"));
+        }
+
+        [Test]
+        public void Many_clauses_are_all_searched_and_ranked_the_same_way_every_time()
+        {
+            const int Count = 300;
+            var catalog = this.Catalog("sysml2");
+            var clauses = Enumerable.Range(1, Count)
+                .Select(at => ($"9.{at}", $"Clause {at}", "1", true, $"09.{at:D3}-clause.md"))
+                .ToArray();
+            QueryFixture.WriteSpecification(catalog, "SysML", clauses);
+
+            foreach (var (_, _, _, _, file) in clauses)
+            {
+                var at = int.Parse(file[3..6], System.Globalization.CultureInfo.InvariantCulture);
+                this.Page("sysml2", file, string.Join(' ', Enumerable.Repeat("needle", at % 7 + 1)));
+            }
+
+            var first = this.fixture.Query.SearchSpecification("needle", document: "sysml2", limit: KnowledgeQuery.MaxSearchHits).Value!
+                .Select(match => $"{match.Address.Name} {match.Occurrences}")
+                .ToList();
+            var again = QueryFixture.NewQuery(this.fixture.Layout, this.fixture.ApiLayout)
+                .SearchSpecification("needle", document: "sysml2", limit: KnowledgeQuery.MaxSearchHits).Value!
+                .Select(match => $"{match.Address.Name} {match.Occurrences}");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(first, Has.Count.EqualTo(KnowledgeQuery.MaxSearchHits));
+                Assert.That(first[0], Is.EqualTo("9.6 7"));
+                Assert.That(again, Is.EqualTo(first));
             });
         }
 
