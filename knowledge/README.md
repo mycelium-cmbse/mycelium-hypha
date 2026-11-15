@@ -7,8 +7,7 @@ generates it on the user's own machine, on request. See the root [`CLAUDE.md`](.
 inputs only) and [`sources/README.md`](../sources/README.md) for how a release is fetched.
 
 > Do not hand-edit generated files. Change the pipeline (`tools/`) or the source (`sources/`)
-> and regenerate. Curated content (currently only parts of `textual-notation/`) is the exception
-> and is marked as such.
+> and regenerate.
 
 ## Layout
 
@@ -20,12 +19,17 @@ knowledge/
 └── <tag>/                  e.g. 2026-05                                         (local, git-ignored)
     ├── metamodel/          Combined KerML + SysML v2 metamodel (one tree)
     │   ├── index.md        Manifest: every metaclass (+ enumeration, primitive type) → its element file
+    │   ├── index.json      The same name → element lookup, for programs
+    │   ├── metamodel.json  The whole metamodel as a graph (schema 2.1.0, metamodel.schema.json)
+    │   ├── diagrams/       One Mermaid class diagram per package
     │   └── elements/       One markdown file per element (metaclasses, enumerations, primitive types)
+    ├── model-library/      The standard model libraries: index.md, index.json, one page per package
     ├── spec/
     │   ├── kerml/          KerML 1.0 spec text, segmented by clause
     │   └── sysml2/         SysML v2 (Parts 1 and 2) spec text, segmented by clause
     ├── textual-notation/
-    │   ├── index.md        Grammar summary + entry point
+    │   ├── index.md        Keyword reference + a link to every example
+    │   ├── grammar-{kerml,sysml,graphical}.md   Every production, by clause, with what it builds
     │   ├── keywords.json   Each keyword and operator → the productions and metaclasses using it
     │   └── examples/       Worked SysML v2 / KerML textual-notation examples, and index.json:
     │                       each example's page name → its model name, language, source and metaclasses
@@ -53,15 +57,16 @@ knowledge/
 | `<tag>/metamodel/` | `sources/<tag>/xmi/*.uml` (full KerML + SysML metamodel) | `tools/metamodel-gen` (C# / uml4net) |
 | `<tag>/spec/` | `sources/<tag>/specs/*.pdf` | `tools/spec-extract` (Python), run through `uv` on demand (git-ignored) |
 | `<tag>/textual-notation/` | `sources/<tag>/textual/`, grammar (`bnf/`) | `tools/knowledge-gen` (C#) |
-| `<tag>/cross-references.json` | the metamodel index + generated examples | `tools/knowledge-gen` (C#) |
+| `<tag>/model-library/` | `sources/<tag>/textual/sysml.library/` | `tools/knowledge-gen` (C#) |
+| `<tag>/cross-references.json` | the metamodel index, the grammars, the generated examples and, when present, the `spec/` catalogs | `tools/knowledge-gen` (C#) |
 | `api/<version>/pim/` | `sources/api/<version>/xmi/Systems-Modeling-API.xmi` | `tools/metamodel-gen` (C# / uml4net) |
 | `api/<version>/openapi/` | `sources/api/<version>/openapi/openapi.json` | `tools/knowledge-gen` (C#) |
 | `api/<version>/spec/` | `sources/api/<version>/specs/*.pdf` | `tools/spec-extract` (Python), run through `uv` on demand (git-ignored) |
 | `api/<version>/cross-references.json` | the three API artifacts above | `tools/knowledge-gen` (C#) |
 
 The exact upstream source, version and commit of each input (and its license) are recorded in
-[`sources/README.md`](../sources/README.md#provenance), so a regenerated knowledge base is traceable
-to a specific specification version.
+[`sources/README.md`](../sources/README.md#where-the-inputs-come-from), so a regenerated knowledge
+base is traceable to a specific specification version.
 
 > `spec/` holds verbatim OMG specification text (OMG licensing forbids redistributing it), but like
 > every other `<tag>/` subfolder it is now a plain `hypha generate --tag <tag>` away: `SpecGenerator`

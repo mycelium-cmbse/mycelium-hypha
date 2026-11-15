@@ -4,7 +4,7 @@
 # Every client package names this one extensionless path. On Windows a client finds
 # bin/hypha-launch.exe from it instead; elsewhere this script execs bin/<rid>/hypha-launch, which
 # provisions the matching hypha into HYPHA_HOME and runs "hypha serve" on the same standard input and
-# output. See tools/hypha-cli/README.md.
+# output. See tools/hypha-launcher/README.md.
 set -eu
 
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)

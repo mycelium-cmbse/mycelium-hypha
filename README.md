@@ -8,21 +8,68 @@ the `hypha` command-line tool both are built on.
 
 ## What's in here
 
-mycelium-hypha contains three related parts:
+mycelium-hypha ships three things, each with a version and a release of its own. The plugin and the
+extension both run the tools.
 
-1. **The `hypha` Claude plugin**: skills and an MCP server that give grounded answers about KerML and
-   SysML v2, backed by a knowledge base fetched and generated on your own machine, on request.
-   Nothing per-release is committed to this repository.
-2. **The VS Code extension** (`extensions/vscode/`): an extension for GitHub Copilot that gives it
-   the hypha MCP server, from the `hypha` it bundles, over the shared `HYPHA_HOME` folder. It is a
-   preview, published on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha)
-   for Windows x64 and Linux x64/arm64. See its [user guide](extensions/vscode/README.md) or
-   [development guide](extensions/vscode/DEVELOPMENT.md).
-3. **The generation pipelines** (`tools/`) that build the knowledge base from the upstream OMG
-   sources, driven by the `hypha` command-line tool, which is published on
-   [NuGet](https://www.nuget.org/packages/Hypha.Tools) and as self-contained executables. The
-   pipelines are not part of the installed plugin; see [Contributing](#contributing) if you want to
-   work on them.
+### The tools: the `hypha` program
+
+`hypha` is where everything that knows about SysML v2 and KerML lives. It fetches the OMG sources
+of a release from GitHub, generates the knowledge from them (the metamodel, the grammar, the
+standard model library, the specification text and the cross-references) into the `HYPHA_HOME`
+folder, and answers from it. Its verbs (`hypha query`, `hypha lookup`, `hypha list`, ...) answer on
+the command line; `hypha serve` runs it as an MCP server, whose tools an AI client calls.
+
+- Code: [`tools/`](tools/README.md): the CLI (`hypha-cli`), the MCP server (`hypha-mcp`) and the
+  generation (`knowledge-gen`, `metamodel-gen`, `spec-extract`).
+- Released as a `tools-vX.Y.Z` tag: a `dotnet tool` on [NuGet](https://www.nuget.org/packages/Hypha.Tools),
+  and a self-contained executable per platform attached to the GitHub release.
+- Used directly by developers, scripts and CI; everyone else gets it through the plugin or the
+  extension.
+
+### The plugin: what an AI client installs
+
+The plugin holds almost no logic of its own:
+
+- `skills/`: how to answer SysML v2 questions with hypha's tools.
+- `bin/hypha-launch`: a small native launcher, committed per platform.
+- The manifests every kind of client reads, all rendered from `manifest.source.json`:
+  `.claude-plugin/` (Claude Code), `plugin.json` and `mcp.json` (Agent Plugins: Copilot, Cursor,
+  Codex), `gemini-extension.json` (Gemini CLI) and `packaging/mcpb/` (the Claude Desktop bundle).
+
+When a client starts it, the launcher reads the tools version `bin/hypha-launch.json` names,
+downloads that `hypha` from its `tools-v` release once, checks it against the release's checksums,
+keeps it in `HYPHA_HOME` and hands the client over to `hypha serve`. The plugin is the tools,
+delivered and started for you. It is released as a `vX.Y.Z` tag, through the marketplace in
+`.claude-plugin/marketplace.json`, with the `.mcpb` bundle attached to its GitHub release.
+
+### The VS Code extension: the same server for GitHub Copilot
+
+The extension ([`extensions/vscode/`](extensions/vscode/README.md)) registers `hypha serve` as an
+MCP server for Copilot, and has no tools, commands or storage of its own. Unlike the plugin it does
+not download `hypha`: each platform's VSIX bundles one, built from a `tools-v` tag. It is published
+to the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha),
+marked as a preview, for Windows x64 and Linux x64/arm64; see its
+[development guide](extensions/vscode/DEVELOPMENT.md).
+
+### How they fit together
+
+```
+                  tools: hypha (CLI, MCP server, knowledge generation)
+                 /                                                  \
+ plugin: downloads it on first start                  extension: bundles it in its VSIX
+ (launcher, skills, manifests)                        (registers it for Copilot)
+        |                                                           |
+ Claude Code, Claude Desktop, Copilot, Cursor,                VS Code with Copilot
+ Codex, Gemini CLI, Junie, Zed, ...
+                 \                                                  /
+         one shared HYPHA_HOME: a release installed once answers in every client
+```
+
+- **The tools are released first.** A plugin or an extension that names a tools version cannot
+  start before that version is published; [`RELEASING.md`](RELEASING.md) gives the order.
+- **Their versions move on their own.** The tools take a major version when what they generate or
+  read changes incompatibly; the plugin when what it gives a client is removed or changed; the
+  extension by its own rule (an odd minor is a Marketplace pre-release).
 
 ```
 mycelium-hypha/
@@ -32,7 +79,7 @@ mycelium-hypha/
 ├── extensions/vscode/ VS Code GitHub Copilot extension
 ├── knowledge/        Knowledge base, fetched and generated locally, one folder per release tag
 ├── sources/          Raw OMG inputs, fetched locally, one folder per release tag
-└── tools/            Generation pipelines (not part of the installed plugin)
+└── tools/            The hypha tools: the CLI, the MCP server and the knowledge generation
 ```
 
 ## Install
@@ -41,7 +88,7 @@ mycelium-hypha/
 
 Install **Hypha – SysML v2 and KerML** from the Extensions view, or from its
 [Marketplace page](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha).
-It is published as a pre-release for Windows x64 and for Linux x64 and arm64, which also covers WSL
+It is published for Windows x64 and for Linux x64 and arm64, which also covers WSL
 and SSH remotes; on macOS, build a VSIX with the [development guide](extensions/vscode/DEVELOPMENT.md).
 It gives Copilot the hypha MCP server, and shares its release data with every other Hypha client on
 the machine. See its [user guide](extensions/vscode/README.md).

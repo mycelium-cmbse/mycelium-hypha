@@ -117,8 +117,8 @@ extracted specification text. Text the tools return to Copilot becomes part of i
 
 - Hypha supports **SysML v2 and KerML**, not UML.
 - The tools give source-backed knowledge, not compiler validation of your models.
-- Hypha is published for Windows x64 and Linux x64/arm64. macOS x64/arm64 packages build but have
-  not been validated yet, and are not published.
+- Hypha is published for Windows x64 and Linux x64/arm64. Windows arm64 and macOS x64/arm64
+  packages build but have not been validated yet, and are not published.
 
 For feedback and source code, visit the
 [Hypha repository](https://github.com/mycelium-cmbse/mycelium-hypha).

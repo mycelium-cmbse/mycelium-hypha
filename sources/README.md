@@ -111,8 +111,9 @@ release either. Comparing what's installed locally against what's offerable upst
 or the MCP server's `hypha_check_releases`) only reports the result; it never fetches or generates
 anything itself. Getting a release, first one or another, is always something the user asks for
 (conversationally, through the `version-management` skill and the server's `hypha_install_release`,
-or directly): `hypha fetch --tag <tag>` + `hypha generate --tag <tag>` lands it as an ordinary, git-ignored `knowledge/<tag>/` + `sources/<tag>/`
-- every release is handled identically, none of them privileged by being committed. `hypha use --tag
+or directly): `hypha fetch --tag <tag>` + `hypha generate --tag <tag>` lands it as an ordinary,
+git-ignored `knowledge/<tag>/` + `sources/<tag>/`. Every release is handled identically, none of
+them privileged by being committed. `hypha use --tag
 <tag>` switches which installed release every skill answers from; `hypha remove --tag <tag>` drops one
 no longer wanted (refusing on the current default or the last release without `--force`).
 
