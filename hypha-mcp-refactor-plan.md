@@ -332,7 +332,7 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | 8: CI and release | #200 | Hook project removed, workflow renamed (#239); Linux arm64, ReadyToRun and `RELEASING.md` open |
 | Follow-ups from the reviews | #224 | Fixes done (#232); the test gaps and four findings of the end-to-end run open |
 | 9: a pre-release, verified across clients | #201 | Open; every manual check is here |
-| 10: release tools 1.6.0 and plugin 3.0.0 | #197 | Open; after Step 9 |
+| 10: release tools 2.0.0 and plugin 3.0.0 | #197 | Open; after Step 9 |
 
 Nothing is released before Step 9's pre-release: plugin users stay on the release the marketplace pins, and a tools release also publishes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its migration.
 
@@ -443,7 +443,7 @@ Found in November 2026, checking the plan against the code: `SpecGenerator` and 
 
 Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 and #165 held moved in.
 
-- [ ] First, a pre-release such as `1.6.0-beta.1`, with `bin/hypha-launch.json` naming it, so every client downloads a real `hypha` on its first start. GitHub and NuGet mark it as a pre-release, so `dotnet tool update` passes it by; it stays on nuget.org, where a version can be unlisted but not deleted.
+- [ ] First, a pre-release such as `2.0.0-beta.1`, with `bin/hypha-launch.json` naming it, so every client downloads a real `hypha` on its first start. GitHub and NuGet mark it as a pre-release, so `dotnet tool update` passes it by; it stays on nuget.org, where a version can be unlisted but not deleted.
 - [ ] Prototype with `HYPHA_BIN` pointing at a local build of `hypha` (no release needed). Check that the server connects, that the tools, resources and prompts appear, and that a first start's handover refreshes the client's tool list.
   - [x] Claude Code on Windows: the server connects through `bin/hypha-launch` and answers (November 2026).
   - [ ] Claude Code on macOS or Linux.
@@ -463,9 +463,9 @@ Every manual check is here, and in no other issue: the ones Step 5 (#198), #163 
 - [ ] The VS Code extension on Windows on Arm (`win32-arm64`; from #163): validate as for Windows x64 (#157): host test, the server end to end, cancellation, the lock.
 - [ ] The editors that install from Open VSX (VSCodium, Cursor, Windsurf; from #165): check that each offers `vscode.lm.registerMcpServerDefinitionProvider`, which the extension registers the server through; where one does not, point its users at the manual configuration instead.
 
-### Step 10: Release tools 1.6.0 and plugin 3.0.0 (#197)
+### Step 10: Release tools 2.0.0 and plugin 3.0.0 (#197)
 
-- [ ] Release once Step 9 has verified the pre-release, and nothing before but that pre-release: `tools-v1.6.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking).
+- [ ] Release once Step 9 has verified the pre-release, and nothing before but that pre-release: `tools-v2.0.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking).
 
 ### Follow-ups from the reviews (#224)
 
