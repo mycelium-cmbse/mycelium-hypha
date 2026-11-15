@@ -182,10 +182,11 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
-        public void Discovery_finds_a_folder_holding_both_trees()
+        public void Discovery_finds_a_folder_holding_both_trees_and_the_solution()
         {
             Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "sources"));
             Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "knowledge"));
+            File.WriteAllText(Path.Combine(this.workspace.FullName, KnowledgeLayout.CheckoutMarker), string.Empty);
 
             var nested = Directory.CreateDirectory(
                 Path.Combine(this.workspace.FullName, "tools", "somewhere", "bin"));
@@ -196,12 +197,26 @@ namespace Hypha.Knowledge.Tests
         [Test]
         public void Discovery_needs_both_trees_not_just_one()
         {
+            // The solution is there, so the missing sources/ is what rules the folder out.
             Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "knowledge"));
+            File.WriteAllText(Path.Combine(this.workspace.FullName, KnowledgeLayout.CheckoutMarker), string.Empty);
 
             var found = KnowledgeLayout.Discover(this.workspace);
 
             // A folder with only one of the two is not a checkout of this repository; walking on is
             // the right answer, and null when nothing above it qualifies either.
+            Assert.That(found?.Root.FullName, Is.Not.EqualTo(this.workspace.FullName));
+        }
+
+        [Test]
+        public void Discovery_needs_the_solution_not_just_the_two_trees()
+        {
+            // A user's own project may have folders of those names; it is not this repository.
+            Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "sources"));
+            Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "knowledge"));
+
+            var found = KnowledgeLayout.Discover(this.workspace);
+
             Assert.That(found?.Root.FullName, Is.Not.EqualTo(this.workspace.FullName));
         }
 

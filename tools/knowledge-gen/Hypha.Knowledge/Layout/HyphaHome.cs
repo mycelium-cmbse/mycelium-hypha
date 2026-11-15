@@ -25,7 +25,7 @@ namespace Hypha.Knowledge.Layout
     /// </para>
     /// <para>
     /// A maintainer working in a source checkout keeps using the checkout instead. The order is:
-    /// an explicit root; the CLI's checkout above the working directory; this folder when it is set
+    /// an explicit root; the CLI's checkout above the working directory, except under <c>serve</c>; this folder when it is set
     /// explicitly (<see cref="EnvironmentVariable"/> or <see cref="HyphaKnowledgeOptions.Home"/>);
     /// the checkout above the running assembly; and this folder's default location.
     /// </para>

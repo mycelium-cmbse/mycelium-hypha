@@ -115,11 +115,14 @@ self-consistency regeneration check) before pruning whichever locally-installed 
 (see `tools/hypha-cli/README.md`).
 
 **Where the knowledge lives.** The first of: `RepositoryRoot` (`--repository-root`); the source
-checkout above the working directory (the CLI only); `HyphaKnowledgeOptions.Home` or `HYPHA_HOME`,
-when set; the source checkout above the running assembly; and `HyphaHome`'s default location,
-`hypha` in the per-user application data folder. That folder is the one every client shares. The
-managed toolchain defaults to `toolchain/` in it. The plugin's skills reach that folder through the MCP
-server, which the launcher starts without `--repository-root`.
+checkout above the working directory (the CLI only, and not `hypha serve`, whose working directory an
+AI client chooses); `HyphaKnowledgeOptions.Home` or `HYPHA_HOME`, when set; the source checkout above
+the running assembly; and `HyphaHome`'s default location, `hypha` in the per-user application data
+folder. The home folder is the one every client shares. The managed toolchain defaults to
+`toolchain/` in it. The plugin's skills reach that folder through the MCP server, which the launcher
+starts without `--repository-root`. A source checkout is a folder holding `sources/`, `knowledge/`
+and `mycelium-hypha.sln` (`KnowledgeLayout.Discover`): the two folders alone may be a user's own
+project.
 The first time `hypha` reads an empty `HYPHA_HOME`, `IKnowledgeMigration` copies in the releases the
 plugin and the VS Code extension installed in their own folders (`ILegacyInstallLocator`), once;
 `hypha migrate` does it on request.
