@@ -388,6 +388,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`jq`** (`refs #197`): no skill runs it any more, and the README no longer recommends it.
 
 ### Fixed
+- **A project folder no longer captures the hypha server** (`refs #224`): `hypha serve` used to
+  answer from, and install releases into, any folder above its working directory that held both
+  `sources/` and `knowledge/`, and an AI client usually starts it in the user's project. It now
+  ignores its working directory and uses `HYPHA_HOME`, the folder every client shares, unless given
+  `--repository-root`. The other verbs still use a source checkout above the working directory, but
+  only a real one: a folder that also holds `mycelium-hypha.sln`.
 - **An install through `hypha serve` no longer hangs at the specification text** (`refs #237`): the
   processes `hypha` starts (`uv`, and the Python it runs) inherited its standard input, which under
   `hypha serve` is the pipe the MCP client writes to, and on Windows the extractor's build never

@@ -36,7 +36,10 @@ Every verb accepts `--repository-root`, `--toolchain-cache-root`, `--token`, `--
 `--repository-root <folder>` is the folder holding `sources/` and `knowledge/`. When it is omitted,
 `hypha` uses the first of:
 
-1. the source checkout above the working directory, which is how a maintainer works;
+1. the source checkout above the working directory, which is how a maintainer works: a folder
+   holding `sources/`, `knowledge/` and `mycelium-hypha.sln`, so a project of your own with folders
+   of those names is not taken for one. `hypha serve` skips this step, since an AI client chooses
+   its working directory, usually your project; pass `--repository-root` to serve a checkout;
 2. the `HYPHA_HOME` folder, when that environment variable is set;
 3. the source checkout above the `hypha` program itself, such as a build run with `dotnet run`
    from another folder;

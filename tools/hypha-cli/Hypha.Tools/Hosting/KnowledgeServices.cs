@@ -59,7 +59,8 @@ namespace Hypha.Tools.Hosting
         {
             ArgumentNullException.ThrowIfNull(parseResult);
 
-            var root = parseResult.GetValue(GlobalOptions.RepositoryRoot) ?? DiscoverRoot();
+            var root = parseResult.GetValue(GlobalOptions.RepositoryRoot)
+                       ?? DiscoverRoot(parseResult, new DirectoryInfo(Directory.GetCurrentDirectory()));
             var token = parseResult.GetValue(GlobalOptions.Token);
             var level = parseResult.GetValue(GlobalOptions.LogLevel);
 
@@ -149,18 +150,24 @@ namespace Hypha.Tools.Hosting
         private const string OutputTemplate = "[{Level:u3}] {Message:lj}{NewLine}{Exception}";
 
         /// <summary>
-        /// Finds the repository by walking up from the working directory.
+        /// Finds the checkout of this repository above the working directory, for every verb but
+        /// <c>serve</c>.
         /// </summary>
         /// <remarks>
         /// The working directory, not the assembly's: installed as a <c>dotnet tool</c> the assembly
-        /// sits under the user's tool store, which is nowhere near their checkout.
+        /// sits under the user's tool store, which is nowhere near their checkout. <c>serve</c> does not
+        /// look at all: an AI client chooses its working directory, usually the user's project, and the
+        /// releases its tools install belong in the folder every client shares, not in whatever the
+        /// client was started in. A maintainer who wants a checkout passes <c>--repository-root</c>.
         /// </remarks>
+        /// <param name="parseResult">The parsed command line.</param>
+        /// <param name="workingDirectory">The folder to walk up from.</param>
         /// <returns>
         /// The discovered root, or <c>null</c> to let <c>AddHyphaKnowledge</c> choose: a set
         /// <c>HYPHA_HOME</c>, then the checkout above the assembly, then the home folder's default
         /// location (<see cref="HyphaHome"/>).
         /// </returns>
-        private static DirectoryInfo? DiscoverRoot() =>
-            KnowledgeLayout.Discover(new DirectoryInfo(Directory.GetCurrentDirectory()))?.Root;
+        internal static DirectoryInfo? DiscoverRoot(ParseResult parseResult, DirectoryInfo workingDirectory) =>
+            ServeCommand.Owns(parseResult) ? null : KnowledgeLayout.Discover(workingDirectory)?.Root;
     }
 }

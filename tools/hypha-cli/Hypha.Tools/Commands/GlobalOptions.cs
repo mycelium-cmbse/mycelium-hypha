@@ -30,7 +30,7 @@ namespace Hypha.Tools.Commands
             {
                 Description =
                     "The folder holding sources/ and knowledge/. When omitted: the source checkout "
-                    + "above the working directory; else the HYPHA_HOME folder, when that is set; else "
+                    + "above the working directory (not for serve); else the HYPHA_HOME folder, when that is set; else "
                     + "the source checkout above the hypha program; else 'hypha' in the per-user "
                     + "application data folder.",
                 Recursive = true,

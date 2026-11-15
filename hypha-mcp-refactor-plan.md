@@ -497,7 +497,7 @@ From the end-to-end run (#237), seen in the run through the launcher in a clean 
 
 From the review of the VS Code extension (#244):
 
-- [ ] A project folder that holds both `sources/` and `knowledge/` captures the server: `hypha` prefers such a folder above its working directory over `HYPHA_HOME`, and a client such as Claude Code starts the launcher in the project folder. Releases installed through the server then land in the project, not in the shared folder. Decide whether `serve` should look above its working directory at all, or only accept a real checkout (one that also holds `mycelium-hypha.sln`). The VS Code extension avoids it by starting the server in its own folder (#244).
+- [x] A project folder that holds both `sources/` and `knowledge/` captures the server: `hypha` prefers such a folder above its working directory over `HYPHA_HOME`, and a client such as Claude Code starts the launcher in the project folder. Releases installed through the server then land in the project, not in the shared folder. Decided: both. `serve` does not look above its working directory at all, and every other verb accepts only a real checkout (one that also holds `mycelium-hypha.sln`). The VS Code extension also starts the server in its own folder (#244).
 
 ### Notes
 

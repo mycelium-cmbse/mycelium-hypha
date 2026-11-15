@@ -36,6 +36,12 @@ namespace Hypha.Knowledge.Layout
         public const string KnowledgeFolder = "knowledge";
 
         /// <summary>
+        /// The file at the root of a checkout of this repository, which <see cref="Discover"/> requires
+        /// beside <see cref="SourcesFolder"/> and <see cref="KnowledgeFolder"/>.
+        /// </summary>
+        public const string CheckoutMarker = "mycelium-hypha.sln";
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="KnowledgeLayout"/> class.
         /// </summary>
         /// <param name="root">The repository root: where the inputs are read from.</param>
@@ -136,11 +142,16 @@ namespace Hypha.Knowledge.Layout
             this.FileAt(KnowledgeFolder, "metamodel.schema.json");
 
         /// <summary>
-        /// Walks up from <paramref name="start"/> looking for a folder that holds both
-        /// <c>sources/</c> and <c>knowledge/</c>.
+        /// Walks up from <paramref name="start"/> looking for a checkout of this repository: a folder
+        /// that holds <c>sources/</c>, <c>knowledge/</c> and <see cref="CheckoutMarker"/>.
         /// </summary>
+        /// <remarks>
+        /// The two folders alone are not enough: a user's own project may well have folders of those
+        /// names, and taking it for the repository would write the releases into it rather than into
+        /// the shared home folder.
+        /// </remarks>
         /// <param name="start">Where to start; defaults to the running assembly's folder.</param>
-        /// <returns>The layout, or <c>null</c> when there is no repository above the starting point.</returns>
+        /// <returns>The layout, or <c>null</c> when there is no checkout above the starting point.</returns>
         public static KnowledgeLayout? Discover(DirectoryInfo? start = null)
         {
             for (var directory = start ?? new DirectoryInfo(AppContext.BaseDirectory);
@@ -148,7 +159,8 @@ namespace Hypha.Knowledge.Layout
                  directory = directory.Parent)
             {
                 if (Directory.Exists(Path.Combine(directory.FullName, SourcesFolder))
-                    && Directory.Exists(Path.Combine(directory.FullName, KnowledgeFolder)))
+                    && Directory.Exists(Path.Combine(directory.FullName, KnowledgeFolder))
+                    && File.Exists(Path.Combine(directory.FullName, CheckoutMarker)))
                 {
                     return new KnowledgeLayout(directory);
                 }
