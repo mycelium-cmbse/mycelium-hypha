@@ -110,7 +110,7 @@ namespace Hypha.Tools.Commands.Api
                 try
                 {
                     installation = await ProgressDisplay.RunAsync(
-                        progress => this.installer.InstallAsync(request, cancellationToken, progress));
+                        progress => this.installer.InstallAsync(request, progress, cancellationToken));
                 }
                 catch (ArgumentException exception)
                 {

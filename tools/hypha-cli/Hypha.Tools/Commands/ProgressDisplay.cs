@@ -11,6 +11,7 @@ namespace Hypha.Tools.Commands
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Progress;
@@ -61,7 +62,7 @@ namespace Hypha.Tools.Commands
             private readonly Dictionary<string, ProgressTask> bars = new(StringComparer.Ordinal);
 
             /// <summary>Guards <see cref="bars"/>: a fetch reports from several downloads at once.</summary>
-            private readonly object gate = new();
+            private readonly Lock gate = new();
 
             /// <summary>Initializes a new instance of the <see cref="Reporter"/> class.</summary>
             /// <param name="context">The display the bars belong to.</param>

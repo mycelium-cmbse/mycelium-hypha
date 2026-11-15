@@ -44,17 +44,17 @@ namespace Hypha.Knowledge.Tests
 
             this.fetcher
                 .Setup(mock => mock.FetchMetamodelAsync(
-                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Files("KerML.uml", "SysML.uml"));
 
             this.fetcher
                 .Setup(mock => mock.FetchTextualAsync(
-                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Files("model.sysml"));
 
             this.fetcher
                 .Setup(mock => mock.FetchSpecificationsAsync(
-                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Files("KerML.pdf"));
 
             this.resolver = new Mock<ICommitResolver>();
@@ -131,7 +131,7 @@ namespace Hypha.Knowledge.Tests
 
             this.fetcher.Verify(
                 mock => mock.FetchSpecificationsAsync(
-                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), null, It.IsAny<CancellationToken>()),
                 Times.Never);
 
             var with = await this.installer.InstallAsync(
@@ -147,7 +147,7 @@ namespace Hypha.Knowledge.Tests
 
             this.fetcher.Verify(
                 mock => mock.FetchTextualAsync(
-                    "2026-05", It.IsAny<DirectoryInfo>(), true, It.IsAny<CancellationToken>()),
+                    "2026-05", It.IsAny<DirectoryInfo>(), true, null, It.IsAny<CancellationToken>()),
                 Times.Once,
                 "skipExisting defaults on, which is what makes an interrupted fetch resumable");
         }
@@ -228,7 +228,7 @@ namespace Hypha.Knowledge.Tests
             // A release recorded but half-fetched would generate a knowledge base that looks complete.
             this.fetcher
                 .Setup(mock => mock.FetchTextualAsync(
-                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(), null, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new IOException("the host reset the connection"));
 
             Assert.That(
@@ -250,33 +250,33 @@ namespace Hypha.Knowledge.Tests
             this.fetcher
                 .Setup(mock => mock.FetchMetamodelAsync(
                     It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>>()))
-                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<KnowledgeProgress>?>(
-                    (_, _, _, _, progress) => seenByMetamodel = progress)
+                    It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, DirectoryInfo, bool, IProgress<KnowledgeProgress>?, CancellationToken>(
+                    (_, _, _, progress, _) => seenByMetamodel = progress)
                 .ReturnsAsync(Files("KerML.uml", "SysML.uml"));
 
             this.fetcher
                 .Setup(mock => mock.FetchTextualAsync(
                     It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>>()))
-                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<KnowledgeProgress>?>(
-                    (_, _, _, _, progress) => seenByTextual = progress)
+                    It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, DirectoryInfo, bool, IProgress<KnowledgeProgress>?, CancellationToken>(
+                    (_, _, _, progress, _) => seenByTextual = progress)
                 .ReturnsAsync(Files("model.sysml"));
 
             this.fetcher
                 .Setup(mock => mock.FetchSpecificationsAsync(
                     It.IsAny<string>(), It.IsAny<DirectoryInfo>(), It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>(), It.IsAny<IProgress<KnowledgeProgress>>()))
-                .Callback<string, DirectoryInfo, bool, CancellationToken, IProgress<KnowledgeProgress>?>(
-                    (_, _, _, _, progress) => seenBySpecifications = progress)
+                    It.IsAny<IProgress<KnowledgeProgress>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, DirectoryInfo, bool, IProgress<KnowledgeProgress>?, CancellationToken>(
+                    (_, _, _, progress, _) => seenBySpecifications = progress)
                 .ReturnsAsync(Files("KerML.pdf"));
 
             var reporter = new Progress<KnowledgeProgress>();
 
             await this.installer.InstallAsync(
                 new ReleaseInstallRequest { Tag = "2026-05", IncludeSpecifications = true },
-                CancellationToken.None,
-                reporter);
+                reporter,
+                CancellationToken.None);
 
             Assert.Multiple(() =>
             {

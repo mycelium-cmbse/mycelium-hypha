@@ -30,6 +30,9 @@ namespace Hypha.Knowledge.Api.OpenApi
         /// <summary>The HTTP methods read from each path item, in the order their operations are listed.</summary>
         private static readonly string[] Methods = ["get", "post", "put", "patch", "delete"];
 
+        /// <summary>The keywords whose alternatives a schema may be any one of.</summary>
+        private static readonly string[] VariantKeywords = ["oneOf", "anyOf"];
+
         /// <summary>
         /// Reads the title, versions, tags, schemas and endpoints of <paramref name="json"/>, and which
         /// schemas the endpoints use in a request body, a response or both.
@@ -187,7 +190,7 @@ namespace Hypha.Knowledge.Api.OpenApi
                     .ToList()
                 : [];
 
-            var variants = new[] { "oneOf", "anyOf" }
+            var variants = VariantKeywords
                 .Where(keyword => schema.TryGetProperty(keyword, out var value) && value.ValueKind == JsonValueKind.Array)
                 .SelectMany(keyword => schema.GetProperty(keyword).EnumerateArray())
                 .Where(alternative => alternative.ValueKind == JsonValueKind.Object && alternative.TryGetProperty("$ref", out _))

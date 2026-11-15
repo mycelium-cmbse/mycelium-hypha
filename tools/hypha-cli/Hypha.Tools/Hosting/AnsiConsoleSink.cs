@@ -14,7 +14,6 @@ namespace Hypha.Tools.Hosting
 
     using Serilog.Core;
     using Serilog.Events;
-    using Serilog.Formatting;
     using Serilog.Formatting.Display;
 
     using Spectre.Console;
@@ -30,7 +29,7 @@ namespace Hypha.Tools.Hosting
     public sealed class AnsiConsoleSink : ILogEventSink
     {
         /// <summary>Renders an event the way the console sink does.</summary>
-        private readonly ITextFormatter formatter;
+        private readonly MessageTemplateTextFormatter formatter;
 
         /// <summary>Initializes a new instance of the <see cref="AnsiConsoleSink"/> class.</summary>
         /// <param name="outputTemplate">The Serilog output template each line is rendered with.</param>

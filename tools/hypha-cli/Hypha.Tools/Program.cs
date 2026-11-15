@@ -100,65 +100,67 @@ namespace Hypha.Tools
             root.Options.Add(GlobalOptions.NoLogo);
 
             var discover = new DiscoverCommand();
-            discover.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
-                new DiscoverCommand.Handler(provider.GetRequiredService<IReleaseDiscovery>()).InvokeAsync(parseResult, cancellationToken)));
+            discover.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new DiscoverCommand.Handler(provider.GetRequiredService<IReleaseDiscovery>()).InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(discover);
 
             var fetch = new FetchCommand();
-            fetch.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
-                new FetchCommand.Handler(provider.GetRequiredService<IReleaseInstaller>()).InvokeAsync(parseResult, cancellationToken)));
+            fetch.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new FetchCommand.Handler(provider.GetRequiredService<IReleaseInstaller>()).InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(fetch);
 
             var generate = new GenerateCommand();
-            generate.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
+            generate.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
                 new GenerateCommand.Handler(provider.GetRequiredService<IKnowledgeBuilder<IKnowledgeGenerator>>(), provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(parseResult, cancellationToken),
-                parseResult.GetValue(GenerateCommand.Output)));
+                parseResult.GetValue(GenerateCommand.Output),
+                configure: null,
+                cancellationToken));
             root.Add(generate);
 
             var list = new ListCommand();
-            list.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
+            list.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
                 new ListCommand.Handler(provider.GetRequiredService<IKnowledgeQuery>(), provider.GetRequiredService<IKnowledgeLayout>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(list);
 
             var lookup = new LookupCommand();
-            lookup.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
-                new LookupCommand.Handler(provider.GetRequiredService<IKnowledgeLookup>()).InvokeAsync(parseResult, cancellationToken)));
+            lookup.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new LookupCommand.Handler(provider.GetRequiredService<IKnowledgeLookup>()).InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(lookup);
 
             var query = new QueryCommand();
             foreach (var verb in query.Verbs)
             {
-                verb.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
+                verb.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
                     new QueryCommand.Handler(query, provider.GetRequiredService<IKnowledgeQuery>(), provider.GetRequiredService<IApiQuery>())
-                        .InvokeAsync(parseResult, cancellationToken)));
+                        .InvokeAsync(parseResult, cancellationToken), cancellationToken));
             }
 
             root.Add(query);
 
             var moveWindow = new MoveWindowCommand();
-            moveWindow.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
+            moveWindow.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
                 new MoveWindowCommand.Handler(provider.GetRequiredService<IReleaseInstaller>(), provider.GetRequiredService<IKnowledgeBuilder<IKnowledgeGenerator>>(),
                         provider.GetRequiredService<IKnowledgeLayout>(), provider.GetRequiredService<IReleaseWindowEvictor>(),
                         provider.GetRequiredService<IProcessRunner>(), provider.GetRequiredService<ILogger<MoveWindowCommand.Handler>>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(moveWindow);
 
             var use = new UseCommand();
-            use.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
-                new UseCommand.Handler(provider.GetRequiredService<IReleaseSelector>()).InvokeAsync(parseResult, cancellationToken)));
+            use.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new UseCommand.Handler(provider.GetRequiredService<IReleaseSelector>()).InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(use);
 
             var remove = new RemoveCommand();
-            remove.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
-                new RemoveCommand.Handler(provider.GetRequiredService<IReleaseRemover>()).InvokeAsync(parseResult, cancellationToken)));
+            remove.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
+                new RemoveCommand.Handler(provider.GetRequiredService<IReleaseRemover>()).InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(remove);
 
             var check = new CheckCommand();
-            check.SetAction((parseResult, cancellationToken) => Run(parseResult, cancellationToken, provider =>
+            check.SetAction((parseResult, cancellationToken) => Run(parseResult, provider =>
                 new CheckCommand.Handler(provider.GetRequiredService<IReleaseCheck>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken), cancellationToken));
             root.Add(check);
 
             // The MCP server: the same services as every other verb, plus the server over standard
@@ -166,20 +168,21 @@ namespace Hypha.Tools
             var serve = new ServeCommand();
             serve.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new ServeCommand.Handler(
                         provider.GetRequiredService<ModelContextProtocol.Server.McpServer>(),
                         provider.GetRequiredService<IKnowledgeLayout>())
                     .InvokeAsync(cancellationToken),
-                configure: services => services.AddHyphaMcp().WithStdioServerTransport()));
+                outputRoot: null,
+                configure: services => services.AddHyphaMcp().WithStdioServerTransport(),
+                cancellationToken));
             root.Add(serve);
 
             var migrate = new MigrateCommand();
             migrate.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new MigrateCommand.Handler(provider.GetRequiredService<IKnowledgeMigration>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken),
+                cancellationToken));
             root.Add(migrate);
 
             root.Add(BuildApiCommand());
@@ -199,52 +202,53 @@ namespace Hypha.Tools
             var discover = new ApiDiscoverCommand();
             discover.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new ApiDiscoverCommand.Handler(provider.GetRequiredService<IApiDiscovery>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken),
+                cancellationToken));
             api.Add(discover);
 
             var fetch = new ApiFetchCommand();
             fetch.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new ApiFetchCommand.Handler(provider.GetRequiredService<IApiInstaller>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken),
+                cancellationToken));
             api.Add(fetch);
 
             var generate = new ApiGenerateCommand();
             generate.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new GenerateCommand.Handler(
                         provider.GetRequiredService<IKnowledgeBuilder<IApiKnowledgeGenerator>>(),
                         ApiGenerateCommand.Scope(provider.GetRequiredService<IApiLayout>()))
                     .InvokeAsync(parseResult, cancellationToken),
-                parseResult.GetValue(ApiGenerateCommand.Output)));
+                parseResult.GetValue(ApiGenerateCommand.Output),
+                configure: null,
+                cancellationToken));
             api.Add(generate);
 
             var list = new ApiListCommand();
             list.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new ApiListCommand.Handler(provider.GetRequiredService<IApiLayout>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken),
+                cancellationToken));
             api.Add(list);
 
             var use = new ApiUseCommand();
             use.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new ApiUseCommand.Handler(provider.GetRequiredService<IApiLayout>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken),
+                cancellationToken));
             api.Add(use);
 
             var remove = new ApiRemoveCommand();
             remove.SetAction((parseResult, cancellationToken) => Run(
                 parseResult,
-                cancellationToken,
                 provider => new ApiRemoveCommand.Handler(provider.GetRequiredService<IApiRemover>())
-                    .InvokeAsync(parseResult, cancellationToken)));
+                    .InvokeAsync(parseResult, cancellationToken),
+                cancellationToken));
             api.Add(remove);
 
             return api;
@@ -252,28 +256,50 @@ namespace Hypha.Tools
 
         /// <summary>
         /// Composes the services, runs the handler and turns the failures a user can cause into an
+        /// exit code and a sentence, for a verb that adds no services of its own and writes nowhere else.
+        /// </summary>
+        /// <param name="parseResult">The parsed command line of the verb that runs.</param>
+        /// <param name="handler">Builds the verb's handler from the composed services and runs it.</param>
+        /// <param name="cancellationToken">
+        /// The verb's cancellation, which also stops the one-time migration into <c>HYPHA_HOME</c> that runs before
+        /// the verb. Required, so that no verb forgets to pass it.
+        /// </param>
+        /// <returns>
+        /// The handler's exit code; 130 when cancelled; 1 when composition fails, the upstream cannot be reached or a
+        /// knowledge file cannot be read.
+        /// </returns>
+        private static Task<int> Run(
+            ParseResult parseResult,
+            Func<IServiceProvider, Task<int>> handler,
+            CancellationToken cancellationToken) =>
+            Run(parseResult, handler, outputRoot: null, configure: null, cancellationToken);
+
+        /// <summary>
+        /// Composes the services, runs the handler and turns the failures a user can cause into an
         /// exit code and a sentence.
         /// </summary>
         /// <param name="parseResult">The parsed command line of the verb that runs.</param>
-        /// <param name="cancellationToken">
-        /// The verb's cancellation, which also stops the one-time migration into <c>HYPHA_HOME</c> that runs before
-        /// the verb, or beside it under <c>serve</c>. Required, so that no verb forgets to pass it.
-        /// </param>
         /// <param name="handler">Builds the verb's handler from the composed services and runs it.</param>
         /// <param name="outputRoot">
         /// Where generated artifacts go; <c>null</c> writes them into the repository. Only <c>generate</c> passes one.
         /// </param>
-        /// <param name="configure">Adds the verb's own services to the composed ones; only <c>serve</c> passes one.</param>
+        /// <param name="configure">
+        /// Adds the verb's own services to the composed ones, or <c>null</c>; only <c>serve</c> passes one.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The verb's cancellation, which also stops the one-time migration into <c>HYPHA_HOME</c> that runs before
+        /// the verb, or beside it under <c>serve</c>. Required, so that no verb forgets to pass it.
+        /// </param>
         /// <returns>
         /// The handler's exit code; 130 when cancelled; 1 when composition fails, the upstream cannot be reached or a
         /// knowledge file cannot be read.
         /// </returns>
         private static async Task<int> Run(
             ParseResult parseResult,
-            CancellationToken cancellationToken,
             Func<IServiceProvider, Task<int>> handler,
-            DirectoryInfo? outputRoot = null,
-            Action<IServiceCollection>? configure = null)
+            DirectoryInfo? outputRoot,
+            Action<IServiceCollection>? configure,
+            CancellationToken cancellationToken)
         {
             Banner(parseResult);
 

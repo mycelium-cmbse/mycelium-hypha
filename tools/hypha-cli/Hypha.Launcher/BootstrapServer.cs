@@ -70,7 +70,7 @@ namespace Hypha.Launcher
             string? initialize = null;
             var initialized = false;
             Task<LaunchTarget>? pending = download;
-            var read = input.ReadLineAsync(cancellationToken).AsTask();
+            var read = NextLine(input, cancellationToken);
 
             while (true)
             {
@@ -98,7 +98,7 @@ namespace Hypha.Launcher
                         await Send(output, answer, cancellationToken);
                     }
 
-                    read = input.ReadLineAsync(cancellationToken).AsTask();
+                    read = NextLine(input, cancellationToken);
                     continue;
                 }
 
@@ -217,7 +217,7 @@ namespace Hypha.Launcher
                 {
                     await toServe.WriteAsync(line + "\n");
                     await toServe.FlushAsync(cancellationToken);
-                    read = input.ReadLineAsync(cancellationToken).AsTask();
+                    read = NextLine(input, cancellationToken);
                 }
 
                 toServe.Close();
@@ -264,6 +264,17 @@ namespace Hypha.Launcher
         /// <param name="method">Its method.</param>
         /// <returns>The notification.</returns>
         private static JsonObject Notification(string method) => new() { ["jsonrpc"] = "2.0", ["method"] = method };
+
+        /// <summary>Starts reading the client's next line.</summary>
+        /// <param name="input">The client's messages, one per line.</param>
+        /// <param name="cancellationToken">Stops the read.</param>
+        /// <returns>
+        /// The line, or <c>null</c> once the client closes standard input. A <see cref="Task{TResult}"/>,
+        /// not the reader's <see cref="ValueTask{TResult}"/>, because it is raced against the download
+        /// and awaited again once it has won.
+        /// </returns>
+        private static Task<string?> NextLine(TextReader input, CancellationToken cancellationToken) =>
+            input.ReadLineAsync(cancellationToken).AsTask();
 
         /// <summary>Writes one message, as a line, and flushes it.</summary>
         /// <param name="output">Where it goes.</param>

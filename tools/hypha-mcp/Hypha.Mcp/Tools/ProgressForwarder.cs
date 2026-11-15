@@ -11,6 +11,7 @@ namespace Hypha.Mcp.Tools
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
 
@@ -42,7 +43,7 @@ namespace Hypha.Mcp.Tools
     internal sealed class ProgressForwarder : IProgress<KnowledgeProgress>, IAsyncDisposable
     {
         /// <summary>Guards <see cref="done"/>, <see cref="finished"/> and <see cref="started"/>, and the order of the queue.</summary>
-        private readonly object gate = new();
+        private readonly Lock gate = new();
 
         /// <summary>The units finished so far in each step, by operation and step.</summary>
         private readonly Dictionary<(string Operation, string Step), int> done = [];

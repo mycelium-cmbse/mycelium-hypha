@@ -157,8 +157,8 @@ namespace Hypha.Knowledge.Tests
 
             await this.installer.InstallAsync(
                 new ApiInstallRequest { Tag = "2026-04", IncludeSpecification = includeSpecification },
-                CancellationToken.None,
-                new Collector(reports));
+                new Collector(reports),
+                CancellationToken.None);
 
             Assert.Multiple(() =>
             {
@@ -466,7 +466,7 @@ namespace Hypha.Knowledge.Tests
             using var source = new CancellationTokenSource();
 
             await this.installer.InstallAsync(
-                new ApiInstallRequest { Tag = "2026-04", IncludeSpecification = true }, source.Token);
+                new ApiInstallRequest { Tag = "2026-04", IncludeSpecification = true }, cancellationToken: source.Token);
 
             this.fetcher.Verify(
                 mock => mock.DownloadAsync(

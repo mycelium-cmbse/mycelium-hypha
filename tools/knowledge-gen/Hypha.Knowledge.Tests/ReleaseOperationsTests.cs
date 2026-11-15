@@ -81,7 +81,7 @@ namespace Hypha.Knowledge.Tests
             this.WriteManifest("2026-04", "2026-04", Tag);
 
             this.installer
-                .Setup(i => i.InstallAsync(fetched, It.IsAny<CancellationToken>(), progress))
+                .Setup(i => i.InstallAsync(fetched, progress, It.IsAny<CancellationToken>()))
                 .Callback(() => held.Add($"fetch:{this.LockHeld}:{this.Default}"))
                 .ReturnsAsync(installation);
             this.builder
@@ -112,7 +112,7 @@ namespace Hypha.Knowledge.Tests
         {
             this.WriteManifest("2026-04", "2026-04", Tag);
             this.installer
-                .Setup(i => i.InstallAsync(It.Is<ReleaseInstallRequest>(r => !r.MakeDefault), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.Is<ReleaseInstallRequest>(r => !r.MakeDefault), null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(this.Installation());
             this.builder
                 .Setup(b => b.BuildAsync(It.IsAny<IReadOnlyList<string>>(), null, null, It.IsAny<CancellationToken>()))
@@ -133,7 +133,7 @@ namespace Hypha.Knowledge.Tests
         {
             this.WriteManifest("2026-04", "2026-04", Tag);
             this.installer
-                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(this.Installation());
             this.builder
                 .SetupSequence(b => b.BuildAsync(It.IsAny<IReadOnlyList<string>>(), null, null, It.IsAny<CancellationToken>()))
@@ -155,7 +155,7 @@ namespace Hypha.Knowledge.Tests
         {
             this.WriteManifest("2026-04", "2026-04", Tag);
             this.installer
-                .Setup(i => i.InstallAsync(It.Is<ReleaseInstallRequest>(r => !r.MakeDefault), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.Is<ReleaseInstallRequest>(r => !r.MakeDefault), null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(this.Installation());
             this.builder
                 .Setup(b => b.BuildAsync(It.IsAny<IReadOnlyList<string>>(), null, null, It.IsAny<CancellationToken>()))
@@ -171,7 +171,7 @@ namespace Hypha.Knowledge.Tests
         public async Task The_first_release_installed_is_reported_as_the_default_even_when_not_asked()
         {
             this.installer
-                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), null, It.IsAny<CancellationToken>()))
                 .Callback(() => this.WriteManifest(Tag, Tag))
                 .ReturnsAsync(this.Installation());
             this.builder
@@ -187,7 +187,7 @@ namespace Hypha.Knowledge.Tests
         public void A_failed_fetch_releases_the_lock_and_generates_nothing()
         {
             this.installer
-                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>(), null))
+                .Setup(i => i.InstallAsync(It.IsAny<ReleaseInstallRequest>(), null, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ArgumentException("not an offerable release: 2026-13"));
 
             Assert.Multiple(() =>

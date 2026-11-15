@@ -189,6 +189,36 @@ namespace Hypha.Tools.Tests
                 Throws.InstanceOf<OperationCanceledException>());
         }
 
+        [Test]
+        public async Task Output_through_the_command_line_writes_into_the_output_folder_not_the_repository()
+        {
+            // Through Program, so the --output that reaches the layout is the one Program passes to Run:
+            // dropping it would compile, and silently write into the checkout.
+            using var repository = new TemporaryKnowledge().Install("2026-05");
+            using var output = new TemporaryKnowledge();
+            var grammar = repository.Layout.Grammar("2026-05", "KerML-textual-bnf.kebnf");
+            grammar.Directory!.Create();
+            await File.WriteAllTextAsync(grammar.FullName, "// Clause 8.2 Features\n\nFeature =\n    'feature'\n");
+            using var console = new RecordedConsole();
+
+            var result = await Program.BuildRootCommand()
+                .Parse(
+                    $"generate grammar-references --tag 2026-05 --output \"{output.Root.FullName}\" "
+                    + $"--repository-root \"{repository.Root.FullName}\" --no-logo")
+                .InvokeAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(0), console.Output);
+                Assert.That(
+                    File.Exists(Path.Combine(output.Layout.TextualNotation("2026-05").FullName, "grammar-kerml.md")), Is.True,
+                    "the grammar reference belongs under --output");
+                Assert.That(
+                    repository.Layout.TextualNotation("2026-05").Exists, Is.False,
+                    "nothing may be generated into the repository when --output is given");
+            });
+        }
+
         private Task<int> Invoke(string commandLine)
         {
             var handler = new GenerateCommand.Handler(

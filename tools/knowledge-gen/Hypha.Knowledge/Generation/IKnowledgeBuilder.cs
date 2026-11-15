@@ -11,6 +11,7 @@ namespace Hypha.Knowledge.Generation
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -29,6 +30,10 @@ namespace Hypha.Knowledge.Generation
     /// The CLI's <c>generate</c> and <c>move-window</c>, and the MCP server's install, run generation
     /// through here, so a full run is the same loop wherever it starts.
     /// </remarks>
+    [SuppressMessage(
+        "Major Code Smell",
+        "S2326:Unused type parameters should be removed",
+        Justification = "It tells the two registered builders apart: one runs the release generators, the other the API ones.")]
     public interface IKnowledgeBuilder<out TGenerator>
         where TGenerator : IKnowledgeGenerator
     {

@@ -23,9 +23,7 @@ if (build.error || build.status !== 0) {
   throw build.error ?? new Error("Building the bundled CLI failed.");
 }
 const require = createRequire(import.meta.url);
-for (const name of ["LICENSE", "NOTICE"]) {
-  await cp(path.resolve(root, "../..", name), path.join(root, name));
-}
+await Promise.all(["LICENSE", "NOTICE"].map(name => cp(path.resolve(root, "../..", name), path.join(root, name))));
 const vsce = require.resolve("@vscode/vsce/vsce");
 const result = spawnSync(process.execPath, [
   vsce, "package", "--target", target, "--out", path.join(root, `hypha-${target}.vsix`),

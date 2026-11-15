@@ -117,11 +117,12 @@ namespace Hypha.Tools.Hosting
                     }
                 }
 
+                LogEventLevel? toStandardError = json ? LogEventLevel.Verbose : null;
                 configuration = terminal
                     ? configuration.WriteTo.Sink(new AnsiConsoleSink(OutputTemplate))
                     : configuration.WriteTo.Console(
                         outputTemplate: OutputTemplate,
-                        standardErrorFromLevel: json ? LogEventLevel.Verbose : null);
+                        standardErrorFromLevel: toStandardError);
 
                 var logger = configuration.CreateLogger();
 

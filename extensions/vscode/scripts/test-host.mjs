@@ -64,7 +64,8 @@ try {
     "--install-extension", path.join(root, `hypha-${target}.vsix`), "--force"
   ];
   // The Linux launcher redirects to the current remote host when this is set.
-  const { VSCODE_IPC_HOOK_CLI: _remoteCliHook, ...installationEnv } = process.env;
+  const installationEnv = { ...process.env };
+  delete installationEnv.VSCODE_IPC_HOOK_CLI;
   const installation = process.platform === "win32"
     ? spawnSync(executable, [await windowsCliScript(executable), ...installArgs], {
       encoding: "utf8", env: { ...installationEnv, ELECTRON_RUN_AS_NODE: "1" }

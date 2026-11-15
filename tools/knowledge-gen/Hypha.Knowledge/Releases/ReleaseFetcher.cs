@@ -156,13 +156,13 @@ namespace Hypha.Knowledge.Releases
         /// <param name="tag">The release to fetch.</param>
         /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/xmi/</c>.</param>
         /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
-        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <param name="progress">Reported once per file, after it completes; <c>null</c> reports nothing.</param>
+        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <returns>The fetched files of <see cref="ReleaseInputs.XmiFiles"/>, ordered by upstream path.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         public Task<IReadOnlyList<FileInfo>> FetchMetamodelAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default, IProgress<KnowledgeProgress>? progress = null)
+            IProgress<KnowledgeProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -181,13 +181,13 @@ namespace Hypha.Knowledge.Releases
         /// <param name="tag">The release to fetch.</param>
         /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/textual/</c>.</param>
         /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
-        /// <param name="cancellationToken">Cancels the listing and the downloads.</param>
         /// <param name="progress">Reported once per file, after it completes; <c>null</c> reports nothing.</param>
+        /// <param name="cancellationToken">Cancels the listing and the downloads.</param>
         /// <returns>The fetched files, as <see cref="ReleaseInputs.SelectTextual"/> selects them from the tree.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         public async Task<IReadOnlyList<FileInfo>> FetchTextualAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default, IProgress<KnowledgeProgress>? progress = null)
+            IProgress<KnowledgeProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 
@@ -210,8 +210,8 @@ namespace Hypha.Knowledge.Releases
         /// <param name="tag">The release to fetch.</param>
         /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/specs/</c>.</param>
         /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
-        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <param name="progress">Reported once per file, after it completes; <c>null</c> reports nothing.</param>
+        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <returns>The fetched PDFs.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="sourcesRoot"/> is <c>null</c>.</exception>
         /// <remarks>
@@ -220,7 +220,7 @@ namespace Hypha.Knowledge.Releases
         /// </remarks>
         public Task<IReadOnlyList<FileInfo>> FetchSpecificationsAsync(
             string tag, DirectoryInfo sourcesRoot, bool skipExisting = false,
-            CancellationToken cancellationToken = default, IProgress<KnowledgeProgress>? progress = null)
+            IProgress<KnowledgeProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(sourcesRoot);
 

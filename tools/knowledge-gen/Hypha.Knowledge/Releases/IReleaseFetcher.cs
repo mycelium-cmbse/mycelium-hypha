@@ -50,35 +50,35 @@ namespace Hypha.Knowledge.Releases
         /// <param name="tag">The release to fetch.</param>
         /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/xmi/</c>.</param>
         /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
-        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <param name="progress">
         /// Reported once per file, after it completes, whether it was downloaded or skipped because
         /// it was already there. <c>null</c> when nobody needs to show progress.
         /// </param>
+        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <returns>The fetched files.</returns>
         Task<IReadOnlyList<FileInfo>> FetchMetamodelAsync(
             string tag,
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
-            CancellationToken cancellationToken = default,
-            IProgress<KnowledgeProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null,
+            CancellationToken cancellationToken = default);
 
         /// <summary>Fetches the grammar and textual models, preserving the upstream layout.</summary>
         /// <param name="tag">The release to fetch.</param>
         /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/textual/</c>.</param>
         /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
-        /// <param name="cancellationToken">Cancels the listing and the downloads.</param>
         /// <param name="progress">
         /// Reported once per file, after it completes, whether it was downloaded or skipped because
         /// it was already there. <c>null</c> when nobody needs to show progress.
         /// </param>
+        /// <param name="cancellationToken">Cancels the listing and the downloads.</param>
         /// <returns>The fetched files.</returns>
         Task<IReadOnlyList<FileInfo>> FetchTextualAsync(
             string tag,
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
-            CancellationToken cancellationToken = default,
-            IProgress<KnowledgeProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the specification PDFs into the <b>git-ignored</b> folder. They are OMG-copyrighted
@@ -87,17 +87,17 @@ namespace Hypha.Knowledge.Releases
         /// <param name="tag">The release to fetch.</param>
         /// <param name="sourcesRoot">The <c>sources/</c> folder; the files land under <c>&lt;tag&gt;/specs/</c>.</param>
         /// <param name="skipExisting">Keeps files that are already there instead of downloading them again.</param>
-        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <param name="progress">
         /// Reported once per file, after it completes, whether it was downloaded or skipped because
         /// it was already there. <c>null</c> when nobody needs to show progress.
         /// </param>
+        /// <param name="cancellationToken">Cancels the downloads.</param>
         /// <returns>The fetched files.</returns>
         Task<IReadOnlyList<FileInfo>> FetchSpecificationsAsync(
             string tag,
             DirectoryInfo sourcesRoot,
             bool skipExisting = false,
-            CancellationToken cancellationToken = default,
-            IProgress<KnowledgeProgress>? progress = null);
+            IProgress<KnowledgeProgress>? progress = null,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -37,8 +37,8 @@ namespace Hypha.Tools.Tests
             this.installer = new Mock<IReleaseInstaller>();
             this.installer
                 .Setup(mock => mock.InstallAsync(
-                    It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((ReleaseInstallRequest request, CancellationToken _, IProgress<KnowledgeProgress>? _) =>
+                    It.IsAny<ReleaseInstallRequest>(), null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((ReleaseInstallRequest request, IProgress<KnowledgeProgress>? _, CancellationToken _) =>
                     Installation(request));
 
             this.handler = new FetchCommand.Handler(this.installer.Object);
@@ -58,7 +58,7 @@ namespace Hypha.Tools.Tests
                         && request.SkipExisting
                         && request.MakeDefault
                         && request.IncludeSpecifications),
-                    It.IsAny<CancellationToken>()),
+                    null, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -73,7 +73,7 @@ namespace Hypha.Tools.Tests
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ReleaseInstallRequest>(request => request.IncludeSpecifications),
-                    It.IsAny<CancellationToken>()),
+                    null, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -85,7 +85,7 @@ namespace Hypha.Tools.Tests
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ReleaseInstallRequest>(request => !request.IncludeSpecifications),
-                    It.IsAny<CancellationToken>()),
+                    null, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -97,7 +97,7 @@ namespace Hypha.Tools.Tests
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ReleaseInstallRequest>(request => !request.SkipExisting),
-                    It.IsAny<CancellationToken>()),
+                    null, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -109,7 +109,7 @@ namespace Hypha.Tools.Tests
             this.installer.Verify(
                 mock => mock.InstallAsync(
                     It.Is<ReleaseInstallRequest>(request => !request.MakeDefault),
-                    It.IsAny<CancellationToken>()),
+                    null, It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -118,7 +118,7 @@ namespace Hypha.Tools.Tests
         {
             this.installer
                 .Setup(mock => mock.InstallAsync(
-                    It.IsAny<ReleaseInstallRequest>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<ReleaseInstallRequest>(), null, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ArgumentException("not an offerable release tag: 2026-05-pre"));
 
             using var console = new RecordedConsole();

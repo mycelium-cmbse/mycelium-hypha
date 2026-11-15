@@ -11,6 +11,7 @@ namespace Hypha.Mcp.Prompts
 {
     using System;
     using System.ComponentModel;
+    using System.Diagnostics.CodeAnalysis;
 
     using ModelContextProtocol;
     using ModelContextProtocol.Server;
@@ -36,8 +37,20 @@ namespace Hypha.Mcp.Prompts
             "Give the release that answered, and say for each fact whether it is NORMATIVE (quote it, with its clause "
             + "number), MODEL or DERIVED, as its grounding says.";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KnowledgePrompts"/> class. Nothing creates one: every
+        /// prompt is static, and the server finds them through the type it is given.
+        /// </summary>
+        private KnowledgePrompts()
+        {
+        }
+
         /// <summary>What hypha can do here, with example questions.</summary>
         /// <returns>The request.</returns>
+        [SuppressMessage(
+            "Minor Code Smell",
+            "S3400:Methods should not return constants",
+            Justification = "A prompt is a method the server lists and calls; a constant cannot be one.")]
         [McpServerPrompt(Name = "overview", Title = "What hypha can do")]
         [Description("Explains what the hypha server answers about SysML v2 and KerML, with example questions to ask.")]
         public static string Overview() =>
