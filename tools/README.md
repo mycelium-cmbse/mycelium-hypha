@@ -1,8 +1,7 @@
 # tools/
 
 Generation pipelines that build `knowledge/` from `sources/`. These are **not** part of the
-shipped Claude plugin; they build the `hypha` command and its MCP server, which run them on the
-user's own machine when a release is installed.
+shipped Claude plugin; they are developer tooling, run when the upstream OMG sources change.
 
 ```
 tools/
@@ -32,10 +31,8 @@ JSON document is written in, and its source-generated `JsonSerializerContext`, l
 Nothing per release is committed: every artifact above is generated on the user's own machine. See
 `CLAUDE.md`'s "Committed vs git-ignored" for what the repository does carry.
 
-**.NET alone produces everything but the specification text.** Python is needed only for
-`knowledge/<tag>/spec/`, from the OMG PDFs that `hypha fetch` downloads by default: `hypha generate
-spec` fetches [`uv`](https://github.com/astral-sh/uv), which provides the Python, and runs
-`spec-extract` through it.
+**.NET alone produces everything that ships.** Python is needed only for `knowledge/<tag>/spec/`,
+which is git-ignored and already requires you to have obtained the OMG PDFs yourself.
 
 ## Running them
 
@@ -51,5 +48,4 @@ dotnet run --project tools/hypha-cli/Hypha.Tools -- generate
 Installed, that is `hypha discover` / `hypha fetch` / `hypha generate`. See
 [`hypha-cli/README.md`](hypha-cli/README.md) for installation, the full verb list and exit codes.
 
-`hypha-cli`, `hypha-launcher`, `metamodel-gen` and `spec-extract` each have a README of their own;
-`hypha-mcp` and `knowledge-gen` build and test with the solution (`dotnet test mycelium-hypha.sln`).
+Each tool has its own README with build and test instructions.

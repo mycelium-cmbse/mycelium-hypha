@@ -1,17 +1,15 @@
 # hypha-launcher (C#)
 
-`hypha-launch`, the MCP server launcher the client packages start. It is not the `hypha` command
+`hypha-launch`, the MCP server launcher every client package starts. It is not the `hypha` command
 (that is [`tools/hypha-cli`](../hypha-cli/README.md)): it downloads the matching `hypha` and hands the
 client over to `hypha serve`.
 
 ## What it does
 
-Every client package but the VS Code extension (which bundles its own `hypha`) starts the MCP server
-through one command, `bin/hypha-launch`: a package is a git repository or a zip, which can carry a
-small launcher per platform but not a `hypha` of tens of MB. The Claude plugin registers it in
-`.claude-plugin/plugin.json` (`mcpServers`), the Agent Plugins package in `mcp.json`, the Gemini CLI
-extension in `gemini-extension.json` and the Claude Desktop bundle, which carries `bin/` as
-`server/`, in `packaging/mcpb/manifest.json`.
+Every client package starts the MCP server through one command, `bin/hypha-launch`: a package is a
+git repository or a zip, which can carry a small launcher per platform but not a `hypha` of tens of MB.
+The Claude plugin registers it in `.claude-plugin/plugin.json` (`mcpServers`); the other packages
+follow (Step 7 of `hypha-mcp-refactor-plan.md`).
 
 - **One path for every platform.** On Windows a client finds `bin/hypha-launch.exe` from the
   extensionless `bin/hypha-launch`; on macOS and Linux that path is a POSIX script that execs
@@ -29,7 +27,7 @@ extension in `gemini-extension.json` and the Claude Desktop bundle, which carrie
   it and tells the client that its tools, resources and prompts changed. From then on it passes every
   message through, so the first session gets the real tools without reconnecting.
   It resolves the package from its own location and `HYPHA_HOME` itself, never from a client's path
-  variables, and the download honours `HTTPS_PROXY` and `GITHUB_TOKEN` (or `GH_TOKEN`).
+  variables, and the download honours `HTTPS_PROXY` and `GITHUB_TOKEN`.
 - **`HYPHA_BIN`** names a `hypha` to start instead, for an offline or locked-down machine. It must be
   `hypha` 2.0.0 or later (an older one has no `serve`, and prints its help on standard output), given
   by its absolute path: a relative one would be resolved against whatever folder the client starts
@@ -59,4 +57,4 @@ builds it on each platform's own runner and commits the results; that workflow, 
 is the normal way `bin/` gets updated. Run it after any change to `Hypha.Launcher`.
 
 The tests start the `hypha` this solution builds (`tools/hypha-cli/Hypha.Tools`) through `HYPHA_BIN`,
-so they run against the server of the same commit rather than a released one.
+since no released `hypha` before 2.0.0 has `serve`.
