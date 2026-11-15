@@ -55,6 +55,12 @@ macOS and Linux. It holds the same launcher as the plugin, so it downloads `hyph
 and shares its releases with every other Hypha client on the machine. Claude Desktop has no skills, so
 it works from the server's own instructions.
 
+### Other MCP clients
+
+JetBrains Junie, Devin Desktop (formerly Windsurf), Zed and Cline start the server from a
+configuration file you write once, and read the skills from a folder you copy them to. See
+[Hypha in other MCP clients](docs/other-clients.md) for each one's snippet and skills folder.
+
 ### Command line
 
 ```sh
