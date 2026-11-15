@@ -141,6 +141,47 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void Clauses_that_say_it_as_often_are_in_clause_number_order_not_in_text_order()
+        {
+            QueryFixture.WriteSpecification(
+                this.Catalog("sysml2"),
+                "SysML",
+                ("10.1", "Ten", "1", true, "10.01-ten.md"),
+                ("9.2", "Nine two", "1", true, "09.02-nine-two.md"),
+                ("9.10", "Nine ten", "1", true, "09.10-nine-ten.md"));
+            this.Page("sysml2", "10.01-ten.md", "needle");
+            this.Page("sysml2", "09.02-nine-two.md", "needle");
+            this.Page("sysml2", "09.10-nine-ten.md", "needle");
+
+            var result = this.fixture.Query.SearchSpecification("needle", document: "sysml2");
+
+            Assert.That(result.Value!.Select(match => match.Address.Name), Is.EqualTo(new[] { "9.2", "9.10", "10.1" }));
+        }
+
+        [Test]
+        public void A_phrase_typed_with_extra_white_space_is_found_as_if_typed_with_single_spaces()
+        {
+            this.Page("kerml", "07.04.02-feature.md", "A Feature is typed by a Type.");
+
+            var result = this.fixture.Query.SearchSpecification("  is \t typed\n by  ");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Value!.Select(match => match.Address.Name), Is.EqualTo(new[] { "7.4.2" }));
+                Assert.That(result.Value![0].Excerpt, Is.EqualTo("A Feature is typed by a Type."));
+            });
+        }
+
+        [Test]
+        public void A_page_front_matter_is_not_searched()
+        {
+            // Page writes front matter holding 'clause: "x"', which no clause text contains.
+            this.Page("kerml", "07.04.02-feature.md", "A Feature.");
+
+            Assert.That(this.fixture.Query.SearchSpecification("clause: \"x\"").Value, Is.Empty);
+        }
+
+        [Test]
         public void Pages_missing_from_the_index_fail_the_search_naming_the_first_in_clause_order()
         {
             File.Delete(Path.Combine(this.Catalog("kerml").DirectoryName!, "07.04.02-feature.md"));

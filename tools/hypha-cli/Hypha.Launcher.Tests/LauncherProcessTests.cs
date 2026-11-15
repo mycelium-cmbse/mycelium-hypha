@@ -103,6 +103,58 @@ namespace Hypha.Launcher.Tests
             });
         }
 
+        [Test]
+        public async Task Serve_s_arguments_and_exit_code_pass_through_the_launcher()
+        {
+            // An option serve does not know reaches serve only if the launcher passes its arguments on; serve
+            // refuses it with an exit code of its own, which the launcher must return as it is.
+            // A scratch HYPHA_HOME as well, so that nothing could reach the user's own folder.
+            var hypha = TestHypha.Executable().FullName;
+            var home = Directory.CreateDirectory(Path.Combine(this.workspace.FullName, "home")).FullName;
+            var direct = await this.Exit(hypha, ["serve", "--no-such-option"], new Dictionary<string, string> { ["HYPHA_HOME"] = home });
+            var launched = await this.Exit(
+                "dotnet",
+                [Path.Combine(AppContext.BaseDirectory, "hypha-launch.dll"), "--no-such-option"],
+                new Dictionary<string, string> { ["HYPHA_BIN"] = hypha, ["HYPHA_HOME"] = home });
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(direct.ExitCode, Is.Not.Zero, direct.Output);
+                Assert.That(launched.ExitCode, Is.EqualTo(direct.ExitCode), launched.Output);
+                Assert.That(launched.Output, Does.Contain("--no-such-option"), "serve was given the launcher's arguments");
+            });
+        }
+
+        private async Task<(int ExitCode, string Output)> Exit(string fileName, string[] arguments, IReadOnlyDictionary<string, string> environment)
+        {
+            var start = new ProcessStartInfo(fileName)
+            {
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = this.workspace.FullName,
+            };
+
+            foreach (var argument in arguments)
+            {
+                start.ArgumentList.Add(argument);
+            }
+
+            foreach (var (name, value) in environment)
+            {
+                start.Environment[name] = value;
+            }
+
+            using var process = Process.Start(start)!;
+            var output = process.StandardOutput.ReadToEndAsync();
+            var error = process.StandardError.ReadToEndAsync();
+            process.StandardInput.Close();
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromMinutes(1));
+
+            return (process.ExitCode, await output + await error);
+        }
+
         private async Task<(JsonNode Initialize, JsonNode Tools, string StandardError)> Handshake(
             IReadOnlyDictionary<string, string> environment, string[] arguments, string? launcher = null)
         {
