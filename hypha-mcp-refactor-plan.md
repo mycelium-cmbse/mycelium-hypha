@@ -331,8 +331,8 @@ Every open item below lives in exactly one GitHub issue, worded the same in both
 | 7: every other client | #199, with #158, #163 and #165 | Open; before the release |
 | 8: CI and release | #200 | Done (#239, #255); ReadyToRun measured and left off |
 | Follow-ups from the reviews | #224 | Done (#232, #249 to #251, #254) |
-| 9: a pre-release, verified across clients | #201 | `2.0.0-beta.1` published; Claude Code and VS Code checked on Windows, the first start in CI on Linux and macOS |
-| 10: release tools 2.0.0 and plugin 3.0.0 | #197 | Open; after Step 9 |
+| 9: a pre-release, verified across clients | #201 | Done: `2.0.0-beta.1`; Claude Code and VS Code checked on Windows, the first start in CI on five platforms |
+| 10: release tools 2.0.0 and plugin 3.0.0 | #197 | Done: tools 2.0.0, plugin 3.0.0 and the VS Code extension 1.0.0 |
 | After 2.0.0: the clients not verified before it | #259 | Open; the checks that need a client or machine that was not available |
 
 Nothing is released before Step 9's pre-release: plugin users stay on the release the marketplace pins, and a tools release also publishes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its migration.
@@ -460,7 +460,7 @@ Every manual check was here: the ones Step 5 (#198), #163 and #165 held moved in
 
 ### Step 10: Release tools 2.0.0 and plugin 3.0.0 (#197)
 
-- [ ] Release once Step 9 has verified the pre-release, and nothing before but that pre-release: `tools-v2.0.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking).
+- [x] Release once Step 9 has verified the pre-release, and nothing before but that pre-release: `tools-v2.0.0`, the first `hypha` with `serve` (the release workflow also pushes `Hypha.Tools` to nuget.org, which cannot be deleted, and gives `dotnet tool` users `HYPHA_HOME` and its one-time migration), with `bin/hypha-launch.json` naming it; then plugin 3.0.0 (agents, hook and jq removed is breaking). Done, 15 November 2026: `tools-v2.0.0` (on nuget.org, and verified on five platforms by the First start workflow), plugin `v3.0.0` with its Claude Desktop bundle, and the VS Code extension 1.0.0 on the Visual Studio Marketplace (Windows x64, Linux x64 and arm64), bundling tools 2.0.0.
 
 ### After 2.0.0: the clients not verified before it (#259)
 

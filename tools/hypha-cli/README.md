@@ -7,7 +7,7 @@ longer produce it.
 ```
 tools/hypha-cli/
 ├── Hypha.Tools/        the `hypha` command
-└── Hypha.Tools.Tests/  the verbs, and the golden regeneration check
+└── Hypha.Tools.Tests/  the verbs, and the regeneration determinism check
 ```
 
 ## Installing
@@ -20,7 +20,7 @@ Two deliveries, from one codebase. Pick whichever matches what you already have:
 | no toolchain at all | download the self-contained archive for your platform from the [releases](https://github.com/mycelium-cmbse/mycelium-hypha/releases) |
 
 The self-contained build bundles the .NET runtime, so nothing else needs installing. It is larger
-(~80 MB) for exactly that reason.
+(~90 MB) for exactly that reason.
 
 Working inside a checkout, you can also skip installation entirely:
 
@@ -56,22 +56,22 @@ everything it provisions in its own storage, such as an editor extension, passes
 
 | Verb | What it does |
 | --- | --- |
-| `hypha discover` | Lists the releases both upstreams offer. |
-| `hypha fetch --tag <release>` | Downloads that release's inputs into `sources/<tag>/` and records it in `knowledge/versions.json`. |
-| `hypha generate [artifact]` | Generates the knowledge base. Every artifact for every installed release when nothing is narrowed. |
+| `hypha discover [--limit N]` | Lists the releases both upstreams offer, the newest 10 unless `--limit` says otherwise (0 lists them all). |
+| `hypha fetch --tag <release>` | Downloads that release's inputs into `sources/<tag>/` and records it in `knowledge/versions.json`. `--no-specs` skips the specification PDFs, `--force` downloads every file again and `--no-default` leaves the default release alone. |
+| `hypha generate [artifact]` | Generates the knowledge base. Every artifact for every installed release when nothing is narrowed; `--tag` (repeatable) narrows the releases, and `--output` writes elsewhere. |
 | `hypha list [--json]` | Lists the installed releases, which one answers by default, and which of their artifacts have been generated. |
 | `hypha lookup --kind <metamodel\|model-library\|examples> --name <name> [--tag <release>] [--start-line N] [--max-lines N] [--json]` | Prints one page of a metamodel element's, model-library declaration's or worked example's generated page. Read-only. |
 | `hypha query <question> [options] [--tag <release>] [--json]` | Answers a structural question about a release from its generated knowledge, one verb per question (`subclasses`, `features`, `keyword`, `diff`, ...), and `hypha query api <question> [--tag <version>]` about an API version. Read-only. |
-| `hypha move-window --tag <release> [--keep N]` | Maintainer-only: fetches, regenerates, re-extracts specifications, re-blesses the metamodel-gen fixtures, verifies, then prunes locally-installed releases beyond `--keep` (default 2). |
+| `hypha move-window --tag <release> [--keep N]` | Maintainer-only: fetches, regenerates, re-extracts specifications, re-blesses the metamodel-gen fixtures, prunes locally-installed releases beyond `--keep` (default 2), then verifies. |
 | `hypha use --tag <release>` | Switches which installed release every skill answers from by default. |
-| `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default or the last remaining release without `--force`. |
+| `hypha remove --tag <release> [--force]` | Removes one installed release's `sources/`/`knowledge/`; refuses on the current default, and on the last remaining release without `--force`. |
 | `hypha check [--json]` | Compares installed releases against what is offerable upstream, with no fetching and no generating; the MCP server's `hypha_check_releases` runs the same check. |
 | `hypha serve` | Runs the hypha MCP server over standard input and output, for an AI client to start (see "MCP server" below). |
 | `hypha migrate [--from <folder>]` | Copies the releases the Claude plugin and the VS Code extension installed in their own folders into `HYPHA_HOME` (see "Moving to HYPHA_HOME" below). |
 
 ```sh
 hypha discover                              # what can be installed
-hypha fetch --tag 2026-05                   # sources/2026-05/{xmi,textual}
+hypha fetch --tag 2026-05                   # sources/2026-05/{xmi,textual,specs}
 hypha generate                              # every artifact, every installed release
 hypha generate metamodel --tag 2026-05      # one artifact, one release
 hypha generate --output /tmp/knowledge      # generate without touching the repository
@@ -192,7 +192,7 @@ installed language release.
 
 | Verb | What it does |
 | --- | --- |
-| `hypha api discover` | Lists the API versions the upstreams offer: the API-Services tags that are also a language release, from `2025-02` on. |
+| `hypha api discover [--limit N]` | Lists the API versions the upstreams offer: the API-Services tags that are also a language release, from `2025-02` on; the newest 10 unless `--limit` says otherwise. |
 | `hypha api fetch --tag <version>` | Downloads that version's inputs into `sources/api/<version>/` and records it. `--no-specs`, `--force` and `--no-default` as for `hypha fetch`. |
 | `hypha api generate [artifact]` | Generates the API knowledge. Every artifact for every installed API version when nothing is narrowed; `--tag` and `--output` as for `hypha generate`. |
 | `hypha api list [--json]` | Lists the installed API versions, which one answers by default, and which of their artifacts have been generated. `--json` prints the same shape as `hypha list --json`, with `versions` in place of `releases` and `pim`, `openApi`, `crossReferences` and `specification` as the artifacts. |
@@ -218,8 +218,8 @@ Pilot-Implementation repository (all at the same tag), and the PIM model from th
 server, because no repository carries it. That last request goes through a client of its own that
 carries no credentials: `--token` is for GitHub and is never sent anywhere else.
 
-`hypha check` and `hypha move-window` cover the language releases only, and so do the MCP server's
-release tools.
+`hypha check` and `hypha move-window` cover the language releases only; the MCP server's release
+tools take `axis: "api"` for an API version.
 
 ### Moving the release window
 
@@ -275,8 +275,8 @@ itself being unprovisionable (offline on its first use, or an unsupported platfo
 | Code | Meaning |
 | --- | --- |
 | 0 | Success. |
-| 1 | Nothing to do, or a generator refused because its output would have been wrong. |
-| 2 | A usage error: an artifact no generator produces, a tag that is not a release. |
+| 1 | Nothing to do, a generator refused because its output would have been wrong, or a failure: an upstream that cannot be reached, a knowledge file that cannot be read, a question `lookup` or `query` cannot answer. |
+| 2 | A usage error: an artifact no generator produces, a tag that is not a release or is not installed, a release `remove` refuses. |
 | 130 | Cancelled. |
 
 
@@ -286,19 +286,20 @@ itself being unprovisionable (offline on its first use, or an unsupported platfo
 standard input and output: an AI client starts it, one server per client, and talks to it until it
 disconnects. Standard output carries the protocol and nothing else; the log and any failure go to
 standard error. The global options apply, so a client can pass `--repository-root`, and without it
-the server answers from the same folder every other verb uses (`HYPHA_HOME` by default).
+the server answers from the folder every other verb uses outside a checkout (`HYPHA_HOME` by
+default).
 
 ```json
 { "mcpServers": { "hypha": { "command": "hypha", "args": ["serve"] } } }
 ```
 
-Its query tools are read-only, and each groups related questions behind a `question` argument whose
-values are the `hypha query` verbs that answer the same thing:
+Its query tools are read-only, and those that answer several questions group them behind a `question`
+argument whose values are the `hypha query` verbs that answer the same thing:
 
 | Tool | Answers |
 | --- | --- |
 | `hypha_release_status` | The installed releases and API versions, the defaults, and what each has generated. |
-| `hypha_check_releases` | The installed releases and API versions against those offered upstream, naming a newer one when there is: what `hypha check` answers, and the one read tool that asks GitHub. |
+| `hypha_check_releases` | The installed releases and API versions against those offered upstream, naming a newer one when there is; with `api: false` the releases alone, which is what `hypha check` answers. The one read tool that asks GitHub. |
 | `hypha_metaclass` | `element`, `ancestors`, `subclasses`, `specializes`, `neighbours`, `constraints`, `operations`, `literals`, `features`, `effective-features`. |
 | `hypha_feature` | `redefinitions`, `subsettings`, `opposite`, `feature-constraints`, `contributors`. |
 | `hypha_typed_by` | `classes-with-feature-typed`, `features-accepting`, `containers`. |
@@ -340,8 +341,9 @@ the tools, for clients that support neither.
 
 ## MCP server launcher
 
-Every client package starts `hypha serve` through `bin/hypha-launch`, which downloads the `hypha`
-that `bin/hypha-launch.json` names. It is a project of its own, `Hypha.Launcher`; see
+Every client package but the VS Code extension, which bundles its own `hypha`, starts `hypha serve`
+through `bin/hypha-launch`, which downloads the `hypha` that `bin/hypha-launch.json` names. It is a
+project of its own, `Hypha.Launcher`; see
 [`tools/hypha-launcher/README.md`](../hypha-launcher/README.md).
 
 ## Moving to HYPHA_HOME
@@ -398,8 +400,8 @@ the working tree clean afterwards?" doubled as the determinism check. That made 
 write to the repository, and made the determinism check something you had to remember to perform.
 
 The split now is that **the CLI generates and the tests verify**. `KnowledgeRegenerationTests`
-regenerates the whole knowledge base into a scratch folder and compares it byte for byte against the
-committed one, which proves the same property without touching a tracked file. The seam that allows
+fetches a release into a scratch folder, regenerates it twice into two more and compares the two runs
+byte for byte, which proves the same property without touching a tracked file. The seam that allows
 it is `HyphaKnowledgeOptions.OutputRoot`: inputs are still read from the repository, only the output
 moves.
 

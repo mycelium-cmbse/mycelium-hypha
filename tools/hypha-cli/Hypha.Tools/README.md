@@ -7,7 +7,8 @@ standard model library, the specification text, and cross-references between the
 
 It is the engine behind Hypha's [Claude Code plugin](https://github.com/mycelium-cmbse/mycelium-hypha)
 and its [VS Code extension for GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha),
-and can be used on its own from the command line or from scripts.
+and can be used on its own from the command line or from scripts. `hypha serve` runs it as an MCP
+server, for any AI client that starts one.
 
 ## Install
 
@@ -31,9 +32,13 @@ hypha lookup --kind model-library --name ScalarValues::Real
 hypha remove --tag 2026-05                       # remove an installed release
 ```
 
+To give an AI client the knowledge, add `hypha` with the argument `serve` to its MCP configuration:
+the server talks MCP over standard input and output, and its tools install releases and answer from
+them.
+
 The Systems Modeling API has the same verbs under `hypha api` (`discover`, `fetch`, `generate`,
-`list`, `use`, `remove`). `check`, `list`, `lookup` and `api list` take `--json`: one JSON document
-on standard output, for editors, language-model tools and scripts.
+`list`, `use`, `remove`). `check`, `list`, `lookup`, `query` and `api list` take `--json`: one JSON
+document on standard output, for editors, language-model tools and scripts.
 
 Knowledge is written to `sources/` and `knowledge/` under `--repository-root`. Without it, `hypha`
 uses the source checkout above the working directory (except `hypha serve`), then the `HYPHA_HOME` folder when that is set,
