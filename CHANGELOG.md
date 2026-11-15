@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **A bundle for Claude Desktop** (`refs #199`): a plugin release now carries `hypha-<version>.mcpb`,
+  an MCP Bundle that Claude Desktop installs. One bundle serves Windows, macOS and Linux: it holds the
+  plugin's launchers and dispatch script, so it downloads `hypha` on its first start, as the plugin
+  does. The *Claude Desktop bundle* workflow packs it when a plugin tag is pushed and attaches it
+  when the release is published. Not yet tried in Claude Desktop.
 - **Linux on Arm** (`refs #200`): the release publishes a self-contained `hypha` for `linux-arm64`, the
   launcher is built for it, and `bin/hypha-launch` starts it on an `aarch64` Linux, the platform the VS
   Code extension already shipped for.

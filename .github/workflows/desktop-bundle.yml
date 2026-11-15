@@ -1,0 +1,124 @@
+name: Claude Desktop bundle
+
+# Builds hypha-<version>.mcpb, the MCP Bundle that Claude Desktop installs, and attaches it to the
+# plugin release of the same version.
+#
+# The bundle is the plugin's launcher, packaged for a client that has no plugins: its server/ folder
+# is the repository's bin/ folder as it is (the NativeAOT launchers the Launcher binaries workflow
+# committed, the POSIX dispatch script and hypha-launch.json), with packaging/mcpb/manifest.json,
+# which is rendered from manifest.source.json, and an icon. Nothing is compiled here.
+#
+# One bundle serves every platform. A bundle's manifest can tell Windows from macOS, but not one
+# processor from another, so the dispatch script chooses the launcher, exactly as it does in a plugin.
+#
+# It runs three times over, and attaches the bundle only where a release is known to exist:
+#   - when a plugin tag (vX.Y.Z) is pushed, it packs the bundle and keeps it as a workflow artifact,
+#     which proves the tagged tree yields one. It attaches nothing: the plugin's release is written by
+#     hand after the tag (RELEASING.md), and a release made here would sit beside that one;
+#   - when a plugin release is published, it packs the bundle and attaches it to that release;
+#   - by hand, for a tag whose release exists, to attach the bundle again.
+# The tools' tags (tools-vX.Y.Z) and releases do not start it: the bundle carries the package version,
+# not the hypha version, and downloads the hypha its bin/hypha-launch.json names on first start.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The plugin tag to build the bundle from, such as v3.0.0'
+        required: true
+
+jobs:
+  bundle:
+    # A tools release (tools-vX.Y.Z) is published too, and is not this workflow's.
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Resolve the tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          tag="${INPUT_TAG:-${RELEASE_TAG:-${GITHUB_REF_NAME}}}"
+          if ! printf '%s' "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$tag' is not a plugin tag (vX.Y.Z)."
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Assemble the bundle
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          # The tag and the manifest must name the same version: the manifest is what Claude Desktop
+          # shows and compares, and it was rendered from manifest.source.json in the release change.
+          manifest_version="$(python3 -c "import json; print(json.load(open('packaging/mcpb/manifest.json'))['version'])")"
+          if [ "$manifest_version" != "$VERSION" ]; then
+            echo "::error::The tag names $VERSION, but packaging/mcpb/manifest.json names $manifest_version."
+            exit 1
+          fi
+
+          mkdir -p bundle/server
+          cp packaging/mcpb/manifest.json bundle/manifest.json
+          cp extensions/vscode/icon.png bundle/icon.png
+          cp LICENSE NOTICE bundle/
+          cp -R bin/. bundle/server/
+
+          # The checkout keeps the executable bit git recorded; a launcher without it starts nothing.
+          for launcher in bundle/server/hypha-launch bundle/server/*/hypha-launch; do
+            if [ ! -x "$launcher" ]; then
+              echo "::error::$launcher is not executable."
+              exit 1
+            fi
+          done
+          test -f bundle/server/hypha-launch.exe
+          test -f bundle/server/hypha-launch.json
+
+      - name: Pack the bundle
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          # A .mcpb file is a zip archive; zip keeps the executable bits.
+          (cd bundle && zip -X -r "../hypha-${VERSION}.mcpb" .)
+          unzip -l "hypha-${VERSION}.mcpb"
+          sha256sum "hypha-${VERSION}.mcpb"
+
+      - name: Keep the bundle as a workflow artifact
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: hypha-${{ steps.tag.outputs.version }}-mcpb
+          path: hypha-${{ steps.tag.outputs.version }}.mcpb
+          if-no-files-found: error
+
+      - name: Attach the bundle to the release
+        if: github.event_name != 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Never creates a release: a second one for the same tag would hold the bundle where nobody
+          # looks for it.
+          if ! gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::error::There is no release $TAG to attach the bundle to. Write the release (RELEASING.md), which starts this workflow again."
+            exit 1
+          fi
+          gh release upload "$TAG" "hypha-${VERSION}.mcpb" --clobber

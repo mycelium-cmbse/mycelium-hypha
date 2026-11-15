@@ -194,7 +194,11 @@ drives it.
   server (`tools/hypha-cli/Hypha.Launcher`), its POSIX dispatch script `hypha-launch` and
   `hypha-launch.json`, the `hypha` version it starts (see the README's "MCP server launcher" section).
   These are the only compiled binaries this repository commits; `.gitignore` excludes `bin/` at every
-  other depth.
+  other depth. Also committed, and rendered from `manifest.source.json` like the plugin's own manifest
+  (`PackageManifestTests` fails when one drifts): the Agent Plugins `plugin.json` and `mcp.json`,
+  `gemini-extension.json`, and `packaging/mcpb/manifest.json`, the manifest of the Claude Desktop
+  bundle that `desktop-bundle.yml` packs from `bin/` when a plugin tag is pushed, and attaches when
+  that release is published.
 - **Committed as a test fixture, not a distributed one:** `tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests
   /Fixtures/xmi/` holds one real release's XMI (captured from `TestModel.FixtureTag`), so
   `Hypha.Knowledge.Metamodel.Tests` has something real to exercise the generators against without a network

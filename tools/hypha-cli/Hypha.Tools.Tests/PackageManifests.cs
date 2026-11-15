@@ -37,6 +37,10 @@ namespace Hypha.Tools.Tests
 
         public const string GeminiExtension = "gemini-extension.json";
 
+        public const string DesktopBundle = "packaging/mcpb/manifest.json";
+
+        public const string DesktopBundleManifestVersion = "0.3";
+
         public const string AgentPluginSchema = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
 
         public const string AgentPluginServersSchema = "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json";
@@ -104,6 +108,43 @@ namespace Hypha.Tools.Tests
                     },
                 }),
 
+                // Claude Desktop: the manifest of the .mcpb bundle, which holds the whole bin/ folder as
+                // server/. One bundle serves every platform: a manifest can tell Windows from macOS but
+                // not one processor from another, so the dispatch script chooses, as it does in a plugin.
+                [DesktopBundle] = Text(new JsonObject
+                {
+                    ["manifest_version"] = DesktopBundleManifestVersion,
+                    ["name"] = Copy(source, "name"),
+                    ["display_name"] = Copy(source, "displayName"),
+                    ["version"] = Copy(source, "version"),
+                    ["description"] = Copy(source, "description"),
+                    ["author"] = Copy(source, "author"),
+                    ["repository"] = new JsonObject { ["type"] = "git", ["url"] = Copy(source, "repository") },
+                    ["homepage"] = Copy(source, "homepage"),
+                    ["license"] = Copy(source, "license"),
+                    ["keywords"] = Copy(source, "keywords"),
+                    ["icon"] = "icon.png",
+                    ["server"] = new JsonObject
+                    {
+                        ["type"] = "binary",
+                        ["entry_point"] = BundledCommand(command),
+                        ["mcp_config"] = new JsonObject
+                        {
+                            ["command"] = "${__dirname}/" + BundledCommand(command),
+                            ["args"] = new JsonArray(),
+                            ["env"] = new JsonObject(),
+                            ["platform_overrides"] = new JsonObject
+                            {
+                                ["win32"] = new JsonObject { ["command"] = "${__dirname}/" + BundledCommand(command) + ".exe" },
+                            },
+                        },
+                    },
+
+                    // The tools are the server's to list; a copy here would drift from it.
+                    ["tools_generated"] = true,
+                    ["compatibility"] = new JsonObject { ["platforms"] = new JsonArray("darwin", "win32", "linux") },
+                }),
+
                 // Gemini CLI: the extension's folder and the path separator come from its variables.
                 [GeminiExtension] = Text(new JsonObject
                 {
@@ -137,6 +178,16 @@ namespace Hypha.Tools.Tests
             entry["source"]!["ref"] = "v" + source["version"]!.GetValue<string>();
 
             return Text(catalog);
+        }
+
+        // In the bundle the plugin's bin/ folder is server/: "bin/hypha-launch" is "server/hypha-launch".
+        public static string BundledCommand(string command)
+        {
+            ArgumentNullException.ThrowIfNull(command);
+
+            var slash = command.IndexOf('/', StringComparison.Ordinal);
+
+            return "server" + (slash < 0 ? "/" + command : command[slash..]);
         }
 
         public static JsonObject ReadSource(DirectoryInfo root) =>

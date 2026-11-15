@@ -47,6 +47,14 @@ and SSH remotes; on macOS, build a VSIX with the [development guide](extensions/
 It gives Copilot the hypha MCP server, and shares its release data with every other Hypha client on
 the machine. See its [user guide](extensions/vscode/README.md).
 
+### Claude Desktop
+
+Download `hypha-<version>.mcpb` from the plugin's [release](https://github.com/mycelium-cmbse/mycelium-hypha/releases)
+and open it with Claude Desktop, which shows an installation dialog. The one bundle serves Windows,
+macOS and Linux. It holds the same launcher as the plugin, so it downloads `hypha` on its first start
+and shares its releases with every other Hypha client on the machine. Claude Desktop has no skills, so
+it works from the server's own instructions.
+
 ### Command line
 
 ```sh

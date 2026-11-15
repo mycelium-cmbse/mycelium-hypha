@@ -1,0 +1,50 @@
+{
+  "manifest_version": "0.3",
+  "name": "hypha",
+  "display_name": "Hypha — SysML v2 Agent",
+  "version": "2.3.0",
+  "description": "Hypha is the AI agent of the Mycelium ecosystem: a connecting filament between engineers and the SysML v2 specification. Provides skills and an MCP server for KerML/SysML v2 metamodel lookup, standard model library lookup, Systems Modeling API lookup, normative spec citation, and SysML v2 textual-notation validation.",
+  "author": {
+    "name": "Starion Group S.A.",
+    "url": "https://github.com/mycelium-cmbse"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mycelium-cmbse/mycelium-hypha"
+  },
+  "homepage": "https://github.com/mycelium-cmbse/mycelium-hypha",
+  "license": "Apache-2.0",
+  "keywords": [
+    "sysml",
+    "sysml-v2",
+    "kerml",
+    "mbse",
+    "omg",
+    "metamodel",
+    "systems-modeling-api",
+    "systems-engineering"
+  ],
+  "icon": "icon.png",
+  "server": {
+    "type": "binary",
+    "entry_point": "server/hypha-launch",
+    "mcp_config": {
+      "command": "${__dirname}/server/hypha-launch",
+      "args": [],
+      "env": {},
+      "platform_overrides": {
+        "win32": {
+          "command": "${__dirname}/server/hypha-launch.exe"
+        }
+      }
+    }
+  },
+  "tools_generated": true,
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ]
+  }
+}
