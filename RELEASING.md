@@ -33,7 +33,7 @@ and hands the client over to `hypha serve`. The VS Code extension bundles that s
    version (`tools/` on the run's commit has to match the tag; the workflow checks).
 
 The first release of `hypha serve` (Step 10 of `hypha-mcp-refactor-plan.md`, #197) is this order with
-tools 1.6.0 and plugin 3.0.0, after the pre-release below has been verified, and nothing before it but
+tools 2.0.0 and plugin 3.0.0, after the pre-release below has been verified, and nothing before it but
 that pre-release.
 
 ## A pre-release to verify first
@@ -41,17 +41,17 @@ that pre-release.
 Before a tools release that clients will download for the first time, verify a pre-release in every
 client (Step 9, #201, holds the list of checks):
 
-1. Run the Release workflow with a pre-release version, such as `1.6.0-beta.1`. The workflow marks the
+1. Run the Release workflow with a pre-release version, such as `2.0.0-beta.1`. The workflow marks the
    GitHub release as a pre-release. Review the draft and **publish** it: the launcher asks GitHub for the
    release by its tag, which a draft does not answer to.
 2. The workflow pushes the package to nuget.org as well, as a pre-release: `dotnet tool install` and
    `dotnet tool update` pass it by unless asked for it (`--prerelease`). It stays there; nuget.org can
    unlist a version but never delete it.
-3. Name it in a checkout of the plugin: set `hyphaVersion` in `manifest.source.json` to `1.6.0-beta.1`
+3. Name it in a checkout of the plugin: set `hyphaVersion` in `manifest.source.json` to `2.0.0-beta.1`
    and bless the manifests (step 2 below), on a branch. Load the plugin, and the client configurations,
    from that checkout, so each client's first start downloads the pre-release. Do not tag a plugin
    release for it.
-4. Once verified, release the same code as the full version (`1.6.0`) in [the order above](#the-order-of-a-release).
+4. Once verified, release the same code as the full version (`2.0.0`) in [the order above](#the-order-of-a-release).
 
 ## Releasing the plugin
 

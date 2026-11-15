@@ -32,7 +32,7 @@ namespace Hypha.Launcher
         public const string BinVariable = "HYPHA_BIN";
 
         /// <summary>The first <c>hypha</c> that has <c>serve</c>; an older one prints its help on standard output instead.</summary>
-        public const string MinimumVersion = "1.6.0";
+        public const string MinimumVersion = "2.0.0";
 
         /// <summary>How many folders above the launcher <c>bin/hypha-launch.json</c> may be: <c>bin/</c> on Windows, <c>bin/&lt;rid&gt;/</c> elsewhere.</summary>
         private const int ManifestSearchDepth = 3;
