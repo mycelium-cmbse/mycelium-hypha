@@ -26,7 +26,7 @@ namespace Hypha.Mcp.Tests
     // The plugin's skills, agents and commands name the server's tools by their bare names, which every
     // client shows with a prefix of its own, and the questions and arguments those tools take; a skill
     // that names a tool, a question or an argument the server does not have sends the model after
-    // nothing. This is the CI lint of Step 6 of hypha-mcp-refactor-plan.md.
+    // nothing. This is that check, run in CI.
     //
     // A question or argument is read from where the skills write it:
     // - a table after a line naming "`hypha_x` with the `question`": its second column holds question

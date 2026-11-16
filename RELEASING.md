@@ -34,8 +34,8 @@ and hands the client over to `hypha serve`. The VS Code extension bundles that s
 3. **The VS Code extension**, built from the same tools tag: start *Publish VS Code extension* with that
    version (`tools/` on the run's commit has to match the tag; the workflow checks).
 
-The first release of `hypha serve` (Step 10 of `hypha-mcp-refactor-plan.md`, #197) is this order with
-tools 2.0.0 and plugin 3.0.0, after the pre-release below has been verified, and nothing before it but
+The first release of `hypha serve` (#197) was this order with
+tools 2.0.0 and plugin 3.0.0, after the pre-release below had been verified, and nothing before it but
 that pre-release.
 
 ## A pre-release to verify first
