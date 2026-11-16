@@ -71,4 +71,4 @@ jobs:
         run: |
           set -euo pipefail
           python=$(command -v python3 || command -v python)
-          "$python" .github/scripts/first_start.py bin/hypha-launch "${RUNNER_TEMP}/first-start" "$RELEASE"
+          "$python" .github/scripts/first_start.py "${RUNNER_TEMP}/first-start" "$RELEASE"
