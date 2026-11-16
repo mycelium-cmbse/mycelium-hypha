@@ -47,8 +47,9 @@ delivered and started for you. It is released as a `vX.Y.Z` tag, through the mar
 The extension ([`extensions/vscode/`](extensions/vscode/README.md)) registers `hypha serve` as an
 MCP server for Copilot, and has no tools, commands or storage of its own. Unlike the plugin it does
 not download `hypha`: each platform's VSIX bundles one, built from a `tools-v` tag. It is published
-to the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha),
-marked as a preview, for Windows x64 and Linux x64/arm64; see its
+to the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=mycelium-cmbse.mycelium-hypha)
+and to [Open VSX](https://open-vsx.org/extension/mycelium-cmbse/mycelium-hypha), marked as a preview, for Windows x64
+and Linux x64/arm64; see its
 [development guide](extensions/vscode/DEVELOPMENT.md).
 
 ### How they fit together

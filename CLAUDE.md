@@ -13,10 +13,10 @@ Three related parts in one repository, scoped to the **OMG SysML v2 / KerML** st
 2. The **VS Code extension** in `extensions/vscode/`: a thin package that hands GitHub Copilot the
    hypha MCP server, by registering the `hypha serve` of the CLI it bundles as an MCP server
    definition provider. It has no tools, commands or storage of its own; the server reads
-   `HYPHA_HOME`, like every other client. It is published on the Visual Studio Marketplace, marked as a preview
+   `HYPHA_HOME`, like every other client. It is published on the Visual Studio Marketplace and on Open VSX, marked as a preview
    (`mycelium-cmbse.mycelium-hypha`, for Windows x64 and Linux x64/arm64) by the manually started
-   *Publish VS Code extension* workflow (`.github/workflows/publish-vscode.yml`), through Marketplace
-   Trusted Publishing; see `extensions/vscode/DEVELOPMENT.md`.
+   *Publish VS Code extension* workflow (`.github/workflows/publish-vscode.yml`), through both
+   registries' Trusted Publishing; see `extensions/vscode/DEVELOPMENT.md`.
 3. The **generation pipelines** in `tools/` that build `knowledge/` from upstream OMG sources in
    `sources/`. The pipelines are not shipped with the Claude plugin; the VS Code extension packages
    only the specification extraction project required by the standalone CLI.
