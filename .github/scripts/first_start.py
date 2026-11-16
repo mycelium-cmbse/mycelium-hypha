@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """The launcher's first start, as an MCP client makes it, against a published tools release.
 
-Starts ``bin/hypha-launch`` (the extensionless path every client package names: the POSIX script on
-macOS and Linux, ``hypha-launch.exe`` found from it on Windows) with nothing cached, then checks:
+Starts the repository's own ``bin/hypha-launch`` (the extensionless path every client package names:
+the POSIX script on macOS and Linux, ``hypha-launch.exe`` found from it on Windows) with nothing
+cached, then checks:
 
 1. ``initialize`` is answered at once, while ``hypha`` downloads;
 2. the client is told its tools changed, and ``tools/list`` then holds the real tools;
@@ -13,6 +14,9 @@ macOS and Linux, ``hypha-launch.exe`` found from it on Windows) with nothing cac
 6. the launcher exits with 0 once the client closes standard input.
 
 Every folder it writes to is under the scratch folder it is given. Exits non-zero on any failure.
+
+Usage: ``first_start.py <scratch folder> <release>``. The launcher is found from this script's own
+location, never from an argument, so the script can start only the launcher the repository commits.
 """
 
 import json
@@ -26,8 +30,14 @@ import time
 FIRST_START_TIMEOUT = 600
 INSTALL_TIMEOUT = 1800
 
+# The repository this script sits in (.github/scripts/), and its launcher. On Windows a client's Node spawn
+# finds bin/hypha-launch.exe from the extensionless path; Python's CreateProcess would try the POSIX
+# script of that name instead, so name the .exe it finds.
+REPOSITORY = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LAUNCHER = os.path.join(REPOSITORY, 'bin', 'hypha-launch.exe' if os.name == 'nt' else 'hypha-launch')
 
-def main(launcher: str, scratch: str, release: str) -> int:
+
+def main(scratch: str, release: str) -> int:
     folders = {name: os.path.join(scratch, name) for name in ('home', 'claude', 'config', 'cwd')}
     for folder in folders.values():
         os.makedirs(folder, exist_ok=True)
@@ -35,15 +45,9 @@ def main(launcher: str, scratch: str, release: str) -> int:
     env = {name: value for name, value in os.environ.items() if name not in ('HYPHA_BIN', 'HYPHA_HOME')}
     env.update(HYPHA_HOME=folders['home'], CLAUDE_CONFIG_DIR=folders['claude'], XDG_CONFIG_HOME=folders['config'])
 
-    # On Windows a client's Node spawn finds bin/hypha-launch.exe from the extensionless path; Python's
-    # CreateProcess would try the POSIX script of that name instead, so name the .exe it finds.
-    executable = os.path.abspath(launcher)
-    if os.name == 'nt' and not executable.lower().endswith('.exe'):
-        executable += '.exe'
-
     started = time.perf_counter()
     process = subprocess.Popen(
-        [executable], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        [LAUNCHER], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         cwd=folders['cwd'], env=env, text=True, encoding='utf-8')
     messages: queue.Queue = queue.Queue()
     errors: list[str] = []
@@ -155,4 +159,4 @@ def main(launcher: str, scratch: str, release: str) -> int:
 
 
 if __name__ == '__main__':
-    sys.exit(main(*sys.argv[1:4]))
+    sys.exit(main(*sys.argv[1:3]))
