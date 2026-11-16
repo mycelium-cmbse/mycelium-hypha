@@ -39,7 +39,7 @@ The minimum VS Code is 1.101, the first with the MCP server definition provider 
 
 ## Build and package
 
-From this directory, with Node.js 22+ and the .NET 10 SDK:
+From this directory, with Node.js 22 (as CI uses) and the .NET 10 SDK:
 
 ```sh
 npm ci
@@ -89,14 +89,13 @@ It uses Marketplace **Trusted Publishing**: GitHub Actions proves its identity t
   `tools-v<cli-version>` tag, so the bundled CLI is always exactly that release.
 - **Open VSX** (open-vsx.org) is where VSCodium, Cursor and other VS Code-compatible editors install
   from. The run publishes there with `ovsx publish --trusted-publishing`, Open VSX's Trusted
-  Publishing, so no Open VSX token is stored either. Before the first run, a maintainer:
-  1. signs in to open-vsx.org with GitHub and signs the Eclipse Foundation Open VSX Publisher
-     Agreement;
-  2. creates the `mycelium-cmbse` namespace and claims its ownership (an issue on
-     `EclipseFdn/open-vsx.org`), so the namespace is verified;
-  3. adds a trusted publisher to the namespace naming the repository owner `mycelium-cmbse`, the
-     repository `mycelium-hypha`, the workflow `publish-vscode.yml` and the environment
-     `vscode-marketplace`, the same names the Marketplace policy has.
+  Publishing, so no Open VSX token is stored either. The namespace `mycelium-cmbse` is verified,
+  and its trusted publisher (under **Settings → Trusted Publishers** on open-vsx.org) names the
+  repository owner `mycelium-cmbse`, the repository `mycelium-hypha`, the workflow filename
+  `publish-vscode.yml` and the environment `vscode-marketplace`, the same names the Marketplace
+  policy has. Open VSX registers a trusted publisher only for an extension it already has, so the
+  first version, 1.0.0, was published by hand with a one-time access token (`ovsx publish`
+  reading `OVSX_PAT`), from VSIXs built at the commit that published it to the Marketplace.
   A version Open VSX already has is refused, as on the Marketplace: to add Open VSX to a version
   already on the Marketplace, run with only Open VSX chosen.
 - The extension version comes from `package.json`. The Marketplace accepts only

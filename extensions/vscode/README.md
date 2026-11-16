@@ -25,7 +25,8 @@ You need VS Code 1.101 or later and access to GitHub Copilot Chat in Agent mode.
 or remote workspace; browser-based VS Code and virtual workspaces are not supported.
 
 1. Install **Hypha – SysML v2 and KerML** from the Extensions view, or a VSIX for your platform
-   with **Extensions: Install from VSIX…**.
+   with **Extensions: Install from VSIX…**. VSCodium, Cursor and the other editors that install
+   from [Open VSX](https://open-vsx.org/extension/mycelium-cmbse/mycelium-hypha) find it there.
    In WSL or SSH, install it on the remote host where your workspace runs. You do not need to
    install .NET, Python, a separate CLI or an Agent Plugin.
 2. Open **Copilot Chat**, select **Agent** mode, and check under **Configure Tools** that the
