@@ -81,7 +81,7 @@ A release therefore means: **bump the version, point the source at a new tag, an
    - `manifest.source.json`: bump `version` to `X.Y.Z`, and set `hyphaVersion` to the tools release the
      launcher should download. It is the one place either is written; never edit a manifest by hand.
    - Write the manifests from it:
-     `dotnet test mycelium-hypha.sln --filter "FullyQualifiedName~PackageManifestTests.Bless_the_manifests"`.
+     `dotnet test mycelium-hypha.slnx --filter "FullyQualifiedName~PackageManifestTests.Bless_the_manifests"`.
      That sets `version` in `.claude-plugin/plugin.json`, `plugin.json` and `gemini-extension.json`, the
      `hypha` entry's `source.ref` in `.claude-plugin/marketplace.json` to `vX.Y.Z`, and `bin/hypha-launch.json`.
      `dotnet test` fails while a manifest differs from the source.

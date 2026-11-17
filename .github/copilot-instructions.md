@@ -7,10 +7,10 @@ Scope is the **OMG SysML v2 / KerML** standards (not UML). The repo has three pa
 .NET 10 (`tools/metamodel-gen`, `tools/knowledge-gen`, `tools/hypha-mcp`, `tools/hypha-cli`, `tools/hypha-launcher`; NUnit), from the repo root:
 
 ```sh
-dotnet build mycelium-hypha.sln
-dotnet test mycelium-hypha.sln
-dotnet test mycelium-hypha.sln --filter "FullyQualifiedName~MetamodelClosureTests"   # one fixture/test
-dotnet test mycelium-hypha.sln --filter "TestCategory=Live"   # [Explicit], hits GitHub; set GITHUB_TOKEN
+dotnet build mycelium-hypha.slnx
+dotnet test mycelium-hypha.slnx
+dotnet test mycelium-hypha.slnx --filter "FullyQualifiedName~MetamodelClosureTests"   # one fixture/test
+dotnet test mycelium-hypha.slnx --filter "TestCategory=Live"   # [Explicit], hits GitHub; set GITHUB_TOKEN
 ```
 
 Python >= 3.12 (`tools/spec-extract`), from that folder:
@@ -38,7 +38,7 @@ VS Code extension (`extensions/vscode/`): `npm test` (clean, tsc, `node --test o
 ## Conventions
 
 - **Determinism:** generated output must be byte-stable: `StringComparer.Ordinal` sorting, LF endings, no timestamps, machine paths or culture-sensitive formatting; JSON via `System.Text.Json` with fixed options. `KnowledgeRegenerationTests` checks two independent runs match byte for byte; `Hypha.Knowledge.Metamodel.Tests` `Expected/` golden files are re-blessed with the `[Explicit]` `Bless_expected_files` tests, and after an intended format change you review the diff by hand.
-- **C#:** block-scoped namespaces with `using`s inside the namespace, one public type per file, classic `.sln`, Apache-2.0 `<copyright>` header (Starion Group S.A.) on every file. Services are registered with `Microsoft.Extensions.DependencyInjection` and resolved, not constructed; keep constructors injectable with no hidden statics. Caller-variable settings go on `HyphaKnowledgeOptions`, not extra `AddHyphaKnowledge` parameters; use `ILogger`, not `Console`. Prefer maintained NuGet packages over hand-rolled infrastructure.
+- **C#:** block-scoped namespaces with `using`s inside the namespace, one public type per file, the `mycelium-hypha.slnx` solution (not a classic `.sln`), Apache-2.0 `<copyright>` header (Starion Group S.A.) on every file. Services are registered with `Microsoft.Extensions.DependencyInjection` and resolved, not constructed; keep constructors injectable with no hidden statics. Caller-variable settings go on `HyphaKnowledgeOptions`, not extra `AddHyphaKnowledge` parameters; use `ILogger`, not `Console`. Prefer maintained NuGet packages over hand-rolled infrastructure.
 - **Python:** ruff-clean, standard-library-friendly, each file has the `# Copyright ... / # SPDX-License-Identifier: Apache-2.0` header.
 - **Prose, comments, XML docs, CHANGELOG, issues, PRs and commit messages use no en or em dashes** as punctuation; use a comma, colon, parentheses, semicolon or full stop. Hyphens in compound words are fine.
 - **Git:** never work on `development` or `main`. Branch `GH<issue-number>` off `development`, PR back into `development`, rebase rather than merge. Ask before committing or pushing. Commit subject: `[Verb] <summary>; fixes #<n>`.

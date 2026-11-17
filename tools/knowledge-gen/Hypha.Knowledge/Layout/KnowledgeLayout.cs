@@ -39,7 +39,7 @@ namespace Hypha.Knowledge.Layout
         /// The file at the root of a checkout of this repository, which <see cref="Discover"/> requires
         /// beside <see cref="SourcesFolder"/> and <see cref="KnowledgeFolder"/>.
         /// </summary>
-        public const string CheckoutMarker = "mycelium-hypha.sln";
+        public const string CheckoutMarker = "mycelium-hypha.slnx";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KnowledgeLayout"/> class.

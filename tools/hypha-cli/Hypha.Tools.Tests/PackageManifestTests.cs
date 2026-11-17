@@ -16,9 +16,11 @@ namespace Hypha.Tools.Tests
     using System.Text.Json.Nodes;
     using System.Text.RegularExpressions;
 
+    using Hypha.Knowledge.Layout;
+
     // The drift check: every client manifest in the repository is what manifest.source.json renders to.
     // After changing the source (a version bump, a new description), run the explicit Bless test:
-    //   dotnet test mycelium-hypha.sln --filter "FullyQualifiedName~PackageManifestTests.Bless_the_manifests"
+    //   dotnet test mycelium-hypha.slnx --filter "FullyQualifiedName~PackageManifestTests.Bless_the_manifests"
     [TestFixture]
     public class PackageManifestTests
     {
@@ -270,12 +272,12 @@ namespace Hypha.Tools.Tests
         {
             var folder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
 
-            while (folder is not null && !File.Exists(Path.Combine(folder.FullName, "mycelium-hypha.sln")))
+            while (folder is not null && !File.Exists(Path.Combine(folder.FullName, KnowledgeLayout.CheckoutMarker)))
             {
                 folder = folder.Parent;
             }
 
-            return folder ?? throw new InvalidOperationException("mycelium-hypha.sln was not found above the test folder.");
+            return folder ?? throw new InvalidOperationException($"{KnowledgeLayout.CheckoutMarker} was not found above the test folder.");
         }
     }
 }

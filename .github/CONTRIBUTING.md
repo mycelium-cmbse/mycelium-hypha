@@ -66,8 +66,8 @@ And remember; **A pull-request with tests is a pull-request that's likely to be 
 From the repository root:
 
 ```sh
-dotnet build mycelium-hypha.sln
-dotnet test mycelium-hypha.sln
+dotnet build mycelium-hypha.slnx
+dotnet test mycelium-hypha.slnx
 ```
 
 A normal test run never reaches the network and leaves the working tree clean. The `Live` category really fetches from GitHub; it is `[Explicit]` and opt-in, so set `GITHUB_TOKEN` before running it with `--filter "TestCategory=Live"`.

@@ -22,7 +22,7 @@ namespace Hypha.Launcher.Tests
             var configuration = output.Parent!.Name;
             var framework = output.Name;
             var root = output;
-            while (root is not null && !File.Exists(Path.Combine(root.FullName, "mycelium-hypha.sln")))
+            while (root is not null && !File.Exists(Path.Combine(root.FullName, "mycelium-hypha.slnx")))
             {
                 root = root.Parent;
             }

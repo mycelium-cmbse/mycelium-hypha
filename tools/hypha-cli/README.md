@@ -37,7 +37,7 @@ Every verb accepts `--repository-root`, `--toolchain-cache-root`, `--token`, `--
 `hypha` uses the first of:
 
 1. the source checkout above the working directory, which is how a maintainer works: a folder
-   holding `sources/`, `knowledge/` and `mycelium-hypha.sln`, so a project of your own with folders
+   holding `sources/`, `knowledge/` and `mycelium-hypha.slnx`, so a project of your own with folders
    of those names is not taken for one. `hypha serve` skips this step, since an AI client chooses
    its working directory, usually your project; pass `--repository-root` to serve a checkout;
 2. the `HYPHA_HOME` folder, when that environment variable is set;
@@ -408,7 +408,7 @@ moves.
 ## Building
 
 ```sh
-dotnet build mycelium-hypha.sln
+dotnet build mycelium-hypha.slnx
 dotnet test tools/hypha-cli/Hypha.Tools.Tests/Hypha.Tools.Tests.csproj
 ```
 

@@ -17,6 +17,8 @@ namespace Hypha.Mcp.Tests
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
+    using Hypha.Knowledge.Layout;
+
     using Hypha.Mcp;
 
     using Microsoft.Extensions.DependencyInjection;
@@ -252,7 +254,7 @@ namespace Hypha.Mcp.Tests
         private static DirectoryInfo Root()
         {
             var folder = new DirectoryInfo(AppContext.BaseDirectory);
-            while (folder is not null && !File.Exists(Path.Combine(folder.FullName, "mycelium-hypha.sln")))
+            while (folder is not null && !File.Exists(Path.Combine(folder.FullName, KnowledgeLayout.CheckoutMarker)))
             {
                 folder = folder.Parent;
             }

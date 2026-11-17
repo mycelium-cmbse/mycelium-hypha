@@ -51,10 +51,10 @@ that needs a fact the JSON does not hold is a generator change first.
 repo root:
 
 ```sh
-dotnet build mycelium-hypha.sln
-dotnet test mycelium-hypha.sln
-dotnet test mycelium-hypha.sln --filter "FullyQualifiedName~MetamodelClosureTests"   # one fixture/test
-dotnet test mycelium-hypha.sln --filter "TestCategory=Live"   # [Explicit]: really fetches from GitHub
+dotnet build mycelium-hypha.slnx
+dotnet test mycelium-hypha.slnx
+dotnet test mycelium-hypha.slnx --filter "FullyQualifiedName~MetamodelClosureTests"   # one fixture/test
+dotnet test mycelium-hypha.slnx --filter "TestCategory=Live"   # [Explicit]: really fetches from GitHub
 ```
 
 Nothing reaches the network in a normal run. The `Live` category is `[Explicit]`, so it is opt-in and
@@ -121,7 +121,7 @@ the running assembly; and `HyphaHome`'s default location, `hypha` in the per-use
 folder. The home folder is the one every client shares. The managed toolchain defaults to
 `toolchain/` in it. The plugin's skills reach that folder through the MCP server, which the launcher
 starts without `--repository-root`. A source checkout is a folder holding `sources/`, `knowledge/`
-and `mycelium-hypha.sln` (`KnowledgeLayout.Discover`): the two folders alone may be a user's own
+and `mycelium-hypha.slnx` (`KnowledgeLayout.Discover`): the two folders alone may be a user's own
 project.
 The first time `hypha` reads an empty `HYPHA_HOME`, `IKnowledgeMigration` copies in the releases the
 plugin and the VS Code extension installed in their own folders (`ILegacyInstallLocator`), once;
@@ -278,8 +278,8 @@ running header/footer stripping) → `clauses` (heading detection via a successo
   `development`, and open the PR back into `development` (see `.github/CONTRIBUTING.md`). Ask before
   committing or pushing. Commit subject: `[Verb] <summary>; fixes #<n>`.
 - **C#:** block-scoped namespaces with `using`s *inside* the namespace, one public type per file, NUnit,
-  the classic `mycelium-hypha.sln`. Every source file opens with the Apache-2.0 `<copyright>` header
-  (Starion Group S.A.).
+  the `mycelium-hypha.slnx` solution (the XML format, not the classic `.sln`). Every source file
+  opens with the Apache-2.0 `<copyright>` header (Starion Group S.A.).
 - **C# dependencies and DI:** well-established NuGet packages are welcome; prefer a maintained
   library over hand-rolling infrastructure. Services are registered through
   `Microsoft.Extensions.DependencyInjection` and resolved rather than constructed, so the CLI
