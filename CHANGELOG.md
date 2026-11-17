@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **The solution is `mycelium-hypha.slnx`** (`fixes #280`): the XML solution format replaces the
+  classic `mycelium-hypha.sln`, and `hypha` now recognises a source checkout by the `.slnx` file. A
+  clone made before this change is no longer taken for a source checkout by a newer `hypha` until it
+  is updated.
+
 ## [3.0.0] - 2026-11-15
 
 This release starts `hypha` tools 2.0.0 (`tools-v2.0.0`), the first with `serve`. Checked before it: Claude

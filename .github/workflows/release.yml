@@ -83,8 +83,8 @@ jobs:
         env:
           HYPHA_REQUIRE_JQ: "1"
         run: |
-          dotnet restore mycelium-hypha.sln
-          dotnet test mycelium-hypha.sln --no-restore
+          dotnet restore mycelium-hypha.slnx
+          dotnet test mycelium-hypha.slnx --no-restore
 
       - name: Pack the dotnet tool
         # GenerateSBOM=true embeds an SPDX 2.2 manifest in the .nupkg under _manifest/ (Microsoft.Sbom.Targets'

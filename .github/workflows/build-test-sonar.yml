@@ -197,7 +197,7 @@ jobs:
           restore-keys: ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore mycelium-hypha.sln
+        run: dotnet restore mycelium-hypha.slnx
 
       - name: SonarQube begin
         env:
@@ -210,14 +210,14 @@ jobs:
           dotnet sonarscanner begin /k:"mycelium-cmbse_mycelium-hypha" /o:"mycelium-cmbse" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.python.coverage.reportPaths="tools/spec-extract/coverage.xml" /d:sonar.python.version="3.12" /d:sonar.test.inclusions="**/spec-extract/tests/**/*" /d:sonar.coverage.exclusions="extensions/vscode/scripts/**"
 
       - name: Build
-        run: dotnet build mycelium-hypha.sln --no-restore --no-incremental /p:ContinuousIntegrationBuild=true
+        run: dotnet build mycelium-hypha.slnx --no-restore --no-incremental /p:ContinuousIntegrationBuild=true
 
       - name: Run tests and compute coverage
         # The query API is checked against the jq queries the skills used to run. Locally those tests
         # are skipped without jq; here jq is on the runner, so a missing jq fails instead.
         env:
           HYPHA_REQUIRE_JQ: "1"
-        run: dotnet-coverage collect "dotnet test mycelium-hypha.sln --no-restore --no-build --verbosity normal" -f xml -o "coverage.xml"
+        run: dotnet-coverage collect "dotnet test mycelium-hypha.slnx --no-restore --no-build --verbosity normal" -f xml -o "coverage.xml"
 
       - name: Assert the tests wrote nothing
         # Generation is `hypha generate`'s job; the tests verify. One of them regenerates the whole

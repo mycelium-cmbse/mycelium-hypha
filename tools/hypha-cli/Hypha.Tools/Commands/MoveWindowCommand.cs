@@ -246,9 +246,9 @@ namespace Hypha.Tools.Commands
             {
                 var root = this.layout.Root;
 
-                if (!File.Exists(Path.Combine(root.FullName, "mycelium-hypha.sln")))
+                if (!File.Exists(Path.Combine(root.FullName, KnowledgeLayout.CheckoutMarker)))
                 {
-                    return "move-window needs a full source checkout (mycelium-hypha.sln not found "
+                    return $"move-window needs a full source checkout ({KnowledgeLayout.CheckoutMarker} not found "
                         + $"under {root.FullName}) - it cannot run from the standalone distributed binary.";
                 }
 

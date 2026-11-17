@@ -52,4 +52,4 @@ Installed, that is `hypha discover` / `hypha fetch` / `hypha generate`. See
 [`hypha-cli/README.md`](hypha-cli/README.md) for installation, the full verb list and exit codes.
 
 `hypha-cli`, `hypha-launcher`, `metamodel-gen` and `spec-extract` each have a README of their own;
-`hypha-mcp` and `knowledge-gen` build and test with the solution (`dotnet test mycelium-hypha.sln`).
+`hypha-mcp` and `knowledge-gen` build and test with the solution (`dotnet test mycelium-hypha.slnx`).

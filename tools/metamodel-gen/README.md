@@ -18,7 +18,7 @@ tests exercise the generators and assert on scratch output; they never write int
 | `Hypha.Knowledge.Metamodel` | class library | XMI reading + markdown / JSON generation |
 | `Hypha.Knowledge.Metamodel.Tests` | NUnit tests | exercises the generators and asserts their output |
 
-Both target **net10.0** and are part of the root solution `mycelium-hypha.sln`.
+Both target **net10.0** and are part of the root solution `mycelium-hypha.slnx`.
 Package restore uses the repo-local `NuGet.config` (nuget.org only).
 
 Key dependency: [`uml4net.xmi`](https://www.nuget.org/packages/uml4net.xmi) `9.2.0` (Starion Group,
@@ -36,8 +36,8 @@ directory. With no XMI present the tests **skip** (the suite stays green).
 ## Build & test
 
 ```sh
-dotnet build mycelium-hypha.sln
-dotnet test  mycelium-hypha.sln
+dotnet build mycelium-hypha.slnx
+dotnet test  mycelium-hypha.slnx
 ```
 
 Tests never write into `knowledge/`; that is the job of

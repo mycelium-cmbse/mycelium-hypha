@@ -253,7 +253,7 @@ The knowledge base is built from third-party, separately-licensed inputs:
 
 ## Contributing
 
-See [CONTRIBUTING](.github/CONTRIBUTING.md). `dotnet test mycelium-hypha.sln` and `pytest` in
+See [CONTRIBUTING](.github/CONTRIBUTING.md). `dotnet test mycelium-hypha.slnx` and `pytest` in
 `tools/spec-extract` exercise the generators; CI runs both with SonarQube analysis. The .NET tests
 **verify** the knowledge base rather than writing it: `KnowledgeRegenerationTests` fetches a release
 fresh and asserts two independent regenerations are byte-identical to *each other*, proving the

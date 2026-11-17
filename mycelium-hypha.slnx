@@ -1,0 +1,28 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/tools/" />
+  <Folder Name="/tools/hypha-cli/">
+    <Project Path="tools/hypha-cli/Hypha.Tools.Tests/Hypha.Tools.Tests.csproj" />
+    <Project Path="tools/hypha-cli/Hypha.Tools/Hypha.Tools.csproj" />
+  </Folder>
+  <Folder Name="/tools/hypha-launcher/">
+    <Project Path="tools/hypha-launcher/Hypha.Launcher.Tests/Hypha.Launcher.Tests.csproj" />
+    <Project Path="tools/hypha-launcher/Hypha.Launcher/Hypha.Launcher.csproj" />
+  </Folder>
+  <Folder Name="/tools/hypha-mcp/">
+    <Project Path="tools/hypha-mcp/Hypha.Mcp.Tests/Hypha.Mcp.Tests.csproj" />
+    <Project Path="tools/hypha-mcp/Hypha.Mcp/Hypha.Mcp.csproj" />
+  </Folder>
+  <Folder Name="/tools/knowledge-gen/">
+    <Project Path="tools/knowledge-gen/Hypha.Knowledge.Tests/Hypha.Knowledge.Tests.csproj" />
+    <Project Path="tools/knowledge-gen/Hypha.Knowledge/Hypha.Knowledge.csproj" />
+  </Folder>
+  <Folder Name="/tools/metamodel-gen/">
+    <Project Path="tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Hypha.Knowledge.Metamodel.Tests.csproj" />
+    <Project Path="tools/metamodel-gen/Hypha.Knowledge.Metamodel/Hypha.Knowledge.Metamodel.csproj" />
+  </Folder>
+</Solution>

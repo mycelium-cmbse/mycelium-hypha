@@ -87,7 +87,7 @@ namespace Hypha.Tools.Tests
                     return GenerationResult.Generated([new FileInfo(Path.Combine(Path.GetTempPath(), "m.md"))]);
                 });
 
-            // A real checkout: move-window's pre-flight checks (mycelium-hypha.sln, tools/spec-extract,
+            // A real checkout: move-window's pre-flight checks (mycelium-hypha.slnx, tools/spec-extract,
             // its .venv) are real filesystem checks, so Root has to point at one for a test to get past
             // them without faking a whole checkout on disk.
             var repositoryRoot = KnowledgeLayout.Discover()?.Root
