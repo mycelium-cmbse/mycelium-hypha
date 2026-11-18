@@ -1,4 +1,4 @@
-# Copyright 2026 Starion Group S.A.
+# SPDX-FileCopyrightText: 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
 """End-to-end smoke test against the real KerML PDF (skips when the git-ignored PDF is absent).
 

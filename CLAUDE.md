@@ -278,16 +278,19 @@ running header/footer stripping) → `clauses` (heading detection via a successo
   `development`, and open the PR back into `development` (see `.github/CONTRIBUTING.md`). Ask before
   committing or pushing. Commit subject: `[Verb] <summary>; fixes #<n>`.
 - **C#:** block-scoped namespaces with `using`s *inside* the namespace, one public type per file, NUnit,
-  the `mycelium-hypha.slnx` solution (the XML format, not the classic `.sln`). Every source file
-  opens with the Apache-2.0 `<copyright>` header (Starion Group S.A.).
+  the `mycelium-hypha.slnx` solution (the XML format, not the classic `.sln`).
+- **License header:** every source file (C#, Python, TypeScript and JavaScript) opens with two SPDX
+  comment lines and nothing else: `SPDX-FileCopyrightText: 2026 Starion Group S.A.` and
+  `SPDX-License-Identifier: Apache-2.0`, as `//` or `#` comments. The root `.editorconfig`'s
+  `file_header_template` writes it into new C# files. The Handlebars templates carry it in a
+  `{{!-- --}}` comment, which renders nothing.
 - **C# dependencies and DI:** well-established NuGet packages are welcome; prefer a maintained
   library over hand-rolling infrastructure. Services are registered through
   `Microsoft.Extensions.DependencyInjection` and resolved rather than constructed, so the CLI
   (see #81) composes them in one place. Keep constructors injectable and free of hidden statics.
   Anything a caller can vary belongs on `HyphaKnowledgeOptions`, not as another optional parameter on
   `AddHyphaKnowledge`; anything a caller might want to watch goes through `ILogger`, not `Console`.
-- **Python:** ruff-clean, standard-library-friendly; each file carries the
-  `# Copyright … / # SPDX-License-Identifier: Apache-2.0` header.
+- **Python:** ruff-clean, standard-library-friendly; each file carries the SPDX license header.
 - **Prose/docs, comments and XML docs** use no dashes as punctuation: neither the en dash nor the em
   dash. Rewrite the sentence with a comma, a colon, parentheses, a semicolon or a full stop instead;
   hyphens in compound words (`read-only`) are fine. This covers CHANGELOG entries, issues, PRs and

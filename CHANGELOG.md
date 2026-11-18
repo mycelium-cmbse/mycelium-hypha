@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Every source file's license header is two SPDX lines** (`fixes #279`):
+  `SPDX-FileCopyrightText: 2026 Starion Group S.A.` and `SPDX-License-Identifier: Apache-2.0` replace
+  the `<copyright>` block in the C# files and the `# Copyright` line in the Python files, and are
+  added to the VS Code extension's TypeScript and JavaScript files and, as a comment that renders
+  nothing, to the metamodel templates. A root `.editorconfig` writes the header into new C# files.
 - **The solution is `mycelium-hypha.slnx`** (`fixes #280`): the XML solution format replaces the
   classic `mycelium-hypha.sln`, and `hypha` now recognises a source checkout by the `.slnx` file. A
   clone made before this change is no longer taken for a source checkout by a newer `hypha` until it

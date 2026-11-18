@@ -1,4 +1,4 @@
-# Copyright 2026 Starion Group S.A.
+# SPDX-FileCopyrightText: 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
 """The launcher's first start, as an MCP client makes it, against a published tools release.
 

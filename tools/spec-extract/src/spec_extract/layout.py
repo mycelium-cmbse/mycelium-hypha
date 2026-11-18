@@ -1,4 +1,4 @@
-# Copyright 2026 Starion Group S.A.
+# SPDX-FileCopyrightText: 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
 """Reconstruct reading-ordered, style-aware lines from positioned characters.
 

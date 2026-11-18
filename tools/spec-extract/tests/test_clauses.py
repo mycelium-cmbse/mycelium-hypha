@@ -1,4 +1,4 @@
-# Copyright 2026 Starion Group S.A.
+# SPDX-FileCopyrightText: 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
 """Clause boundary detection: successor numbering, TOC rejection, stray-number rejection."""
 

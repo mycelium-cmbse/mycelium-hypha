@@ -1,4 +1,4 @@
-# Copyright 2026 Starion Group S.A.
+# SPDX-FileCopyrightText: 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
 """The ``python -m spec_extract`` entry point: argument parsing and the missing-PDF exit path.
 
