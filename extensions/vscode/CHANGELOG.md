@@ -9,6 +9,11 @@ odd minor number are Marketplace pre-releases; an even minor number marks a rele
 
 ## [Unreleased]
 
+### Added
+
+- **A Security and approval section** (`refs #285`) in the README, linking to the security and
+  deployment profile administrators can approve the extension from, and to the security policy.
+
 ## [1.0.0] - 2026-11-15
 
 The first release that is not a pre-release. It bundles `hypha` tools 2.0.0, for Windows x64 and for

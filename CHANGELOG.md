@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **A security policy and a security and deployment profile** (`refs #285`): `.github/SECURITY.md`
+  asks for vulnerabilities to be reported through GitHub's private vulnerability reporting, handled
+  on a best-effort basis for the newest release of each part. `docs/security-profile.md` describes,
+  for VS Code extension 1.0.0 and tools 2.0.0, the launch definition, the transport, every tool's
+  side effects, the files, network destinations, credentials and child processes, the supply chain,
+  and the package hashes, each marked verified or not. Both are linked from the READMEs.
+
 ### Changed
 - **Every source file's license header is two SPDX lines** (`fixes #279`):
   `SPDX-FileCopyrightText: 2026 Starion Group S.A.` and `SPDX-License-Identifier: Apache-2.0` replace

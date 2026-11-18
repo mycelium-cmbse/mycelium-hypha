@@ -96,6 +96,11 @@ Copilot to remove a release before uninstalling, or delete the folder by hand.
 The extension contains the `hypha` executable, but no release knowledge, specification PDFs or
 extracted specification text. Text the tools return to Copilot becomes part of its chat context.
 
+## Security and approval
+
+The [security and deployment profile](https://github.com/mycelium-cmbse/mycelium-hypha/blob/development/docs/security-profile.md) describes, per version, how the server is started, what each tool reads, writes and downloads, the network destinations, the processes it starts and the package hashes, for administrators who need to approve it. To report a vulnerability, follow the
+[security policy](https://github.com/mycelium-cmbse/mycelium-hypha/security/policy).
+
 ## Troubleshooting
 
 - **The hypha tools are not listed:** check that Hypha is enabled on the current workspace host,
