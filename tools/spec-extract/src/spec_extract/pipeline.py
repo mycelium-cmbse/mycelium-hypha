@@ -1,4 +1,4 @@
-# Copyright 2026 Starion Group S.A.
+# SPDX-FileCopyrightText: 2026 Starion Group S.A.
 # SPDX-License-Identifier: Apache-2.0
 """Compose the extraction layers: PDF -> ordered lines -> clauses -> per-clause markdown files."""
 

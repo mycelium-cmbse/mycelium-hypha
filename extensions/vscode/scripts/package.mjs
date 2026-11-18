@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Starion Group S.A.
+// SPDX-License-Identifier: Apache-2.0
+
 import { spawnSync } from "node:child_process";
 import { cp, readFile } from "node:fs/promises";
 import { createRequire } from "node:module";

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Starion Group S.A.
+// SPDX-License-Identifier: Apache-2.0
+
 import { existsSync } from "node:fs";
 import { mkdtemp, mkdir, readdir, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";

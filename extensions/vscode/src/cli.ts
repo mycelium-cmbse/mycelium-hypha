@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Starion Group S.A.
+// SPDX-License-Identifier: Apache-2.0
+
 import { access, constants } from "node:fs/promises";
 import path from "node:path";
 

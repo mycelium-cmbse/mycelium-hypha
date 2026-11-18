@@ -1,0 +1,6 @@
+root = true
+
+# The SPDX license header every C# file opens with. Visual Studio, Rider and the IDE0073 code fix
+# write it into new files and add it where it is missing.
+[*.cs]
+file_header_template = SPDX-FileCopyrightText: 2026 Starion Group S.A.\nSPDX-License-Identifier: Apache-2.0

@@ -87,7 +87,8 @@ versions rather than the locked ones, so ruff and pytest may differ from CI.
 
 ## Style Guidelines
 
-- **C#:** block-scoped namespaces with `using`s inside the namespace, one public type per file, NUnit tests. Every source file opens with the Apache-2.0 copyright header (Starion Group S.A.).
-- **Python:** ruff-clean; each file carries the `# Copyright … / # SPDX-License-Identifier: Apache-2.0` header.
+- **C#:** block-scoped namespaces with `using`s inside the namespace, one public type per file, NUnit tests.
+- **License header:** every C#, Python, TypeScript and JavaScript file opens with two SPDX comment lines, `SPDX-FileCopyrightText: 2026 Starion Group S.A.` and `SPDX-License-Identifier: Apache-2.0`, and nothing else. The root `.editorconfig` makes Visual Studio and Rider write it into new C# files.
+- **Python:** ruff-clean.
 - **Generated artifacts** must be byte-stable: ordinal sorting, LF line endings, and no timestamps, machine paths or culture-sensitive formatting.
 - **Prose and docs** use no dash as punctuation, neither the en dash nor the em dash: write the sentence with a comma, a colon, parentheses, a semicolon or a full stop instead. Hyphens in compound words stay.
