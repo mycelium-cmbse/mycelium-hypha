@@ -93,7 +93,9 @@ try {
       "--disable-workspace-trust", "--skip-welcome", "--skip-release-notes", "--no-sandbox"],
     extensionTestsEnv: {
       HYPHA_EXPECTED_EXTENSION_DIRECTORY: extensions,
-      HYPHA_TEST_HOME: home
+      HYPHA_TEST_HOME: home,
+      // The source checkout this extension is built in, as a working directory serve must ignore.
+      HYPHA_TEST_CHECKOUT: path.resolve(root, "..", "..")
     }
   });
 } finally {

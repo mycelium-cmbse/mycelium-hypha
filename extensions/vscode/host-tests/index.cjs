@@ -11,8 +11,9 @@ const vscode = require("vscode");
  */
 function askServer(executable, home, cwd) {
   return new Promise((resolve, reject) => {
-    // Started in the extension's own folder, as the extension tells the editor to: never the folder
-    // this test happens to run from, which is usually a source checkout that hypha would prefer.
+    // The extension leaves the working directory to the editor, so this starts the server in the
+    // worst folder the editor could pick, this source checkout: serve must ignore it and answer from
+    // HYPHA_HOME, which the empty release list below shows.
     const child = spawn(executable, ["serve"], {
       cwd,
       env: { ...process.env, HYPHA_HOME: home },
@@ -77,7 +78,7 @@ exports.run = async function () {
     "hypha carries the specification extractor and the UML primitives; the extension ships no copy");
 
   const home = process.env.HYPHA_TEST_HOME;
-  const { initialize, tools, status } = await askServer(executable, home, extension.extensionPath);
+  const { initialize, tools, status } = await askServer(executable, home, process.env.HYPHA_TEST_CHECKOUT);
   assert.equal(initialize.result.serverInfo.name, "hypha");
   const names = tools.result.tools.map((tool) => tool.name);
   assert.ok(names.length >= 17 && names.length < 20, `expected hypha's tools, got ${names.length}`);

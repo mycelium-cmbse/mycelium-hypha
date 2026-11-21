@@ -111,8 +111,8 @@ test("the server is the bundled hypha, started as hypha serve on the shared HYPH
   assert.deepEqual([...server.args], ["serve"], "no --repository-root: hypha reads HYPHA_HOME");
   assert.deepEqual({ ...server.env }, {}, "no folder or toolchain of the extension's own");
   assert.equal(server.version, "9.8.7", "a new extension version makes the editor refresh the tools");
-  assert.equal(server.cwd?.fsPath, "/extension",
-    "started in the extension's own folder, never the workspace, which hypha could take for its knowledge folder");
+  assert.equal(server.cwd, undefined,
+    "no working directory: hypha serve never reads it, and Copilot cannot migrate a definition that sets one");
 });
 
 test("a manifest without a version gives the server an empty version", () => {
