@@ -28,6 +28,9 @@ obj/
 *.suo
 .vs/
 
+# The SonarScanner's working folder, which CI's analysis creates in the repository root.
+/.sonarqube/
+
 # The plugin's own top-level bin/ is committed: it holds hypha-launch, the MCP server's launcher, for
 # each platform, and its dispatch script (see tools/hypha-cli/README.md). Root-anchored, so every build
 # output folder named bin/ stays ignored.
