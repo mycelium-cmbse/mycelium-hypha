@@ -171,7 +171,7 @@ The knowledge base is built from third-party, separately-licensed inputs:
 
 ## Security
 
-Report a vulnerability privately, as the [security policy](.github/SECURITY.md) describes. The [security and deployment profile](docs/security-profile.md) describes, per version, what the MCP server starts, reads, writes and downloads, for administrators who need to approve it.
+Report a vulnerability privately, as the [security policy](.github/SECURITY.md) describes. The [security and deployment profile](docs/security-profile/README.md) describes, per version, what the MCP server starts, reads, writes and downloads, for administrators who need to approve it.
 
 ## Contributing
 

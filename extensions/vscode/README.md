@@ -98,7 +98,7 @@ extracted specification text. Text the tools return to Copilot becomes part of i
 
 ## Security and approval
 
-The [security and deployment profile](https://github.com/mycelium-cmbse/mycelium-hypha/blob/development/docs/security-profile.md) describes, per version, how the server is started, what each tool reads, writes and downloads, the network destinations, the processes it starts and the package hashes, for administrators who need to approve it. To report a vulnerability, follow the
+The [security and deployment profile](https://github.com/mycelium-cmbse/mycelium-hypha/blob/development/docs/security-profile/README.md) describes, per version, how the server is started, what each tool reads, writes and downloads, the network destinations, the processes it starts and the package hashes, for administrators who need to approve it. To report a vulnerability, follow the
 [security policy](https://github.com/mycelium-cmbse/mycelium-hypha/security/policy).
 
 ## Troubleshooting
