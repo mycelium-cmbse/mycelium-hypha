@@ -1,0 +1,68 @@
+# The copyright and license of every file that cannot carry an SPDX header, in the form the REUSE
+# specification (https://reuse.software/spec/) reads; `reuse lint` checks it in CI. A file that
+# matches several annotations takes the last one, so the third-party files come after the rest.
+# NOTICE records where each third-party file comes from.
+
+version = 1
+SPDX-PackageName = "mycelium-hypha"
+SPDX-PackageSupplier = "Starion Group S.A."
+SPDX-PackageDownloadLocation = "https://github.com/mycelium-cmbse/mycelium-hypha"
+
+# Everything of our own that has no header: documentation, manifests, project and settings files,
+# workflows, the committed launcher binaries and the extension's icon. A file with its own SPDX
+# header keeps it.
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Starion Group S.A."
+SPDX-License-Identifier = "Apache-2.0"
+
+# Documentation quotes the SPDX header lines as examples, which are not a statement about the file
+# itself.
+[[annotations]]
+path = "**/*.md"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Starion Group S.A."
+SPDX-License-Identifier = "Apache-2.0"
+
+# A synthetic model in the shape of the Systems Modeling API PIM, written for the tests; no OMG
+# content.
+[[annotations]]
+path = "tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/pim/Systems-Modeling-API.xmi"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Starion Group S.A."
+SPDX-License-Identifier = "Apache-2.0"
+
+# The UML 2.5.1 Primitive Types, a normative machine-readable file of OMG UML 2.5.1 (formal/17-12-05,
+# https://www.omg.org/spec/UML/2.5.1): OMG file ptc/18-01-02,
+# https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi.
+[[annotations]]
+path = "sources/PrimitiveTypes.xmi"
+precedence = "override"
+SPDX-FileCopyrightText = "Object Management Group, Inc."
+SPDX-License-Identifier = "LicenseRef-OMG-Specification"
+
+# The KerML and SysML metamodels, from Systems-Modeling/SysML-v2-Pilot-Implementation at tag 2026-05.
+[[annotations]]
+path = "tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/xmi/*.uml"
+precedence = "override"
+SPDX-FileCopyrightText = "The contributors to SysML-v2-Pilot-Implementation, https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation"
+SPDX-License-Identifier = "EPL-2.0"
+
+# Two standard model library files, from Systems-Modeling/SysML-v2-Release.
+[[annotations]]
+path = "tools/knowledge-gen/Hypha.Knowledge.Tests/Fixtures/model-library/*"
+precedence = "override"
+SPDX-FileCopyrightText = [
+    "2019-2021 California Institute of Technology (Jet Propulsion Laboratory)",
+    "2019-2026 DEKonsult",
+    "2019-2021 IncQuery Labs Ltd.",
+    "2019-2026 Intercax LLC",
+    "2019-2021 Itemis",
+    "2019-2026 Mgnite Inc.",
+    "2019-2026 Model Driven Solutions, Inc.",
+    "2019-2026 SAF Consulting",
+    "2022 Siemens AG",
+    "2021-2025 Twingineer LLC",
+]
+SPDX-License-Identifier = "EPL-2.0"

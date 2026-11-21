@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its resolved paths per platform, the transport, every tool's side effects, the files, network
   destinations, credentials and child processes, the supply chain, and the package hashes, each
   marked verified or not. Both are linked from the READMEs.
+- **The repository is REUSE compliant** (`fixes #293`): `REUSE.toml` states the copyright and
+  license of every file that carries no SPDX header, including the upstream ones of the committed
+  third-party files, `LICENSES/` holds the Apache-2.0, EPL-2.0 and OMG specification license texts,
+  and CI runs `reuse lint`. `NOTICE` now names exactly the third-party files committed:
+  `sources/PrimitiveTypes.xmi` is OMG's UML 2.5.1 library, and the metamodel test fixtures are
+  named with their upstream commit.
 
 ### Changed
 - **Every source file's license header is two SPDX lines** (`fixes #279`):

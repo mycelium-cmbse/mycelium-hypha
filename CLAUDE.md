@@ -283,7 +283,11 @@ running header/footer stripping) → `clauses` (heading detection via a successo
   comment lines and nothing else: `SPDX-FileCopyrightText: 2026 Starion Group S.A.` and
   `SPDX-License-Identifier: Apache-2.0`, as `//` or `#` comments. The root `.editorconfig`'s
   `file_header_template` writes it into new C# files. The Handlebars templates carry it in a
-  `{{!-- --}}` comment, which renders nothing.
+  `{{!-- --}}` comment, which renders nothing. Every other file (Markdown, JSON, project and
+  settings files, workflows, the committed binaries) is covered by `REUSE.toml`, which also states
+  the upstream copyright and license of each committed third-party file, with each license text in
+  `LICENSES/`; a new third-party file needs an entry there and in `NOTICE`. CI runs `reuse lint`, so
+  a file neither covers fails the build.
 - **C# dependencies and DI:** well-established NuGet packages are welcome; prefer a maintained
   library over hand-rolling infrastructure. Services are registered through
   `Microsoft.Extensions.DependencyInjection` and resolved rather than constructed, so the CLI
