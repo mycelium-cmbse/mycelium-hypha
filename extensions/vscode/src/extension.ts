@@ -46,15 +46,13 @@ export function deactivate(): void {
  * No `--repository-root` and no environment of its own: `hypha` reads `HYPHA_HOME`, the per-user
  * folder every client shares, so a release installed in one client answers in this one.
  *
- * The working directory is the extension's own folder rather than the workspace folder the editor
- * would choose. `hypha serve` does not look above its working directory, so this only keeps the
- * server's working directory predictable.
+ * No working directory either: the editor chooses it, and `hypha serve` never reads it, not even to
+ * look for a source checkout. Setting one would only stop Copilot from migrating the definition to a
+ * workspace `.mcp.json`.
  * @param extensionPath Root folder of the installed extension.
  * @param version The extension's version; a change makes the editor refresh the server's tools.
  * @returns The stdio server definition.
  */
 export function serverDefinition(extensionPath: string, version: string): vscode.McpStdioServerDefinition {
-  const server = new vscode.McpStdioServerDefinition(serverLabel, cliPath(extensionPath), ["serve"], {}, version);
-  server.cwd = vscode.Uri.file(extensionPath);
-  return server;
+  return new vscode.McpStdioServerDefinition(serverLabel, cliPath(extensionPath), ["serve"], {}, version);
 }

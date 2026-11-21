@@ -24,9 +24,9 @@ variable names. Nothing is kept in `ExtensionContext.globalStorageUri` any more;
 version of the extension installed there are copied into `HYPHA_HOME` once by hypha itself
 (`IKnowledgeMigration`), unless they are in an older generated format.
 
-The server's working directory is set to the extension's own folder rather than the workspace
-folder the editor would choose. `hypha serve` does not look above its working directory, so this
-only keeps that directory predictable. A maintainer's caveat: under **F5** the development host's
+The definition sets no working directory, so the editor chooses one. `hypha serve` never reads it,
+not even to look for a source checkout, and a definition with `cwd` is one Copilot cannot migrate
+to a workspace `.mcp.json`. A maintainer's caveat: under **F5** the development host's
 server runs the CLI built into this checkout (`out/cli/`), so unless `HYPHA_HOME` is set it answers
 from the checkout's own `knowledge/`, the checkout above the running program.
 
