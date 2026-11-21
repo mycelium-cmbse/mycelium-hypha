@@ -67,7 +67,7 @@ and `ApiInputs` (`tools/knowledge-gen`, namespace `Hypha.Knowledge.Api`).
 | --- | --- | --- | --- |
 | SysML v2 metamodel | Pilot-Implementation | `org.omg.sysml/model/SysML_only_xmi.uml` | EPL-2.0, git-ignored |
 | KerML metamodel | Pilot-Implementation | `org.omg.sysml/model/KerML_only_xmi.uml` | EPL-2.0, git-ignored |
-| Primitive types | none | shared `sources/PrimitiveTypes.xmi` | OMG UML library, committed |
+| Primitive types | OMG UML 2.5.1, file `ptc/18-01-02` | `https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi`, shared as `sources/PrimitiveTypes.xmi` | OMG, committed |
 | Specification PDFs | Release | `doc/*.pdf` | OMG, **git-ignored** |
 | Textual grammar | Release | `bnf/*.kebnf`, `*.kgbnf` | EPL-2.0, git-ignored |
 | Textual examples | Release | `kerml/`, `sysml/` | EPL-2.0, git-ignored |

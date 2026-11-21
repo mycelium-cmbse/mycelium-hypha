@@ -191,32 +191,46 @@ specifications listed above:
   suites.
 
 --------------------------------------------------------------------------------
-2. Metamodel XMI and textual-notation sources — Eclipse Public License 2.0
+2. Committed third-party files
 --------------------------------------------------------------------------------
 
-The committed metamodel XMI files
+Every other release input (metamodel XMI, textual notation, model libraries,
+specification PDFs) is fetched onto the user's own machine on request and is
+not committed. In the repository, REUSE.toml states the copyright and license
+of each file below in machine-readable form, and LICENSES/ holds each license
+text.
 
-  sources/xmi/SysML_only_xmi.uml   (model version https://www.omg.org/spec/SysML/20250201)
-  sources/xmi/KerML_only_xmi.uml   (model version https://www.omg.org/spec/KerML/20250201)
-  sources/xmi/PrimitiveTypes.xmi
+The primitive types library
 
-originate from the SysML v2 pilot implementation repository,
+  sources/PrimitiveTypes.xmi
+
+is the UML 2.5.1 Primitive Types, a normative machine-readable file of the OMG
+Unified Modeling Language Version 2.5.1, OMG document formal/17-12-05
+(https://www.omg.org/spec/UML/2.5.1): OMG file ptc/18-01-02,
+https://www.omg.org/spec/UML/20161101/PrimitiveTypes.xmi, unmodified apart from
+line endings. It is copyrighted by the Object Management Group, Inc. and used
+under the OMG specification license reproduced in section 1
+(LICENSES/LicenseRef-OMG-Specification.txt). It is embedded in the hypha tools.
+
+The test fixtures
+
+  tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/xmi/KerML_only_xmi.uml
+  tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/xmi/SysML_only_xmi.uml
+
+are unmodified copies of org.omg.sysml/model/KerML_only_xmi.uml and
+SysML_only_xmi.uml from the SysML v2 pilot implementation repository,
 Systems-Modeling/SysML-v2-Pilot-Implementation
-(https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) at commit
-22dbbc30d13e5cde39a2d69cbd68cab895d6c9e1, licensed under the Eclipse Public
-License 2.0 (https://www.eclipse.org/legal/epl-2.0/).
+(https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation) at tag
+2026-05, commit fa709f28dfd49dfdb7ee83e4e19da2f57e0eb3aa, licensed under the
+Eclipse Public License 2.0 (https://www.eclipse.org/legal/epl-2.0/). They are
+used by tests only and are not distributed with the plugin.
 
-The committed textual-notation sources under
+The test fixture
 
-  sources/textual/bnf/            (KerML / SysML textual & graphical grammar)
-  sources/textual/kerml/          (KerML example models)
-  sources/textual/sysml/          (SysML v2 example models)
-  sources/textual/sysml.library/  (SysML v2 standard model libraries: ISQ, ScalarValues, SysML.sysml, ...)
+  tools/metamodel-gen/Hypha.Knowledge.Metamodel.Tests/Fixtures/pim/Systems-Modeling-API.xmi
 
-originate from the SysML v2 release repository, Systems-Modeling/SysML-v2-Release
-(https://github.com/Systems-Modeling/SysML-v2-Release) at commit
-9baca5908ca28b53da085de69336fde48420ea8f, licensed under the Eclipse Public
-License 2.0 (https://www.eclipse.org/legal/epl-2.0/).
+is not third-party material: it is a synthetic model written for the tests in
+the shape of the Systems Modeling API PIM, and reproduces no OMG content.
 
 The test fixtures
 
