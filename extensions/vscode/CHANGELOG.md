@@ -9,6 +9,11 @@ odd minor number are Marketplace pre-releases; an even minor number marks a rele
 
 ## [Unreleased]
 
+### Added
+
+- **A Security and approval section** (`refs #285`) in the README, linking to the security and
+  deployment profile administrators can approve the extension from, and to the security policy.
+
 ### Fixed
 
 - **Copilot can migrate the hypha server without a warning** (`fixes #284`): the server definition
