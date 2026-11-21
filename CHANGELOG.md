@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   classic `mycelium-hypha.sln`, and `hypha` now recognises a source checkout by the `.slnx` file. A
   clone made before this change is no longer taken for a source checkout by a newer `hypha` until it
   is updated.
+- **CI checks that the tests wrote nothing after the Python tests too** (`fixes #281`), and over
+  the whole working tree: a new file `.gitignore` does not cover now fails the build, as a changed
+  tracked file did. The SonarScanner's `.sonarqube/` folder is ignored.
 
 ## [3.0.0] - 2026-11-15
 

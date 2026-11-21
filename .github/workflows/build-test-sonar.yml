@@ -219,16 +219,6 @@ jobs:
           HYPHA_REQUIRE_JQ: "1"
         run: dotnet-coverage collect "dotnet test mycelium-hypha.slnx --no-restore --no-build --verbosity normal" -f xml -o "coverage.xml"
 
-      - name: Assert the tests wrote nothing
-        # Generation is `hypha generate`'s job; the tests verify. One of them regenerates the whole
-        # knowledge base into a scratch folder and compares it byte for byte, so a test that dirties
-        # a tracked file has reintroduced the very coupling #81 removed.
-        run: |
-          if ! git diff --exit-code --stat; then
-            echo "::error::the test run modified tracked files; tests must not write the repository"
-            exit 1
-          fi
-
       - name: Lint Python (ruff)
         run: ruff check tools/spec-extract
 
@@ -238,6 +228,19 @@ jobs:
         env:
           PYTHONPATH: src
         run: pytest --cov=spec_extract --cov-report=xml
+
+      - name: Assert the tests wrote nothing
+        # Generation is `hypha generate`'s job; the tests verify. One of them regenerates the whole
+        # knowledge base into a scratch folder and compares it byte for byte, so a test that writes
+        # the repository couples the tests to generation again. After both the .NET and the Python
+        # tests, and over the whole working tree: a changed tracked file and a new file .gitignore
+        # does not cover both fail.
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            echo "::error::the test run changed the working tree; tests must not write the repository"
+            exit 1
+          fi
 
       - name: SonarQube end
         env:
