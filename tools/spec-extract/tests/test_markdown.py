@@ -34,6 +34,23 @@ def test_clause_filename_is_zero_padded_and_slugged() -> None:
     assert clause_filename(_clause()) == "07.04.02-concrete-syntax.md"
 
 
+def test_annex_filenames_keep_the_letter_and_sort_after_the_numbered_clauses() -> None:
+    def named(number: str, title: str) -> str:
+        return clause_filename(Clause(number, title, "SystemsModelingAPI", "1.0", 69, 69))
+
+    names = [
+        named("8.2", "Mapping"),
+        named("A", "Annex: Conformance Test Suite"),
+        named("A.3", "ProjectDataVersioningService Conformance Test Cases"),
+        named("A.10", "Verification"),
+        named("B", "Annex: Examples"),
+    ]
+
+    assert names[2] == "A.03-projectdataversioningservice-conformance-test-cases.md"
+    assert names[1] == "A-annex-conformance-test-suite.md"
+    assert sorted(names) == names
+
+
 def test_render_includes_front_matter_heading_and_informative_marker() -> None:
     output = render(_clause())
 

@@ -4,16 +4,22 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
 from spec_extract import clauses, layout, markdown, normative, pdf_reader
-from spec_extract.model import Clause
+from spec_extract.model import Clause, Line
+
+_COVER_VERSION = re.compile(r"^Version\s+(\S.*)$")
 
 
 @dataclass(frozen=True)
 class DocMeta:
-    """Identifies a source specification and where its clause files are written."""
+    """Identifies a source specification and where its clause files are written.
+
+    ``version`` is only used when the cover page states none (see :func:`cover_version`).
+    """
 
     document: str
     version: str
@@ -24,8 +30,24 @@ def extract_document(pdf_path: str | Path, meta: DocMeta) -> list[Clause]:
     """Extract and classify all clauses from a spec PDF (pure: reads the PDF, writes nothing)."""
     pages = pdf_reader.extract_chars(pdf_path)
     lines = layout.assemble_lines(pages)
-    detected = clauses.detect_clauses(lines, meta.document, meta.version)
+    version = cover_version(lines) or meta.version
+    detected = clauses.detect_clauses(lines, meta.document, version)
     return [normative.classify(clause) for clause in detected]
+
+
+def cover_version(lines: list[Line]) -> str | None:
+    """The version the cover page states, such as ``1.1 Beta 1``, or ``None`` when it states none.
+
+    The cover is the first page; its "Version" line names the document's version, which differs from
+    release to release, so it is read rather than assumed.
+    """
+    for line in lines:
+        if line.page != 1:
+            break
+        match = _COVER_VERSION.match(line.text.strip())
+        if match:
+            return match.group(1).strip()
+    return None
 
 
 def write_clauses(clauses_to_write: list[Clause], out_dir: str | Path) -> list[Path]:

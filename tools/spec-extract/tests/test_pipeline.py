@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 
 from spec_extract import pipeline
-from spec_extract.model import Char
-from spec_extract.pipeline import DocMeta, extract_document, write_clauses, write_index
+from spec_extract.model import Char, Line
+from spec_extract.pipeline import DocMeta, cover_version, extract_document, write_clauses, write_index
 
 
 def _row(
@@ -58,3 +58,27 @@ def test_write_clauses_and_index(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     assert paths[0].read_text(encoding="utf-8").startswith("---")
     assert index.name == "index.md"
     assert index.read_text(encoding="utf-8").startswith("---")
+
+
+def test_the_version_is_read_from_the_cover(monkeypatch: pytest.MonkeyPatch) -> None:
+    chars = _row(["Version", "1.1", "Beta", "1"], top=60) + _row(["1", "Scope"], top=100)
+    monkeypatch.setattr(pipeline.pdf_reader, "extract_chars", lambda _path: [chars])
+
+    clauses = extract_document("x.pdf", DocMeta("KerML", "1.0", "kerml"))
+
+    assert [clause.version for clause in clauses] == ["1.1 Beta 1"]
+
+
+def test_without_a_cover_version_the_given_one_is_kept(monkeypatch: pytest.MonkeyPatch) -> None:
+    chars = _row(["1", "Scope"], top=100)
+    monkeypatch.setattr(pipeline.pdf_reader, "extract_chars", lambda _path: [chars])
+
+    clauses = extract_document("x.pdf", DocMeta("KerML", "1.0", "kerml"))
+
+    assert [clause.version for clause in clauses] == ["1.0"]
+
+
+def test_only_the_cover_page_names_the_version() -> None:
+    lines = [Line(page=1, text="Kernel Modeling Language"), Line(page=2, text="Version 9.9")]
+
+    assert cover_version(lines) is None

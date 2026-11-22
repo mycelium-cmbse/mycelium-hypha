@@ -48,3 +48,68 @@ def test_table_of_contents_entries_are_ignored() -> None:
     assert [c.number for c in clauses] == ["1"]
     assert clauses[0].page_start == 5
     assert "Real scope body." in clauses[0].text
+
+
+def test_annexes_follow_the_numbered_clauses() -> None:
+    lines = _lines(
+        (1, "1 Scope"),
+        (2, "2 Conformance"),
+        (2, "2.1 Levels"),
+        (9, "A Annex: Conformance Test Suite"),
+        (9, "A.1 ProjectService Conformance Test Cases"),
+        (10, "A.2 QueryService Conformance Test Cases"),
+        (10, "A.2.1 Overview"),
+        (11, "A.10 Cross-Cutting Conformance Test Cases"),
+        (12, "A.3 Cross-Cutting Conformance Test Cases"),
+        (13, "B Annex: Examples and Cookbook"),
+        (13, "B.1 Examples"),
+    )
+
+    clauses = detect_clauses(lines, document="SystemsModelingAPI", version="1.0")
+
+    # A.10 does not follow A.2.1, so it stays in the body of A.2.1.
+    assert [c.number for c in clauses] == ["1", "2", "2.1", "A", "A.1", "A.2", "A.2.1", "A.3", "B", "B.1"]
+    assert clauses[3].title == "Annex: Conformance Test Suite"
+    assert clauses[3].page_start == 9
+
+
+def test_a_sentence_starting_with_a_capital_letter_is_not_an_annex() -> None:
+    lines = _lines(
+        (1, "1 Scope"),
+        (1, "A tool shall conform to this specification."),
+        (2, "B Annex: Examples"),
+        (3, "2 Conformance"),
+    )
+
+    clauses = detect_clauses(lines, document="KerML", version="1.0")
+
+    assert [c.number for c in clauses] == ["1", "2"]
+    assert "A tool shall conform" in clauses[0].text
+
+
+def test_no_numbered_clause_follows_an_annex() -> None:
+    lines = _lines(
+        (1, "1 Scope"),
+        (5, "A Annex: Model Execution"),
+        (5, "A.1 Overview"),
+        (5, "2 instances are created for each part."),
+        (6, "A.2 Instantiation Procedure"),
+    )
+
+    clauses = detect_clauses(lines, document="KerML", version="1.0")
+
+    assert [c.number for c in clauses] == ["1", "A", "A.1", "A.2"]
+    assert "2 instances are created" in clauses[2].text
+
+
+def test_annex_contents_entries_are_ignored() -> None:
+    lines = _lines(
+        (2, "A Annex: Model Execution .......... 443"),
+        (2, "A.1 Overview .......... 443"),
+        (5, "1 Scope"),
+        (9, "A Annex: Model Execution"),
+    )
+
+    clauses = detect_clauses(lines, document="KerML", version="1.0")
+
+    assert [(c.number, c.page_start) for c in clauses] == [("1", 5), ("A", 9)]
