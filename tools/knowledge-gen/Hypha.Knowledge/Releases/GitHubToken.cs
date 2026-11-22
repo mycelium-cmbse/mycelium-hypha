@@ -15,6 +15,12 @@ namespace Hypha.Knowledge.Releases
     /// </remarks>
     public static class GitHubToken
     {
+        /// <summary>The environment variable read first.</summary>
+        public const string Variable = "GITHUB_TOKEN";
+
+        /// <summary>The environment variable read when <see cref="Variable"/> is unset or blank, as the GitHub CLI names it.</summary>
+        public const string FallbackVariable = "GH_TOKEN";
+
         /// <summary>The <c>GITHUB_TOKEN</c> or <c>GH_TOKEN</c> value, or <c>null</c> when neither is set.</summary>
         /// <param name="read">
         /// Reads an environment variable; <c>null</c> uses <see cref="Environment.GetEnvironmentVariable(string)"/>.
@@ -28,7 +34,7 @@ namespace Hypha.Knowledge.Releases
         {
             read ??= Environment.GetEnvironmentVariable;
 
-            return Coalesce(read("GITHUB_TOKEN")) ?? Coalesce(read("GH_TOKEN"));
+            return Coalesce(read(Variable)) ?? Coalesce(read(FallbackVariable));
         }
 
         /// <summary>Treats a blank value as an unset one.</summary>
