@@ -37,7 +37,8 @@ namespace Hypha.Knowledge.Toolchain
     public sealed class UvProvisioner : IUvProvisioner
     {
         /// <summary>The GitHub repository uv is released from, as <c>owner/name</c>.</summary>
-        private const string Repository = "astral-sh/uv";
+        /// <remarks>Public so the security profile's test can check the profile names it.</remarks>
+        public const string Repository = "astral-sh/uv";
 
         /// <summary>The pinned uv release. Bumped by PR, the same way <c>bin/hypha-launch.json</c>'s <c>hyphaVersion</c> is.</summary>
         /// <remarks>Public so tests can address the cache path this provisions without duplicating the value.</remarks>

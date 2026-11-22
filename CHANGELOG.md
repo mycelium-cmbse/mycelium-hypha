@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its resolved paths per platform, the transport, every tool's side effects, the files, network
   destinations, credentials and child processes, the supply chain, and the package hashes, each
   marked verified or not. Both are linked from the READMEs.
+- **A draft security profile for the next version, kept in step with the code** (`fixes #289`):
+  `docs/security-profile/unreleased.md` describes `development`, and `SecurityProfileTests` fails
+  when it disagrees with the code on the MCP tools and their read-only, destructive and open-world
+  annotations, the prompts, the resource template, the hosts and repositories hypha requests, the
+  environment variables it reads or sets, or the `uv` version it pins. `RELEASING.md` now has the
+  profile as a release step: the draft is reviewed, then copied to the published version's profile
+  with its package hashes.
 - **The repository is REUSE compliant** (`fixes #293`): `REUSE.toml` states the copyright and
   license of every file that carries no SPDX header, including the upstream ones of the committed
   third-party files, `LICENSES/` holds the Apache-2.0, EPL-2.0 and OMG specification license texts,

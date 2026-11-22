@@ -33,6 +33,20 @@ and hands the client over to `hypha serve`. The VS Code extension bundles that s
    `Hypha.Launcher` changed, so the committed launchers are current.
 3. **The VS Code extension**, built from the same tools tag: start *Publish VS Code extension* with that
    version (`tools/` on the run's commit has to match the tag; the workflow checks).
+4. **The security and deployment profile**, once the extension is published to every registry it goes
+   to (see `docs/security-profile/README.md`). Before the release, review the draft,
+   `docs/security-profile/unreleased.md`, section by section against what the release changes:
+   `SecurityProfileTests` keeps its tools, annotations, prompts, resource template, hosts, environment
+   variables and `uv` pin in step with the code, but not the rest. After publishing, on a branch:
+   - If the draft differs from the newest published profile, copy it to `vscode-<version>.md`. In the
+     copy, rewrite the opening and "How this profile is kept" to say it is fixed to that version (as
+     `vscode-1.0.0.md` does), and fill in everything marked "at release": the extension version and
+     the commit it was published from, the tools version and tag every package's `out/cli/target.json`
+     names, the .NET runtime each package carries, the SHA-256 of each VSIX and bundled executable per
+     registry and platform, and, in section 11, the plugin version with the hashes of its launcher
+     binaries and of the tools archives.
+   - Otherwise, point the new version at the published profile that still describes it.
+   - Add the version's row to the index. Leave the draft in place for the next version.
 
 The first release of `hypha serve` (#197) was this order with
 tools 2.0.0 and plugin 3.0.0, after the pre-release below had been verified, and nothing before it but
