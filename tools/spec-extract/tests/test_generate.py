@@ -3,7 +3,8 @@
 """Regenerate the specification clause knowledge base for every installed release.
 
 Running pytest with the OMG PDFs present under ``sources/<tag>/specs/`` populates
-``knowledge/<tag>/spec/{kerml,sysml2}/``; without them it skips.
+``knowledge/<tag>/spec/{kerml,sysml2}/``, and with the API PDF under ``sources/api/<version>/specs/``,
+``knowledge/api/<version>/spec/``; without them it skips.
 
 The clause text is git-ignored (OMG terms) and is the only thing this pipeline produces. The
 cross-references that used to be written here moved to ``Hypha.Knowledge.CrossReferences``; see
@@ -15,7 +16,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from conftest import require_pdfs
+from conftest import require_api_pdf, require_pdfs
 from spec_extract.pipeline import DocMeta, extract_document, write_clauses, write_index, write_index_json
 
 
@@ -41,3 +42,23 @@ def test_regenerates_spec_knowledge_base(repo_root: Path, installed_tags: list[s
             catalog = json.loads(index_json_path.read_text(encoding="utf-8"))
             assert catalog["clauses"] == len(clauses)
             assert len(catalog["entries"]) == len(clauses)
+
+
+def test_regenerates_api_spec_knowledge_base(repo_root: Path, installed_api_versions: list[str]) -> None:
+    for version in installed_api_versions:
+        pdf_path = require_api_pdf(repo_root, version)
+        clauses = extract_document(pdf_path, DocMeta("SystemsModelingAPI", "1.0", ""))
+        out_dir = repo_root / "knowledge" / "api" / version / "spec"
+        write_clauses(clauses, out_dir)
+        write_index(clauses, out_dir)
+        index_json_path = write_index_json(clauses, out_dir)
+
+        catalog = json.loads(index_json_path.read_text(encoding="utf-8"))
+        numbers = list(catalog["entries"])
+        assert numbers, f"no clauses extracted from {pdf_path.name} at {version}"
+        # The conformance test cases are Annex A: the annexes are extracted, after the numbered clauses.
+        annexes = [number for number in numbers if number[0].isalpha()]
+        assert "A" in annexes and "A.1" in annexes, f"no Annex A in {pdf_path.name} at {version}"
+        assert numbers[-len(annexes) :] == annexes
+        # Annex A says it is normative, and so are its test cases, whatever their text says.
+        assert all(catalog["entries"][number]["normative"] for number in annexes if number.split(".")[0] == "A")

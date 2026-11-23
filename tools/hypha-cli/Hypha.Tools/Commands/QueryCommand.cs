@@ -303,7 +303,7 @@ namespace Hypha.Tools.Commands
         private void AddTextVerbs()
         {
             var document = Required("--document", "The specification: kerml or sysml2.");
-            var clause = Required("--clause", "The clause number, such as 7.4.2.");
+            var clause = Required("--clause", "The clause number, such as 7.4.2, or A.3 for an annex.");
             this.Verb(this, "clause", "One clause of the KerML or SysML specification, with its verbatim text", Release,
                 question => Node(question.Knowledge.Clause(question.Get(document)!, question.Get(clause)!, question.Tag)),
                 document, clause);
@@ -363,7 +363,7 @@ namespace Hypha.Tools.Commands
                 question => Node(question.Api.Schema(question.Get(schema)!, question.Tag)),
                 schema);
 
-            var clause = Required("--clause", "The clause number, such as 7.1.4.");
+            var clause = Required("--clause", "The clause number, such as 7.1.4, or A.3 for an annex.");
             this.Verb(api, "clause", "One clause of the API specification, with its verbatim text", ApiVersion,
                 question => Node(question.Api.Clause(question.Get(clause)!, question.Tag)),
                 clause);

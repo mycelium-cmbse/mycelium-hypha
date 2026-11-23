@@ -16,6 +16,7 @@ import pytest
 
 KERML_PDF = "1-Kernel_Modeling_Language.pdf"
 SYSML_PDF = "2a-OMG_Systems_Modeling_Language.pdf"
+API_PDF = "3-Systems_Modeling_API_and_Services.pdf"
 
 
 def _repo_root() -> Path:
@@ -46,6 +47,27 @@ def installed_tags(repo_root: Path) -> list[str]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     return [version["tag"] for version in manifest["versions"]]
+
+
+@pytest.fixture(scope="session")
+def installed_api_versions(repo_root: Path) -> list[str]:
+    """The Systems Modeling API versions this checkout carries; skips when there is no manifest."""
+    manifest_path = repo_root / "knowledge" / "api" / "versions.json"
+    if not manifest_path.is_file():
+        pytest.skip(f"no API version manifest at {manifest_path}")
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    return [version["tag"] for version in manifest["versions"]]
+
+
+def require_api_pdf(repo_root: Path, version: str) -> Path:
+    """The Systems Modeling API PDF for ``version``; skips the test when it is absent."""
+    pdf = repo_root / "sources" / "api" / version / "specs" / API_PDF
+    if not pdf.is_file():
+        pytest.skip(f"OMG API spec PDF not present for {version} (git-ignored): {pdf.name}")
+
+    return pdf
 
 
 def specs_dir(repo_root: Path, tag: str) -> Path:

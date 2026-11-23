@@ -395,7 +395,7 @@ namespace Hypha.Knowledge.Query
 
         /// <summary>The elements a specification clause treats.</summary>
         /// <param name="document">The specification, as the cross-references key it (<c>kerml</c>, <c>sysml2</c>).</param>
-        /// <param name="clause">The clause number, such as <c>8.3.6</c>.</param>
+        /// <param name="clause">The clause number, such as <c>8.3.6</c>, or an annex clause such as <c>A.3</c>; case is ignored.</param>
         /// <param name="includeSubclauses">Include the clauses below it, such as <c>8.3.6.3</c>.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>The elements and the links, sorted by element and then clause.</returns>
@@ -416,7 +416,7 @@ namespace Hypha.Knowledge.Query
 
         /// <summary>One clause of the KerML or SysML specification, with its verbatim text.</summary>
         /// <param name="document">The specification: <c>kerml</c> or <c>sysml2</c>.</param>
-        /// <param name="clause">The clause number, such as <c>7.4.2</c>.</param>
+        /// <param name="clause">The clause number, such as <c>7.4.2</c>, or an annex clause such as <c>A.3</c>; case is ignored.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
         /// The clause; <c>null</c> when the specification has no such clause. When the release has not

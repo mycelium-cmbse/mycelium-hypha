@@ -41,3 +41,25 @@ def test_write_clauses_emits_markdown(kerml_clauses: list[Clause], tmp_path: Pat
     for path in paths:
         assert path.suffix == ".md"
         assert path.read_text(encoding="utf-8").startswith("---\n")
+
+
+def test_extracts_the_annexes_after_the_numbered_clauses(kerml_clauses: list[Clause]) -> None:
+    numbers = [clause.number for clause in kerml_clauses]
+    annexes = [number for number in numbers if number[0].isalpha()]
+
+    assert "A" in annexes
+    assert numbers[-len(annexes) :] == annexes
+
+
+def test_reads_the_version_from_the_cover(kerml_clauses: list[Clause]) -> None:
+    # One version for the whole document, read from its cover rather than the one passed in.
+    assert len({clause.version for clause in kerml_clauses}) == 1
+    assert kerml_clauses[0].version
+
+
+def test_the_informative_annex_is_informative_throughout(kerml_clauses: list[Clause]) -> None:
+    # Annex A, Model Execution, is informative, though some of its text says "shall".
+    annex = [clause for clause in kerml_clauses if clause.number.split(".")[0] == "A"]
+
+    assert annex
+    assert not any(clause.is_normative for clause in annex)

@@ -20,8 +20,12 @@ SPEC_INDEX_SCHEMA_VERSION = "1.0.0"
 
 
 def clause_filename(clause: Clause) -> str:
-    """Deterministic file name, e.g. clause 7.4.2 "Concrete Syntax" -> ``07.04.02-concrete-syntax.md``."""
-    padded = ".".join(f"{int(part):02d}" for part in clause.number.split("."))
+    """Deterministic file name, e.g. clause 7.4.2 "Concrete Syntax" -> ``07.04.02-concrete-syntax.md``.
+
+    An annex keeps its letter, unpadded: ``A.03-instantiation-procedure.md``. A letter sorts after
+    every digit, so the annexes sort after the numbered clauses, and ``A-annex-...`` before ``A.01``.
+    """
+    padded = ".".join(part if part.isalpha() else f"{int(part):02d}" for part in clause.number.split("."))
     slug = _slugify(clause.title)
     return f"{padded}-{slug}.md" if slug else f"{padded}.md"
 

@@ -89,7 +89,8 @@ code blocks for textual-notation examples. Keep or drop the markers, but never c
 ## Normative vs informative
 
 - **Normative**: sentences using "shall"/"must" (and "shall not"). The `normative` flag says a clause
-  contains such statements. Quote these exactly; never paraphrase.
+  contains such statements; in an annex it is what the annex declares, "(Normative)" or
+  "(Informative)", for the annex and all its subclauses. Quote these exactly; never paraphrase.
 - **Informative**: notes and examples. Treat content inside `<!-- informative:... -->` markers **or**
   any paragraph that begins "NOTE"/"EXAMPLE" as informative, even when the marker is absent: the
   markers are sparse.

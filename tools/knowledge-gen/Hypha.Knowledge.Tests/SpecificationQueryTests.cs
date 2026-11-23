@@ -120,6 +120,83 @@ namespace Hypha.Knowledge.Tests
             });
         }
 
+        [TestCase("A.3")]
+        [TestCase("a.3")]
+        public void An_annex_clause_is_found_whatever_the_case_of_its_letter(string asked)
+        {
+            QueryFixture.WriteSpecification(
+                this.fixture.Layout.SpecificationCatalog(QueryFixture.Tag, "kerml"),
+                "KerML",
+                ("7.4.2", "Feature", "45-47", true, "07.04.02-feature.md"),
+                ("A.3", "Instantiation Procedure", "444-460", false, "A.03-instantiation-procedure.md"));
+            QueryFixture.WriteSpecification(
+                this.fixture.ApiLayout.SpecificationCatalog(QueryFixture.ApiVersion),
+                "Systems Modeling API and Services",
+                ("A.3", "ProjectDataVersioningService Conformance Test Cases", "75-86", false, "A.03-projectdataversioningservice-conformance-test-cases.md"));
+
+            var clause = this.fixture.Query.Clause("kerml", asked);
+            var api = this.fixture.Api.Clause(asked);
+            var resolved = this.fixture.Query.Resolve(new HyphaAddress(QueryFixture.Tag, HyphaAddress.Kerml, asked));
+
+            Assert.Multiple(() =>
+            {
+                // The answer gives the number as the specification writes it, not as it was asked for.
+                Assert.That(clause.Value!.Clause, Is.EqualTo("A.3"));
+                Assert.That(clause.Value.Text, Is.EqualTo(QueryFixture.ClauseText("KerML", "A.3")));
+                Assert.That(api.Value!.Clause, Is.EqualTo("A.3"));
+                Assert.That(api.Value.Title, Is.EqualTo("ProjectDataVersioningService Conformance Test Cases"));
+                Assert.That(resolved.Value!.Address.Name, Is.EqualTo("A.3"));
+                Assert.That(resolved.Value.Page, Does.EndWith("/A.03-instantiation-procedure.md"));
+            });
+        }
+
+        [TestCase("A.3", false, new[] { "Instance A.3" })]
+        [TestCase("a.3", false, new[] { "Instance A.3" })]
+        [TestCase("a", true, new[] { "Instance A.3", "Instance A.3.1" })]
+        [TestCase("A.3", true, new[] { "Instance A.3", "Instance A.3.1" })]
+        public void The_elements_an_annex_clause_treats_are_found_whatever_the_case_of_its_letter(
+            string asked, bool includeSubclauses, string[] expected)
+        {
+            var path = this.fixture.Layout.CrossReferences(QueryFixture.Tag).FullName;
+            var document = CrossReferenceFile.ReadIfPresent(path)!;
+            var entries = new Dictionary<string, CrossReferenceEntry>(document.Entries, StringComparer.Ordinal)
+            {
+                ["Instance"] = new(
+                    "class",
+                    "metamodel/elements/Instance.md",
+                    [
+                        new ClauseEdge("kerml", "A.3", Provenance.Derived, ClauseEdge.ExactTitleMatch),
+                        new ClauseEdge("kerml", "A.3.1", Provenance.Derived, ClauseEdge.ExactTitleMatch),
+                        new ClauseEdge("sysml2", "A.3", Provenance.Derived, ClauseEdge.ExactTitleMatch),
+                    ],
+                    [],
+                    [],
+                    []),
+            };
+            CrossReferenceFile.Write(document with { Entries = entries }, path);
+
+            var result = this.fixture.Query.ElementsInClause("kerml", asked, includeSubclauses);
+
+            Assert.That(result.Value!.Select(use => $"{use.Element} {use.Edge.Clause}"), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void A_clause_that_matches_exactly_is_preferred_to_one_that_differs_only_in_case()
+        {
+            QueryFixture.WriteSpecification(
+                this.fixture.Layout.SpecificationCatalog(QueryFixture.Tag, "kerml"),
+                "KerML",
+                ("a.1", "Lower", "1", false, "a.01-lower.md"),
+                ("A.1", "Upper", "2", false, "A.01-upper.md"));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(this.fixture.Query.Clause("kerml", "A.1").Value!.Title, Is.EqualTo("Upper"));
+                Assert.That(this.fixture.Query.Clause("kerml", "a.1").Value!.Title, Is.EqualTo("Lower"));
+                Assert.That(this.fixture.Query.Clause("kerml", "B.1").Found, Is.False);
+            });
+        }
+
         [TestCase(null)]
         [TestCase("")]
         [TestCase("  ")]

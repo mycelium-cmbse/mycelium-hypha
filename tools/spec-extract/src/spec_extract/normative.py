@@ -10,7 +10,8 @@ layout where notes and examples trail the normative text.
 Label detection is font-aware: the KerML/SysML PDFs render formal notes as a **bold** "Note." label
 (not uppercase "NOTE"), so a bold leading "Note"/"Example" token marks the block, which also avoids
 mistaking ordinary prose ("Note that ...", in the regular font) for a note. A bare uppercase
-"NOTE"/"EXAMPLE" at the start of a line is still accepted as a fallback. A clause is flagged normative
+"NOTE"/"EXAMPLE" at the start of a line is still accepted as a fallback. A clause the document marks
+normative or informative, as an annex is, keeps that status; any other clause is flagged normative
 when any prose block contains "shall" or "must".
 """
 
@@ -30,9 +31,12 @@ def classify(clause: Clause) -> Clause:
     """Re-split the clause body into code/text/note/example blocks and set ``is_normative`` in place."""
     lines = [line for block in clause.blocks for line in block.lines]
     clause.blocks = _classify_lines(lines)
-    clause.is_normative = any(
-        block.kind == "text" and _NORMATIVE.search(block.text) for block in clause.blocks
-    )
+    if clause.declared_normative is not None:
+        clause.is_normative = clause.declared_normative
+    else:
+        clause.is_normative = any(
+            block.kind == "text" and _NORMATIVE.search(block.text) for block in clause.blocks
+        )
     return clause
 
 

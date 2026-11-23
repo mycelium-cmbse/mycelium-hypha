@@ -1082,7 +1082,7 @@ namespace Hypha.Knowledge.Query
 
         /// <summary>The elements a specification clause treats.</summary>
         /// <param name="document">The specification, as the cross-references key it (<c>kerml</c>, <c>sysml2</c>).</param>
-        /// <param name="clause">The clause number, such as <c>8.3.6</c>.</param>
+        /// <param name="clause">The clause number, such as <c>8.3.6</c>, or an annex clause such as <c>A.3</c>; case is ignored.</param>
         /// <param name="includeSubclauses">Include the clauses below it, such as <c>8.3.6.3</c>.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
@@ -1106,8 +1106,8 @@ namespace Hypha.Knowledge.Query
             IReadOnlyList<ClauseUse> uses = crossReferences.Entries
                 .SelectMany(entry => entry.Value.Clauses
                     .Where(edge => string.Equals(edge.Document, document, StringComparison.Ordinal))
-                    .Where(edge => string.Equals(edge.Clause, clause, StringComparison.Ordinal)
-                                   || (includeSubclauses && edge.Clause.StartsWith(clause + ".", StringComparison.Ordinal)))
+                    .Where(edge => string.Equals(edge.Clause, clause, StringComparison.OrdinalIgnoreCase)
+                                   || (includeSubclauses && edge.Clause.StartsWith(clause + ".", StringComparison.OrdinalIgnoreCase)))
                     .Select(edge => new ClauseUse(entry.Key, edge)))
                 .OrderBy(use => use.Element, StringComparer.Ordinal)
                 .ThenBy(use => use.Edge.Clause, StringComparer.Ordinal)
@@ -1141,7 +1141,7 @@ namespace Hypha.Knowledge.Query
 
         /// <summary>One clause of the KerML or SysML specification, with its verbatim text.</summary>
         /// <param name="document">The specification: <c>kerml</c> or <c>sysml2</c>.</param>
-        /// <param name="clause">The clause number, such as <c>7.4.2</c>.</param>
+        /// <param name="clause">The clause number, such as <c>7.4.2</c>, or an annex clause such as <c>A.3</c>; case is ignored.</param>
         /// <param name="tag">The release, or <c>null</c> for the default.</param>
         /// <returns>
         /// The clause, grounded as <see cref="Provenance.Normative"/> and naming its page; <c>null</c> when
@@ -1489,12 +1489,10 @@ namespace Hypha.Knowledge.Query
                         return new(null, this.Ground(Provenance.Normative, release, index), SpecificationUnavailable(release));
                     }
 
-                    var entry = specification.Entries.GetValueOrDefault(address.Name);
-
-                    return entry is null
-                        ? new(null, this.Ground(Provenance.Normative, release, index))
-                        : this.Resolved(
-                            address, entry.Title, index.Directory!, entry.File, Provenance.Normative, SpecificationCommand(release));
+                    return specification.TryFind(address.Name, out var number, out var entry)
+                        ? this.Resolved(
+                            address with { Name = number }, entry.Title, index.Directory!, entry.File, Provenance.Normative, SpecificationCommand(release))
+                        : new(null, this.Ground(Provenance.Normative, release, index));
                 }
 
                 default:

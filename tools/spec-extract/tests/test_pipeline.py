@@ -4,13 +4,21 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 
 from spec_extract import pipeline
-from spec_extract.model import Char
-from spec_extract.pipeline import DocMeta, extract_document, write_clauses, write_index
+from spec_extract.model import Char, Clause, Line
+from spec_extract.pipeline import (
+    DocMeta,
+    cover_version,
+    extract_document,
+    write_clauses,
+    write_index,
+    write_index_json,
+)
 
 
 def _row(
@@ -58,3 +66,44 @@ def test_write_clauses_and_index(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     assert paths[0].read_text(encoding="utf-8").startswith("---")
     assert index.name == "index.md"
     assert index.read_text(encoding="utf-8").startswith("---")
+
+
+def test_the_version_is_read_from_the_cover(monkeypatch: pytest.MonkeyPatch) -> None:
+    chars = _row(["Version", "1.1", "Beta", "1"], top=60) + _row(["1", "Scope"], top=100)
+    monkeypatch.setattr(pipeline.pdf_reader, "extract_chars", lambda _path: [chars])
+
+    clauses = extract_document("x.pdf", DocMeta("KerML", "1.0", "kerml"))
+
+    assert [clause.version for clause in clauses] == ["1.1 Beta 1"]
+
+
+def test_without_a_cover_version_the_given_one_is_kept(monkeypatch: pytest.MonkeyPatch) -> None:
+    chars = _row(["1", "Scope"], top=100)
+    monkeypatch.setattr(pipeline.pdf_reader, "extract_chars", lambda _path: [chars])
+
+    clauses = extract_document("x.pdf", DocMeta("KerML", "1.0", "kerml"))
+
+    assert [clause.version for clause in clauses] == ["1.0"]
+
+
+def test_only_the_cover_page_names_the_version() -> None:
+    lines = [Line(page=1, text="Kernel Modeling Language"), Line(page=2, text="Version 9.9")]
+
+    assert cover_version(lines) is None
+
+
+def test_the_indexes_list_the_annexes_after_the_numbered_clauses(tmp_path: Path) -> None:
+    clauses = [
+        Clause("8.2", "Services", "SystemsModelingAPI", "1.0", 40, 41),
+        Clause("A", "Annex: Conformance Test Suite", "SystemsModelingAPI", "1.0", 67, 67),
+        Clause("A.3", "QueryService Conformance Test Cases", "SystemsModelingAPI", "1.0", 80, 82),
+    ]
+
+    entries = json.loads(write_index_json(clauses, tmp_path).read_text(encoding="utf-8"))["entries"]
+    index = write_index(clauses, tmp_path).read_text(encoding="utf-8")
+
+    assert list(entries) == ["8.2", "A", "A.3"]
+    assert entries["A.3"]["file"] == "A.03-queryservice-conformance-test-cases.md"
+    assert entries["A.3"]["pages"] == "80-82"
+    rows = [row.split(" | ")[0] for row in index.splitlines() if row.startswith("| ") and "---" not in row]
+    assert rows == ["| Clause", "| 8.2", "| A", "| A.3"]
