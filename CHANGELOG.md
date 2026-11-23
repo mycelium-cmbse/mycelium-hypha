@@ -44,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CI checks that the tests wrote nothing after the Python tests too** (`fixes #281`), and over
   the whole working tree: a new file `.gitignore` does not cover now fails the build, as a changed
   tracked file did. The SonarScanner's `.sonarqube/` folder is ignored.
+- Bumped `uml4net.Reporting` to `9.2.1` (`fixes #300`), which updates `uml4net.HandleBars` to `9.3.0`. It is used
+  only by the metamodel tests; `uml4net.xmi` and `uml4net.Extensions` stay at `9.2.0`, their latest.
 
 ## [3.0.0] - 2026-11-15
 
