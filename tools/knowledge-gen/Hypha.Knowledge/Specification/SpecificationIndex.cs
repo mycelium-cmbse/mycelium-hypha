@@ -3,7 +3,9 @@
 
 namespace Hypha.Knowledge.Specification
 {
+    using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// <c>knowledge/&lt;tag&gt;/spec/&lt;document&gt;/index.json</c>, and the Systems Modeling API's
@@ -28,5 +30,34 @@ namespace Hypha.Knowledge.Specification
     {
         /// <summary>The name of the index file in a specification's folder.</summary>
         public const string FileName = "index.json";
+
+        /// <summary>
+        /// Finds a clause by its number, ignoring case, so that <c>a.3</c> finds the annex clause
+        /// <c>A.3</c>. A number that matches exactly is preferred.
+        /// </summary>
+        /// <param name="clause">The clause number, as asked for.</param>
+        /// <param name="number">The clause number as the index writes it, or <c>null</c> when there is no such clause.</param>
+        /// <param name="entry">The clause, or <c>null</c> when there is no such clause.</param>
+        /// <returns>Whether the index has the clause.</returns>
+        public bool TryFind(string clause, [NotNullWhen(true)] out string? number, [NotNullWhen(true)] out SpecificationClauseEntry? entry)
+        {
+            if (this.Entries.TryGetValue(clause, out entry))
+            {
+                number = clause;
+                return true;
+            }
+
+            foreach (var (key, value) in this.Entries)
+            {
+                if (string.Equals(key, clause, StringComparison.OrdinalIgnoreCase))
+                {
+                    (number, entry) = (key, value);
+                    return true;
+                }
+            }
+
+            (number, entry) = (null, null);
+            return false;
+        }
     }
 }

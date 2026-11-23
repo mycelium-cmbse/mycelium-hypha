@@ -128,8 +128,8 @@ The extractor is a small chain of pure, independently-testable layers (`spec_ext
 | --- | --- |
 | `pdf_reader` | `pdfplumber` access: `page_count`, `extract_pages`, `extract_text`, `extract_words` (positioned words), `extract_chars` (positioned characters, what the pipeline reads). |
 | `layout` | Assemble positioned characters into reading-ordered lines: multi-column ordering and running header/footer/page-number stripping. |
-| `clauses` | Detect clause/section headings (successor-numbering rule; skips TOC and stray in-text numbers) and group body text, with page ranges. The lettered annexes (`A Annex: ...`, `A.1`, then `B Annex: ...`) follow the numbered clauses under the same rule. |
-| `normative` | Split a clause into normative prose vs informative `NOTE`/`EXAMPLE` blocks; flag clauses containing `shall`/`must`. Lossless. |
+| `clauses` | Detect clause/section headings (successor-numbering rule; skips TOC and stray in-text numbers) and group body text, with page ranges. The lettered annexes (`A Annex: ...`, `A.1`, then `B Annex: ...`) follow the numbered clauses under the same rule; an annex title that wraps onto a second line is read whole. |
+| `normative` | Split a clause into normative prose vs informative `NOTE`/`EXAMPLE` blocks; flag clauses containing `shall`/`must`, except in an annex, whose `(Normative)` or `(Informative)` decides for it and its subclauses. Lossless. |
 | `markdown` | Render a clause to deterministic markdown (front matter + body), e.g. `07.04.02-concrete-syntax.md`, or `A.03-instantiation-procedure.md` for an annex, which sorts after the numbered clauses. |
 | `pipeline` | `extract_document(pdf, DocMeta)` → clauses, with the document version read from the cover's "Version" line (`DocMeta.version` only when it has none); `write_clauses(clauses, out_dir)` → files. |
 

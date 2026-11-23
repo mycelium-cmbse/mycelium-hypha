@@ -82,6 +82,9 @@ class Clause:
     page_end: int
     blocks: list[Block] = field(default_factory=list)
     is_normative: bool = False
+    declared_normative: bool | None = None
+    """Whether the document itself calls the clause normative, as an annex's "(Normative)" or
+    "(Informative)" does; ``None`` when it does not say, and the text decides."""
 
     @property
     def text(self) -> str:

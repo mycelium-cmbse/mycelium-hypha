@@ -52,7 +52,7 @@ namespace Hypha.Mcp.Tools
                 + "operation qualified by its service, such as ProjectService.createProject; for 'schema': the schema, "
                 + "such as Commit or CommitRequest, which 'type' names for a type.")]
             string? name = null,
-            [Description("For 'clause': the clause number, such as 7.1.4.")] string? clause = null,
+            [Description("For 'clause': the clause number, such as 7.1.4, or A.3 for an annex.")] string? clause = null,
             [Description("The installed API version to answer from, such as 2026-04. The default API version when omitted.")] string? version = null) =>
             question switch
             {

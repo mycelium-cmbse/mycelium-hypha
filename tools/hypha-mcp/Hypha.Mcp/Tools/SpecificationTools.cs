@@ -50,7 +50,7 @@ namespace Hypha.Mcp.Tools
         public string Spec(
             [Description("What to answer.")] SpecificationQuestion question,
             [Description("The specification: kerml or sysml2.")] string document,
-            [Description("The clause number, such as 7.4.2.")] string clause,
+            [Description("The clause number, such as 7.4.2, or A.3 for an annex.")] string clause,
             [Description("For 'elements-in-clause': also the clauses below it.")] bool includeSubclauses = false,
             [Description(TagDescription)] string? tag = null) =>
             question switch

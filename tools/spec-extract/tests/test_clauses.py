@@ -113,3 +113,79 @@ def test_annex_contents_entries_are_ignored() -> None:
     clauses = detect_clauses(lines, document="KerML", version="1.0")
 
     assert [(c.number, c.page_start) for c in clauses] == [("1", 5), ("A", 9)]
+
+
+def test_a_wrapped_annex_heading_keeps_its_whole_title() -> None:
+    lines = _lines(
+        (1, "1 Scope"),
+        (60, "A Annex: Conformance Test Suite"),
+        (60, "(Normative)"),
+        (95, "B Annex: API and Services Examples and"),
+        (95, "Cookbook"),
+        (95, "(Informative)"),
+        (95, "B.1 Examples"),
+    )
+
+    clauses = detect_clauses(lines, document="SystemsModelingAPI", version="1.0")
+
+    assert [(c.number, c.title) for c in clauses] == [
+        ("1", "Scope"),
+        ("A", "Annex: Conformance Test Suite"),
+        ("B", "Annex: API and Services Examples and Cookbook"),
+        ("B.1", "Examples"),
+    ]
+    assert clauses[2].text == "(Informative)"
+
+
+def test_an_annex_status_applies_to_its_subclauses() -> None:
+    lines = _lines(
+        (1, "1 Scope"),
+        (5, "A Annex: Model Execution"),
+        (5, "(Informative)"),
+        (5, "A.1 Overview"),
+        (6, "A.1.1 Details"),
+        (7, "B Annex: Conformance Test Suite"),
+        (7, "(Normative)"),
+        (7, "B.1 Cases"),
+    )
+
+    clauses = detect_clauses(lines, document="KerML", version="1.0")
+
+    assert [(c.number, c.declared_normative) for c in clauses] == [
+        ("1", None),
+        ("A", False),
+        ("A.1", False),
+        ("A.1.1", False),
+        ("B", True),
+        ("B.1", True),
+    ]
+
+
+def test_an_annex_without_a_status_keeps_a_one_line_title() -> None:
+    lines = _lines(
+        (1, "1 Scope"),
+        (5, "A Annex: Model Execution"),
+        (5, "Its text starts here."),
+        (5, "A.1 Overview"),
+    )
+
+    clauses = detect_clauses(lines, document="KerML", version="1.0")
+
+    assert [(c.number, c.title, c.declared_normative) for c in clauses] == [
+        ("1", "Scope", None),
+        ("A", "Annex: Model Execution", None),
+        ("A.1", "Overview", None),
+    ]
+    assert clauses[1].text == "Its text starts here."
+
+
+def test_an_annex_status_on_the_next_page_does_not_wrap_the_title() -> None:
+    lines = _lines(
+        (1, "1 Scope"),
+        (5, "A Annex: Model Execution"),
+        (6, "(Informative)"),
+    )
+
+    clauses = detect_clauses(lines, document="KerML", version="1.0")
+
+    assert (clauses[1].title, clauses[1].declared_normative) == ("Annex: Model Execution", None)

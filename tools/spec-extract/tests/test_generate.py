@@ -60,3 +60,5 @@ def test_regenerates_api_spec_knowledge_base(repo_root: Path, installed_api_vers
         annexes = [number for number in numbers if number[0].isalpha()]
         assert "A" in annexes and "A.1" in annexes, f"no Annex A in {pdf_path.name} at {version}"
         assert numbers[-len(annexes) :] == annexes
+        # Annex A says it is normative, and so are its test cases, whatever their text says.
+        assert all(catalog["entries"][number]["normative"] for number in annexes if number.split(".")[0] == "A")

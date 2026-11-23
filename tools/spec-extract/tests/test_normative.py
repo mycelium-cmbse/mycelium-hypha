@@ -100,3 +100,17 @@ def test_bold_non_label_heading_is_not_a_marker() -> None:
     clause = classify(_clause([_bold_label_line("Attributes", "x : Element")]))
 
     assert [block.kind for block in clause.blocks] == ["text"]
+
+
+def test_a_clause_declared_informative_is_informative_whatever_its_text_says() -> None:
+    clause = _clause([_line("The vehicle shall have four wheels.")])
+    clause.declared_normative = False
+
+    assert classify(clause).is_normative is False
+
+
+def test_a_clause_declared_normative_is_normative_without_shall_or_must() -> None:
+    clause = _clause([_line("Each test case lists its steps.")])
+    clause.declared_normative = True
+
+    assert classify(clause).is_normative is True

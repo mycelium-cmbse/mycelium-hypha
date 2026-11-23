@@ -67,7 +67,7 @@ namespace Hypha.Knowledge.Query
         QueryResult<OpenApiIndexSchema> Schema(string name, string? version = null);
 
         /// <summary>One clause of the Systems Modeling API and Services specification, with its verbatim text.</summary>
-        /// <param name="clause">The clause number, such as <c>7.1.4</c>.</param>
+        /// <param name="clause">The clause number, such as <c>7.1.4</c>, or an annex clause such as <c>A.3</c>; case is ignored.</param>
         /// <param name="version">The API version, or <c>null</c> for the default.</param>
         /// <returns>
         /// The clause, its document named <c>api</c>; <c>null</c> when the specification has no such

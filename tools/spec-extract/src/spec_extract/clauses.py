@@ -13,17 +13,24 @@ starts with "Annex", since a sentence such as "A tool shall ..." starts the same
 is ``A``, which may follow any numbered clause; within the annexes the same successor rule applies,
 the letter counting as the first part; and once an annex has started, no numbered heading is
 accepted, which keeps the in-text numbers of the annexes out.
+
+An annex heading is followed by "(Normative)" or "(Informative)", which applies to the annex and
+every one of its subclauses. A heading too long for one line wraps, so the lines between the heading
+and that marker finish its title: ``B Annex: API and Services Examples and`` then ``Cookbook``.
 """
 
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 from spec_extract.model import Block, Clause, Line
 
 _HEADING = re.compile(r"^((?:\d+|[A-Z])(?:\.\d+)*)\s+(\S.*)$")
 _TOC_LEADER = re.compile(r"\.{2,}|…")  # dot leaders or an ellipsis -> a contents entry
 _ANNEX_TITLE = re.compile(r"^Annex\b")
+_ANNEX_STATUS = re.compile(r"^\((Normative|Informative)\)$")
+_MAX_TITLE_LINES = 3  # the lines an annex title may wrap onto before its status marker
 
 Number = tuple[int | str, ...]
 
@@ -33,29 +40,43 @@ def detect_clauses(lines: list[Line], document: str, version: str) -> list[Claus
     headings = _detect_headings(lines)
 
     clauses: list[Clause] = []
-    for position, (start, number, title) in enumerate(headings):
-        end = headings[position + 1][0] if position + 1 < len(headings) else len(lines)
-        body = lines[start + 1 : end]
+    for position, heading in enumerate(headings):
+        start = heading.index
+        end = headings[position + 1].index if position + 1 < len(headings) else len(lines)
+        body = lines[heading.body : end]
         page_start = lines[start].page
         page_end = body[-1].page if body else page_start
         clauses.append(
             Clause(
-                number=number,
-                title=title,
+                number=heading.number,
+                title=heading.title,
                 document=document,
                 version=version,
                 page_start=page_start,
                 page_end=page_end,
                 blocks=[Block("text", body)],
+                declared_normative=heading.declared_normative,
             )
         )
     return clauses
 
 
-def _detect_headings(lines: list[Line]) -> list[tuple[int, str, str]]:
-    """Return ``(line_index, number, title)`` for every accepted heading, in document order."""
-    headings: list[tuple[int, str, str]] = []
+@dataclass(frozen=True)
+class _Heading:
+    """An accepted heading: where it is, where its body starts, and what it says."""
+
+    index: int
+    body: int
+    number: str
+    title: str
+    declared_normative: bool | None
+
+
+def _detect_headings(lines: list[Line]) -> list[_Heading]:
+    """Return every accepted heading, in document order."""
+    headings: list[_Heading] = []
     previous: Number | None = None
+    annex_status: bool | None = None
     for index, line in enumerate(lines):
         match = _HEADING.match(line.text)
         if match is None:
@@ -64,12 +85,41 @@ def _detect_headings(lines: list[Line]) -> list[tuple[int, str, str]]:
         if _TOC_LEADER.search(title):
             continue
         current = _parse_number(number)
-        if _is_annex(current) and len(current) == 1 and not _ANNEX_TITLE.match(title):
+        is_annex_root = _is_annex(current) and len(current) == 1
+        if is_annex_root and not _ANNEX_TITLE.match(title):
             continue
-        if _is_successor(previous, current):
-            headings.append((index, number, title))
-            previous = current
+        if not _is_successor(previous, current):
+            continue
+        body = index + 1
+        if is_annex_root:
+            wrapped, annex_status = _annex_status(lines, index)
+            if wrapped:
+                title = " ".join([title, *(lines[k].text.strip() for k in range(body, body + wrapped))])
+                body += wrapped
+        status = annex_status if _is_annex(current) else None
+        headings.append(_Heading(index, body, number, title, status))
+        previous = current
     return headings
+
+
+def _annex_status(lines: list[Line], index: int) -> tuple[int, bool | None]:
+    """How many lines the annex heading at ``index`` wraps onto, and whether it is normative.
+
+    The status marker is looked for on the heading's own page, within a few lines; without one the
+    heading is taken to be one line long and its status unknown.
+    """
+    page = lines[index].page
+    for offset in range(1, _MAX_TITLE_LINES + 2):
+        position = index + offset
+        if position >= len(lines) or lines[position].page != page:
+            break
+        text = lines[position].text.strip()
+        marker = _ANNEX_STATUS.match(text)
+        if marker:
+            return offset - 1, marker.group(1) == "Normative"
+        if _HEADING.match(text):
+            break
+    return 0, None
 
 
 def _parse_number(number: str) -> Number:

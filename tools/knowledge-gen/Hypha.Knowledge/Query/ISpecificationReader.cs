@@ -31,7 +31,7 @@ namespace Hypha.Knowledge.Query
         /// <summary>Reads one clause, with its verbatim text and without the page's front matter.</summary>
         /// <param name="index">The specification's <c>index.json</c>.</param>
         /// <param name="document">The specification, as the knowledge keys it, such as <c>kerml</c>.</param>
-        /// <param name="clause">The clause number.</param>
+        /// <param name="clause">The clause number; case is ignored.</param>
         /// <param name="version">The release or API version.</param>
         /// <param name="owner">What the text belongs to, such as <c>release 2026-05</c>, for the messages.</param>
         /// <param name="regenerate">The command that regenerates the specification text, for the messages.</param>

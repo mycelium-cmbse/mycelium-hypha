@@ -51,7 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Annex A of the Systems Modeling API, the conformance test cases (`PIM-PCB-010`, ...) that its
   Clause 2 makes the measure of conformance. The lettered annexes and their subclauses are now
   clauses like the others (`A.3`, file `A.03-....md`), so `hypha_spec`, `hypha_api` and `hypha://`
-  addresses answer them. Regenerate the specification text to get them.
+  addresses answer them, ignoring case (`a.3` finds `A.3`, and the answer names it `A.3`). An
+  annex's title is read whole when it wraps onto a second line, and the "(Normative)" or
+  "(Informative)" under its heading decides whether the annex and its subclauses are normative,
+  where any other clause is normative when its text says "shall" or "must": the informative annexes
+  of KerML and SysML are no longer marked normative where their text says "shall". Regenerate the specification text to get them.
 - **Specification text names the version its document states** (`fixes #291`): the version in each
   clause's front matter and `index.json` was a constant (KerML 1.0, SysML 2.0, the API 1.0), so text
   from a later document, such as release 2026-05's KerML 1.1 Beta 1, was cited with the wrong

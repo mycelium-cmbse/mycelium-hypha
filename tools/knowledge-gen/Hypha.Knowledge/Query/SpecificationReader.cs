@@ -61,7 +61,7 @@ namespace Hypha.Knowledge.Query
         /// <summary>Reads one clause, with its verbatim text and without the page's front matter.</summary>
         /// <param name="index">The specification's <c>index.json</c>.</param>
         /// <param name="document">The specification, as the knowledge keys it, such as <c>kerml</c>.</param>
-        /// <param name="clause">The clause number.</param>
+        /// <param name="clause">The clause number; case is ignored.</param>
         /// <param name="version">The release or API version.</param>
         /// <param name="owner">What the text belongs to, such as <c>release 2026-05</c>, for the messages.</param>
         /// <param name="regenerate">The command that regenerates the specification text, for the messages.</param>
@@ -92,7 +92,7 @@ namespace Hypha.Knowledge.Query
                 return new(null, ground(index), unavailable);
             }
 
-            if (!specification.Entries.TryGetValue(clause, out var entry))
+            if (!specification.TryFind(clause, out var number, out var entry))
             {
                 return new(null, ground(index));
             }
@@ -101,7 +101,7 @@ namespace Hypha.Knowledge.Query
             var text = StripFrontMatter(this.documents.ReadText(page));
 
             return new(
-                new SpecificationClause(document, clause, entry.Title, entry.Pages, entry.Normative, text),
+                new SpecificationClause(document, number, entry.Title, entry.Pages, entry.Normative, text),
                 ground(page) with { Tier = Provenance.Normative });
         }
 
