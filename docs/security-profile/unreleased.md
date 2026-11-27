@@ -14,7 +14,7 @@ Each answer is marked:
 
 To report a vulnerability, see the [security policy](../../.github/SECURITY.md).
 
-**Profile for:** the next VS Code extension version, not yet published, and the hypha tools built from the same commit of `development`; section 11 covers the launcher the Claude plugin and the other clients start. **Verified (code)** marks in this draft refer to `development`; nothing here is **Verified (package)** until the release. Last reviewed 2026-11-21.
+**Profile for:** the next VS Code extension version, not yet published, and the hypha tools built from the same commit of `development`; section 11 covers the launcher the Claude plugin and the other clients start. **Verified (code)** marks in this draft refer to `development`; nothing here is **Verified (package)** until the release. Last reviewed 2026-11-27.
 
 **Tested environments:** the repository's CI installs each built VSIX into VS Code and starts its bundled server, on Windows and Linux runners. Remote SSH, WSL and dev containers are not tested. The behaviour this profile states for those setups comes from the code, not from a test.
 
@@ -67,8 +67,6 @@ The bundled executable is the .NET apphost; the rest of the program is the `.dll
 | Linux arm64, local or remote | `linux-arm64` | as for Linux x64, with `linux-arm64` in the folder name | as for Linux x64 |
 
 The extension folders are **Not verified**: they are VS Code's defaults, and change with VS Code Insiders (`.vscode-insiders`, `.vscode-server-insiders`), with `--extensions-dir`, or with `$XDG_DATA_HOME` for the data folder. The data folders are **Verified (code)**.
-
-**Changes from 1.0.0:** the server definition sets **no working directory**; 1.0.0 set the extension's own folder. `hypha serve` does not read its working directory (**Verified (code)**: `KnowledgeServices.DiscoverRoot` returns no root under `serve`), so this changes nothing in how it behaves. Copilot could not migrate a definition with a working directory to a workspace `.mcp.json`.
 
 ## 3. Transport and listening services
 

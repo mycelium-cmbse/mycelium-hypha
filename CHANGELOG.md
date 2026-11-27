@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **The security and deployment profile of VS Code extension 1.2.0** (`refs #302`):
+  `docs/security-profile/vscode-1.2.0.md` describes extension 1.2.0 with tools 2.1.0 and plugin
+  3.1.0, with the hashes of its packages, the same on the Visual Studio Marketplace and Open VSX,
+  of the launcher binaries and of the tools archives. The index lists it.
+
 ## [3.1.0] - 2026-11-27
 
 This release starts `hypha` tools 2.1.0 (`tools-v2.1.0`). Existing installs keep their specification

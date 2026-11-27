@@ -7,6 +7,7 @@ Each version has a profile of its own, which is not rewritten when a later versi
 | VS Code extension | Bundled hypha tools | Claude plugin and launcher | Profile |
 |---|---|---|---|
 | 1.0.0 | 2.0.0 | 3.0.0 | [vscode-1.0.0.md](vscode-1.0.0.md) |
+| 1.2.0 | 2.1.0 | 3.1.0 | [vscode-1.2.0.md](vscode-1.2.0.md) |
 | next, not published | built from `development` | built from `development` | [unreleased.md](unreleased.md) (draft) |
 
 To report a vulnerability, see the [security policy](../../.github/SECURITY.md).
