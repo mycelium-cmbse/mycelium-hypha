@@ -9,6 +9,11 @@ odd minor number are Marketplace pre-releases; an even minor number marks a rele
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-27
+
+It bundles `hypha` tools 2.1.0, for Windows x64 and for Linux x64 and arm64. Its specification text
+now holds the annexes, such as the Systems Modeling API's conformance test cases, once regenerated.
+
 ### Added
 
 - **A Security and approval section** (`refs #285`) in the README, linking to the security and

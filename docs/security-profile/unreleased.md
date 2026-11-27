@@ -159,13 +159,13 @@ All requests are HTTPS `GET`s, made by `hypha_install_release` and `hypha_check_
 
 ## 11. Other clients: the launcher
 
-The Claude plugin, the Agent Plugins manifest (Copilot, Cursor, Codex), the Gemini CLI extension, the Claude Desktop bundle and the clients in `docs/other-clients.md` start the **same** `hypha serve`, with the same tools, files, network destinations and child processes as sections 3 to 9. What differs is how `hypha` reaches the machine: the VS Code extension bundles it, while these clients start a small **launcher** that downloads it. This section describes the launcher on `development`, whose `bin/hypha-launch.json` names tools **2.0.0**; a tools release changes that version, and the plugin version that ships it is named here at release. **Verified (code)** on `development` unless marked.
+The Claude plugin, the Agent Plugins manifest (Copilot, Cursor, Codex), the Gemini CLI extension, the Claude Desktop bundle and the clients in `docs/other-clients.md` start the **same** `hypha serve`, with the same tools, files, network destinations and child processes as sections 3 to 9. What differs is how `hypha` reaches the machine: the VS Code extension bundles it, while these clients start a small **launcher** that downloads it. This section describes the launcher on `development`, whose `bin/hypha-launch.json` names tools **2.1.0**; a tools release changes that version, and the plugin version that ships it is named here at release. **Verified (code)** on `development` unless marked.
 
 | | VS Code extension, next version | Launcher (the plugin and the other clients) |
 |---|---|---|
 | Command | `<extension folder>/out/cli/hypha serve` | `${CLAUDE_PLUGIN_ROOT}/bin/hypha-launch` (Claude Code), `./bin/hypha-launch` (Agent Plugins `mcp.json`), or the path the client's configuration names; no arguments |
 | `hypha` executable | in the VSIX | downloaded once from the GitHub release `tools-v<version>`, then cached |
-| Which `hypha` | the one in the package | the version `bin/hypha-launch.json` names (`2.0.0`), or the executable `HYPHA_BIN` names when that is set |
+| Which `hypha` | the one in the package | the version `bin/hypha-launch.json` names (`2.1.0`), or the executable `HYPHA_BIN` names when that is set |
 | Integrity check | the registry's package | the archive's SHA-256 against the checksum table in the same release's notes |
 | Extra network access | none | on first start only: `api.github.com` (`repos/mycelium-cmbse/mycelium-hypha/releases/tags/tools-v<version>`) and the release asset from `github.com` and GitHub's download hosts |
 | Credentials | as section 7 | as section 7: the launcher also reads `GITHUB_TOKEN`, then `GH_TOKEN`, for its GitHub requests |

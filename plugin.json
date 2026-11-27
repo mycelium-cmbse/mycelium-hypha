@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "hypha",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Hypha is the AI agent of the Mycelium ecosystem: a connecting filament between engineers and the SysML v2 specification. Provides skills and an MCP server for KerML/SysML v2 metamodel lookup, standard model library lookup, Systems Modeling API lookup, normative spec citation, and SysML v2 textual-notation validation.",
   "author": {
     "name": "Starion Group S.A.",
