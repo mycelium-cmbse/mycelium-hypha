@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the same file per search. The search now passes the index it has already read to a new
   `ISpecificationReader.Read` overload, which reads the clause from it without touching the index
   file again.
+- **The GitHub rate-limit notice no longer gives request counts that go stale** (`fixes #269`): it
+  said a check costs about three requests and an install about five, which holds only while every
+  upstream repository has fewer than 100 tags, since each 100 more adds a request. The notice now
+  says only that each check and install uses several. The CLI README's "Rate limits" section keeps
+  the figures, with that caveat and the one extra request the first specification generation makes
+  for `uv`'s release.
 
 ## [3.1.0] - 2026-11-27
 

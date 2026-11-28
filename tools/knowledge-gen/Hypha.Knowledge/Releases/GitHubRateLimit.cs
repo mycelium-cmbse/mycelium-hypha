@@ -12,10 +12,12 @@ namespace Hypha.Knowledge.Releases
     /// so that a user without a token hears that the limit is running out before it has.
     /// </summary>
     /// <remarks>
-    /// Without a token GitHub allows 60 API requests an hour from one address; with one, 5,000. An install
-    /// of the newest release makes about five, a check three, an API version install about six, so a
-    /// session that checks and installs a few times reaches the anonymous limit. Downloads of the files
-    /// themselves come from <c>raw.githubusercontent.com</c> and do not count.
+    /// Without a token GitHub allows 60 API requests an hour from one address; with one, 5,000. A check
+    /// or an install makes a handful, more as the upstream repositories gather tags, since tags are
+    /// listed 100 to a request, so a session that checks and installs a few times reaches the anonymous
+    /// limit. The notice therefore names no cost per check or install; the CLI's README gives the
+    /// current figures. Downloads of the files themselves come from <c>raw.githubusercontent.com</c> and
+    /// do not count.
     /// </remarks>
     public sealed class GitHubRateLimit
     {
@@ -105,7 +107,7 @@ namespace Hypha.Knowledge.Releases
                 }
 
                 return $"Only {left} of GitHub's {this.limit ?? 60} API requests an hour without a token are left"
-                       + $"{Until(this.reset)}. Each check costs about three, each install about five. {TokenAdvice}";
+                       + $"{Until(this.reset)}. Each check and each install uses several. {TokenAdvice}";
             }
         }
 
