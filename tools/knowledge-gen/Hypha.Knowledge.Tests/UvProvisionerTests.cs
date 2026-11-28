@@ -88,6 +88,37 @@ namespace Hypha.Knowledge.Tests
             Assert.That(provisioner.OkMarker(UvProvisioner.PinnedVersion, this.target).Exists, Is.True);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Makes_the_extracted_executable_runnable_on_unix(bool wrapped)
+        {
+            // The archive's entry carries no execute bit, so only the provisioner's own chmod, applied
+            // to the executable wherever the archive holds it, makes it runnable. Windows has no
+            // execute bit. The guard, rather than a Platform attribute, keeps CA1416 satisfied.
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Ignore("Unix file modes do not exist on Windows.");
+
+                // Never reached, since Assert.Ignore throws, but CA1416 only sees the guard through it.
+                return;
+            }
+
+            var archive = BuildArchive(this.target, wrapped: wrapped);
+            var handler = StubHandler.ForSuccessfulDownload(this.target, archive);
+            using var client = new HttpClient(handler) { BaseAddress = new Uri("https://api.github.com/") };
+            var provisioner = new UvProvisioner(client, NullLogger<UvProvisioner>.Instance, this.cacheRoot);
+
+            var executable = await provisioner.EnsureAsync();
+
+            Assert.That(executable, Is.Not.Null);
+            // Every execute bit, so anyone sharing the toolchain folder can run uv; the read and write
+            // bits are left unpinned.
+            var mode = File.GetUnixFileMode(executable!.FullName);
+            Assert.That(mode.HasFlag(UnixFileMode.UserExecute), Is.True);
+            Assert.That(mode.HasFlag(UnixFileMode.GroupExecute), Is.True);
+            Assert.That(mode.HasFlag(UnixFileMode.OtherExecute), Is.True);
+        }
+
         [Test]
         public async Task Flat_executable_wins_when_the_archive_contains_both_layouts()
         {
