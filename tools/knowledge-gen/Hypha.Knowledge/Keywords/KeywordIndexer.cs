@@ -406,11 +406,12 @@ namespace Hypha.Knowledge.Keywords
         {
             var text = Masked(syntax);
             var calls = new List<string>();
-            var depth = 0;
-            var assignedDepth = -1;
 
             // An assigned group, "ownedRelatedElement += ( LiteralExpression | FeatureReferenceExpression )",
             // is assigned as a whole, so nothing inside it is a bare call.
+            var depth = 0;
+            var assignedDepth = -1;
+
             // A reference is skipped whole, so the loop moves on by its length rather than by one.
             var step = 1;
             for (var index = 0; index < text.Length; index += step)
