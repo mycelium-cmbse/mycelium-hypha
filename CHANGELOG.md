@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   3.1.0, with the hashes of its packages, the same on the Visual Studio Marketplace and Open VSX,
   of the launcher binaries and of the tools archives. The index lists it.
 
+### Fixed
+- **The specification search reads each index once** (`fixes #267`): its parallel readers were all
+  handed the same `FileInfo` of the specification's `index.json`, and each refreshed and checked it
+  before reading its clause, a data race on a type that is not thread-safe and some 1,500 checks of
+  the same file per search. The search now passes the index it has already read to a new
+  `ISpecificationReader.Read` overload, which reads the clause from it without touching the index
+  file again.
+
 ## [3.1.0] - 2026-11-27
 
 This release starts `hypha` tools 2.1.0 (`tools-v2.1.0`). Existing installs keep their specification
