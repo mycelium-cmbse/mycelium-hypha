@@ -6,10 +6,12 @@ namespace Hypha.Knowledge.Tests
     using System;
     using System.IO;
     using System.Linq;
+    using System.Threading;
 
     using Hypha.Knowledge.CrossReferences;
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Query;
+    using Hypha.Knowledge.Specification;
 
     [TestFixture]
     public class SpecificationSearchTests
@@ -219,6 +221,36 @@ namespace Hypha.Knowledge.Tests
             });
         }
 
+        [Test]
+        public void The_index_is_read_once_per_specification_however_many_clauses_are_searched()
+        {
+            const int Count = 50;
+            var catalog = this.Catalog("sysml2");
+            var clauses = Enumerable.Range(1, Count)
+                .Select(at => ($"9.{at}", $"Clause {at}", "1", true, $"09.{at:D3}-clause.md"))
+                .ToArray();
+            QueryFixture.WriteSpecification(catalog, "SysML", clauses);
+
+            foreach (var (_, _, _, _, file) in clauses)
+            {
+                this.Page("sysml2", file, "needle");
+            }
+
+            var documents = new DocumentCache();
+            var reader = new CountingReader(new SpecificationReader(documents));
+            var query = new KnowledgeQuery(
+                this.fixture.Layout, this.fixture.ApiLayout, documents, reader, new MetamodelDiffer(), new CrossReferenceDiffer());
+
+            var result = query.SearchSpecification("needle", document: "sysml2", limit: KnowledgeQuery.MaxSearchHits);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Value, Has.Count.EqualTo(Count));
+                Assert.That(reader.IndexReads, Is.EqualTo(1));
+                Assert.That(reader.ClausesReadWithTheirIndex, Is.Zero, "every clause is read from the index the search read");
+            });
+        }
+
         [TestCase(null, null, 20)]
         [TestCase("  ", null, 20)]
         [TestCase("feature", "uml", 20)]
@@ -233,5 +265,54 @@ namespace Hypha.Knowledge.Tests
 
         private void Page(string document, string file, string text) =>
             File.WriteAllText(Path.Combine(this.Catalog(document).DirectoryName!, file), $"---\nclause: \"x\"\n---\n\n{text}\n");
+
+        // The real reader, counting how often the index is read, by ReadIndex or by the Read that reads it.
+        private sealed class CountingReader : ISpecificationReader
+        {
+            private readonly ISpecificationReader inner;
+
+            private int indexReads;
+
+            private int clausesReadWithTheirIndex;
+
+            public CountingReader(ISpecificationReader inner) => this.inner = inner;
+
+            public int IndexReads => Volatile.Read(ref this.indexReads);
+
+            public int ClausesReadWithTheirIndex => Volatile.Read(ref this.clausesReadWithTheirIndex);
+
+            public SpecificationIndex? ReadIndex(FileInfo index, string regenerate)
+            {
+                Interlocked.Increment(ref this.indexReads);
+
+                return this.inner.ReadIndex(index, regenerate);
+            }
+
+            public QueryResult<SpecificationClause> Read(
+                FileInfo index,
+                string document,
+                string clause,
+                string version,
+                string owner,
+                string regenerate,
+                string unavailable,
+                Func<FileInfo, Grounding> ground)
+            {
+                Interlocked.Increment(ref this.clausesReadWithTheirIndex);
+
+                return this.inner.Read(index, document, clause, version, owner, regenerate, unavailable, ground);
+            }
+
+            public QueryResult<SpecificationClause> Read(
+                FileInfo index,
+                SpecificationIndex specification,
+                string document,
+                string clause,
+                string version,
+                string owner,
+                string regenerate,
+                Func<FileInfo, Grounding> ground) =>
+                this.inner.Read(index, specification, document, clause, version, owner, regenerate, ground);
+        }
     }
 }

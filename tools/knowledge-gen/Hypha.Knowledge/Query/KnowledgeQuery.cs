@@ -19,6 +19,7 @@ namespace Hypha.Knowledge.Query
     using Hypha.Knowledge.Lookup;
     using Hypha.Knowledge.Metamodel;
     using Hypha.Knowledge.ModelLibrary;
+    using Hypha.Knowledge.Specification;
 
     /// <summary>
     /// Answers structural questions about a release from its generated JSON, read through the same
@@ -1337,7 +1338,7 @@ namespace Hypha.Knowledge.Query
                 {
                     try
                     {
-                        found[at] = this.Match(catalog, name, clauses[at], release, wanted);
+                        found[at] = this.Match(catalog, specification, name, clauses[at], release, wanted);
                     }
                     catch (Exception exception)
                     {
@@ -1367,23 +1368,25 @@ namespace Hypha.Knowledge.Query
         }
 
         /// <summary>Reads one clause and matches the phrase in its text.</summary>
-        /// <param name="catalog">The specification's <c>index.json</c>.</param>
+        /// <param name="catalog">The specification's <c>index.json</c>, shared by every reader of the search.</param>
+        /// <param name="specification">The index, read once before the search, so no reader refreshes <paramref name="catalog"/>.</param>
         /// <param name="document">The specification, such as <c>kerml</c>.</param>
         /// <param name="clause">The clause number.</param>
         /// <param name="release">The release.</param>
         /// <param name="wanted">The collapsed phrase.</param>
         /// <returns>The match, or <c>null</c> when the clause does not contain the phrase.</returns>
-        /// <exception cref="KnowledgeLookupException">The index or the page is invalid or missing.</exception>
-        private SpecificationMatch? Match(FileInfo catalog, string document, string clause, string release, string wanted)
+        /// <exception cref="KnowledgeLookupException">The page is missing or outside its folder.</exception>
+        private SpecificationMatch? Match(
+            FileInfo catalog, SpecificationIndex specification, string document, string clause, string release, string wanted)
         {
             var read = this.specifications.Read(
                 catalog,
+                specification,
                 document,
                 clause,
                 release,
                 $"release {release}",
                 SpecificationCommand(release),
-                SpecificationUnavailable(release),
                 file => this.Ground(Provenance.Normative, release, file));
 
             return read.Value is { } text && Occurrences(CollapseWhiteSpace(text.Text), wanted) is { Count: > 0 } occurrences

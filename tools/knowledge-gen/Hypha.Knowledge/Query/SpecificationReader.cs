@@ -87,10 +87,48 @@ namespace Hypha.Knowledge.Query
 
             var specification = this.ReadIndex(index, regenerate);
 
-            if (specification is null)
-            {
-                return new(null, ground(index), unavailable);
-            }
+            return specification is null
+                ? new(null, ground(index), unavailable)
+                : this.Read(index, specification, document, clause, version, owner, regenerate, ground);
+        }
+
+        /// <summary>
+        /// Reads one clause of a specification whose index the caller has already read, with its verbatim
+        /// text and without the page's front matter.
+        /// </summary>
+        /// <remarks>
+        /// The index file is neither refreshed nor read again, so callers that read many clauses, from
+        /// several threads at once, can share one <see cref="FileInfo"/> of it.
+        /// </remarks>
+        /// <param name="index">The specification's <c>index.json</c>, which locates the pages.</param>
+        /// <param name="specification">The index, as <see cref="ReadIndex"/> returned it.</param>
+        /// <param name="document">The specification, as the knowledge keys it, such as <c>kerml</c>.</param>
+        /// <param name="clause">The clause number; case is ignored.</param>
+        /// <param name="version">The release or API version.</param>
+        /// <param name="owner">What the text belongs to, such as <c>release 2026-05</c>, for the messages.</param>
+        /// <param name="regenerate">The command that regenerates the specification text, for the messages.</param>
+        /// <param name="ground">The grounding of an answer read from a file.</param>
+        /// <returns>
+        /// The clause, grounded as <see cref="Provenance.Normative"/> on its page; <c>null</c> when the
+        /// index has no such clause.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="index"/>, <paramref name="specification"/> or <paramref name="ground"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="KnowledgeLookupException">The page is missing or outside its folder.</exception>
+        public QueryResult<SpecificationClause> Read(
+            FileInfo index,
+            SpecificationIndex specification,
+            string document,
+            string clause,
+            string version,
+            string owner,
+            string regenerate,
+            Func<FileInfo, Grounding> ground)
+        {
+            ArgumentNullException.ThrowIfNull(index);
+            ArgumentNullException.ThrowIfNull(specification);
+            ArgumentNullException.ThrowIfNull(ground);
 
             if (!specification.TryFind(clause, out var number, out var entry))
             {
