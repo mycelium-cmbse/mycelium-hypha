@@ -210,8 +210,9 @@ namespace Hypha.Tools.Commands
                     {
                         AnsiConsole.MarkupLine(
                             $"[yellow]Already evicted: {Markup.Escape(string.Join(", ", evicted))}. "
-                            + "Nothing is committed yet - 'git checkout' restores them if this needs "
-                            + "investigating before you commit.[/]");
+                            + "Their sources and knowledge are deleted and were never in git, so git cannot "
+                            + "restore them. To install one again, run 'hypha fetch --tag <release> --no-default' and then "
+                            + "'hypha generate --tag <release>'.[/]");
                     }
 
                     return 1;

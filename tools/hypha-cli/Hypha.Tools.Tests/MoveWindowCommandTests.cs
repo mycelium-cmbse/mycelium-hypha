@@ -303,14 +303,35 @@ namespace Hypha.Tools.Tests
                 .ReturnsAsync((IReadOnlyList<string>)["2026-04"]);
             this.verifyExitCode = 1;
 
-            using var console = new RecordedConsole();
+            using var console = new RecordedConsole(width: 400);
 
             var result = await this.Invoke("move-window --tag 2026-06");
 
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.EqualTo(1), "eviction already happening does not make the run a success");
-                Assert.That(console.Output, Does.Contain("2026-04"));
+                Assert.That(console.Output, Does.Contain("Already evicted: 2026-04."));
+            });
+        }
+
+        [Test]
+        public async Task After_a_failed_verification_the_evicted_releases_are_said_to_come_back_by_fetching_and_generating_them_not_from_git()
+        {
+            this.evictor
+                .Setup(mock => mock.EvictAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<string>)["2026-04"]);
+            this.verifyExitCode = 1;
+
+            using var console = new RecordedConsole(width: 400);
+
+            await this.Invoke("move-window --tag 2026-06");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    console.Output,
+                    Does.Contain("'hypha fetch --tag <release> --no-default' and then 'hypha generate --tag <release>'"));
+                Assert.That(console.Output, Does.Not.Contain("git checkout"));
             });
         }
 
