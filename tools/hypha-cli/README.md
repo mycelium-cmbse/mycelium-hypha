@@ -385,8 +385,12 @@ requests an hour from one address; with a token, 5,000. Set `--token`, `GITHUB_T
 The files themselves come from `raw.githubusercontent.com`, which does not count. What does is
 listing a repository's tags (one request per 100 tags), resolving a tag to its commit and listing a
 release's files: about three requests for a check, five for installing the newest release, three for
-a named one and six for an API version. `hypha serve` keeps the tags it read for ten minutes and each
-tag's commit for as long as it runs, so a check followed by an install asks once.
+a named one and six for an API version. These are the figures while every upstream repository has
+fewer than 100 tags; each one that passes 100 adds a request to every check and install that lists
+its tags (SysML-v2-Pilot-Implementation and SysML-v2-API-Services had 92 and 90 in November 2026).
+The first generation of the specification text asks once more, for `uv`'s release. `hypha serve`
+keeps the tags it read for ten minutes and each tag's commit for as long as it runs, so a check
+followed by an install asks once.
 
 When 20 or fewer requests without a token are left, the MCP server's `hypha_check_releases` and
 `hypha_install_release` answers carry a `notice` saying how many, until when, and how to raise the

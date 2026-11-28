@@ -44,6 +44,15 @@ namespace Hypha.Knowledge.Tests
         }
 
         [Test]
+        public void The_notice_names_no_cost_per_check_or_install_since_it_grows_with_the_upstream_tags()
+        {
+            var limit = new GitHubRateLimit(authenticated: false);
+            limit.Record("60", "12", Reset);
+
+            Assert.That(limit.Notice(), Does.Not.Match(@"\b(three|five|six)\b"));
+        }
+
+        [Test]
         public void At_the_low_water_mark_there_is_a_notice()
         {
             var limit = new GitHubRateLimit(authenticated: false);
