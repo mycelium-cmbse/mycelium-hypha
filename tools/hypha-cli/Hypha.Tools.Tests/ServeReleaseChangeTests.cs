@@ -9,6 +9,8 @@ namespace Hypha.Tools.Tests
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Hypha.Knowledge.Layout;
@@ -27,6 +29,8 @@ namespace Hypha.Tools.Tests
 
         private const string Older = "2026-04";
 
+        private readonly ProgressNotifications progress = new();
+
         private TemporaryKnowledge knowledge = null!;
         private McpClient client = null!;
 
@@ -44,7 +48,18 @@ namespace Hypha.Tools.Tests
                 Arguments = [Path.Combine(AppContext.BaseDirectory, "hypha.dll"), "serve", "--repository-root", this.knowledge.Root.FullName],
             });
 
-            this.client = await McpClient.CreateAsync(transport).WaitAsync(TimeSpan.FromMinutes(1));
+            // The progress handler is registered for the client's lifetime: the one CallToolAsync registers
+            // for a call is removed as soon as the answer is handled, and the client handles each incoming
+            // message on the thread pool, so a notification sent before the answer could still be dropped.
+            var options = new McpClientOptions
+            {
+                Handlers = new McpClientHandlers
+                {
+                    NotificationHandlers = [new(NotificationMethods.ProgressNotification, this.progress.Receive)],
+                },
+            };
+
+            this.client = await McpClient.CreateAsync(transport, options).WaitAsync(TimeSpan.FromMinutes(1));
         }
 
         [OneTimeTearDown]
@@ -85,22 +100,33 @@ namespace Hypha.Tools.Tests
         }
 
         [Test]
-        public async Task A_call_with_a_progress_token_is_sent_progress_before_its_answer()
+        public async Task A_call_with_a_progress_token_is_sent_progress()
         {
             // A tag that is not shaped like a release is refused before anything goes upstream, so this runs
-            // offline; the install says what it starts on before that.
-            var progress = new Collected();
+            // offline; the install says what it starts on before that. The server sends that progress before
+            // its answer, but the client may handle the two in either order, so the order is not asserted.
+            var token = Guid.NewGuid().ToString("N");
 
-            var result = await this.client.CallToolAsync(
-                "hypha_install_release", new Dictionary<string, object?> { ["tag"] = "not-a-release" }, progress);
+            var result = await this.client.CallToolAsync(new CallToolRequestParams
+            {
+                Name = "hypha_install_release",
+                Arguments = new Dictionary<string, JsonElement>
+                {
+                    ["tag"] = JsonSerializer.SerializeToElement("not-a-release", McpJsonUtilities.DefaultOptions),
+                },
+                Meta = new JsonObject { ["progressToken"] = token },
+            });
+
+            var first = this.progress.First(new ProgressToken(token));
+            var arrived = await Task.WhenAny(first, Task.Delay(TimeSpan.FromSeconds(30))) == first;
 
             Assert.Multiple(() =>
             {
                 Assert.That(result.IsError, Is.True, Text(result));
                 Assert.That(Text(result), Does.Contain("not-a-release"));
-                Assert.That(progress.Values, Is.Not.Empty, "the client asked for progress and was sent none");
-                Assert.That(progress.Values.First().Message, Does.Contain("not-a-release"));
+                Assert.That(arrived, Is.True, "the client asked for progress and was sent none");
             });
+            Assert.That((await first).Message, Does.Contain("not-a-release"));
         }
 
         [Test]
@@ -132,15 +158,27 @@ namespace Hypha.Tools.Tests
         private static string Text(CallToolResult result) =>
             string.Concat(result.Content.OfType<TextContentBlock>().Select(block => block.Text));
 
-        // Records each notification as it arrives, on the thread that delivers it; Progress<T> would post
-        // it to the thread pool, and the assertions could run before it is recorded.
-        private sealed class Collected : IProgress<ProgressNotificationValue>
+        // The first progress notification each token is sent, waited for by the token rather than by the
+        // call, so it is recorded whenever it arrives.
+        private sealed class ProgressNotifications
         {
-            private readonly ConcurrentQueue<ProgressNotificationValue> values = new();
+            private readonly ConcurrentDictionary<ProgressToken, TaskCompletionSource<ProgressNotificationValue>> first = new();
 
-            public IReadOnlyList<ProgressNotificationValue> Values => [.. this.values];
+            public Task<ProgressNotificationValue> First(ProgressToken token) => this.Of(token).Task;
 
-            public void Report(ProgressNotificationValue value) => this.values.Enqueue(value);
+            public ValueTask Receive(JsonRpcNotification notification, CancellationToken cancellationToken)
+            {
+                var received = JsonSerializer.Deserialize<ProgressNotificationParams>(notification.Params, McpJsonUtilities.DefaultOptions);
+                if (received is not null)
+                {
+                    this.Of(received.ProgressToken).TrySetResult(received.Progress);
+                }
+
+                return ValueTask.CompletedTask;
+            }
+
+            private TaskCompletionSource<ProgressNotificationValue> Of(ProgressToken token) =>
+                this.first.GetOrAdd(token, _ => new TaskCompletionSource<ProgressNotificationValue>(TaskCreationOptions.RunContinuationsAsynchronously));
         }
     }
 }
