@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `spec/sysml2/` as Parts 1 and 2, but only Part 1, the Language Specification
   (`2a-OMG_Systems_Modeling_Language.pdf`), is fetched and extracted. Part 2 is the SysML v1 to v2
   Transformation, which the knowledge does not cover.
+- **`hypha move-window` no longer says `git checkout` restores the releases it evicted**
+  (`fixes #268`): when the final verification fails after releases were evicted, it said nothing was
+  committed yet and `git checkout` would restore them. Nothing per release is committed any more, so
+  it now says their sources and knowledge are deleted and were never in git, and that
+  `hypha fetch --tag <release> --no-default` and then `hypha generate --tag <release>` install one
+  again, leaving the release `move-window` installed as the default. The evictor's documentation
+  made the same claim and no longer does.
 
 ## [3.1.0] - 2026-11-27
 

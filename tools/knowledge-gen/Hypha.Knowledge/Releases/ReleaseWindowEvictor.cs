@@ -20,9 +20,8 @@ namespace Hypha.Knowledge.Releases
     /// longer fit.
     /// </summary>
     /// <remarks>
-    /// Nothing here commits anything: every change is still a working-tree edit until the caller
-    /// commits, so an eviction that turns out to be premature is a <c>git checkout</c> away from
-    /// undone.
+    /// The folders it deletes and the manifest it rewrites are git-ignored, so git cannot undo an
+    /// eviction; a release evicted too early comes back only by fetching and generating it again.
     /// </remarks>
     public sealed class ReleaseWindowEvictor : IReleaseWindowEvictor
     {
