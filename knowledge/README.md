@@ -26,7 +26,7 @@ knowledge/
     ├── model-library/      The standard model libraries: index.md, index.json, one page per package
     ├── spec/
     │   ├── kerml/          KerML 1.0 spec text, segmented by clause
-    │   └── sysml2/         SysML v2 (Parts 1 and 2) spec text, segmented by clause
+    │   └── sysml2/         SysML v2 Part 1 (Language Specification) spec text, segmented by clause
     ├── textual-notation/
     │   ├── index.md        Keyword reference + a link to every example
     │   ├── grammar-{kerml,sysml,graphical}.md   Every production, by clause, with what it builds
