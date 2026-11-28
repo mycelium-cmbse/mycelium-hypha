@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   says only that each check and install uses several. The CLI README's "Rate limits" section keeps
   the figures, with that caveat and the one extra request the first specification generation makes
   for `uv`'s release.
+- **`knowledge/README.md` says which SysML v2 text is extracted** (`fixes #271`): it described
+  `spec/sysml2/` as Parts 1 and 2, but only Part 1, the Language Specification
+  (`2a-OMG_Systems_Modeling_Language.pdf`), is fetched and extracted. Part 2 is the SysML v1 to v2
+  Transformation, which the knowledge does not cover.
 
 ## [3.1.0] - 2026-11-27
 
