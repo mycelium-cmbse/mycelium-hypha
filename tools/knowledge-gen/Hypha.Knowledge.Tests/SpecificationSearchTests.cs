@@ -4,6 +4,7 @@
 namespace Hypha.Knowledge.Tests
 {
     using System;
+    using System.Collections.Concurrent;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -203,8 +204,15 @@ namespace Hypha.Knowledge.Tests
             foreach (var (_, _, _, _, file) in clauses)
             {
                 var at = int.Parse(file[3..6], System.Globalization.CultureInfo.InvariantCulture);
-                this.Page("sysml2", file, string.Join(' ', Enumerable.Repeat("needle", at % 7 + 1)));
+                this.Page("sysml2", file, string.Join(' ', Enumerable.Repeat("needle", Occurrences(at))));
             }
+
+            // The most occurrences first, then by clause number: the ranking the pages were written for.
+            var expected = Enumerable.Range(1, Count)
+                .OrderByDescending(Occurrences)
+                .ThenBy(at => at)
+                .Take(KnowledgeQuery.MaxSearchHits)
+                .Select(at => $"9.{at} {Occurrences(at)}");
 
             var first = this.fixture.Query.SearchSpecification("needle", document: "sysml2", limit: KnowledgeQuery.MaxSearchHits).Value!
                 .Select(match => $"{match.Address.Name} {match.Occurrences}")
@@ -215,9 +223,77 @@ namespace Hypha.Knowledge.Tests
 
             Assert.Multiple(() =>
             {
-                Assert.That(first, Has.Count.EqualTo(KnowledgeQuery.MaxSearchHits));
-                Assert.That(first[0], Is.EqualTo("9.6 7"));
+                Assert.That(first, Is.EqualTo(expected));
                 Assert.That(again, Is.EqualTo(first));
+            });
+
+            static int Occurrences(int at) => at % 7 + 1;
+        }
+
+        [Test]
+        public void A_phrase_only_the_last_of_many_clauses_holds_is_found()
+        {
+            const int Count = 300;
+            var clauses = this.ManyClauses(Count, "haystack");
+            this.Page("sysml2", clauses[^1].File, "haystack and the needle");
+
+            var result = this.fixture.Query.SearchSpecification("needle", document: "sysml2");
+
+            Assert.That(result.Value!.Select(match => match.Address.Name), Is.EqualTo(new[] { $"9.{Count}" }));
+        }
+
+        [Test]
+        public void With_many_pages_missing_the_one_named_is_the_first_missing_in_the_index()
+        {
+            // The missing pages start a third of the way in, so that a reader that started elsewhere in
+            // the index is likely to fail first; throwing whichever failure came first would then name it.
+            var clauses = this.ManyClauses(300, "needle");
+
+            foreach (var (_, _, _, _, file) in clauses.Skip(100))
+            {
+                File.Delete(Path.Combine(this.Catalog("sysml2").DirectoryName!, file));
+            }
+
+            Assert.That(
+                () => this.fixture.Query.SearchSpecification("needle", document: "sysml2"),
+                Throws.TypeOf<KnowledgeLookupException>()
+                    .With.Message.Contains(clauses[100].File)
+                    .And.Message.Not.Contains(clauses[101].File)
+                    .And.Message.Not.Contains(clauses[^1].File));
+        }
+
+        [Test]
+        public void An_index_without_entries_is_searched_and_finds_nothing()
+        {
+            QueryFixture.WriteSpecification(this.Catalog("sysml2"), "SysML");
+
+            var result = this.fixture.Query.SearchSpecification("needle", document: "sysml2");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Available, Is.True);
+                Assert.That(result.Value, Is.Empty);
+            });
+        }
+
+        [Test]
+        public void Clauses_are_read_several_at_a_time_but_no_more_than_eight_and_each_once()
+        {
+            const int Count = 200;
+            var clauses = this.ManyClauses(Count, "needle");
+            var documents = new DocumentCache();
+            var reader = new ConcurrencyReader(new SpecificationReader(documents));
+            var query = new KnowledgeQuery(
+                this.fixture.Layout, this.fixture.ApiLayout, documents, reader, new MetamodelDiffer(), new CrossReferenceDiffer());
+
+            var result = query.SearchSpecification("needle", document: "sysml2", limit: KnowledgeQuery.MaxSearchHits);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Value, Has.Count.EqualTo(Count));
+                Assert.That(reader.MostAtOnce, Is.InRange(2, 8));
+                Assert.That(reader.Reads.Keys, Is.EquivalentTo(clauses.Select(clause => clause.Clause)));
+                Assert.That(reader.Reads.Values, Is.All.EqualTo(1), "each clause is read once");
             });
         }
 
@@ -265,6 +341,101 @@ namespace Hypha.Knowledge.Tests
 
         private void Page(string document, string file, string text) =>
             File.WriteAllText(Path.Combine(this.Catalog(document).DirectoryName!, file), $"---\nclause: \"x\"\n---\n\n{text}\n");
+
+        // A SysML index of clauses 9.1 to 9.<count>, in that order, each page holding the text.
+        private (string Clause, string Title, string Pages, bool Normative, string File)[] ManyClauses(int count, string text)
+        {
+            var clauses = Enumerable.Range(1, count)
+                .Select(at => ($"9.{at}", $"Clause {at}", "1", true, $"09.{at:D3}-clause.md"))
+                .ToArray();
+            QueryFixture.WriteSpecification(this.Catalog("sysml2"), "SysML", clauses);
+
+            foreach (var (_, _, _, _, file) in clauses)
+            {
+                this.Page("sysml2", file, text);
+            }
+
+            return clauses;
+        }
+
+        // The real reader, recording how many clauses are read at once and how often each is read. The
+        // first read waits for a second to start, so reads made one at a time show a peak of one rather
+        // than one read passing by luck before the next began; each read then lingers a little, so that
+        // a search without a cap would show more than eight.
+        private sealed class ConcurrencyReader : ISpecificationReader
+        {
+            private static readonly TimeSpan SecondReadWait = TimeSpan.FromSeconds(5);
+
+            private readonly ISpecificationReader inner;
+
+            private int inFlight;
+
+            private int mostAtOnce;
+
+            private int waited;
+
+            public ConcurrencyReader(ISpecificationReader inner) => this.inner = inner;
+
+            public int MostAtOnce => Volatile.Read(ref this.mostAtOnce);
+
+            public ConcurrentDictionary<string, int> Reads { get; } = new(StringComparer.Ordinal);
+
+            public SpecificationIndex? ReadIndex(FileInfo index, string regenerate) => this.inner.ReadIndex(index, regenerate);
+
+            public QueryResult<SpecificationClause> Read(
+                FileInfo index,
+                string document,
+                string clause,
+                string version,
+                string owner,
+                string regenerate,
+                string unavailable,
+                Func<FileInfo, Grounding> ground) =>
+                this.inner.Read(index, document, clause, version, owner, regenerate, unavailable, ground);
+
+            public QueryResult<SpecificationClause> Read(
+                FileInfo index,
+                SpecificationIndex specification,
+                string document,
+                string clause,
+                string version,
+                string owner,
+                string regenerate,
+                Func<FileInfo, Grounding> ground)
+            {
+                this.Reads.AddOrUpdate(clause, 1, (_, reads) => reads + 1);
+                var now = Interlocked.Increment(ref this.inFlight);
+
+                try
+                {
+                    var peak = Volatile.Read(ref this.mostAtOnce);
+                    while (now > peak)
+                    {
+                        var seen = Interlocked.CompareExchange(ref this.mostAtOnce, now, peak);
+
+                        if (seen == peak)
+                        {
+                            break;
+                        }
+
+                        peak = seen;
+                    }
+
+                    if (Interlocked.Exchange(ref this.waited, 1) == 0)
+                    {
+                        SpinWait.SpinUntil(() => this.MostAtOnce >= 2, SecondReadWait);
+                    }
+
+                    Thread.Sleep(5);
+
+                    return this.inner.Read(index, specification, document, clause, version, owner, regenerate, ground);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref this.inFlight);
+                }
+            }
+        }
 
         // The real reader, counting how often the index is read, by ReadIndex or by the Read that reads it.
         private sealed class CountingReader : ISpecificationReader
